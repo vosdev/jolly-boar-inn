@@ -18,22 +18,9 @@ describe('sheetFor', () => {
     expect(sheetFor('zanaris')).toBe('sign')
   })
 
-  it('puts up the notice board on Home in the inn only', () => {
-    expect(sheetFor('jolly', true)).toBe('board')
-    expect(sheetFor('pollnivneach', true)).toBe('scroll')
-    expect(sheetFor('wilderness', true)).toBe('poster')
-    expect(sheetFor('party_room', true)).toBe('bunting')
-    expect(sheetFor('tzhaar', true)).toBe('slab')
-    expect(sheetFor('jungle', true)).toBe('bamboo')
-    expect(sheetFor('gauntlet', true)).toBe('gauntlet')
-    expect(sheetFor('corrupted_gauntlet', true)).toBe('gauntlet')
-    expect(sheetFor('morytania', true)).toBe('gravestone')
-    expect(sheetFor('zanaris', true)).toBe('sign')
-  })
-
   it("falls back to the inn's for a theme it does not know", () => {
     expect(sheetFor('')).toBe('scroll')
-    expect(sheetFor('from_a_newer_build', true)).toBe('board')
+    expect(sheetFor('from_a_newer_build')).toBe('scroll')
   })
 })
 
@@ -41,7 +28,6 @@ describe('hasRolls', () => {
   it('is the scroll alone', () => {
     const sheets = [
       'scroll',
-      'board',
       'poster',
       'bunting',
       'slab',

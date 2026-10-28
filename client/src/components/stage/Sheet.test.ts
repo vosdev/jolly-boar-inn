@@ -1,4 +1,4 @@
-/** The stage hangs the theme's sheet, follows a change of theme, and gives Home the inn's notice board. */
+/** The stage hangs the theme's sheet and follows a change of theme. */
 
 import { cleanup, render } from '@testing-library/svelte'
 import { createRawSnippet, tick } from 'svelte'
@@ -11,9 +11,9 @@ const paper = createRawSnippet(() => ({
   render: () => '<p>Which boss drops the Tanzanite fang?</p>',
 }))
 
-function stage(theme: string, board = false) {
+function stage(theme: string) {
   document.documentElement.dataset.theme = theme
-  const { container } = render(StageView, { paper, board })
+  const { container } = render(StageView, { paper })
   const sheet = container.querySelector('.scroll') as HTMLElement
   return { container, sheet }
 }
@@ -124,15 +124,5 @@ describe('the sheet', () => {
     await new Promise((settle) => setTimeout(settle))
     await tick()
     expect(sheet.dataset.sheet).toBe('slab')
-  })
-
-  it("is Home's notice board in the inn, and the theme's own sheet elsewhere", () => {
-    const board = stage('jolly', true).sheet
-    expect(board.dataset.sheet).toBe('board')
-    expect(board.querySelector('.roll')).toBeNull()
-    expect(board.querySelectorAll('.fixing')).toHaveLength(2)
-    cleanup()
-
-    expect(stage('wilderness', true).sheet.dataset.sheet).toBe('poster')
   })
 })

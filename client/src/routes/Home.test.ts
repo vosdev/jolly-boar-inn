@@ -1,7 +1,7 @@
-/** The front page: a code typed the way it was shouted, the public lobbies, and the rooms created here. */
+/** The front page: the host's line, a code typed the way it was shouted, the public lobbies, and the rooms created here. */
 
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/svelte'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as admin from '../lib/admin'
 import * as api from '../lib/api'
@@ -69,22 +69,22 @@ describe('Home', () => {
 
   it("challenges the visitor in the site's name, and one tap goes to Create", async () => {
     render(Home, { navigate })
-    const heading = screen.getByRole('heading', { level: 1 })
-    expect(heading.textContent).toBe('Think you know Gielinor? Prove it at The Jolly Boar Inn.')
-    expect(heading.closest('.scroll')?.textContent).toContain(
-      'Your Oldschool RuneScape knowledge will be tested.',
+    expect(document.querySelector('.bubble .speech')?.textContent?.replace(/\s+/g, ' ')).toContain(
+      'Think you know Gielinor? Prove it at The Jolly Boar Inn! Join a room with its code, or ' +
+        'create your own and host it for your friends, your clan or your stream.',
     )
     await fireEvent.click(screen.getByRole('button', { name: 'Create a room' }))
     expect(navigate).toHaveBeenCalledWith('/create')
   })
 
-  it("puts its challenge on the inn's notice board, and on the theme's own sheet elsewhere", () => {
+  it("puts Join and Create on the theme's own sheet: the clue scroll in the inn", () => {
     document.documentElement.dataset.theme = 'jolly'
     try {
       const { unmount } = render(Home, { navigate })
       const sheet = () =>
-        (screen.getByRole('heading', { level: 1 }).closest('.scroll') as HTMLElement).dataset.sheet
-      expect(sheet()).toBe('board')
+        (screen.getByLabelText('Room code').closest('.scroll') as HTMLElement).dataset.sheet
+      expect(sheet()).toBe('scroll')
+      expect(screen.getByRole('button', { name: 'Create a room' }).closest('.scroll')).toBeTruthy()
       unmount()
       document.documentElement.dataset.theme = 'tzhaar'
       render(Home, { navigate })
@@ -94,10 +94,26 @@ describe('Home', () => {
     }
   })
 
-  it('is hosted by the Wise Old Man without a hero in the branding', () => {
+  it('is hosted by the Wise Old Man, in the dialogue box, without a hero in the branding', () => {
     render(Home, { navigate })
-    const art = [...document.querySelectorAll('.stage .npc img')]
+    const art = [...document.querySelectorAll('.stage .bubble .npc img')]
     expect(art.map((img) => img.getAttribute('src'))).toEqual([npcArt('wise_old_man').url])
+    expect(document.querySelector('.bubble .name')?.textContent).toBe('Wise Old Man')
+  })
+
+  it('suggests a code the way codes look', () => {
+    render(Home, { navigate })
+    const field = screen.getByLabelText('Room code') as HTMLInputElement
+    expect(field.placeholder).toBe('ThermonuclearSmokeDevil')
+    expect(field.getAttribute('autocapitalize')).toBeNull()
+  })
+
+  it('joins with Enter as with Join', async () => {
+    render(Home, { navigate })
+    const field = screen.getByLabelText('Room code') as HTMLInputElement
+    await fireEvent.input(field, { target: { value: 'FireCape' } })
+    await fireEvent.submit(field.form!)
+    expect(navigate).toHaveBeenCalledWith('/r/FIRECAPE', { via: 'code' })
   })
 
   it('joins a code typed as two words', async () => {
@@ -176,18 +192,32 @@ describe('Home', () => {
       expect(await screen.findByText('3/50 players · 1 round')).toBeTruthy()
     })
 
-    it('says there are none when the list is empty or unreachable', async () => {
+    it('has no panel, and no word, while the list is empty or unreachable', async () => {
       render(Home, { navigate })
       await waitFor(() => expect(api.getPublicRooms).toHaveBeenCalledOnce())
-      expect(screen.getByRole('heading', { name: 'Public rooms' })).toBeTruthy()
-      expect(screen.getByText('There are no public rooms right now.')).toBeTruthy()
+      expect(screen.queryByRole('heading', { name: 'Public rooms' })).toBeNull()
+      expect(screen.queryByText(/no public rooms/)).toBeNull()
       cleanup()
 
       vi.mocked(api.getPublicRooms).mockRejectedValue(new api.ApiFailure(0, 'unreachable', 'down'))
       render(Home, { navigate })
       await waitFor(() => expect(api.getPublicRooms).toHaveBeenCalledTimes(2))
-      expect(screen.getByRole('heading', { name: 'Public rooms' })).toBeTruthy()
-      expect(screen.getByText('There are no public rooms right now.')).toBeTruthy()
+      expect(screen.queryByRole('heading', { name: 'Public rooms' })).toBeNull()
+    })
+
+    it('puts the panel up when a room is listed', async () => {
+      vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
+      try {
+        render(Home, { navigate })
+        await waitFor(() => expect(api.getPublicRooms).toHaveBeenCalledOnce())
+        expect(screen.queryByRole('heading', { name: 'Public rooms' })).toBeNull()
+        vi.mocked(api.getPublicRooms).mockResolvedValue([LOBBY])
+        await vi.advanceTimersByTimeAsync(10_000)
+        expect(await screen.findByRole('heading', { name: 'Public rooms' })).toBeTruthy()
+        expect(screen.getByText('DRAGON')).toBeTruthy()
+      } finally {
+        vi.useRealTimers()
+      }
     })
   })
 
@@ -280,22 +310,6 @@ describe('Room limit', () => {
 })
 
 describe('Layout', () => {
-  /** The column a panel sits in, or null when it spans the page. */
-  function columnOf(heading: string): number | null {
-    const column = screen.getByRole('heading', { name: heading }).closest('.column')
-    if (column === null) return null
-    return [...document.querySelectorAll('.columns > .column')].indexOf(column)
-  }
-
-  /** jsdom has no matchMedia; a screen is either past the two-column breakpoint or not. */
-  function screenIs(wide: boolean): void {
-    vi.stubGlobal('matchMedia', (query: string) => ({
-      matches: wide && query === '(min-width: 50rem)',
-      addEventListener: () => {},
-      removeEventListener: () => {},
-    }))
-  }
-
   function played(): void {
     rememberCreated('MINE', '2099-01-01T00:00:00Z')
     savePastGame({
@@ -316,34 +330,52 @@ describe('Layout', () => {
     })
   }
 
-  afterEach(() => vi.unstubAllGlobals())
-
-  it('puts Join, Host and Suggest in one column and the room lists in the other', () => {
-    screenIs(true)
+  it('reads the sheet, the public rooms, your rooms, then Reldo, which is the tab order too', async () => {
+    vi.mocked(api.getPublicRooms).mockResolvedValue([LOBBY])
     played()
     render(Home, { navigate })
-    expect(columnOf('Join a room')).toBe(0)
-    expect(columnOf('Host a room')).toBe(0)
-    expect(columnOf('Suggest or report a question')).toBe(0)
-    expect(columnOf('Public rooms')).toBe(1)
-    expect(columnOf('Rooms you created here')).toBe(1)
-    expect(columnOf('Past games')).toBe(1)
-    expect(columnOf('Think you know Gielinor? Prove it at The Jolly Boar Inn.')).toBeNull()
-  })
-
-  it('reads Join, Host, the lists, then Suggest on a phone, which is the tab order too', () => {
-    screenIs(false)
-    played()
-    render(Home, { navigate })
+    await screen.findByRole('heading', { name: 'Public rooms' })
     const order = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)
     expect(order).toEqual([
-      'Join a room',
-      'Host a room',
       'Public rooms',
       'Rooms you created here',
       'Past games',
       'Suggest or report a question',
     ])
+    const field = screen.getByLabelText('Room code')
+    const first = screen.getByRole('heading', { name: 'Public rooms' })
+    expect(field.compareDocumentPosition(first) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('puts your rooms and past games side by side, each only with rows', () => {
+    played()
+    render(Home, { navigate })
+    const pair = (heading: string) =>
+      screen.getByRole('heading', { name: heading }).closest('section')!.parentElement
+    expect(pair('Rooms you created here')?.classList.contains('yours')).toBe(true)
+    expect(pair('Past games')).toBe(pair('Rooms you created here'))
+  })
+
+  it('has neither list, nor anything in their place, on a first visit', () => {
+    render(Home, { navigate })
+    expect(screen.queryByRole('heading', { name: 'Rooms you created here' })).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Past games' })).toBeNull()
+    expect(document.querySelector('.yours')).toBeNull()
+  })
+
+  it('shows Rooms you created here without past games, and past games without rooms', () => {
+    rememberCreated('MINE', '2099-01-01T00:00:00Z')
+    render(Home, { navigate })
+    expect(screen.getByRole('heading', { name: 'Rooms you created here' })).toBeTruthy()
+    expect(screen.queryByRole('heading', { name: 'Past games' })).toBeNull()
+    cleanup()
+    localStorage.clear()
+
+    played()
+    localStorage.removeItem('jbi:created')
+    render(Home, { navigate })
+    expect(screen.getByRole('heading', { name: 'Past games' })).toBeTruthy()
+    expect(screen.queryByRole('heading', { name: 'Rooms you created here' })).toBeNull()
   })
 
   it('has no Open source panel: the footer carries the link to the code', () => {
@@ -591,8 +623,21 @@ describe('Suggest or report a question', () => {
     played()
     render(Home, { navigate })
     const section = screen.getByRole('heading', { name: heading }).closest('section')!
-    await fireEvent.click(within(section).getByRole('button', { name: 'Suggest something' }))
+    await fireEvent.click(within(section).getByRole('button', { name: 'Suggest a question' }))
     expect(navigate).toHaveBeenCalledWith('/suggest')
+  })
+
+  it("is Reldo's dialogue box, his chathead on the right", () => {
+    played()
+    render(Home, { navigate })
+    const section = screen.getByRole('heading', { name: heading }).closest('section')!
+    const box = section.querySelector('.box')!
+    expect(box.classList.contains('right')).toBe(true)
+    expect(within(section).getByText('Reldo')).toBeTruthy()
+    expect(box.querySelector('img')?.getAttribute('src')).toBe(npcArt('reldo').url)
+    expect(section.textContent).toContain(
+      "Know a question we don't ask yet, or spotted a wrong answer or an outdated fact?",
+    )
   })
 
   it('offers a report beside the suggestions, once a game has finished here', async () => {

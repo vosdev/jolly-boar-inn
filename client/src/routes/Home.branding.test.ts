@@ -17,6 +17,7 @@ vi.mock('virtual:branding', () => ({
   favicons: {},
   hero: '/assets/hero-abc123.svg',
   heroes: { tzhaar: '/assets/hero-tzhaar-def456.svg' },
+  heroName: 'Broav',
   defaultTheme: '',
 }))
 

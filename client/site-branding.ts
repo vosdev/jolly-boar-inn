@@ -1,9 +1,9 @@
 /**
  * `virtual:branding`: a selfhoster's name, logo and default theme, fixed at build time.
  *
- * Three variables, read from the environment or the repo root's `.env`:
- * `PUBLIC_SITE_NAME`, `PUBLIC_SITE_LOGO` (an image path relative to the repo root) and
- * `PUBLIC_DEFAULT_THEME`. They are read by name here rather than through Vite's
+ * Four variables, read from the environment or the repo root's `.env`:
+ * `PUBLIC_SITE_NAME`, `PUBLIC_SITE_LOGO` (an image path relative to the repo root),
+ * `PUBLIC_HERO_NAME` and `PUBLIC_DEFAULT_THEME`. They are read by name here rather than through Vite's
  * `envPrefix`, which matches on prefixes and would hand the page `PUBLIC_BASE_URL` too.
  *
  * Nothing about a misconfiguration stops the build: a logo that is missing or not an
@@ -13,7 +13,8 @@
  * Beside the logo, a file named for it and a theme (`logo.svg`, `logo-tzhaar.svg`) is that
  * theme's logo, an `apple-touch-icon.png` is the home-screen icon, an `og-card.png` is
  * the picture a shared link shows, and a `hero` (with a `hero-<theme>` per theme) stands
- * on Home's stage instead of the Wise Old Man. A selfhoster with one logo sets nothing more.
+ * on Home's stage instead of the Wise Old Man, named by `PUBLIC_HERO_NAME` or else the site's name.
+ * A selfhoster with one logo sets nothing more.
  *
  * The same plugin names the tab and draws its icon, one per theme, which `lib/theme.ts`
  * swaps in with the theme: the theme's logo, else the logo, else the bundled sign as a
@@ -34,7 +35,7 @@ const VIRTUAL = 'virtual:branding'
 const RESOLVED = '\0' + VIRTUAL
 
 export const DEFAULT_SITE_NAME = 'The Jolly Boar Inn'
-const VARS = ['PUBLIC_SITE_NAME', 'PUBLIC_SITE_LOGO', 'PUBLIC_DEFAULT_THEME']
+const VARS = ['PUBLIC_SITE_NAME', 'PUBLIC_SITE_LOGO', 'PUBLIC_HERO_NAME', 'PUBLIC_DEFAULT_THEME']
 
 const IMAGE_TYPES: Record<string, string> = {
   '.png': 'image/png',
@@ -67,6 +68,8 @@ export interface Branding {
   hero: Logo | null
   /** The heroes beside `hero` named for a theme, by theme. */
   themeHeroes: Record<string, Logo>
+  /** What the hero is called in the dialogue box, `''` when unset. */
+  heroName: string
   /** As configured, `''` when unset; the page decides whether it names a theme. */
   defaultTheme: string
   warnings: string[]
@@ -122,6 +125,7 @@ export function readBranding(
 ): Branding {
   const warnings: string[] = []
   const name = env.PUBLIC_SITE_NAME?.trim() || DEFAULT_SITE_NAME
+  const heroName = env.PUBLIC_HERO_NAME?.trim() ?? ''
   const defaultTheme = env.PUBLIC_DEFAULT_THEME?.trim() ?? ''
   if (defaultTheme !== '' && !themes.has(defaultTheme)) {
     warnings.push(`PUBLIC_DEFAULT_THEME: there is no theme "${defaultTheme}"; using jolly`)
@@ -182,6 +186,7 @@ export function readBranding(
     card,
     hero,
     themeHeroes,
+    heroName,
     defaultTheme,
     warnings,
   }
@@ -350,6 +355,7 @@ export function siteBranding(): Plugin {
         `export const logos = {${byTheme(branding.themeLogos, 'logo').join(', ')}}`,
         `export const hero = ${hero}`,
         `export const heroes = {${byTheme(branding.themeHeroes, 'hero').join(', ')}}`,
+        `export const heroName = ${JSON.stringify(branding.heroName)}`,
         `export const favicons = ${JSON.stringify(tabIcons)}`,
         `export const defaultTheme = ${JSON.stringify(branding.defaultTheme)}`,
       ].join('\n')

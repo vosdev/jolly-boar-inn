@@ -8,8 +8,7 @@
    * card under a string of bunting, in a checked tablecloth border; the TzHaar's obsidian
    * slab, chipped and glowing at the edge; the jungle's bark cloth in a frame of bamboo
    * lashed at the corners; the Gauntlet's board, dark inside a glowing crystal rim;
-   * Morytania's gravestone, moss at its foot; and Home's notice board in the inn, a note
-   * tacked to planks.
+   * and Morytania's gravestone, moss at its foot.
    *
    * It is inline SVG and CSS on layer 8's tokens rather than an image, because an `<img>`
    * cannot read the theme's custom properties (section 13). The knobs are fixed-size
@@ -25,7 +24,7 @@
   import skullUrl from '../../assets/sprites/skull.svg'
   import mushroomsUrl from '../../assets/textures/zanaris-mushrooms.svg'
   import { NO_AWARD, pinFor, type Award } from '../../lib/award'
-  import { ART, PLANK_SEAMS, type Sheet } from '../../lib/sheet'
+  import { ART, type Sheet } from '../../lib/sheet'
   import Confetti from './Confetti.svelte'
 
   let {
@@ -109,16 +108,6 @@
     {#if sheet === 'gravestone'}
       <svg class="mound" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true">
         <ellipse cx="50" cy="5" rx="50" ry="5" fill={ART.earth} />
-      </svg>
-    {/if}
-    {#if sheet === 'board'}
-      <svg class="planks" aria-hidden="true">
-        <rect width="100%" height="100%" fill={ART.plank} />
-        {#each PLANK_SEAMS as seam (seam)}
-          <rect y={seam} width="100%" height="2" fill={ART.plankGap} />
-        {/each}
-        <rect width="100%" height="100%" fill="none" stroke={ART.frame} stroke-width="14" />
-        <rect width="100%" height="100%" fill="none" stroke={ART.frameEdge} stroke-width="4" />
       </svg>
     {/if}
     <div class="paper">
@@ -218,13 +207,11 @@
           />
         </svg>
       {/each}
-    {:else if sheet === 'board' || sheet === 'poster'}
-      {@const [head, shine] =
-        sheet === 'board' ? [ART.tack, ART.tackLight] : [ART.nail, ART.nailLight]}
+    {:else if sheet === 'poster'}
       {#each ['left', 'right'] as side (side)}
         <svg class="fixing {side}" viewBox="0 0 10 10" aria-hidden="true">
-          <circle cx="5" cy="5" r="5" fill={head} />
-          <circle cx="3.6" cy="3.6" r="1.8" fill={shine} />
+          <circle cx="5" cy="5" r="5" fill={ART.nail} />
+          <circle cx="3.6" cy="3.6" r="1.8" fill={ART.nailLight} />
         </svg>
       {/each}
     {/if}
@@ -692,22 +679,6 @@
     height: calc(14px * var(--k));
   }
 
-  /* Home's notice board in the inn: a note tacked to planks, its corner folded back. */
-  :where(.scroll[data-sheet='board']) .reveal {
-    padding: calc(29px * var(--k)) calc(25px * var(--k)) calc(31px * var(--k));
-  }
-
-  .planks {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-  }
-
-  :where(.scroll[data-sheet='board']) .paper {
-    clip-path: polygon(0 0, calc(100% - 28px) 0, 100% 24px, 100% 100%, 0 100%);
-  }
-
   .fixing {
     position: absolute;
     z-index: 1;
@@ -722,21 +693,6 @@
 
   .fixing.right {
     right: calc(34px * var(--k));
-  }
-
-  [data-sheet='board'] .fixing {
-    top: calc(32px * var(--k));
-    width: calc(13px * var(--k));
-    height: calc(13px * var(--k));
-    filter: drop-shadow(0 2px 0 rgb(0 0 0 / 0.35));
-  }
-
-  [data-sheet='board'] .fixing.left {
-    left: calc(37px * var(--k));
-  }
-
-  [data-sheet='board'] .fixing.right {
-    right: calc(55px * var(--k));
   }
 
   .facets {

@@ -1,7 +1,8 @@
 <script lang="ts">
   /**
-   * The front page: join a room by code or from the public list, host a new one, manage
-   * the rooms this browser created, and look back at the games it finished.
+   * The front page (section 8 of ideas/design.md): the site's hero in the dialogue box over
+   * the theme's sheet, which holds Join and Create; under it the public rooms, the rooms this
+   * browser created and the games it finished, each only while it has any.
    *
    * "Rooms you created here" is the list in localStorage, and removing one really
    * removes it: the server deletes the row, its players and their answers, and the code
@@ -9,18 +10,21 @@
    * it expires, so the button asks first.
    *
    * A browser that has finished a game is asked for its questions too, and for what was wrong
-   * with ours (`lib/suggestions.ts`, `lib/reports.ts`).
+   * with ours (`lib/suggestions.ts`, `lib/reports.ts`), by Reldo at the column's foot.
    */
   import { onMount } from 'svelte'
-  import { hero, heroes, siteName } from 'virtual:branding'
+  import { siteName } from 'virtual:branding'
 
   import ConfirmDialog from '../components/ConfirmDialog.svelte'
+  import DialogueBox from '../components/DialogueBox.svelte'
   import HowToPlay from '../components/HowToPlay.svelte'
   import Icon from '../components/Icon.svelte'
   import Pet from '../components/Pet.svelte'
+  import Said from '../components/stage/Said.svelte'
   import Stage from '../components/stage/Stage.svelte'
   import { ApiFailure, deleteRoom, getPublicRooms, type PublicRoom } from '../lib/api'
   import { expiresIn, finishedTime } from '../lib/dates'
+  import { heroFor, speakerFor } from '../lib/hero'
   import { petOf } from '../lib/pets'
   import {
     historyPath,
@@ -62,16 +66,8 @@
   const adminToken = storedAdminToken()
   /** Pending suggestions, unknown until the server answers, and left so if it refuses the token. */
   let pending = $state<number | null>(null)
-  /** Where the two-column layout starts; keep it equal to the media query in the style. */
-  const WIDE_QUERY = '(min-width: 50rem)'
-  /**
-   * Suggest sits under Host on a wide screen and last on a phone. Both places are DOM
-   * order, so the tab key and a screen reader follow what the eye sees.
-   */
-  // The selfhoster's hero for the page's theme, else theirs for every theme; without one the
-  // Wise Old Man hosts Home.
   let theme = $state('')
-  const heroArt = $derived(heroes[theme] ?? hero)
+  const heroArt = $derived(heroFor(theme))
   onMount(() => watchTheme((current) => (theme = current)))
   onMount(() => {
     if (adminToken === null) return
@@ -81,7 +77,6 @@
     )
   })
 
-  let wide = $state(typeof matchMedia === 'function' && matchMedia(WIDE_QUERY).matches)
   let code = $state('')
   let showHowTo = $state(false)
   let removing = $state<string | null>(null)
@@ -111,11 +106,6 @@
   }
 
   onMount(() => {
-    const query = typeof matchMedia === 'function' ? matchMedia(WIDE_QUERY) : null
-    const onWide = (): void => {
-      wide = query?.matches ?? false
-    }
-    query?.addEventListener('change', onWide)
     void refreshOpen()
     void refreshFull()
     const timer = setInterval(() => {
@@ -134,7 +124,6 @@
     return () => {
       clearInterval(timer)
       document.removeEventListener('visibilitychange', onVisible)
-      query?.removeEventListener('change', onWide)
     }
   })
 
@@ -201,228 +190,212 @@
   }
 </script>
 
-{#snippet suggest()}
-  {#if suggesting || adminToken !== null}
-    <section class="panel">
-      <h2>Suggest or report a question</h2>
-      <p class="note">
-        Know something the inn doesn't ask yet? Write a question, an examine line or an item for the
-        Grand Exchange rounds. Spotted a wrong answer, a typo or an outdated fact? Tell the
-        innkeeper which question. The innkeeper reads every one.
-      </p>
-      <div class="row">
-        <button type="button" onclick={() => navigate('/suggest')}>Suggest something</button>
-        <button type="button" onclick={() => navigate('/report')}>Report a question</button>
-        {#if adminToken !== null}
-          <button type="button" onclick={() => navigate('/admin')}>
-            Admin{pending ? ` (${pending})` : ''}
-          </button>
-        {/if}
-      </div>
-    </section>
-  {/if}
+{#snippet welcome()}
+  <p>
+    Think you know Gielinor? Prove it at {siteName}! Join a room with its code, or create your own
+    and host it for your friends, your clan or your stream.
+  </p>
 {/snippet}
 
-<div class="intro">
-  <Stage host="wise_old_man" hero={heroArt} board>
+<div class="home">
+  <Stage host="wise_old_man" hero={heroArt} bubble="on">
+    {#snippet said()}
+      <Said name={speakerFor(heroArt)} line={welcome} />
+    {/snippet}
     {#snippet paper()}
-      <h1>Think you know Gielinor? Prove it at {siteName}.</h1>
-      <p class="tagline">
-        Your Oldschool RuneScape knowledge will be tested. Create or Join a room, and race for the
-        top of the leaderboard!
-      </p>
-      <button
-        type="button"
-        class="how-to"
-        aria-haspopup="dialog"
-        onclick={() => (showHowTo = true)}
-      >
-        How to play
-      </button>
+      <h1 class="sr">{siteName}</h1>
+      <div class="entry">
+        <form class="join" onsubmit={join}>
+          <div class="field">
+            <label for="code">Room code</label>
+            <input
+              id="code"
+              type="text"
+              bind:value={code}
+              oninput={() => (codeProblem = null)}
+              aria-invalid={codeProblem !== null}
+              aria-describedby={codeProblem === null ? undefined : 'code-problem'}
+              placeholder="ThermonuclearSmokeDevil"
+              autocomplete="off"
+              spellcheck="false"
+            />
+          </div>
+          <button class="primary big" type="submit" disabled={code.trim() === ''}>Join</button>
+        </form>
+        {#if codeProblem !== null}
+          <p id="code-problem" class="error">{codeProblem}</p>
+        {/if}
+        <p class="or">or</p>
+        {#if full === true}
+          <p id="room-limit" class="banner">
+            You already have five rooms. Remove one under "Rooms you created here" to make another.
+          </p>
+        {/if}
+        <button
+          type="button"
+          class="big"
+          disabled={full === true}
+          aria-describedby={full === true ? 'room-limit' : undefined}
+          onclick={() => navigate('/create')}
+        >
+          Create a room
+        </button>
+        <button
+          type="button"
+          class="how-to"
+          aria-haspopup="dialog"
+          onclick={() => (showHowTo = true)}
+        >
+          How to play
+        </button>
+      </div>
     {/snippet}
   </Stage>
-</div>
 
-{#if showHowTo}
-  <HowToPlay onclose={() => (showHowTo = false)} />
-{/if}
+  {#if showHowTo}
+    <HowToPlay onclose={() => (showHowTo = false)} />
+  {/if}
 
-<div class="columns">
-  <div class="column">
-    <section class="panel">
-      <h2>Join a room</h2>
-      <form onsubmit={join}>
-        <div class="field">
-          <label for="code">Room code</label>
-          <input
-            id="code"
-            type="text"
-            bind:value={code}
-            oninput={() => (codeProblem = null)}
-            aria-invalid={codeProblem !== null}
-            aria-describedby={codeProblem === null ? undefined : 'code-problem'}
-            placeholder="DRAGON"
-            autocomplete="off"
-            autocapitalize="characters"
-            spellcheck="false"
-          />
-          {#if codeProblem !== null}
-            <p id="code-problem" class="error">{codeProblem}</p>
-          {/if}
-        </div>
-        <button class="primary" type="submit" disabled={code.trim() === ''}>Join</button>
-      </form>
-    </section>
-
-    <section class="panel">
-      <h2>Host a room</h2>
-      <p class="note">
-        Create a game room for your friends, your stream or your clan. Pick the rounds and game
-        modes, or add your own questions.
-      </p>
-      {#if full === true}
-        <p id="room-limit" class="banner">
-          You already have five rooms. Remove one under "Rooms you created here" to make another.
-        </p>
-      {/if}
-      <button
-        type="button"
-        disabled={full === true}
-        aria-describedby={full === true ? 'room-limit' : undefined}
-        onclick={() => navigate('/create')}
-      >
-        Create a room
-      </button>
-    </section>
-    {#if wide}
-      {@render suggest()}
-    {/if}
-  </div>
-  <div class="column">
+  {#if open.length > 0}
     <section class="panel">
       <h2>Public rooms</h2>
-      {#if open.length === 0}
-        <p class="note">There are no public rooms right now.</p>
-      {:else}
-        <ul class="players">
-          {#each open as room (room.code)}
-            <li>
-              <Pet pet={petOf(room.host)} size={32} cut="icon" label="" />
-              <span class="name">
-                <span class="code-small">{room.code}</span>
-                <span class="host">{room.host.display_name}</span>
-                <span class="about">{describe(room)}</span>
-              </span>
-              <button
-                type="button"
-                class="small"
-                aria-label={`Join ${room.code}`}
-                onclick={() => navigate(`/r/${room.code}`, { via: 'public' })}
-              >
-                Join
-              </button>
-            </li>
-          {/each}
-        </ul>
-      {/if}
+      <ul class="players">
+        {#each open as room (room.code)}
+          <li>
+            <Pet pet={petOf(room.host)} size={32} cut="icon" label="" />
+            <span class="name">
+              <span class="code-small">{room.code}</span>
+              <span class="host">{room.host.display_name}</span>
+              <span class="about">{describe(room)}</span>
+            </span>
+            <button
+              type="button"
+              class="small"
+              aria-label={`Join ${room.code}`}
+              onclick={() => navigate(`/r/${room.code}`, { via: 'public' })}
+            >
+              Join
+            </button>
+          </li>
+        {/each}
+      </ul>
     </section>
+  {/if}
 
-    {#if hosted.length > 0}
-      <section class="panel">
-        <h2>Rooms you created here</h2>
-        {#if notice !== null}
-          <div class="banner" class:bad={notice.bad}>
-            {notice.text}
-            <button type="button" class="link" onclick={() => (notice = null)}>dismiss</button>
-          </div>
-        {/if}
-        <ul class="players">
-          {#each hosted as { code: room, expiresAt } (room)}
-            <li>
-              <span class="name">
-                <span class="code-small">{room}</span>
-                <span class="when">Expires {expiresIn(expiresAt, now)}</span>
-              </span>
-              <button type="button" class="small" onclick={() => navigate(`/r/${room}`)}
-                >Open</button
-              >
-              <button
-                type="button"
-                class="small"
-                aria-label={`Remove room ${room}`}
-                disabled={removing === room}
-                onclick={() => (confirming = room)}
-              >
-                <Icon name="trash" />
-              </button>
-            </li>
-          {/each}
-        </ul>
-      </section>
-    {/if}
-
-    {#if past.length > 0}
-      <section class="panel">
-        <h2>Past games</h2>
-        <ul class="players">
-          {#each pastShown as game (historyPath(game))}
-            {@const place = winnerIn(game) ?? placeIn(game)}
-            <li>
-              <span class="name">
-                <span class="code-small">{game.code}</span>
-                <span class="when">{finishedTime(game.finishedAt)}</span>
-              </span>
-              <span class="actions">
-                {#if place !== null}
-                  <span class="place">{place}</span>
-                {/if}
-                <button
-                  type="button"
-                  class="small"
-                  aria-label={`Hi-scores for ${game.code}`}
-                  onclick={() => navigate(historyPath(game))}
+  {#if hosted.length > 0 || past.length > 0}
+    <div class="yours">
+      {#if hosted.length > 0}
+        <section class="panel">
+          <h2>Rooms you created here</h2>
+          {#if notice !== null}
+            <div class="banner" class:bad={notice.bad}>
+              {notice.text}
+              <button type="button" class="link" onclick={() => (notice = null)}>dismiss</button>
+            </div>
+          {/if}
+          <ul class="players">
+            {#each hosted as { code: room, expiresAt } (room)}
+              <li>
+                <span class="name">
+                  <span class="code-small">{room}</span>
+                  <span class="when">Expires {expiresIn(expiresAt, now)}</span>
+                </span>
+                <button type="button" class="small" onclick={() => navigate(`/r/${room}`)}
+                  >Open</button
                 >
-                  <Icon name="trophy" />
-                </button>
                 <button
                   type="button"
                   class="small"
-                  aria-label={`Remove ${game.code} from past games`}
-                  onclick={() => (confirmingPast = game)}
+                  aria-label={`Remove room ${room}`}
+                  disabled={removing === room}
+                  onclick={() => (confirming = room)}
                 >
                   <Icon name="trash" />
                 </button>
-              </span>
-            </li>
-          {/each}
-        </ul>
-        {#if pastPages > 1}
-          <nav class="paging" aria-label="Past games pages">
-            <button
-              type="button"
-              class="small"
-              disabled={pastPage === 0}
-              onclick={() => pastPage--}
-            >
-              Newer
+              </li>
+            {/each}
+          </ul>
+        </section>
+      {/if}
+
+      {#if past.length > 0}
+        <section class="panel">
+          <h2>Past games</h2>
+          <ul class="players">
+            {#each pastShown as game (historyPath(game))}
+              {@const place = winnerIn(game) ?? placeIn(game)}
+              <li>
+                <span class="name">
+                  <span class="code-small">{game.code}</span>
+                  <span class="when">{finishedTime(game.finishedAt)}</span>
+                </span>
+                <span class="actions">
+                  {#if place !== null}
+                    <span class="place">{place}</span>
+                  {/if}
+                  <button
+                    type="button"
+                    class="small"
+                    aria-label={`Hi-scores for ${game.code}`}
+                    onclick={() => navigate(historyPath(game))}
+                  >
+                    <Icon name="trophy" />
+                  </button>
+                  <button
+                    type="button"
+                    class="small"
+                    aria-label={`Remove ${game.code} from past games`}
+                    onclick={() => (confirmingPast = game)}
+                  >
+                    <Icon name="trash" />
+                  </button>
+                </span>
+              </li>
+            {/each}
+          </ul>
+          {#if pastPages > 1}
+            <nav class="paging" aria-label="Past games pages">
+              <button
+                type="button"
+                class="small"
+                disabled={pastPage === 0}
+                onclick={() => pastPage--}
+              >
+                Newer
+              </button>
+              <span class="when">Page {pastPage + 1} of {pastPages}</span>
+              <button
+                type="button"
+                class="small"
+                disabled={pastPage === pastPages - 1}
+                onclick={() => pastPage++}
+              >
+                Older
+              </button>
+            </nav>
+          {/if}
+        </section>
+      {/if}
+    </div>
+  {/if}
+
+  {#if suggesting || adminToken !== null}
+    <section class="reldo" aria-labelledby="suggest-heading">
+      <h2 id="suggest-heading" class="sr">Suggest or report a question</h2>
+      <DialogueBox npc="reldo" name="Reldo" side="right">
+        <p>Know a question we don't ask yet, or spotted a wrong answer or an outdated fact?</p>
+        <div class="row">
+          <button type="button" onclick={() => navigate('/suggest')}>Suggest a question</button>
+          <button type="button" onclick={() => navigate('/report')}>Report a question</button>
+          {#if adminToken !== null}
+            <button type="button" onclick={() => navigate('/admin')}>
+              Admin{pending ? ` (${pending})` : ''}
             </button>
-            <span class="when">Page {pastPage + 1} of {pastPages}</span>
-            <button
-              type="button"
-              class="small"
-              disabled={pastPage === pastPages - 1}
-              onclick={() => pastPage++}
-            >
-              Older
-            </button>
-          </nav>
-        {/if}
-      </section>
-    {/if}
-    {#if !wide}
-      {@render suggest()}
-    {/if}
-  </div>
+          {/if}
+        </div>
+      </DialogueBox>
+    </section>
+  {/if}
 </div>
 
 {#if confirming !== null}
@@ -446,41 +419,117 @@
 {/if}
 
 <style>
-  .intro {
-    margin-bottom: 1rem;
+  /* Narrower than the page, so the theme's floor and its lights show at both sides. */
+  .home {
+    max-width: var(--home-width);
+    margin-inline: auto;
   }
 
-  .intro h1 {
-    margin: 0 0 0.4rem;
-    font-family: var(--font-display);
-    font-size: max(1.15rem, 1.5rem * var(--scroll-text, 1));
-    line-height: 1.15;
+  .home > :global(.stage.speaks) {
+    max-width: none;
+    margin-bottom: 1.25rem;
   }
 
-  .intro .tagline {
-    font-size: max(0.9rem, 1rem * var(--scroll-text, 1));
+  /* Alone until the slideshow takes the sheet's other half, so centred on it. The sheet
+     writes in Quill; its controls keep the page's face, as they do everywhere else. */
+  .entry {
+    display: grid;
+    gap: 0.75rem;
+    width: min(100%, 30rem);
+    margin-inline: auto;
+    padding-block: 0.5rem;
+    font-family: var(--font-body);
+  }
+
+  /* Join beside the field, or under it at full width once the field would be too short. */
+  .join {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 0.6rem;
+  }
+
+  .join .field {
+    flex: 999 1 16rem;
+    min-width: 0;
+    margin: 0;
+    text-align: start;
+  }
+
+  .join button {
+    flex: 1 0 auto;
+  }
+
+  .join input {
+    min-height: 56px;
+    font-family: 'RuneScape', var(--font-body);
+    font-size: 1.35rem;
+    line-height: 1;
+  }
+
+  @media (max-width: 26rem) {
+    .join input {
+      font-size: 1.1rem;
+    }
+  }
+
+  .join input::placeholder {
+    color: var(--muted);
+    opacity: 0.6;
+  }
+
+  .entry .error,
+  .entry .banner {
+    margin: 0;
+  }
+
+  button.big {
+    min-height: 56px;
+    padding-inline: 1.5rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+  }
+
+  .or {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  .or::before,
+  .or::after {
+    content: '';
+    flex: 1;
+    border-top: 1px dashed currentColor;
   }
 
   .how-to {
     --ink: var(--scroll-ink);
-    padding: 0.35rem 0;
+    justify-self: center;
+    padding: 0.35rem 0.25rem;
     min-height: 44px;
     border: 0;
     background: transparent;
     color: var(--ink);
+    font-weight: 600;
     text-decoration: underline;
     text-underline-offset: 0.2em;
   }
 
-  /* Join and Host are what you come to do, so they stand apart from the lists of rooms.
-     The DOM order is the phone order, so a screen reader and the tab key follow it. */
-  @media (min-width: 50rem) {
-    .columns {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0 1.25rem;
-      align-items: start;
-    }
+  /* Side by side when both have rows and there is room for two; one alone takes the width. */
+  .yours {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+    gap: 0 1.25rem;
+    align-items: start;
+  }
+
+  .reldo .row {
+    margin-top: 0.75rem;
+    font-family: var(--font-body);
   }
 
   .code-small {

@@ -50,6 +50,7 @@ const svgLogo = (file: string) => ({
 const ALL_SET = {
   PUBLIC_SITE_NAME: 'The Dancing Donkey',
   PUBLIC_SITE_LOGO: 'branding/logo.png',
+  PUBLIC_HERO_NAME: ' Broav ',
   PUBLIC_DEFAULT_THEME: 'wilderness',
 }
 
@@ -57,7 +58,12 @@ describe('readBranding', () => {
   it('is the stock inn with nothing set, or with everything set blank', () => {
     for (const env of [
       {},
-      { PUBLIC_SITE_NAME: ' ', PUBLIC_SITE_LOGO: '', PUBLIC_DEFAULT_THEME: '' },
+      {
+        PUBLIC_SITE_NAME: ' ',
+        PUBLIC_SITE_LOGO: '',
+        PUBLIC_HERO_NAME: ' ',
+        PUBLIC_DEFAULT_THEME: '',
+      },
     ]) {
       expect(readBranding(env, root)).toEqual({
         name: DEFAULT_SITE_NAME,
@@ -68,13 +74,14 @@ describe('readBranding', () => {
         card: null,
         hero: null,
         themeHeroes: {},
+        heroName: '',
         defaultTheme: '',
         warnings: [],
       })
     }
   })
 
-  it('takes all three when all three are set', () => {
+  it('takes all four when all four are set', () => {
     expect(readBranding(ALL_SET, root)).toEqual({
       name: 'The Dancing Donkey',
       initial: 'D',
@@ -84,6 +91,7 @@ describe('readBranding', () => {
       card: null,
       hero: null,
       themeHeroes: {},
+      heroName: 'Broav',
       defaultTheme: 'wilderness',
       warnings: [],
     })

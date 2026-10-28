@@ -153,9 +153,9 @@ learns the position, which is worth more than variety.
   priority: it shows at every width and is the one item that shrinks, ellipsising.
 - **Under 26rem** the wordmark and GitHub hide. At 320px the name keeps about 155px.
 - **Width:** the bar and the footer are as wide as the screen under them: 42rem, or 64rem on Home,
-  Create and Admin, where Home puts Join, Host and Suggest beside the room lists from 50rem. In a
+  Create and Admin; Home's own column is 960px inside it, so the floor and its lights show. In a
   room the bar runs the window's width, and from 1024px its middle says where the night is:
-  "Round 1 of 3: **More or Less**", "Lobby", "Hiscores after round 2 of 3", "Final hiscores". On a phone Suggest comes last. A browser holding the admin token gets *Admin (n)* in Suggest, n the pending suggestions.
+  "Round 1 of 3: **More or Less**", "Lobby", "Hiscores after round 2 of 3", "Final hiscores".
 - **No room code.** Codes are words like `ThermonuclearSmokeDevil`, which either truncate to nothing
   or push the controls off a phone. The lobby and Join show the code instead. A past game is the
   exception: "**FireCape**, finished Sun 25 Oct at 21:14", on a phone "**FireCape**, 25 Oct", the code
@@ -269,7 +269,7 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
   row's right end as a chip, in the box's ink ("+850", "No answer · +0"), none for a player who
   could not answer. The line below reads from the left, in Quill. A hidden line keeps its room, so the sheet never moves when the host speaks, and the box
   is from the first frame as tall as the most its screen will say.
-- **Elsewhere the host stands beside the sheet**: Home and the TV. There it stands at the scroll's bottom-left,
+- **Elsewhere the host stands beside the sheet**: on the TV. There it stands at the scroll's bottom-left,
   over its left roll, 78px wide overlapping 30px (68px and 32px on a phone); under 448px of screen,
   and on the TV, it stands on the sheet and the words wrap around it.
 - **Under 448px of screen** the sheet runs edge to edge and the rolls sit half off the screen's
@@ -320,10 +320,12 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
   is a second thing to read. Random events are the exception, in their NPC's voice.
 - **The art** is the wiki's chathead, or the head of its render, mirrored to face the
   sheet. A mode with no host, or a host with no art, gets the generic boar.
-- **Home** opens with the same stage and the site's challenge on the sheet, in place of a panel,
-  and the lobby (§9) with the room on it. Home's sheet in `jolly` is a note tacked to a notice
-  board, so the inn's front door differs from its games. Their host is the selfhoster's hero for the theme (§14): 240px beside the scroll with 600px of
-  stage, else 120px in the host's place, partly off a phone's edge. Without one, the Wise Old Man.
+- **Home** is a 960px column. Its host, as the lobby's (§9), is the selfhoster's hero for the theme
+  (§14), else the Wise Old Man, saying the site's line in the dialogue box at its usual sizes. The
+  theme's sheet under it holds the room code, Join, Create a room and How to play. Then Public
+  rooms while any are listed, Rooms you created here and Past games side by side while they have
+  rows, and, for a browser that may suggest or holds the admin token, Reldo's dialogue box, his
+  chathead right: Suggest a question, Report a question and *Admin (n)*, n the pending suggestions.
 
 ## 9. The table panel, the splash and the ready check
 
@@ -566,11 +568,11 @@ AGPL wants a source link reachable from the service, and this is it. GitHub is a
 the bar (§5). Every link opens a new tab, so a room is never
 left.
 
-**Selfhoster branding.** Three build-time env vars, which compose passes as build args:
+**Selfhoster branding.** Four build-time env vars, which compose passes as build args:
 `PUBLIC_SITE_NAME` (default *The Jolly Boar Inn*; also the tab title), `PUBLIC_SITE_LOGO` (an image
 in `branding/`, also the tab icon; missing or unloadable, the bundled sign; a `logo-<theme>` beside it
-overrides it per theme, an `og-card.png` is a shared link's picture, a `hero` and `hero-<theme>` stand
-on Home's stage) and `PUBLIC_DEFAULT_THEME`
+overrides it per theme, an `og-card.png` is a shared link's picture, a `hero` and `hero-<theme>` host
+Home and the lobby), `PUBLIC_HERO_NAME` (the hero's name; unset, the site's) and `PUBLIC_DEFAULT_THEME`
 (a theme id for browsers that never chose; unknown, `jolly`). The GitHub link is not configurable:
 a fork's footer should still point upstream.
 

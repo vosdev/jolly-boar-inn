@@ -12,6 +12,8 @@ declare module 'virtual:branding' {
   export const hero: string | null
   /** The heroes beside it named for a theme, as URLs by theme. */
   export const heroes: Record<string, string>
+  /** `PUBLIC_HERO_NAME`, `''` when unset. */
+  export const heroName: string
   /** Every theme's tab icon. */
   export const favicons: Record<string, { href: string; type: string }>
   /** `PUBLIC_DEFAULT_THEME` unchecked, `''` when unset; `lib/theme.ts` checks it. */
