@@ -6,7 +6,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import * as admin from '../lib/admin'
 import * as api from '../lib/api'
 import { pastGames, savePastGame } from '../lib/history'
+import { loadModes } from '../lib/howToPlay'
+import { MODES } from '../lib/modes'
 import { npcArt } from '../lib/npcs'
+import { RANDOM_EVENTS } from '../lib/randomEvents'
+import { SHOWN } from '../components/ModeShowcase.svelte'
 import { rememberCreated, setSession } from '../lib/session'
 import { petsDrawn } from '../test-pets'
 import Home from './Home.svelte'
@@ -27,11 +31,23 @@ vi.mock('../lib/admin', async (importOriginal) => {
   return { ...real, getQueue: vi.fn() }
 })
 
+vi.mock('../lib/howToPlay', async (importOriginal) => {
+  const real = await importOriginal<typeof import('../lib/howToPlay')>()
+  return { ...real, loadModes: vi.fn() }
+})
+
 const navigate = vi.fn()
+
+const PACING: api.ModePacing[] = [
+  { id: 'more_less', types: ['more_less'], questions: null, seconds: null, as_of: null },
+  { id: 'sort_it_out', types: ['ordering'], questions: null, seconds: null, as_of: null },
+]
 
 beforeEach(() => {
   vi.clearAllMocks()
   localStorage.clear()
+  history.replaceState(null, '', '/')
+  vi.mocked(loadModes).mockResolvedValue(PACING)
   vi.mocked(api.deleteRoom).mockResolvedValue(undefined)
   vi.mocked(api.getPublicRooms).mockResolvedValue([])
   vi.mocked(api.getModes).mockResolvedValue([])
@@ -58,15 +74,125 @@ async function typeCode(typed: string): Promise<void> {
   await fireEvent.click(screen.getByRole('button', { name: 'Join' }))
 }
 
-describe('Home', () => {
-  it('explains every way of answering from the scroll', async () => {
+describe('How to play on Home', () => {
+  const speaker = (): string | null | undefined =>
+    document.querySelector('.bubble .name')?.textContent
+  const said = (): string | undefined =>
+    document.querySelector('.bubble .speech')?.textContent?.replace(/\s+/g, ' ')
+
+  async function openPage(): Promise<void> {
     render(Home, { navigate })
     await fireEvent.click(screen.getByRole('button', { name: 'How to play' }))
-    const sheet = screen.getByRole('dialog', { name: 'How to play' })
-    await within(sheet).findByRole('heading', { name: 'One answer' })
-    expect(within(sheet).getAllByRole('heading', { level: 3 })).toHaveLength(7)
+  }
+
+  it('opens the page in place of the sheet, the dialogue box still on top', async () => {
+    await openPage()
+    expect(screen.getByRole('heading', { level: 1, name: 'How to play' })).toBeTruthy()
+    expect(screen.queryByLabelText('Room code')).toBeNull()
+    expect(document.querySelector('.scroll')).toBeNull()
+    expect(speaker()).toBe('Wise Old Man')
+    expect(said()).toContain('New here?')
+    expect(navigate).not.toHaveBeenCalled()
+    expect(location.pathname).toBe('/')
   })
 
+  it('walks through a night in four steps, then every way of answering', async () => {
+    await openPage()
+    const steps = screen.getByRole('heading', { name: 'A night at the inn' }).nextElementSibling
+    expect(within(steps as HTMLElement).getAllByRole('listitem')).toHaveLength(4)
+    const answers = screen.getByRole('region', { name: 'Ways to answer' })
+    await within(answers).findByRole('heading', { name: 'One answer' })
+    expect(within(answers).getAllByRole('heading', { level: 3 })).toHaveLength(7)
+    expect(within(answers).getByText('Quicker and correct answers score more.')).toBeTruthy()
+  })
+
+  it('explains teams and the TV', async () => {
+    await openPage()
+    const teams = screen.getByRole('region', { name: 'Teams' })
+    expect(teams.textContent).toContain("Speed doesn't count")
+    expect(teams.textContent).toContain('average')
+    expect(screen.getByRole('region', { name: 'On the TV' }).textContent).toContain('Make TV')
+  })
+
+  it('has a tile for every playable mode, and one for random events', async () => {
+    await openPage()
+    const tiles = within(screen.getByRole('region', { name: 'Game modes' })).getAllByRole('button')
+    expect(tiles.map((tile) => tile.querySelector('strong')?.textContent)).toEqual([
+      ...SHOWN.map((mode) => mode.label),
+      'Random events',
+    ])
+  })
+
+  it("shows a mode's host, greeting, blurb, hint and only its answer types", async () => {
+    await openPage()
+    await fireEvent.click(screen.getByRole('button', { name: /^Sort It Out/ }))
+    const mode = MODES.sort_it_out!
+    expect(screen.getByRole('heading', { level: 1, name: 'Sort It Out' })).toBeTruthy()
+    expect(screen.getByText(`Hosted by ${mode.host.name}`)).toBeTruthy()
+    expect(screen.getByText(mode.hint)).toBeTruthy()
+    expect(speaker()).toBe(mode.host.name)
+    expect(said()).toContain(mode.greeting)
+    expect(said()).toContain(mode.blurb)
+    const art = document.querySelector('.stage .bubble .npc img')?.getAttribute('src')
+    expect(art).toBe(npcArt(mode.host.id).url)
+    await screen.findByRole('heading', { name: 'Put in order' })
+    expect(screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual([
+      'Put in order',
+    ])
+  })
+
+  it('goes back to the overview from All game modes', async () => {
+    await openPage()
+    await fireEvent.click(screen.getByRole('button', { name: /^More or Less/ }))
+    await fireEvent.click(screen.getByRole('button', { name: '← All game modes' }))
+    await screen.findByRole('heading', { level: 1, name: 'How to play' })
+    expect(speaker()).toBe('Wise Old Man')
+  })
+
+  it('lists every event NPC with its theme, said by the Mysterious Old Man', async () => {
+    await openPage()
+    await fireEvent.click(screen.getByRole('button', { name: /^Random events/ }))
+    expect(screen.getByRole('heading', { level: 1, name: 'Random events' })).toBeTruthy()
+    expect(speaker()).toBe('Mysterious Old Man')
+    for (const npc of RANDOM_EVENTS) {
+      const name = screen.getByText(npc.name, { selector: 'strong' })
+      expect(name.nextElementSibling?.textContent).toBe(npc.theme)
+    }
+  })
+
+  it('steps out of the page with Back, a view at a time', async () => {
+    await openPage()
+    await fireEvent.click(screen.getByRole('button', { name: /^Bestiary/ }))
+    history.back()
+    await screen.findByRole('heading', { level: 1, name: 'How to play' })
+    history.back()
+    await waitFor(() => expect(screen.getByLabelText('Room code')).toBeTruthy())
+    expect(speaker()).toBe('Wise Old Man')
+  })
+
+  it('leaves for Home from Back to the inn, however deep the page went', async () => {
+    await openPage()
+    await fireEvent.click(screen.getByRole('button', { name: /^Bestiary/ }))
+    await fireEvent.click(screen.getByRole('button', { name: '← All game modes' }))
+    await screen.findByRole('heading', { level: 1, name: 'How to play' })
+    await fireEvent.click(screen.getByRole('button', { name: /^Drop Table/ }))
+    await fireEvent.click(screen.getByRole('button', { name: '← All game modes' }))
+    await screen.findByRole('heading', { level: 1, name: 'How to play' })
+    await fireEvent.click(screen.getByRole('button', { name: '← Back to the inn' }))
+    await waitFor(() => expect(screen.getByLabelText('Room code')).toBeTruthy())
+    expect(history.state).toBeNull()
+  })
+
+  it("opens a mode's view from its name in the slideshow", async () => {
+    render(Home, { navigate })
+    const slide = document.querySelector<HTMLElement>('.showcase .slide.on')!
+    await fireEvent.click(slide.querySelector('.name button')!)
+    const label = MODES[slide.dataset.mode ?? '']?.label
+    expect(screen.getByRole('heading', { level: 1, name: label })).toBeTruthy()
+  })
+})
+
+describe('Home', () => {
   it("challenges the visitor in the site's name, and one tap goes to Create", async () => {
     render(Home, { navigate })
     expect(document.querySelector('.bubble .speech')?.textContent?.replace(/\s+/g, ' ')).toContain(

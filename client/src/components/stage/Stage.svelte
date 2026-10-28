@@ -26,7 +26,8 @@
   }: {
     hero?: string | null
     host?: string
-    paper: Snippet
+    /** Left out on Home's How to play page, where the dialogue box stands alone. */
+    paper?: Snippet
     award?: Award
     guest?: string | null
     entering?: boolean
@@ -70,7 +71,7 @@
   <!-- Each part is moved onto the shared stage whole, and lays out as if it were the slot
        it lands in. -->
   <div hidden>
-    <div class="part" bind:this={paperPart}>{@render paper()}</div>
+    <div class="part" bind:this={paperPart}>{@render paper?.()}</div>
     <div class="part" bind:this={underPart}>{@render children?.()}</div>
     <div class="part" bind:this={saidPart}>{@render said?.()}</div>
   </div>

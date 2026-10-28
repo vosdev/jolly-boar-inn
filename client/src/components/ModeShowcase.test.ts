@@ -24,6 +24,8 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
+const onpick = vi.fn()
+
 function current(): HTMLElement {
   const on = document.querySelectorAll<HTMLElement>('.slide.on')
   expect(on).toHaveLength(1)
@@ -37,7 +39,7 @@ async function wait(ms: number): Promise<void> {
 describe('ModeShowcase', () => {
   it('shows every playable mode once per cycle, with its chathead, name, hint and host', async () => {
     vi.mocked(Math.random).mockRestore()
-    render(ModeShowcase)
+    render(ModeShowcase, { onpick })
     const seen: string[] = []
     for (let i = 0; i < SHOWN.length; i++) {
       const slide = current()
@@ -59,7 +61,7 @@ describe('ModeShowcase', () => {
 
   it('starts each visit on a different shuffle, the chathead row in the same order', () => {
     vi.mocked(Math.random).mockReturnValue(0)
-    render(ModeShowcase)
+    render(ModeShowcase, { onpick })
     const first = current().dataset.mode
     expect(first).not.toBe(SHOWN[0]?.id)
     const slides = [...document.querySelectorAll<HTMLElement>('.slide')].map(
@@ -69,12 +71,12 @@ describe('ModeShowcase', () => {
     expect(row).toEqual(slides)
     cleanup()
     unshuffled()
-    render(ModeShowcase)
+    render(ModeShowcase, { onpick })
     expect(current().dataset.mode).toBe(SHOWN[0]?.id)
   })
 
   it('never shows random events or upcoming modes', () => {
-    render(ModeShowcase)
+    render(ModeShowcase, { onpick })
     const ids = [...document.querySelectorAll<HTMLElement>('.slide')].map((s) => s.dataset.mode)
     for (const never of ['random_event', 'random_events_only', 'custom']) {
       expect(ids).not.toContain(never)
@@ -83,7 +85,7 @@ describe('ModeShowcase', () => {
   })
 
   it('draws every slide in one cell, so the tallest sets the height', () => {
-    render(ModeShowcase)
+    render(ModeShowcase, { onpick })
     const slides = document.querySelectorAll('.slide')
     expect(slides).toHaveLength(SHOWN.length)
     for (const slide of slides) expect(slide.parentElement?.classList).toContain('stack')
@@ -93,7 +95,7 @@ describe('ModeShowcase', () => {
   })
 
   it('advances after 4.5 s and not before', async () => {
-    render(ModeShowcase)
+    render(ModeShowcase, { onpick })
     await wait(ADVANCE_MS - 1)
     expect(current().dataset.mode).toBe(SHOWN[0]?.id)
     await wait(1)
@@ -101,7 +103,7 @@ describe('ModeShowcase', () => {
   })
 
   it('stays put while hovered, and moves on again once left', async () => {
-    render(ModeShowcase)
+    render(ModeShowcase, { onpick })
     const region = screen.getByRole('region', { name: 'Game modes' })
     await fireEvent.pointerEnter(region)
     await wait(ADVANCE_MS * 3)
@@ -112,7 +114,7 @@ describe('ModeShowcase', () => {
   })
 
   it('stays put while a chathead has keyboard focus', async () => {
-    render(ModeShowcase)
+    render(ModeShowcase, { onpick })
     const first = screen.getByRole('button', { name: SHOWN[0]?.label })
     vi.spyOn(first, 'matches').mockImplementation((selector) => selector === ':focus-visible')
     await fireEvent.focusIn(first)
@@ -124,7 +126,7 @@ describe('ModeShowcase', () => {
   })
 
   it('shows the mode whose chathead is clicked', async () => {
-    render(ModeShowcase)
+    render(ModeShowcase, { onpick })
     const pick = SHOWN[4]
     await fireEvent.click(screen.getByRole('button', { name: pick?.label }))
     expect(current().dataset.mode).toBe(pick?.id)
@@ -133,9 +135,15 @@ describe('ModeShowcase', () => {
     )
   })
 
+  it("opens a mode's How to play from its name", async () => {
+    render(ModeShowcase, { onpick })
+    await fireEvent.click(screen.getByRole('button', { name: `${SHOWN[0]?.label}, how to play` }))
+    expect(onpick).toHaveBeenCalledWith(SHOWN[0]?.id)
+  })
+
   it('does not advance by itself with reduced motion', async () => {
     vi.spyOn(interlude, 'reducedMotion').mockReturnValue(true)
-    render(ModeShowcase)
+    render(ModeShowcase, { onpick })
     await wait(ADVANCE_MS * 3)
     expect(current().dataset.mode).toBe(SHOWN[0]?.id)
     await fireEvent.click(screen.getByRole('button', { name: SHOWN[2]?.label }))
@@ -143,7 +151,7 @@ describe('ModeShowcase', () => {
   })
 
   it('is a region, not a live one', () => {
-    render(ModeShowcase)
+    render(ModeShowcase, { onpick })
     const region = screen.getByRole('region', { name: 'Game modes' })
     expect(region.querySelector('[aria-live]')).toBeNull()
     expect(region.hasAttribute('aria-live')).toBe(false)

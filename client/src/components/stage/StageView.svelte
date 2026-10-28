@@ -84,7 +84,7 @@
     hero?: string | null
     /** The NPC id of the round's host, from `hostOf` in `lib/modes.ts`. */
     host?: string
-    /** What is written on the sheet. */
+    /** What is written on the sheet; with neither this nor `slots`, there is no sheet. */
     paper?: Snippet
     award?: Award
     /** The NPC id of a random event's NPC, who takes the stage from the host. */
@@ -180,21 +180,23 @@
       {/if}
     </div>
   {/if}
-  <div
-    class="stage-row presence-{presence}"
-    class:flat={!hasRolls(sheet)}
-    class:tall
-    class:event={event && !speaks}
-    class:entering={guestArt !== null && entering && !returning && !speaks}
-    class:returning={guestArt !== null && returning && !speaks}
-    class:fading={guestArt !== null && returning && speaks}
-  >
-    {#if !speaks}{@render hostHead()}{/if}
-    <ClueScroll {award} {sheet} {theme}>
-      {@render paper?.()}
-    </ClueScroll>
-    {#if !speaks}{@render guestHead()}{/if}
-  </div>
+  {#if paper !== undefined || slots}
+    <div
+      class="stage-row presence-{presence}"
+      class:flat={!hasRolls(sheet)}
+      class:tall
+      class:event={event && !speaks}
+      class:entering={guestArt !== null && entering && !returning && !speaks}
+      class:returning={guestArt !== null && returning && !speaks}
+      class:fading={guestArt !== null && returning && speaks}
+    >
+      {#if !speaks}{@render hostHead()}{/if}
+      <ClueScroll {award} {sheet} {theme}>
+        {@render paper?.()}
+      </ClueScroll>
+      {#if !speaks}{@render guestHead()}{/if}
+    </div>
+  {/if}
   {#if children || slots}
     <div class="under">
       {@render children?.()}
