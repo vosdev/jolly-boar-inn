@@ -54,6 +54,11 @@ export const CHANGELOG: ChangelogEntry[] = [
     text: 'The Mysterious Old Man joins the game mode slideshow on Home, and opens how random events work.',
   },
   {
+    version: '0.201.1',
+    date: '2026-10-28',
+    text: 'How to play now sits above the game mode slideshow.',
+  },
+  {
     version: '0.201.0',
     date: '2026-10-28',
     text: 'Try a question on How to play: answer a sample from a game mode and see what you would have scored.',
