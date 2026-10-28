@@ -11,6 +11,7 @@
  * the first websocket frame and nowhere else.
  */
 
+import { storedAdminToken } from './admin'
 import type { HostQuestion } from './customQuestions'
 import type {
   EventFrequency,
@@ -44,7 +45,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   try {
     response = await fetch(path, {
       ...init,
-      headers: init?.body === undefined ? undefined : { 'content-type': 'application/json' },
+      headers: {
+        ...(init?.body === undefined ? {} : { 'content-type': 'application/json' }),
+        ...init?.headers,
+      },
     })
   } catch {
     throw new ApiFailure(0, 'unreachable', 'cannot reach the server')
@@ -308,14 +312,21 @@ export interface Allowance {
   retry_at: string | null
 }
 
+/** The operator's bearer when this browser holds one, which lifts the suggestion limits. */
+function operatorHeaders(): Record<string, string> | undefined {
+  const token = storedAdminToken()
+  return token === null ? undefined : { authorization: `Bearer ${token}` }
+}
+
 export function getSuggestionAllowance(): Promise<Allowance> {
-  return request<Allowance>('/api/suggestions/allowance')
+  return request<Allowance>('/api/suggestions/allowance', { headers: operatorHeaders() })
 }
 
 /** `bad_suggestion` or `bad_name` for what the server refuses; `rate_limited` past the limit. */
 export function sendSuggestion(body: SuggestionBody): Promise<{ id: string }> {
   return request<{ id: string }>('/api/suggestions', {
     method: 'POST',
+    headers: operatorHeaders(),
     body: JSON.stringify(body),
   })
 }
@@ -324,6 +335,7 @@ export function sendSuggestion(body: SuggestionBody): Promise<{ id: string }> {
 export async function findSimilar(content: QuestionContent): Promise<SimilarMatch[]> {
   const found = await request<{ matches: SimilarMatch[] }>('/api/suggestions/similar', {
     method: 'POST',
+    headers: operatorHeaders(),
     body: JSON.stringify({ content }),
   })
   return found.matches
@@ -336,6 +348,7 @@ export async function findSimilar(content: QuestionContent): Promise<SimilarMatc
 export function tryQuestion(content: QuestionContent, value: unknown = null): Promise<Trial> {
   return request<Trial>('/api/suggestions/try', {
     method: 'POST',
+    headers: operatorHeaders(),
     body: JSON.stringify({ content, value }),
   })
 }

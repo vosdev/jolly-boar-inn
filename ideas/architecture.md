@@ -702,7 +702,7 @@ key into them, so cleanup leaves it.
   `/suggest` requires picking one, loading with the toggle unselected. Each has a `credit`
   held to the name rules and `credit_shown`, never true for an item. Pending, approved,
   rejected or imported. A round not built yet takes questions; they wait in approved. The client offers the form after a finished game; 10 an hour
-  per address (`SUGGESTIONS_PER_HOUR`) is the backstop.
+  per address (`SUGGESTIONS_PER_HOUR`) is the backstop. The operator's bearer, sent when the browser holds one, skips this limit, `SIMILAR_PER_HOUR` and `TRIES_PER_HOUR`.
 - `app/similar.py` scores a question against another, 0–100: 0.7 × the trigram Dice of the
   normalised prompts (with quote) + 0.3 × the answers' (1 when equal; any accepted free-text
   spelling); prompts alone across types; Odd One Out by option-set overlap; Who's That NPC? 100

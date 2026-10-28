@@ -4,7 +4,8 @@ A player sends a suggestion with no account: the client shows the form only afte
 finished game, which is a courtesy, and the backstop is ``SUGGESTIONS_PER_HOUR`` per
 address. ``GET .../allowance`` lets the form say the limit is reached before anything is
 typed. As with creating a room, a suggestion is checked before the limiter counts it, so a
-typo costs no quota. ``POST .../similar`` names the pack questions one looks like while it
+typo costs no quota. A request with the operator's bearer skips this limit and the next two.
+``POST .../similar`` names the pack questions one looks like while it
 is written, by label alone, under ``SIMILAR_PER_HOUR``. ``POST .../try`` shows one as a room
 would, open and revealed, and grades an answer to it, under ``TRIES_PER_HOUR``.
 
@@ -22,7 +23,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 from app import suggestions
-from app.http.admin import require_token
+from app.http.admin import is_operator, require_token
 from app.http.ratelimit import client_key
 from app.rooms.models import normalize_name
 
@@ -47,7 +48,10 @@ def _host(request: Request) -> str:
 @router.get("/allowance")
 async def allowance(request: Request) -> dict[str, Any]:
     """How many more this address may send this hour, and when the next frees up if none."""
-    left, retry_at = request.app.state.suggestions.left(client_key(_host(request)))
+    limiter = request.app.state.suggestions
+    if is_operator(request):
+        return {"left": limiter.limit, "retry_at": None}
+    left, retry_at = limiter.left(client_key(_host(request)))
     return {"left": left, "retry_at": retry_at}
 
 
@@ -55,9 +59,10 @@ async def allowance(request: Request) -> dict[str, Any]:
 async def suggest(body: Suggestion, request: Request) -> dict[str, Any]:
     credit = normalize_name(body.credit)
     content = suggestions.check(body.kind, body.content, body.credit_shown)
-    request.app.state.suggestions.check(
-        client_key(_host(request)), "too many suggestions from this address, try again later"
-    )
+    if not is_operator(request):
+        request.app.state.suggestions.check(
+            client_key(_host(request)), "too many suggestions from this address, try again later"
+        )
     pool = await request.app.state.database()
     suggestion = await suggestions.add(pool, body.kind, content, credit, body.credit_shown)
     return {"id": suggestion}
@@ -73,9 +78,10 @@ class Draft(BaseModel):
 async def similar(body: Draft, request: Request) -> dict[str, Any]:
     """The pack questions a question being written looks like; nothing about suggestions."""
     content = suggestions.check_similar(body.content)
-    request.app.state.similar.check(
-        client_key(_host(request)), "too many checks from this address, try again later"
-    )
+    if not is_operator(request):
+        request.app.state.similar.check(
+            client_key(_host(request)), "too many checks from this address, try again later"
+        )
     return {"matches": suggestions.similar_in_packs(request.app.state.packs, content)}
 
 
@@ -90,9 +96,10 @@ class Try(BaseModel):
 async def try_question(body: Try, request: Request) -> dict[str, Any]:
     """A question being written as a room shows it, and what ``value`` would earn on it."""
     content = suggestions.check_similar(body.content)
-    request.app.state.tries.check(
-        client_key(_host(request)), "too many tries from this address, try again later"
-    )
+    if not is_operator(request):
+        request.app.state.tries.check(
+            client_key(_host(request)), "too many tries from this address, try again later"
+        )
     return suggestions.trial(content, body.value)
 
 
