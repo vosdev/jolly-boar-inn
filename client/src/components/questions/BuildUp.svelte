@@ -9,7 +9,14 @@
    */
   import { get } from 'svelte/store'
 
-  import { drawFrame, progress, revealFor, type Build, type Picture } from '../../lib/pixelHunt'
+  import {
+    drawFrame,
+    progress,
+    revealFor,
+    type Build,
+    type Look,
+    type Picture,
+  } from '../../lib/pixelHunt'
   import { serverOffsetMs } from '../../lib/stores'
 
   let {
@@ -45,6 +52,18 @@
     return { width: scratch.width, height: scratch.height, data, image: img }
   }
 
+  /** The theme's tile tokens where the canvas sits, so a tile is in the player's theme. */
+  function look(target: HTMLCanvasElement): Look {
+    const style = getComputedStyle(target)
+    const token = (name: string): string => style.getPropertyValue(name).trim()
+    return {
+      tile: token('--tile'),
+      tileLight: token('--tile-light'),
+      tileDark: token('--tile-dark'),
+      tileSeam: token('--tile-seam'),
+    }
+  }
+
   $effect(() => {
     const target = canvas
     const img = image
@@ -55,12 +74,13 @@
     target.width = picture.width
     target.height = picture.height
     const { reveal, seed } = revealFor(room, questionId)
+    const theme = look(target)
     const from = Date.parse(answerableAt)
     const to = Date.parse(endsAt)
     let frame = 0
     const draw = (): void => {
       const p = progress(from, to, Date.now() + get(serverOffsetMs))
-      drawFrame(pen, picture, reveal, p, seed)
+      drawFrame(pen, picture, reveal, p, seed, theme)
       if (p < 1) frame = requestAnimationFrame(draw)
     }
     draw()

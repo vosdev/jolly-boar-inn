@@ -48,7 +48,7 @@ and 7. Layers 3, 4 and 8 are a contract that `scripts/check_contrast.py` enforce
 | 5. Gems | `--gem-sapphire` `--gem-emerald` `--gem-ruby` `--gem-red-topaz` `--gem-dragonstone` `--gem-zenyte` `--gem-ink` | Freely, within the gem checks |
 | 6. Shape | `--radius` `--border-width` `--shadow` `--font-display` `--font-body` `--font-numeric` | Freely |
 | 7. Texture | `--texture-panel` `--texture-bg` (a local `url()` or `none`) | Freely |
-| 8. Sheet | `--scroll-paper` `--scroll-edge` `--scroll-ink` `--scroll-muted` `--silhouette` | Must pass contrast |
+| 8. Sheet | `--scroll-paper` `--scroll-edge` `--scroll-ink` `--scroll-muted` `--silhouette`; Pixel Hunt's `--tile` `--tile-light` `--tile-dark` `--tile-seam` | Must pass contrast; tiles freely |
 
 No text sits on the bare page: each screen opens with its heading and tagline on a panel, and the
 `--bg-ink` page inks are only a fallback. `--more` and `--less` are not right and wrong, so they
