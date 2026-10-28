@@ -384,7 +384,9 @@ chrome or circle around them), on in `--ok`, in lobby and splash;
   playable mode and one for Random events, every way of answering, Teams and On the TV. A tile
   swaps the page to its mode (the host saying greeting and blurb; name, host, hint and only its
   types from `/api/modes`) or to Random events (the Mysterious Old Man; every event NPC and its
-  theme), with All game modes back.
+  theme), with All game modes back. Try a question (the overview's is More or Less's, a mode's
+  where `lib/samples.ts` has one) plays a sample in the box's place with the room's timer, sheet,
+  answers and reveal, the host's verdict and points; Again, or Try the next mode. Nothing is sent.
 
 ## 10. The question screen and the reveal
 

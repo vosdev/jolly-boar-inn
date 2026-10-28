@@ -27,6 +27,7 @@
   import Pet from '../components/Pet.svelte'
   import Said from '../components/stage/Said.svelte'
   import Stage from '../components/stage/Stage.svelte'
+  import TryQuestion from '../components/TryQuestion.svelte'
   import { ApiFailure, deleteRoom, getPublicRooms, type PublicRoom } from '../lib/api'
   import { expiresIn, finishedTime } from '../lib/dates'
   import { heroFor, speakerFor } from '../lib/hero'
@@ -46,6 +47,7 @@
   import { getQueue, storedAdminToken } from '../lib/admin'
   import { MODES, modeLabel } from '../lib/modes'
   import { STRANGER } from '../lib/randomEvents'
+  import { SAMPLES, nextSample } from '../lib/samples'
   import { OUT_MS, cuts } from '../lib/routeFade'
   import {
     createdRoomExpiries,
@@ -114,9 +116,17 @@
   /** While the old view fades out and before the new one fades in. */
   let fading = $state(false)
   let swap = 0
+  /** The mode whose sample question is being tried in the dialogue box's place, if any. */
+  let trying = $state<string | null>(null)
+
+  function tryMode(mode: string): void {
+    trying = mode
+    scrollTo(0, 0)
+  }
 
   async function show(next: HowToView | null): Promise<void> {
     if (next === shown) return
+    trying = null
     const mine = ++swap
     if (cuts()) {
       shown = next
@@ -295,26 +305,39 @@
 {/snippet}
 
 <div class="home" class:fading>
-  <Stage
-    host={howToMode?.host.id ?? (shown === 'events' ? STRANGER : 'wise_old_man')}
-    hero={howToMode === null && shown !== 'events' ? heroArt : null}
-    bubble="on"
-    paper={shown === null ? sheet : undefined}
-  >
-    {#snippet said()}
-      {#if howToMode !== null}
-        <Said name={howToMode.host.name} line={presents} />
-      {:else if shown === 'events'}
-        <Said name="Mysterious Old Man" line={visitors} />
-      {:else}
-        <Said name={speakerFor(heroArt)} line={shown === null ? welcome : newHere} />
-      {/if}
-    {/snippet}
-  </Stage>
+  {#if trying !== null && trying in SAMPLES}
+    {#key trying}
+      <TryQuestion
+        sample={SAMPLES[trying]!}
+        next={nextSample(
+          trying,
+          SHOWN.map((mode) => mode.id),
+        )}
+        onnext={tryMode}
+      />
+    {/key}
+  {:else}
+    <Stage
+      host={howToMode?.host.id ?? (shown === 'events' ? STRANGER : 'wise_old_man')}
+      hero={howToMode === null && shown !== 'events' ? heroArt : null}
+      bubble="on"
+      paper={shown === null ? sheet : undefined}
+    >
+      {#snippet said()}
+        {#if howToMode !== null}
+          <Said name={howToMode.host.name} line={presents} />
+        {:else if shown === 'events'}
+          <Said name="Mysterious Old Man" line={visitors} />
+        {:else}
+          <Said name={speakerFor(heroArt)} line={shown === null ? welcome : newHere} />
+        {/if}
+      {/snippet}
+    </Stage>
+  {/if}
 
   <div class="below">
     {#if shown !== null}
-      <HowToPage view={shown} onopen={open} onall={allModes} onback={leaveHowTo} />
+      <HowToPage view={shown} onopen={open} onall={allModes} onback={leaveHowTo} ontry={tryMode} />
     {:else}
       {@render rest()}
     {/if}
