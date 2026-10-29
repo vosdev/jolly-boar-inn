@@ -5,7 +5,7 @@ import { tick } from 'svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { asOfDate } from '../lib/dates'
-import { VERSION_LABEL } from '../lib/links'
+import { DISCORD_URL, VERSION_LABEL } from '../lib/links'
 import { pricesAsOf } from '../lib/pricesAsOf.svelte'
 import Footer from './Footer.svelte'
 
@@ -34,6 +34,14 @@ describe('Footer', () => {
     render(Footer)
     const link = screen.getByRole('link', { name: 'Source on GitHub' })
     expect(link.querySelector('svg')).not.toBeNull()
+  })
+
+  it('links the Discord in a new tab', () => {
+    render(Footer)
+    const link = screen.getByRole('link', { name: 'Discord' })
+    expect(link.getAttribute('href')).toBe(DISCORD_URL)
+    expect(link.getAttribute('target')).toBe('_blank')
+    expect(link.getAttribute('rel')).toBe('noopener noreferrer')
   })
 
   it('opens the credits on every screen, and closes them again', async () => {

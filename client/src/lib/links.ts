@@ -7,6 +7,7 @@
 export const REPO_URL = 'https://github.com/vosdev/jolly-boar-inn'
 export const LICENSE_URL = `${REPO_URL}/blob/main/LICENSE`
 export const RELEASES_URL = `${REPO_URL}/releases`
+export const DISCORD_URL = 'https://discord.gg/FrWVe2dSGj'
 export const WIKI_URL = 'https://oldschool.runescape.wiki'
 
 /** `0.10.0` reads as `0.10`; a fix release keeps its patch number. */

@@ -47,6 +47,7 @@
   import { getQueue, storedAdminToken } from '../lib/admin'
   import { MODES, modeLabel } from '../lib/modes'
   import { STRANGER } from '../lib/randomEvents'
+  import { DISCORD_URL } from '../lib/links'
   import { SAMPLES, nextSample } from '../lib/samples'
   import { OUT_MS, cuts } from '../lib/routeFade'
   import {
@@ -517,23 +518,29 @@
     </div>
   {/if}
 
-  {#if suggesting || adminToken !== null}
-    <section class="reldo" aria-labelledby="suggest-heading">
-      <h2 id="suggest-heading" class="sr">Suggest or report a question</h2>
-      <DialogueBox npc="reldo" name="Reldo" side="right">
+  <section class="reldo" aria-labelledby="suggest-heading">
+    <h2 id="suggest-heading" class="sr">Talk to Reldo</h2>
+    <DialogueBox npc="reldo" name="Reldo" side="right">
+      {#if suggesting || adminToken !== null}
         <p>Know a question we don't ask yet, or spotted a wrong answer or an outdated fact?</p>
-        <div class="row">
+      {/if}
+      <p>Something else on your mind? Come and tell us.</p>
+      <div class="row">
+        {#if suggesting || adminToken !== null}
           <button type="button" onclick={() => navigate('/suggest')}>Suggest a question</button>
           <button type="button" onclick={() => navigate('/report')}>Report a question</button>
-          {#if adminToken !== null}
-            <button type="button" onclick={() => navigate('/admin')}>
-              Admin{pending ? ` (${pending})` : ''}
-            </button>
-          {/if}
-        </div>
-      </DialogueBox>
-    </section>
-  {/if}
+        {/if}
+        <a class="button" href={DISCORD_URL} target="_blank" rel="noopener noreferrer"
+          >Give feedback</a
+        >
+        {#if adminToken !== null}
+          <button type="button" onclick={() => navigate('/admin')}>
+            Admin{pending ? ` (${pending})` : ''}
+          </button>
+        {/if}
+      </div>
+    </DialogueBox>
+  </section>
 {/snippet}
 
 {#if confirming !== null}
@@ -712,6 +719,20 @@
   .reldo .row {
     margin-top: 0.75rem;
     font-family: var(--font-body);
+  }
+
+  /* A link that looks like its sibling buttons: it leaves the app for the Discord. */
+  .reldo a.button {
+    padding: calc(0.55rem - var(--border-give)) calc(1rem - var(--border-give));
+    border-radius: min(var(--radius), 8px);
+    border: var(--border-width) solid var(--line);
+    background: var(--panel);
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .reldo a.button:hover {
+    border-color: var(--accent);
   }
 
   .code-small {

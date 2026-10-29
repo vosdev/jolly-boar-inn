@@ -334,8 +334,8 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
   every 4.5 s, holds on hover or keyboard focus and under reduced motion, and is as tall as the
   tallest mode; a row of chatheads (dots on a phone) picks one. Then Public
   rooms while any are listed, Rooms you created here and Past games side by side while they have
-  rows, and, for a browser that may suggest or holds the admin token, Reldo's dialogue box, his
-  chathead right: Suggest a question, Report a question and *Admin (n)*, n the pending suggestions.
+  rows, and Reldo's dialogue box, his chathead right: *Give feedback* (the Discord) for all, and for
+  a browser that may suggest or holds the admin token also Suggest a question, Report a question and *Admin (n)*, n the pending suggestions.
 
 ## 9. The table panel, the splash and the ready check
 
@@ -580,7 +580,7 @@ The theme must be set before first paint, and `script-src 'self'` forbids an inl
 
 **Footer.** A full-width `--panel` band under every screen but a room's, which has it under the
 lobby only, edged like the bar, in the flow and never fixed: *RuneScape and RuneScape Old School are the trademarks of Jagex Limited.* Under
-it, *We count games and rounds per day. No cookies, no personal data.* Beside it: GitHub, the licence, the OSRS Wiki (CC BY-NC-SA), Credits and the version, linked to its release. Its sheet ranks the named question authors by count, ties sharing a rank, with a way to `/suggest`, and thanks the wiki. The
+it, *We count games and rounds per day. No cookies, no personal data.* Beside it: GitHub, Discord, the licence, the OSRS Wiki (CC BY-NC-SA), Credits and the version, linked to its release. Its sheet ranks the named question authors by count, ties sharing a rank, with a way to `/suggest`, and thanks the wiki. The
 AGPL wants a source link reachable from the service, and this is it. GitHub is also a muted icon in
 the bar (§5). Every link opens a new tab, so a room is never
 left.

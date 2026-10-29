@@ -7,6 +7,7 @@ import * as admin from '../lib/admin'
 import * as api from '../lib/api'
 import { pastGames, savePastGame } from '../lib/history'
 import { loadModes, slugOf } from '../lib/howToPlay'
+import { DISCORD_URL } from '../lib/links'
 import { MODES } from '../lib/modes'
 import { npcArt } from '../lib/npcs'
 import { RANDOM_EVENTS } from '../lib/randomEvents'
@@ -469,12 +470,7 @@ describe('Layout', () => {
     render(Home, { navigate })
     await screen.findByRole('heading', { name: 'Public rooms' })
     const order = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)
-    expect(order).toEqual([
-      'Public rooms',
-      'Rooms you created here',
-      'Past games',
-      'Suggest or report a question',
-    ])
+    expect(order).toEqual(['Public rooms', 'Rooms you created here', 'Past games', 'Talk to Reldo'])
     const field = screen.getByLabelText('Room code')
     const first = screen.getByRole('heading', { name: 'Public rooms' })
     expect(field.compareDocumentPosition(first) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
@@ -731,7 +727,7 @@ describe('Past games', () => {
 })
 
 describe('Suggest or report a question', () => {
-  const heading = 'Suggest or report a question'
+  const heading = 'Talk to Reldo'
 
   function played(): void {
     savePastGame({
@@ -781,10 +777,20 @@ describe('Suggest or report a question', () => {
     expect(navigate).toHaveBeenCalledWith('/report')
   })
 
-  it('is not there before a game has finished here', () => {
+  it('offers only the feedback link before a game has finished here', () => {
     render(Home, { navigate })
-    expect(screen.queryByRole('heading', { name: heading })).toBeNull()
-    expect(screen.queryByRole('button', { name: 'Report a question' })).toBeNull()
+    const section = screen.getByRole('heading', { name: heading }).closest('section')!
+    expect(within(section).queryByRole('button')).toBeNull()
+    expect(section.textContent).not.toContain("Know a question we don't ask yet")
+    expect(within(section).getByRole('link', { name: 'Give feedback' })).toBeTruthy()
+  })
+
+  it('links the feedback button to the Discord in a new tab', () => {
+    render(Home, { navigate })
+    const link = screen.getByRole('link', { name: 'Give feedback' })
+    expect(link.getAttribute('href')).toBe(DISCORD_URL)
+    expect(link.getAttribute('target')).toBe('_blank')
+    expect(link.getAttribute('rel')).toBe('noopener noreferrer')
   })
 
   const TOKEN = '0123456789abcdef0123456789abcdef'
