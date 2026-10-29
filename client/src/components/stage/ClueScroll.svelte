@@ -24,7 +24,7 @@
   import skullUrl from '../../assets/sprites/skull.svg'
   import mushroomsUrl from '../../assets/textures/zanaris-mushrooms.svg'
   import { NO_AWARD, pinFor, type Award } from '../../lib/award'
-  import { ART, buntingSwags, SWAG_WIDTH, type Sheet } from '../../lib/sheet'
+  import { ART, BUNTING_HEIGHT, buntingLayout, type Sheet } from '../../lib/sheet'
   import Confetti from './Confetti.svelte'
 
   let {
@@ -43,15 +43,12 @@
   const pin = $derived(pinFor(theme, award.points))
 
   let buntingWidth = $state(0)
-  const swags = $derived(buntingSwags(buntingWidth))
+  let buntingHeight = $state(0)
   const FLAG_COLOURS = [ART.flagRed, ART.flagYellow, ART.flagGreen, undefined]
-  // The string's dip in px at k = 1, which is its viewBox's y scaled to the drawn height.
-  const STRING_PX = 0.7
-  const FLAGS = [0.2, 0.4, 0.6, 0.8].map((t) => {
-    const y = 1 + 36 * t * (1 - t)
-    const slope = (STRING_PX * 36 * (1 - 2 * t)) / SWAG_WIDTH
-    return { t, drop: STRING_PX * y - 1, tilt: (Math.atan(slope) * 180) / Math.PI }
-  })
+  // The box is BUNTING_HEIGHT * --k tall, so its two sides give the width at scale 1.
+  const bunting = $derived(
+    buntingLayout(buntingHeight ? (buntingWidth * BUNTING_HEIGHT) / buntingHeight : 0),
+  )
 </script>
 
 {#snippet roll(side: 'left' | 'right')}
@@ -192,44 +189,39 @@
       </div>
     </div>
     {#if sheet === 'bunting'}
-      <div class="bunting" bind:clientWidth={buntingWidth} aria-hidden="true">
-        {#each { length: swags }, s (s)}
-          <div class="swag">
-            <svg class="string" viewBox="0 0 100 20" preserveAspectRatio="none">
+      <div
+        class="bunting"
+        bind:clientWidth={buntingWidth}
+        bind:clientHeight={buntingHeight}
+        aria-hidden="true"
+      >
+        <svg viewBox="0 0 {bunting.width} {BUNTING_HEIGHT}">
+          {#each bunting.swags as d (d)}
+            <path class="swag" {d} fill="none" stroke={ART.string} stroke-width="1.5" />
+          {/each}
+          {#each bunting.flags as flag (flag.d)}
+            {@const colour = FLAG_COLOURS[flag.colour % FLAG_COLOURS.length]}
+            <path
+              class="flag"
+              class:blue={!colour}
+              d={flag.d}
+              transform={flag.transform}
+              fill={colour}
+            />
+          {/each}
+          {#each bunting.knots as x (x)}
+            <g class="knot" transform="translate({x} 0)">
               <path
-                d="M0 1Q50 19 100 1"
+                d="M0 5q-2 3 0 5.5t0.4 5"
                 fill="none"
                 stroke={ART.string}
-                stroke-width="1.5"
-                vector-effect="non-scaling-stroke"
+                stroke-width="1.2"
+                stroke-linecap="round"
               />
-            </svg>
-            {#each FLAGS as flag, f (f)}
-              {@const colour = FLAG_COLOURS[(s + f) % FLAG_COLOURS.length]}
-              <svg
-                class="flag"
-                viewBox="0 0 22 22"
-                style:left="{flag.t * 100}%"
-                style:--drop={flag.drop}
-                style:--tilt="{flag.tilt}deg"
-              >
-                <path class:blue={!colour} d="M0 0h22l-11 22z" fill={colour} />
-              </svg>
-            {/each}
-          </div>
-        {/each}
-        {#each { length: swags + 1 }, i (i)}
-          <svg class="knot" viewBox="0 0 12 20" style:left="{(i / swags) * 100}%">
-            <path
-              d="M6 6q-2.5 4 0 7t0.5 6"
-              fill="none"
-              stroke={ART.string}
-              stroke-width="1.5"
-              stroke-linecap="round"
-            />
-            <circle cx="6" cy="4" r="3.2" fill={ART.string} />
-          </svg>
-        {/each}
+              <circle cy="3" r="2.6" fill={ART.string} />
+            </g>
+          {/each}
+        </svg>
       </div>
     {:else if sheet === 'bamboo'}
       {@render pole('top')}
@@ -436,39 +428,13 @@
     left: calc(5px * var(--k));
     right: calc(5px * var(--k));
     top: calc(4px * var(--k));
-    display: flex;
-  }
-
-  .swag {
-    position: relative;
-    flex: 1;
+    height: calc(30px * var(--k));
   }
 
   .bunting svg {
-    position: absolute;
     display: block;
-  }
-
-  .string {
-    left: 0;
-    top: 0;
     width: 100%;
-    height: calc(14px * var(--k));
-  }
-
-  .flag {
-    top: calc(var(--drop) * 1px * var(--k));
-    width: calc(18px * var(--k));
-    height: calc(18px * var(--k));
-    transform: translateX(-50%) rotate(var(--tilt));
-    transform-origin: 50% 0;
-  }
-
-  .knot {
-    top: calc(-2.5px * var(--k));
-    width: calc(10px * var(--k));
-    height: calc(16px * var(--k));
-    transform: translateX(-50%);
+    height: 100%;
   }
 
   .blue {

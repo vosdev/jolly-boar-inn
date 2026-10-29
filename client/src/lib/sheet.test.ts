@@ -2,7 +2,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { buntingSwags, hasRolls, sheetFor } from './sheet'
+import { BUNTING_HEIGHT, buntingLayout, buntingSwags, hasRolls, sheetFor } from './sheet'
 
 describe('sheetFor', () => {
   it('gives each theme its own sheet', () => {
@@ -50,5 +50,31 @@ describe('buntingSwags', () => {
   it('hangs two at the least, on a phone or before the sheet is measured', () => {
     expect(buntingSwags(0)).toBe(2)
     expect(buntingSwags(320)).toBe(2)
+  })
+})
+
+describe('buntingLayout', () => {
+  it('knots every swag at both ends and hangs four flags on each', () => {
+    const bunting = buntingLayout(900)
+    expect(bunting.swags).toHaveLength(5)
+    expect(bunting.knots).toHaveLength(6)
+    expect(bunting.flags).toHaveLength(20)
+    expect(bunting.knots[0]).toBeGreaterThan(0)
+    expect(bunting.knots.at(-1)).toBeLessThan(bunting.width)
+  })
+
+  it('keeps the flags 18 units tall and inside the bunting on any sheet', () => {
+    for (const width of [0, 320, 900, 1600]) {
+      for (const { d } of buntingLayout(width).flags) {
+        const [, y, side, drop] = d.match(/^M\S+ (\S+)h(\S+)l\S+ (\S+)z$/)!.map(Number)
+        expect(side).toBe(18)
+        expect(drop).toBe(18)
+        expect(y + drop).toBeLessThanOrEqual(BUNTING_HEIGHT)
+      }
+    }
+  })
+
+  it('draws two swags before the sheet is measured', () => {
+    expect(buntingLayout(0).swags).toHaveLength(2)
   })
 })
