@@ -1,8 +1,10 @@
 <script lang="ts">
   /**
    * Create's panel for the host's own questions: the list, one question open at a time in
-   * `CustomQuestionForm`, and the file they can be saved to and loaded from. On a phone
-   * the form is a sheet over the whole page, where a question has the screen to itself.
+   * `CustomQuestionForm`, and the file they can be saved to and loaded from. The list is
+   * also kept in this browser as it changes, so questions tried out in one room are there
+   * for the next. On a phone the form is a sheet over the whole page, where a question has
+   * the screen to itself.
    *
    * Each question takes one of the room's random-event slots, so the slot count is the
    * cap, and `RandomEvents` above shows it before the host writes a question that will
@@ -20,6 +22,8 @@
     type HostQuestion,
   } from '../lib/customQuestions'
   import type { EventFrequency } from '../lib/protocol'
+  import { loadQuestions, saveQuestions } from '../lib/savedQuestions'
+  import ConfirmDialog from './ConfirmDialog.svelte'
   import CustomQuestionForm from './CustomQuestionForm.svelte'
   import MatchingForm from './MatchingForm.svelte'
   import NpcFace from './NpcFace.svelte'
@@ -49,6 +53,17 @@
   let open = $state<number | 'new' | null>(null)
   let importErrors = $state<string[]>([])
   let fileInput: HTMLInputElement | undefined = $state()
+  let clearing = $state(false)
+
+  const saved = loadQuestions()
+  if (questions.length === 0) questions = saved.questions
+  /** What the host is told about saved questions the rules no longer pass. */
+  const droppedNote =
+    saved.dropped === 1
+      ? '1 saved question no longer works and was removed.'
+      : `${saved.dropped} saved questions no longer work and were removed.`
+
+  $effect(() => saveQuestions(questions))
 
   /** The most of a bad file's problems listed; the rest are counted. */
   const SHOWN_ERRORS = 8
@@ -104,6 +119,12 @@
     URL.revokeObjectURL(url)
   }
 
+  function clear(): void {
+    questions = []
+    importErrors = []
+    clearing = false
+  }
+
   async function load(event: Event): Promise<void> {
     const input = event.currentTarget as HTMLInputElement
     const file = input.files?.[0]
@@ -153,6 +174,10 @@
   <p class="note">
     An NPC asks each one in place of a random event. Perfect for your clan's in-jokes.
   </p>
+
+  {#if saved.dropped > 0}
+    <p class="note">{droppedNote}</p>
+  {/if}
 
   {#if questions.length > 0}
     <ol class="list">
@@ -229,6 +254,11 @@
     {/if}
     <button type="button" onclick={() => fileInput?.click()}>Import…</button>
     <button type="button" disabled={questions.length === 0} onclick={download}>Export</button>
+    {#if questions.length > 0}
+      <button type="button" disabled={open !== null} onclick={() => (clearing = true)}>
+        Clear all
+      </button>
+    {/if}
     <input
       bind:this={fileInput}
       class="sr"
@@ -239,6 +269,9 @@
       onchange={load}
     />
   </div>
+  {#if questions.length > 0}
+    <p class="note">Saved in this browser for your next room.</p>
+  {/if}
   {#if full && questions.length > 0 && over === null && open === null}
     <p class="note">
       Every random event is already one of yours. Add round questions or pick More frequency to
@@ -258,6 +291,17 @@
         <p>And {importErrors.length - SHOWN_ERRORS} more.</p>
       {/if}
     </div>
+  {/if}
+
+  {#if clearing}
+    <ConfirmDialog
+      message={questions.length === 1
+        ? 'Remove your question from this browser?'
+        : `Remove all ${questions.length} of your questions from this browser?`}
+      confirmLabel="Clear all"
+      onConfirm={clear}
+      onCancel={() => (clearing = false)}
+    />
   {/if}
 </section>
 

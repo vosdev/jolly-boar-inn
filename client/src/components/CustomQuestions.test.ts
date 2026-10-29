@@ -1,7 +1,7 @@
 /**
  * The host's questions on Create's Random events step: written, edited, moved and removed in
- * the form, saved to a file and loaded from one, and sent with the room only when every one
- * of them fits a random-event slot.
+ * the form, saved to a file and loaded from one, kept in the browser, and sent with the room
+ * only when every one of them fits a random-event slot.
  */
 
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/svelte'
@@ -11,6 +11,7 @@ import * as api from '../lib/api'
 import { exportText, importText, type CustomQuestion } from '../lib/customQuestions'
 import { profile } from '../lib/profile'
 import { RANDOM_EVENTS } from '../lib/randomEvents'
+import { loadQuestions, saveQuestions } from '../lib/savedQuestions'
 import Create from '../routes/Create.svelte'
 
 // Two rounds of ten: 20 round questions, so 1 event at Less, 2 at Default, 4 at More.
@@ -509,6 +510,64 @@ describe('CustomQuestions', () => {
     expect(alert.textContent).toContain('Nothing was imported')
     expect(alert.textContent).toContain('Question 1, NPC: “zezima” is not an NPC this game knows.')
     expect(listed(panel)).toEqual(['Kept'])
+  })
+
+  it('keeps the list in this browser, so the next Create starts with it', async () => {
+    let panel = await loaded()
+    await writeChoice(panel, 'First', 'Genie')
+    await writeChoice(panel, 'Second')
+    expect(panel.textContent).toContain('Saved in this browser for your next room.')
+    await submitted()
+    cleanup()
+    panel = await loaded()
+    expect(listed(panel)).toEqual(['First', 'Second'])
+    expect(panel.textContent).toContain('Multiple choice · Genie')
+  })
+
+  it('leaves out a saved question the rules no longer pass, and says so', async () => {
+    saveQuestions([
+      { type: 'free_text', payload: { prompt: 'Kept', accepted: ['Fluffs'] } },
+      {
+        type: 'free_text',
+        payload: { prompt: 'Gone', accepted: ['Fluffs'] },
+        random_event: 'zezima',
+      },
+    ])
+    const panel = await loaded()
+    expect(listed(panel)).toEqual(['Kept'])
+    expect(panel.textContent).toContain('1 saved question no longer works and was removed.')
+    expect(loadQuestions()).toEqual({ questions: [expect.anything()], dropped: 0 })
+  })
+
+  it('loads a saved list too long for these rounds and refuses to submit until it fits', async () => {
+    saveQuestions(
+      ['A', 'B', 'C'].map((prompt) => ({
+        type: 'multiple_choice' as const,
+        payload: { prompt, options: ['x', 'y'], answer_index: 0 },
+      })),
+    )
+    const panel = await loaded()
+    expect(listed(panel)).toEqual(['A', 'B', 'C'])
+    expect(panel.textContent).toContain('you have 3 questions of your own')
+    expect(
+      (screen.getByRole('button', { name: 'Create room' }) as HTMLButtonElement).disabled,
+    ).toBe(true)
+  })
+
+  it('clears the list, here and in the browser, only once the host confirms', async () => {
+    const panel = await loaded()
+    await writeChoice(panel, 'Doomed')
+    await writeChoice(panel, 'Also doomed')
+    await click(panel, 'Clear all')
+    await fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    expect(listed(panel)).toEqual(['Doomed', 'Also doomed'])
+    await click(panel, 'Clear all')
+    const dialog = screen.getByRole('dialog')
+    expect(dialog.textContent).toContain('Remove all 2 of your questions from this browser?')
+    await click(dialog, 'Clear all')
+    expect(listed(panel)).toEqual([])
+    expect(within(panel).queryByRole('button', { name: 'Clear all' })).toBeNull()
+    expect(loadQuestions().questions).toEqual([])
   })
 
   it('refuses a file with more questions than the room has events for', async () => {
