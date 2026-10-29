@@ -66,7 +66,10 @@ describe('buntingLayout', () => {
   it('keeps the flags 18 units tall and inside the bunting on any sheet', () => {
     for (const width of [0, 320, 900, 1600]) {
       for (const { d } of buntingLayout(width).flags) {
-        const [, y, side, drop] = d.match(/^M\S+ (\S+)h(\S+)l\S+ (\S+)z$/)!.map(Number)
+        const [y = NaN, side, drop = NaN] = d
+          .match(/^M\S+ (\S+)h(\S+)l\S+ (\S+)z$/)!
+          .slice(1)
+          .map(Number)
         expect(side).toBe(18)
         expect(drop).toBe(18)
         expect(y + drop).toBeLessThanOrEqual(BUNTING_HEIGHT)
