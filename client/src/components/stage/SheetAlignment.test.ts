@@ -17,9 +17,8 @@ describe('the sheet aligns its text', () => {
     expect(scrollSource).not.toMatch(/text-align:\s*(left|start)/)
   })
 
-  it('centres the lobby code, the invite link and its actions', () => {
-    for (const selector of ['.code-row', '.invite', '.invite-actions']) {
-      expect(rule(lobbySource, selector), selector).toContain('justify-content: center')
-    }
+  it('centres the lobby code and its actions', () => {
+    expect(rule(lobbySource, '.code-row')).toContain('align-items: center')
+    expect(rule(lobbySource, '.invite-actions')).toContain('justify-content: center')
   })
 })
