@@ -13,7 +13,7 @@ from app.rooms import segments
 from app.rooms.errors import RoomExpired, RoomNotFound
 from app.rooms.models import Player, Room, RoomQuestion, Totals, _gone
 from app.rooms.settings import RoomSettings
-from app.stats import Metric, bump
+from app.stats import Metric, bump, players_bucket, round_bucket, round_key
 
 # Envelope keys that have their own column in ``questions``; the rest is the payload jsonb.
 # ``random_event`` is the NPC asking it: the envelope's own for an NPC's question or a host's
@@ -82,8 +82,10 @@ def _question_rows(
 
 
 async def _count_game_started(conn: asyncpg.Connection, room: Room) -> None:
-    """Count a game starting, with its event frequency and the host's own questions."""
+    """Count a game starting: its players, event frequency and the host's own questions."""
     await bump(conn, Metric.GAMES_STARTED)
+    playing = sum(1 for player in room.players.values() if player.role != "tv")
+    await bump(conn, Metric.GAME_PLAYERS, players_bucket(playing))
     if room.settings.random_event_frequency is not None:
         await bump(conn, Metric.EVENT_FREQUENCY, room.settings.random_event_frequency)
     own = Counter(q.type for q in room.questions if q.source == "room")
@@ -93,11 +95,22 @@ async def _count_game_started(conn: asyncpg.Connection, room: Room) -> None:
         await bump(conn, Metric.GAMES_WITH_CUSTOM)
 
 
-async def _count_round_finished(conn: asyncpg.Connection, room: Room, position: int) -> None:
-    """Count the round as finished if ``position``, now closing, is its last question."""
+def _round_key(room: Room) -> str:
+    """The ``*_AT_ROUND`` key for the round the game is in now."""
+    segment = room.segment_at(room.current_index or 0)
+    return round_key(0 if segment is None else segment.index)
+
+
+async def _count_round_finished(
+    conn: asyncpg.Connection, room: Room, position: int, at: datetime
+) -> None:
+    """Count the round as finished, with its length, if ``position`` is its last question."""
     segment = room.segment_at(position)
     if segment is not None and position == segment.start + segment.count - 1:
         await bump(conn, Metric.ROUNDS_FINISHED, segment.mode)
+        started_at = room.questions[segment.start].shown_at
+        if started_at is not None:
+            await bump(conn, Metric.ROUND_DURATIONS, round_bucket(segment.mode, at - started_at))
 
 
 async def _void_question(conn: asyncpg.Connection, question: RoomQuestion, at: datetime) -> None:

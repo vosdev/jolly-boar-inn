@@ -34,7 +34,7 @@ import time
 from collections.abc import AsyncIterator, Awaitable, Callable, Mapping, Sequence
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 from uuid import UUID
 
@@ -87,10 +87,11 @@ from app.rooms.queries import (
     _fetch_totals,
     _player_from_row,
     _room_from_row,
+    _round_key,
     _round_start,
     _void_question,
 )
-from app.stats import Metric, bump
+from app.stats import Metric, bump, peak, round_key
 from app.ws.outbox import Outbox
 from app.ws.protocol import AnswerCount, PlayersUpdated, RoomUpdated, RoomView, Welcome
 
@@ -119,6 +120,18 @@ _ROUNDS_UNDER_WAY = (
     "             and s.shown_at is not null)"
     " and exists (select 1 from questions c where c.room_id = r.id and c.round = cur.round"
     "             and c.closed_at is null)"
+    " group by 1"
+)
+
+# How many playing rooms are in each round, 0-based by the rounds before it, as
+# ``Room.segment_at`` counts them.
+_ROUND_REACHED = (
+    "select (select count(distinct q.round) from questions q"
+    "        where q.room_id = r.id and q.round < cur.round) as round,"
+    " count(*) as n"
+    " from rooms r join questions cur on cur.room_id = r.id"
+    " and cur.position = coalesce(r.current_index, 0)"
+    " where r.id = any($1) and r.status = 'playing'"
     " group by 1"
 )
 
@@ -174,6 +187,37 @@ class RoomManager(Joins, Lobby, Loop):
         # serialise with whatever else holds the room, and no longer than that: anyone
         # can ask for any code, so an entry kept for every code asked would never shrink.
         self._locks: dict[str, _Slot] = {}
+        # The highest each peak has been written as today, so only a new high touches the
+        # database. Lost on a restart, which costs one write that ``greatest`` keeps right.
+        self._peaks: dict[Metric, tuple[date, int]] = {}
+
+    async def _count_peaks(self) -> None:
+        """Raise today's peaks to the players connected now and the unfinished rooms they are in."""
+        rooms = [room for room in self.rooms.values() if room.status != "finished"]
+        connected = [
+            sum(1 for p in room.players.values() if p.connected and p.role != "tv")
+            for room in rooms
+        ]
+        today = datetime.now(UTC).date()
+        now = {
+            Metric.PEAK_PLAYERS: sum(connected),
+            Metric.PEAK_ROOMS: sum(1 for n in connected if n > 0),
+        }
+        known = {metric: v for metric, (day, v) in self._peaks.items() if day == today}
+        higher = {metric: value for metric, value in now.items() if value > known.get(metric, 0)}
+        if not higher:
+            return
+        pool = await self._pool()
+        try:
+            async with pool.acquire() as conn, conn.transaction():
+                for metric, value in higher.items():
+                    await peak(conn, metric, value)
+        except asyncpg.PostgresError, OSError:
+            # A counter must never cost a player the connection they just made.
+            log.exception("could not count today's peaks")
+            return
+        for metric, value in higher.items():
+            self._peaks[metric] = (today, value)
 
     def _picture(self, question: RoomQuestion) -> str | None:
         """The name ``question``'s picture has in the client, never its asset id.
@@ -305,7 +349,7 @@ class RoomManager(Joins, Lobby, Loop):
                 await _void_question(conn, question, closed_at)
                 # The game plays on after a restart, so a round whose last question it
                 # voided was played through, not cut short.
-                await _count_round_finished(conn, room, question.position)
+                await _count_round_finished(conn, room, question.position, closed_at)
             question.closed_at, question.voided = closed_at, True
             log.warning(
                 "room %s: question %d was open at the restart, voided", room.code, question.position
@@ -423,11 +467,15 @@ class RoomManager(Joins, Lobby, Loop):
                         ids,
                     )
                     rounds = await conn.fetch(_ROUNDS_UNDER_WAY, ids)
+                    at_rounds = await conn.fetch(_ROUND_REACHED, ids)
                     await conn.execute("delete from rooms where id = any($1)", ids)
                     if abandoned:
                         await bump(conn, Metric.GAMES_ABANDONED, by=abandoned)
                     for row in rounds:
                         await bump(conn, Metric.ROUNDS_ABANDONED, row["mode"], row["n"])
+                    for row in at_rounds:
+                        key = round_key(row["round"])
+                        await bump(conn, Metric.ABANDONED_AT_ROUND, key, row["n"])
                 if abandoned:
                     metrics.GAMES.labels(outcome="abandoned").inc(abandoned)
                 batch = len(ids)
@@ -484,6 +532,7 @@ class RoomManager(Joins, Lobby, Loop):
                 await conn.execute("delete from rooms where id = $1", room.id)
                 if room.status == "playing":
                     await bump(conn, Metric.GAMES_ABANDONED)
+                    await bump(conn, Metric.ABANDONED_AT_ROUND, _round_key(room))
                     if (cut_short := _round_under_way(room)) is not None:
                         await bump(conn, Metric.ROUNDS_ABANDONED, cut_short.mode)
             if room.status == "playing":
@@ -621,6 +670,8 @@ class RoomManager(Joins, Lobby, Loop):
                 server_time=datetime.now(UTC),
                 server_version=APP_VERSION,
             ).model_dump(mode="json")
+            # Before the welcome, so a client that has its welcome was counted already.
+            await self._count_peaks()
             # Queued under the lock, so no later broadcast can reach this socket first.
             outbox.put(welcome)
             if previous is not None:

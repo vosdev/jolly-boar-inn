@@ -36,7 +36,16 @@ const LIVE: Live = {
 }
 
 const today = new Date().toISOString().slice(0, 10)
+const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10)
 const COUNTS: Count[] = [
+  { day: yesterday, metric: 'games_started', key: '', count: 5 },
+  { day: yesterday, metric: 'games_finished', key: '', count: 3 },
+  { day: yesterday, metric: 'games_abandoned', key: '', count: 1 },
+  { day: yesterday, metric: 'game_players', key: '2-4', count: 4 },
+  { day: yesterday, metric: 'game_players', key: '1', count: 1 },
+  { day: yesterday, metric: 'round_durations', key: 'more_less/2-5', count: 2 },
+  { day: yesterday, metric: 'abandoned_at_round', key: '2', count: 1 },
+  { day: yesterday, metric: 'peak_players', key: '', count: 9 },
   { day: today, metric: 'games_finished', key: '', count: 4 },
   { day: today, metric: 'rounds_started', key: 'guess_examine', count: 6 },
   { day: today, metric: 'rounds_finished', key: 'guess_examine', count: 5 },
@@ -107,7 +116,7 @@ describe('Admin', () => {
     serve()
     render(Admin)
     expect(await screen.findByText('Games per day, by how they ended')).toBeTruthy()
-    expect(screen.getByRole('img', { name: /4 finished/ })).toBeTruthy()
+    expect(screen.getByRole('img', { name: /7 finished/ })).toBeTruthy()
     const modes = [...document.querySelectorAll('.ranking .mode')].map((m) => m.textContent)
     expect(modes).toEqual(['Guess the Examine', 'More or Less'])
   })
@@ -123,11 +132,66 @@ describe('Admin', () => {
     expect(rows('How questions closed, by mode')).toEqual(['More or Less'])
     expect(screen.getByText('(7 / 0 / 1)')).toBeTruthy()
     expect(rows('Join failures players saw')).toEqual(['Unknown code'])
-    expect(rows('Themes picked, once per browser')).toEqual(['Toktz'])
+    expect(screen.queryByText('Themes picked, once per browser')).toBeNull()
+    expect(rows('Games started by players in them')).toEqual(['1', '2-4'])
+    expect(rows('Finished rounds by length, by mode')).toEqual(['More or Less'])
+    expect(rows('Round a game stopped in')).toEqual(['Round 2'])
     expect(rows('Finished games by length')).toEqual(['10–20 min', '60+ min'])
     expect(rows("Hosts' own questions by type")).toEqual(['Type the answer'])
     expect(screen.getByText('In 1 game started.')).toBeTruthy()
     expect(rows('How players got in')).toEqual([])
+  })
+
+  it('heads the range with whole-day figures, today left out', async () => {
+    serve()
+    render(Admin)
+    await screen.findByText('Games', { selector: 'dt' })
+    const tile = (label: string) =>
+      screen.getByText(label, { selector: 'dt' }).parentElement!.querySelector('.value')!
+        .textContent
+    expect(tile('Games')?.trim()).toBe('5')
+    expect(tile('Finish rate')?.trim()).toBe('75%')
+    expect(tile('Return rate')?.trim()).toBe('No players')
+    expect(screen.getAllByText('nothing to compare')).toHaveLength(4)
+  })
+
+  it('says no games for a range without any, not 0% or NaN', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async (url: string) =>
+          new Response(JSON.stringify(url.endsWith('/rooms') ? LIVE : { counts: [] })),
+      ),
+    )
+    render(Admin)
+    await screen.findByText('Games', { selector: 'dt' })
+    const row = document.querySelector('.headline')!.textContent!
+    expect(row).toContain('No games')
+    expect(row).not.toMatch(/NaN|0%/)
+  })
+
+  it('keeps the breakdown groups closed until opened, and open across a range change', async () => {
+    serve()
+    render(Admin)
+    const funnel = (await screen.findByText('Funnel')).closest('details')!
+    const audience = screen.getByText('Audience').closest('details')!
+    expect(funnel.open).toBe(false)
+    expect(audience.open).toBe(false)
+    funnel.open = true
+    await fireEvent(funnel, new Event('toggle'))
+    await fireEvent.click(screen.getByRole('radio', { name: '1 year' }))
+    expect(screen.getByText('Funnel').closest('details')!.open).toBe(true)
+    expect(screen.getByText('Audience').closest('details')!.open).toBe(false)
+    expect(screen.getByText('Games a day, 7-day average')).toBeTruthy()
+    expect(JSON.parse(localStorage.getItem('jbi:admin-open-groups')!)).toEqual(['funnel'])
+  })
+
+  it('reopens the groups this browser left open', async () => {
+    localStorage.setItem('jbi:admin-open-groups', JSON.stringify(['gameplay']))
+    serve()
+    render(Admin)
+    expect((await screen.findByText('Gameplay')).closest('details')!.open).toBe(true)
+    expect(screen.getByText('Funnel').closest('details')!.open).toBe(false)
   })
 
   it('forgets a refused token and says so', async () => {

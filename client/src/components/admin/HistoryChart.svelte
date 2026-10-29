@@ -1,6 +1,9 @@
 <script lang="ts">
   /**
-   * One history chart on the admin page: stacked bars, or lines, over the range's buckets.
+   * One history chart on the admin page: stacked bars, or lines, a point a day.
+   *
+   * With `partial`, the last day is still under way: its bar is faded and its line dashed,
+   * so a half-day does not read as a dip.
    *
    * Plain SVG drawn at the width it is given, rather than a library scaled by a viewBox:
    * a scaled chart's labels would shrink to nothing on a phone. Colours are theme tokens
@@ -14,13 +17,15 @@
     days,
     series,
     height = 140,
+    partial = false,
   }: {
     title: string
     kind: 'stacked' | 'lines'
-    /** Each bucket's first day, `YYYY-MM-DD`. */
+    /** Each point's day, `YYYY-MM-DD`. */
     days: string[]
     series: { label: string; tone: Tone; values: number[] }[]
     height?: number
+    partial?: boolean
   } = $props()
 
   /** Room on the left for the scale, and below for the dates. */
@@ -85,8 +90,18 @@
         })),
   )
 
+  /** The points a line draws solid, and the dashed tail to today when it is partial. */
+  function points(values: number[], from: number, to: number): string {
+    return values
+      .slice(from, to)
+      .map((v, i) => `${x(from + i)},${y(v)}`)
+      .join(' ')
+  }
+
+  const settled = $derived(partial ? days.length - 1 : days.length)
+
   const summary = $derived(
-    `${title}: ${series.map((s) => `${s.values.reduce((a, b) => a + b, 0)} ${s.label}`).join(', ')}`,
+    `${title}: ${series.map((s) => `${Math.round(s.values.reduce((a, b) => a + b, 0))} ${s.label}`).join(', ')}`,
   )
 </script>
 
@@ -108,7 +123,7 @@
       {/each}
       {#if kind === 'stacked'}
         {#each stacks as stack, i (days[i])}
-          <g>
+          <g class:partial={partial && i === days.length - 1}>
             <title>
               {shortDate(days[i] ?? '')}: {series
                 .map((s) => `${s.values[i] ?? 0} ${s.label}`)
@@ -129,10 +144,13 @@
         {/each}
       {:else}
         {#each series as line (line.label)}
-          <polyline
-            class="line tone-{line.tone}"
-            points={line.values.map((v, i) => `${x(i)},${y(v)}`).join(' ')}
-          />
+          <polyline class="line tone-{line.tone}" points={points(line.values, 0, settled)} />
+          {#if settled < days.length && settled > 0}
+            <polyline
+              class="line today tone-{line.tone}"
+              points={points(line.values, settled - 1, days.length)}
+            />
+          {/if}
         {/each}
       {/if}
     </svg>
@@ -141,6 +159,9 @@
     {#each series as s (s.label)}
       <li><span class="swatch tone-{s.tone}" aria-hidden="true"></span>{s.label}</li>
     {/each}
+    {#if partial}
+      <li class="today-note">{kind === 'stacked' ? 'Faded' : 'Dashed'}: today so far</li>
+    {/if}
   </ul>
 </figure>
 
@@ -181,6 +202,18 @@
     fill: none;
     stroke-width: 2;
     stroke-linejoin: round;
+  }
+
+  .line.today {
+    stroke-dasharray: 3 3;
+  }
+
+  .partial {
+    opacity: 0.4;
+  }
+
+  .today-note {
+    font-style: italic;
   }
 
   .legend {

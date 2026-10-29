@@ -669,10 +669,13 @@ key into them, so cleanup leaves it.
 - `daily_stats (day, metric, key, count)` counts per UTC day, in the transaction of the event
   counted (`app/stats.py` names the metrics). Games and rounds (keyed by mode) are started, then
   ended early or finished, or abandoned when their room is deleted or expires under them. A game
-  start also counts its event frequency and the host's questions by type; a finished game its
-  length bucket, from its first question opening; a close, by the question's mode, whether
-  everyone answered, time ran out or it was skipped. No IP, name, room code or player id ever
-  goes in it, and every key comes from a fixed set.
+  start also counts its players (bucketed), event frequency and the host's questions by type;
+  a finished game its length bucket, from its first question opening; a finished round its
+  length, keyed `mode/bucket`; a game ended early or abandoned the round it was in; a close, by
+  the question's mode, whether everyone answered, time ran out or it was skipped. Two peaks keep
+  the day's highest instead of a sum, written on a socket's connect: connected players (TVs
+  aside) and unfinished rooms with any. No IP, name, room code or player id ever goes in it, and
+  every key comes from a fixed set.
 - `question_stats` (`app/question_stats.py`), also outside the cascade, sums per content id how
   players do on hand-written pack questions, the NPCs' included (not host, price modes or
   voided), in the close's transaction: `answers`, `credit_sum` (credit, not points), `correct`,

@@ -9,6 +9,8 @@ expires mid-game. A round, keyed by its mode, starts when its first question ope
 finishes when its last one closes, graded or voided by a restart; ``end_game`` between
 those two ends it early, and its room going then abandons it.
 
+The two peaks are the one exception to counting: each keeps the day's highest value seen.
+
 A key is only ever one of a fixed set of values (a mode, a type, or a ``Literal`` below),
 so no key can carry a name or anything else a player typed.
 """
@@ -79,6 +81,16 @@ class Metric(StrEnum):
     JOIN_ROUTES = "join_routes"
     # As the browser reports them, since only it knows which ones its player saw.
     JOIN_FAILURES = "join_failures"
+    # Per game started, keyed by ``players_bucket``; the host is a player.
+    GAME_PLAYERS = "game_players"
+    # Finished rounds, keyed ``mode/bucket`` by ``round_bucket``.
+    ROUND_DURATIONS = "round_durations"
+    # The round, 1-based and keyed by ``round_key``, a game was in when it ended that way.
+    ENDED_EARLY_AT_ROUND = "ended_early_at_round"
+    ABANDONED_AT_ROUND = "abandoned_at_round"
+    # The day's highest, never a sum: connected players, and the unfinished rooms with any.
+    PEAK_PLAYERS = "peak_players"
+    PEAK_ROOMS = "peak_rooms"
 
 
 @dataclass(frozen=True)
@@ -96,6 +108,12 @@ UNREPORTED = Arrival()
 
 # Upper bounds in minutes; a game past the last is ``60+``.
 DURATION_BUCKETS = (10, 20, 30, 45, 60)
+# Upper bounds in minutes; a round past the last is ``10+``.
+ROUND_BUCKETS = (2, 5, 10)
+# Lower bounds of each players bucket; a game of 20 or more is ``20+``.
+PLAYER_BUCKETS = (1, 2, 5, 10, 20)
+# Rounds past this one count under ``8+``.
+LAST_ROUND_KEY = 8
 
 
 async def bump(conn: asyncpg.Connection, metric: Metric, key: str = "", by: int = 1) -> None:
@@ -107,6 +125,18 @@ async def bump(conn: asyncpg.Connection, metric: Metric, key: str = "", by: int 
         metric.value,
         key,
         by,
+    )
+
+
+async def peak(conn: asyncpg.Connection, metric: Metric, value: int) -> None:
+    """Raise today's (UTC) ``metric`` to ``value`` if that is higher than it already is."""
+    await conn.execute(
+        "insert into daily_stats (day, metric, key, count)"
+        " values ((now() at time zone 'utc')::date, $1, '', $2)"
+        " on conflict (day, metric, key)"
+        " do update set count = greatest(daily_stats.count, excluded.count)",
+        metric.value,
+        value,
     )
 
 
@@ -125,13 +155,34 @@ async def joined(conn: asyncpg.Connection, returning: bool, arrival: Arrival) ->
 
 def duration_bucket(length: timedelta) -> str:
     """The ``GAME_DURATIONS`` key for a game that lasted ``length``: ``0-10`` up to ``60+``."""
-    minutes = length.total_seconds() / 60
+    return _bucket(length.total_seconds() / 60, DURATION_BUCKETS)
+
+
+def _bucket(minutes: float, bounds: tuple[int, ...]) -> str:
     low = 0
-    for high in DURATION_BUCKETS:
+    for high in bounds:
         if minutes < high:
             return f"{low}-{high}"
         low = high
     return f"{low}+"
+
+
+def round_bucket(mode: str, length: timedelta) -> str:
+    """The ``ROUND_DURATIONS`` key for a round of ``mode`` that lasted ``length``."""
+    return f"{mode}/{_bucket(length.total_seconds() / 60, ROUND_BUCKETS)}"
+
+
+def players_bucket(players: int) -> str:
+    """The ``GAME_PLAYERS`` key for a game started with ``players``: ``1``, ``2-4`` to ``20+``."""
+    for low, high in zip(PLAYER_BUCKETS, PLAYER_BUCKETS[1:], strict=False):
+        if players < high:
+            return str(low) if high - low == 1 else f"{low}-{high - 1}"
+    return f"{PLAYER_BUCKETS[-1]}+"
+
+
+def round_key(index: int) -> str:
+    """The ``*_AT_ROUND`` key for the round at 0-based ``index``: ``1`` to ``8+``."""
+    return str(index + 1) if index + 1 < LAST_ROUND_KEY else f"{LAST_ROUND_KEY}+"
 
 
 async def history(pool: asyncpg.Pool) -> list[asyncpg.Record]:
