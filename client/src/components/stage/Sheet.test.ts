@@ -46,7 +46,9 @@ describe('the sheet', () => {
   it('is a card under bunting in the Party Room, and an obsidian slab in the TzHaar city', () => {
     const party = stage('party_room').sheet
     expect(party.dataset.sheet).toBe('bunting')
-    expect(party.querySelector('svg.bunting')).not.toBeNull()
+    expect(party.querySelectorAll('.bunting .swag')).toHaveLength(2)
+    expect(party.querySelectorAll('.bunting .knot')).toHaveLength(3)
+    expect(party.querySelectorAll('.bunting .flag')).toHaveLength(8)
     expect(party.querySelector('.roll')).toBeNull()
     cleanup()
 

@@ -24,7 +24,7 @@
   import skullUrl from '../../assets/sprites/skull.svg'
   import mushroomsUrl from '../../assets/textures/zanaris-mushrooms.svg'
   import { NO_AWARD, pinFor, type Award } from '../../lib/award'
-  import { ART, type Sheet } from '../../lib/sheet'
+  import { ART, BUNTING_HEIGHT, buntingLayout, type Sheet } from '../../lib/sheet'
   import Confetti from './Confetti.svelte'
 
   let {
@@ -41,6 +41,14 @@
   } = $props()
 
   const pin = $derived(pinFor(theme, award.points))
+
+  let buntingWidth = $state(0)
+  let buntingHeight = $state(0)
+  const FLAG_COLOURS = [ART.flagRed, ART.flagYellow, ART.flagGreen, undefined]
+  // The box is BUNTING_HEIGHT * --k tall, so its two sides give the width at scale 1.
+  const bunting = $derived(
+    buntingLayout(buntingHeight ? (buntingWidth * BUNTING_HEIGHT) / buntingHeight : 0),
+  )
 </script>
 
 {#snippet roll(side: 'left' | 'right')}
@@ -181,18 +189,40 @@
       </div>
     </div>
     {#if sheet === 'bunting'}
-      <svg class="bunting" viewBox="0 0 400 44" aria-hidden="true">
-        <path d="M0 4Q200 34 400 4" fill="none" stroke={ART.string} stroke-width="1.5" />
-        <path d="M14 7l20 3-8 22z" fill={ART.flagRed} />
-        <path d="M52 13l22 4-10 22z" fill={ART.flagYellow} />
-        <path d="M94 18l22 2-9 22z" fill={ART.flagGreen} />
-        <path class="blue" d="M138 21l22 1-11 22z" />
-        <path d="M184 23h22l-11 21z" fill={ART.flagRed} />
-        <path d="M230 22l22-1-11 22z" fill={ART.flagYellow} />
-        <path d="M274 20l22-2-9 22z" fill={ART.flagGreen} />
-        <path class="blue" d="M316 17l22-4-10 22z" />
-        <path d="M356 11l22-4-8 22z" fill={ART.flagRed} />
-      </svg>
+      <div
+        class="bunting"
+        bind:clientWidth={buntingWidth}
+        bind:clientHeight={buntingHeight}
+        aria-hidden="true"
+      >
+        <svg viewBox="0 0 {bunting.width} {BUNTING_HEIGHT}">
+          {#each bunting.swags as d (d)}
+            <path class="swag" {d} fill="none" stroke={ART.string} stroke-width="1.5" />
+          {/each}
+          {#each bunting.flags as flag (flag.d)}
+            {@const colour = FLAG_COLOURS[flag.colour % FLAG_COLOURS.length]}
+            <path
+              class="flag"
+              class:blue={!colour}
+              d={flag.d}
+              transform={flag.transform}
+              fill={colour}
+            />
+          {/each}
+          {#each bunting.knots as x (x)}
+            <g class="knot" transform="translate({x} 0)">
+              <path
+                d="M0 5q-2 3 0 5.5t0.4 5"
+                fill="none"
+                stroke={ART.string}
+                stroke-width="1.2"
+                stroke-linecap="round"
+              />
+              <circle cy="3" r="2.6" fill={ART.string} />
+            </g>
+          {/each}
+        </svg>
+      </div>
     {:else if sheet === 'bamboo'}
       {@render pole('top')}
       {@render pole('bottom')}
@@ -391,13 +421,20 @@
     border-radius: 2px;
   }
 
+  /* Fixed-size flags on swags whose count follows the width, knotted at every end. */
   .bunting {
     position: absolute;
     z-index: 1;
-    left: calc(-10px * var(--k));
-    top: calc(-4px * var(--k));
-    width: calc(100% + 20px * var(--k));
-    height: auto;
+    left: calc(5px * var(--k));
+    right: calc(5px * var(--k));
+    top: calc(4px * var(--k));
+    height: calc(30px * var(--k));
+  }
+
+  .bunting svg {
+    display: block;
+    width: 100%;
+    height: 100%;
   }
 
   .blue {
