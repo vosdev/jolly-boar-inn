@@ -1,13 +1,15 @@
 <script lang="ts">
   /**
-   * Create's panel for the host's own questions: the list, one question open at a time in
-   * `CustomQuestionForm`, and the file they can be saved to and loaded from. On a phone
-   * the form is a sheet over the whole page, where a question has the screen to itself.
+   * Create's panel for the host's own questions: their bank, kept in this browser, with a
+   * tick on each the room should ask; one question open at a time in `CustomQuestionForm`;
+   * and the file the bank can be saved to and added to from. Ticks are saved too, so the
+   * questions tried out in one room come back ticked for the next. On a phone the form is a
+   * sheet over the whole page, where a question has the screen to itself.
    *
-   * Each question takes one of the room's random-event slots, so the slot count is the
-   * cap, and `RandomEvents` above shows it before the host writes a question that will
-   * not fit rather than after. Rounds and frequency can still change under a full list;
-   * then Create refuses to submit and this panel says why.
+   * Each ticked question takes one of the room's random-event slots, so the slot count caps
+   * the ticks, and `RandomEvents` above shows it before the host ticks one that will not
+   * fit rather than after. Rounds and frequency can still change under a full room, as can
+   * a bank ticked for a bigger one; then Create refuses to submit and this panel says why.
    */
   import {
     CUSTOM_TYPES,
@@ -20,6 +22,8 @@
     type HostQuestion,
   } from '../lib/customQuestions'
   import type { EventFrequency } from '../lib/protocol'
+  import { BANK_MAX, loadBank, sameQuestion, saveBank, type Banked } from '../lib/savedQuestions'
+  import ConfirmDialog from './ConfirmDialog.svelte'
   import CustomQuestionForm from './CustomQuestionForm.svelte'
   import MatchingForm from './MatchingForm.svelte'
   import NpcFace from './NpcFace.svelte'
@@ -33,6 +37,7 @@
     atMore,
     sheet = false,
   }: {
+    /** The ticked questions, in bank order: what the room will ask. */
     questions: HostQuestion[]
     /** Whether a question is open in the form, which Create will not submit past. */
     editing: boolean
@@ -45,16 +50,34 @@
     sheet?: boolean
   } = $props()
 
-  /** The question open in the form: its place in the list, `new` for one being added, or null. */
+  /** The question open in the form: its place in the bank, `new` for one being added, or null. */
   let open = $state<number | 'new' | null>(null)
   let importErrors = $state<string[]>([])
+  let importNote = $state('')
   let fileInput: HTMLInputElement | undefined = $state()
+  /** The question waiting on the host to confirm its deletion. */
+  let deleting = $state<number | null>(null)
+
+  const saved = loadBank()
+  let bank = $state<Banked[]>(saved.bank)
+  /** What the host is told about saved questions the rules no longer pass. */
+  const droppedNote =
+    saved.dropped === 1
+      ? '1 saved question no longer works and was removed.'
+      : `${saved.dropped} saved questions no longer work and were removed.`
+
+  $effect(() => {
+    saveBank(bank)
+    questions = bank.filter((entry) => entry.used).map((entry) => entry.question)
+  })
 
   /** The most of a bad file's problems listed; the rest are counted. */
   const SHOWN_ERRORS = 8
 
-  const over = $derived(overCap(questions.length, slots, frequency, atMore))
-  const full = $derived(questions.length >= slots)
+  const used = $derived(bank.filter((entry) => entry.used).length)
+  const over = $derived(overCap(used, slots, frequency, atMore))
+  const full = $derived(used >= slots)
+  const bankFull = $derived(bank.length >= BANK_MAX)
 
   $effect(() => {
     editing = open !== null
@@ -71,32 +94,46 @@
   }
 
   function edit(at: number | 'new'): void {
-    matching = at !== 'new' && questions[at]?.type === 'matching'
+    matching = at !== 'new' && bank[at]?.question.type === 'matching'
+    importNote = ''
     open = at
   }
 
+  /** A new question is ticked while the room has a slot for it, and banked unticked if not. */
   function save(question: HostQuestion): void {
-    if (open === 'new') questions = [...questions, question]
-    else if (open !== null) questions = questions.map((q, i) => (i === open ? question : q))
+    if (open === 'new') bank = [...bank, { question, used: !full }]
+    else if (open !== null) {
+      bank = bank.map((entry, i) => (i === open ? { ...entry, question } : entry))
+    }
     open = null
   }
 
+  function toggle(index: number): void {
+    bank = bank.map((entry, i) => (i === index ? { ...entry, used: !entry.used } : entry))
+  }
+
+  function untickAll(): void {
+    bank = bank.map((entry) => ({ ...entry, used: false }))
+  }
+
   function remove(index: number): void {
-    questions = questions.filter((_, i) => i !== index)
+    bank = bank.filter((_, i) => i !== index)
+    deleting = null
   }
 
   function move(index: number, by: number): void {
     const to = index + by
-    if (to < 0 || to >= questions.length) return
-    const moved = [...questions]
-    const [question] = moved.splice(index, 1)
-    if (question === undefined) return
-    moved.splice(to, 0, question)
-    questions = moved
+    if (to < 0 || to >= bank.length) return
+    const moved = [...bank]
+    const [entry] = moved.splice(index, 1)
+    if (entry === undefined) return
+    moved.splice(to, 0, entry)
+    bank = moved
   }
 
   function download(): void {
-    const url = URL.createObjectURL(new Blob([exportText(questions)], { type: 'application/json' }))
+    const text = exportText(bank.map((entry) => entry.question))
+    const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }))
     const link = document.createElement('a')
     link.href = url
     link.download = EXPORT_FILENAME
@@ -104,25 +141,39 @@
     URL.revokeObjectURL(url)
   }
 
+  /** Adds a file's questions to the bank, unticked, skipping the ones already in it. */
   async function load(event: Event): Promise<void> {
     const input = event.currentTarget as HTMLInputElement
     const file = input.files?.[0]
     // Cleared so picking the same file again, after fixing it, is a change.
     input.value = ''
     if (file === undefined) return
+    importNote = ''
     const result = importText(await file.text())
     if (!result.ok) {
       importErrors = result.errors
       return
     }
-    const tooMany = overCap(result.questions.length, slots, frequency, atMore)
-    if (tooMany !== null) {
-      importErrors = [`This file has ${result.questions.length} questions. ${tooMany}`]
+    const fresh: HostQuestion[] = []
+    for (const question of result.questions) {
+      const known = [...bank.map((entry) => entry.question), ...fresh]
+      if (!known.some((other) => sameQuestion(other, question))) fresh.push(question)
+    }
+    if (bank.length + fresh.length > BANK_MAX) {
+      const room = BANK_MAX - bank.length
+      importErrors = [
+        `This file has ${fresh.length} new questions, and your list has room for ${room} more of the ${BANK_MAX} it keeps. Delete some first.`,
+      ]
       return
     }
     importErrors = []
-    questions = result.questions
-    open = null
+    bank = [...bank, ...fresh.map((question) => ({ question, used: false }))]
+    const skipped = result.questions.length - fresh.length
+    const added = fresh.length === 1 ? '1 question' : `${fresh.length} questions`
+    importNote =
+      fresh.length === 0
+        ? 'Every question in this file is already in your list.'
+        : `Added ${added}, unticked${skipped > 0 ? `; ${skipped} ${skipped === 1 ? 'was' : 'were'} already in your list` : ''}.`
   }
 </script>
 
@@ -151,21 +202,35 @@
     <span class="tag">Optional</span>
   </div>
   <p class="note">
-    An NPC asks each one in place of a random event. Perfect for your clan's in-jokes.
+    An NPC asks each one you tick in place of a random event. Perfect for your clan's in-jokes.
   </p>
 
-  {#if questions.length > 0}
+  {#if saved.dropped > 0}
+    <p class="note">{droppedNote}</p>
+  {/if}
+
+  {#if bank.length > 0}
     <ol class="list">
-      {#each questions as question, index (question)}
+      {#each bank as entry, index (entry)}
         <li>
           {#if open === index && !sheet}
-            {@render editor(question)}
+            {@render editor(entry.question)}
           {:else}
-            <div class="summary">
-              <span class="face"><NpcFace npc={question.random_event} /></span>
+            <div class="summary" class:unused={!entry.used}>
+              <input
+                type="checkbox"
+                class="use"
+                checked={entry.used}
+                disabled={!entry.used && full}
+                aria-label="Use question {index + 1} in this room"
+                onchange={() => toggle(index)}
+              />
+              <span class="face"><NpcFace npc={entry.question.random_event} /></span>
               <div class="words">
-                <p class="prompt">{question.payload.prompt}</p>
-                <p class="note">{HOST_TYPE_LABELS[question.type]} · {askedBy(question)}</p>
+                <p class="prompt">{entry.question.payload.prompt}</p>
+                <p class="note">
+                  {HOST_TYPE_LABELS[entry.question.type]} · {askedBy(entry.question)}
+                </p>
               </div>
               <div class="row actions">
                 <button
@@ -179,7 +244,7 @@
                   type="button"
                   class="small"
                   aria-label="Move question {index + 1} later"
-                  disabled={index === questions.length - 1}
+                  disabled={index === bank.length - 1}
                   onclick={() => move(index, 1)}>↓</button
                 >
                 <button
@@ -192,8 +257,9 @@
                 <button
                   type="button"
                   class="small"
-                  aria-label="Remove question {index + 1}"
-                  onclick={() => remove(index)}>Remove</button
+                  aria-label="Delete question {index + 1}"
+                  disabled={open !== null}
+                  onclick={() => (deleting = index)}>Delete</button
                 >
               </div>
             </div>
@@ -213,7 +279,9 @@
       label={open === 'new' ? 'New question' : 'Edit question'}
       onclose={() => (open = null)}
     >
-      <div class="in-sheet">{@render editor(open === 'new' ? undefined : questions[open])}</div>
+      <div class="in-sheet">
+        {@render editor(open === 'new' ? undefined : bank[open]?.question)}
+      </div>
     </Sheet>
   {/if}
 
@@ -223,12 +291,15 @@
 
   <div class="row tools">
     {#if open !== 'new' || sheet}
-      <button type="button" disabled={full || open !== null} onclick={() => edit('new')}>
+      <button type="button" disabled={bankFull || open !== null} onclick={() => edit('new')}>
         Write a question
       </button>
     {/if}
-    <button type="button" onclick={() => fileInput?.click()}>Import…</button>
-    <button type="button" disabled={questions.length === 0} onclick={download}>Export</button>
+    {#if used > 0}
+      <button type="button" disabled={open !== null} onclick={untickAll}>Untick all</button>
+    {/if}
+    <button type="button" disabled={bankFull} onclick={() => fileInput?.click()}>Import…</button>
+    <button type="button" disabled={bank.length === 0} onclick={download}>Export</button>
     <input
       bind:this={fileInput}
       class="sr"
@@ -239,11 +310,19 @@
       onchange={load}
     />
   </div>
-  {#if full && questions.length > 0 && over === null && open === null}
+  {#if bank.length > 0}
     <p class="note">
-      Every random event is already one of yours. Add round questions or pick More frequency to
-      write another.
+      Saved in this browser for your next room{bankFull ? `, ${BANK_MAX} at most` : ''}.
     </p>
+  {/if}
+  {#if full && used > 0 && over === null && open === null}
+    <p class="note">
+      Every random event is already one of yours. Add round questions or pick More frequency to tick
+      another; a new question is saved unticked.
+    </p>
+  {/if}
+  {#if importNote !== ''}
+    <p class="note" role="status">{importNote}</p>
   {/if}
 
   {#if importErrors.length > 0}
@@ -258,6 +337,16 @@
         <p>And {importErrors.length - SHOWN_ERRORS} more.</p>
       {/if}
     </div>
+  {/if}
+
+  {#if deleting !== null}
+    {@const doomed = deleting}
+    <ConfirmDialog
+      message={`Delete “${bank[doomed]?.question.payload.prompt}” from your questions? It can’t be undone.`}
+      confirmLabel="Delete"
+      onConfirm={() => remove(doomed)}
+      onCancel={() => (deleting = null)}
+    />
   {/if}
 </section>
 
@@ -313,8 +402,19 @@
     border-bottom: 1px solid var(--line);
   }
 
+  .use {
+    flex: none;
+    margin-top: 0.9rem;
+  }
+
+  /* Kept in the bank, but not asked in this room. */
+  .unused .face,
+  .unused .words {
+    opacity: 0.6;
+  }
+
   .words {
-    flex: 1 1 14rem;
+    flex: 1 1 11rem;
     min-width: 0;
   }
 

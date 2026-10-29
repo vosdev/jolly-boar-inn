@@ -235,7 +235,9 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 - Create's editor writes `multiple_choice`, `free_text`, `closest_number`, `number_slider` and
   `pick_all_that_apply` (`picks` only as a "tell players how many" box), and `MatchingForm` a
   text-only `matching` with limits read from the schema, refuses what the server would 422, the slot cap included, and exports
-  `[{type, payload, random_event?}]`, which Import reads back byte for byte.
+  `[{type, payload, random_event?}]`, which Import reads back byte for byte. The host's questions are a bank of up
+  to 100 in localStorage, one `jbi:own-question:<n>` `{question, used}` each; the room sends the ticked ones in bank
+  order. Import adds unticked and skips duplicates; Export writes the bank; one the checks refuse is dropped on load.
 - `/suggest` adds an `ordering` form for the rounds that sort, Bestiary's and random events'
   (NPC and intro) beside their other types: entries first to last and a "tied with the one
   above" box, so ranks follow, `picks` optional. Release Order's entries carry their date as `detail`.
@@ -611,8 +613,8 @@ gates `GET /metrics` (OpenMetrics text, fixed-set labels only) by the same rules
   `code` typed on Home, or a plain `link`) are counted, never stored; a request's only once let in.
   The browser sends `theme` and `device` only when they differ from what it last had counted
   (`client/src/lib/stats.ts`), so each counts once per browser.
-- The client keeps sessions and the rooms it created in localStorage, never a cookie, so nothing
-  ambient authenticates a request.
+- The client keeps sessions, the rooms it created and the host's own questions in localStorage,
+  never a cookie, so nothing ambient authenticates a request.
 - A second admin is a join plus `promote`. A room whose last admin lost their session runs on
   without one until it expires; remaking it is the fix.
 - The TV (`set_tv`) is a player's role, not an admin's: its admin messages are `not_admin`.
