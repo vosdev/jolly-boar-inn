@@ -1513,6 +1513,363 @@
           "name": "Ankou"
         }
       }
+    },
+    {
+      "id": "q_b9e1b48acc7cccbb",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Nex",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 11278,
+        "image": "npc:11278",
+        "subject": {
+          "name": "Nex"
+        }
+      }
+    },
+    {
+      "id": "q_a4bccad63d05a709",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Vardorvis",
+      "difficulty": "hard",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 12223,
+        "image": "npc:12223",
+        "subject": {
+          "name": "Vardorvis"
+        }
+      }
+    },
+    {
+      "id": "q_0477d066984f16de",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Duke_Sucellus",
+      "difficulty": "hard",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 12166,
+        "image": "npc:12166",
+        "subject": {
+          "name": "Duke Sucellus"
+        }
+      }
+    },
+    {
+      "id": "q_c3696418752b792a",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Phantom_Muspah",
+      "difficulty": "hard",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 12077,
+        "image": "npc:12077",
+        "subject": {
+          "name": "Phantom Muspah"
+        }
+      }
+    },
+    {
+      "id": "q_ad827488f42b2890",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Verzik_Vitur",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 8369,
+        "image": "npc:8369",
+        "subject": {
+          "name": "Verzik Vitur"
+        }
+      }
+    },
+    {
+      "id": "q_d4b4b4ff4b6cb18f",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Abyssal_Sire",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 5886,
+        "image": "npc:5886",
+        "subject": {
+          "name": "Abyssal Sire"
+        }
+      }
+    },
+    {
+      "id": "q_ee68b4f1f7500150",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Skotizo",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 7286,
+        "image": "npc:7286",
+        "subject": {
+          "name": "Skotizo"
+        }
+      }
+    },
+    {
+      "id": "q_6447e821c6b73765",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Hespori",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 8583,
+        "image": "npc:8583",
+        "subject": {
+          "name": "Hespori"
+        }
+      }
+    },
+    {
+      "id": "q_85236efdcba192b4",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/The_Maiden_of_Sugadinti",
+      "difficulty": "hard",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 8360,
+        "image": "npc:8360",
+        "subject": {
+          "name": "The Maiden of Sugadinti"
+        }
+      }
+    },
+    {
+      "id": "q_b4f0224cd765a71b",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Demonic_gorilla",
+      "difficulty": "easy",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 7144,
+        "image": "npc:7144",
+        "subject": {
+          "name": "Demonic gorilla"
+        }
+      }
+    },
+    {
+      "id": "q_fa66e31afe44c41b",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Thermonuclear_smoke_devil",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 499,
+        "image": "npc:499",
+        "subject": {
+          "name": "Thermonuclear smoke devil"
+        }
+      }
+    },
+    {
+      "id": "q_3422bea78a769275",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Nechryael",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 8,
+        "image": "npc:8",
+        "subject": {
+          "name": "Nechryael"
+        }
+      }
+    },
+    {
+      "id": "q_26f22979b9cf5ad7",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Kurask",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 410,
+        "image": "npc:410",
+        "subject": {
+          "name": "Kurask"
+        }
+      }
+    },
+    {
+      "id": "q_29cb7e077ca07c49",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Dark_beast",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 4005,
+        "image": "npc:4005",
+        "subject": {
+          "name": "Dark beast"
+        }
+      }
+    },
+    {
+      "id": "q_9218eb5b67f3c5aa",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Lizardman_shaman",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 6766,
+        "image": "npc:6766",
+        "subject": {
+          "name": "Lizardman shaman"
+        }
+      }
+    },
+    {
+      "id": "q_9e9f78e7a498733e",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Chaos_Fanatic",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 6619,
+        "image": "npc:6619",
+        "subject": {
+          "name": "Chaos Fanatic"
+        }
+      }
+    },
+    {
+      "id": "q_c12b0f0e379b207b",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Sphinx",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 2637,
+        "image": "npc:2637",
+        "subject": {
+          "name": "Sphinx"
+        }
+      }
     }
   ]
 }
