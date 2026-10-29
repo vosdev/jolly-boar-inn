@@ -1,0 +1,37 @@
+# Dependabot cannot see the `version:` input of trivy-action, so this opens the PR for it.
+# Takes the newest release at least three days old, the same cooldown Dependabot uses.
+name: Trivy bump
+
+on:
+  schedule:
+    - cron: "0 6 * * 1,4"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Open a PR for a newer Trivy
+        run: |
+          latest=$(gh api repos/aquasecurity/trivy/releases --jq \
+            '[.[] | select(.prerelease == false and .draft == false and (.published_at | fromdateiso8601) < (now - 3*86400))][0].tag_name')
+          current=$(grep -m1 -oE 'version: v[0-9.]+' .github/workflows/ci.yml | cut -d' ' -f2)
+          [ -n "$latest" ] && [ "$latest" != "$current" ] || exit 0
+          [ "$(printf '%s\n%s\n' "$current" "$latest" | sort -V | tail -1)" = "$latest" ] || exit 0
+          branch="trivy-$latest"
+          git ls-remote --exit-code --heads origin "$branch" && exit 0
+          sed -i "s/version: $current/version: $latest/" .github/workflows/ci.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git commit -am "Update Trivy to $latest"
+          git push origin "$branch"
+          gh pr create --title "Update Trivy to $latest" --body "Bumps the pinned Trivy in ci.yml from $current to $latest."
