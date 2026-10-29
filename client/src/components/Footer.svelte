@@ -11,7 +11,7 @@
   import Credits from './Credits.svelte'
   import Icon from './Icon.svelte'
   import { asOfDate } from '../lib/dates'
-  import { LICENSE_URL, REPO_URL, VERSION_LABEL, WIKI_URL } from '../lib/links'
+  import { DISCORD_URL, LICENSE_URL, REPO_URL, VERSION_LABEL, WIKI_URL } from '../lib/links'
   import { loadPricesAsOf, newestAsOf, pricesAsOf } from '../lib/pricesAsOf.svelte'
 
   let {
@@ -42,6 +42,7 @@
           Source on GitHub
         </a>
       </li>
+      <li><a href={DISCORD_URL} target="_blank" rel="noopener noreferrer">Discord</a></li>
       <li><a href={LICENSE_URL} target="_blank" rel="noopener">AGPL-3.0</a></li>
       <li>
         <a href={WIKI_URL} target="_blank" rel="noopener">Data from the OSRS Wiki</a> (CC BY-NC-SA)
