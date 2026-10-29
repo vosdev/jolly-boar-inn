@@ -1,15 +1,15 @@
 version: 2
 
-# Every ecosystem lands in one weekly PR, so a round of updates costs a single version bump.
+# Every ecosystem lands in one PR, so a round of updates costs a single version bump.
 # Security updates are not version updates: they come as their own PRs, ignoring the
 # group, the cooldown and the ignores.
 multi-ecosystem-groups:
-  weekly:
+  twice-weekly:
     schedule:
-      interval: weekly
-      day: monday
+      interval: cron
+      cronjob: "0 6 * * 1,4"
 
-# A compromised release is usually yanked within days; waiting a week keeps it off the
+# A compromised release is usually yanked within days; waiting three days keeps it off the
 # self-hosted runners, which run whatever an update PR installs.
 #
 # A major version is a migration, and one failing package holds back the whole group: those
@@ -17,40 +17,40 @@ multi-ecosystem-groups:
 updates:
   - package-ecosystem: uv
     directory: /server
-    multi-ecosystem-group: weekly
+    multi-ecosystem-group: twice-weekly
     patterns: ["*"]
     cooldown:
-      default-days: 7
+      default-days: 3
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
 
   - package-ecosystem: npm
     directory: /client
-    multi-ecosystem-group: weekly
+    multi-ecosystem-group: twice-weekly
     patterns: ["*"]
     cooldown:
-      default-days: 7
+      default-days: 3
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
-    multi-ecosystem-group: weekly
+    multi-ecosystem-group: twice-weekly
     patterns: ["*"]
     cooldown:
-      default-days: 7
+      default-days: 3
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
 
   - package-ecosystem: docker
     directory: /
-    multi-ecosystem-group: weekly
+    multi-ecosystem-group: twice-weekly
     patterns: ["*"]
     cooldown:
-      default-days: 7
+      default-days: 3
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
@@ -59,10 +59,10 @@ updates:
 
   - package-ecosystem: docker-compose
     directory: /
-    multi-ecosystem-group: weekly
+    multi-ecosystem-group: twice-weekly
     patterns: ["*"]
     cooldown:
-      default-days: 7
+      default-days: 3
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
