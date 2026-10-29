@@ -13,6 +13,8 @@ CLIENT_DIST = Path(__file__).resolve().parents[2] / "client" / "dist"
 
 IMMUTABLE = "public, max-age=31536000, immutable"
 NO_CACHE = "no-cache"
+# Never a client route, so a missing file here is a 404 rather than the page.
+MEDIA_PATHS = ("assets/", "pictures/")
 
 # Where the build leaves ``index.html`` the address it is served at (``client/site-branding.ts``):
 # a shared link's card has to be absolute, and the address is the server's setting, not the
@@ -94,10 +96,15 @@ def mount_client(
         if "\0" in path:
             raise HTTPException(status_code=404)
         candidate = (dist / path).resolve()
+        media = path.startswith(MEDIA_PATHS)
         if path and candidate.is_relative_to(dist) and candidate.is_file():
             # A picture's random name changes with its file (``scripts/build_pictures.py``).
-            cache = IMMUTABLE if path.startswith(("assets/", "pictures/")) else NO_CACHE
+            cache = IMMUTABLE if media else NO_CACHE
             return FileResponse(candidate, headers={"Cache-Control": cache})
+        # The page in an ``<img>`` or ``<script>`` would be a broken file the server called a
+        # success. No-cache keeps a cache in front from holding the 404 once the file is deployed.
+        if media:
+            raise HTTPException(status_code=404, headers={"Cache-Control": NO_CACHE})
         page = (
             index.read_text(encoding="utf-8")
             .replace(BASE_URL_SLOT, address)
