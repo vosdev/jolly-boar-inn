@@ -24,6 +24,8 @@ def test_headers_on_every_response(settings: Settings, dist: Path) -> None:
         csp = response.headers["content-security-policy"]
         assert "default-src 'none'" in csp
         assert "frame-ancestors 'none'" in csp
+        # Sound files are the client's own, never another origin's.
+        assert "media-src 'self';" in csp
         # The built client has no inline script or style, so nothing needs a bypass.
         assert "unsafe-inline" not in csp
         assert "unsafe-eval" not in csp

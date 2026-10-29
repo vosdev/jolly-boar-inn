@@ -30,6 +30,7 @@ def content_security_policy(faro_url: str = "") -> str:
             "script-src 'self'",
             "style-src 'self'",
             "img-src 'self' data:",
+            "media-src 'self'",
             connect,
             "font-src 'self'",
             "base-uri 'none'",
