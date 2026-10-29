@@ -35,6 +35,28 @@ def test_question_pictures_are_immutable(settings: Settings, dist: Path) -> None
     assert response.headers["cache-control"].startswith("public, max-age=31536000")
 
 
+def test_missing_media_is_404_not_index(settings: Settings, dist: Path) -> None:
+    """A broken image should fail as one, not succeed as the SPA page."""
+    (dist / "pictures").mkdir()
+    with TestClient(create_app(settings, dist)) as client:
+        for path in (
+            "/pictures/0123456789abcdef.png",
+            "/assets/index-gone.js",
+            "/assets/",
+        ):
+            for method in ("GET", "HEAD"):
+                response = client.request(method, path)
+                assert response.status_code == 404, (method, path)
+                assert "text/html" not in response.headers.get("content-type", ""), path
+                assert response.headers["cache-control"] == "no-cache", path
+
+
+def test_media_prefix_alone_is_still_a_client_route(settings: Settings, dist: Path) -> None:
+    with TestClient(create_app(settings, dist)) as client:
+        for path in ("/assets", "/pictures", "/pictures-of-cats"):
+            assert client.get(path).status_code == 200, path
+
+
 def test_unknown_api_path_is_404_not_index(settings: Settings, dist: Path) -> None:
     with TestClient(create_app(settings, dist)) as client:
         assert client.get("/api/nope").status_code == 404

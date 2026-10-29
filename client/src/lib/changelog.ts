@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.215.0',
+    date: '2026-10-29',
+    text: 'A picture or file that is missing now fails as missing, instead of showing up as a blank page.',
+  },
+  {
     version: '0.214.0',
     date: '2026-10-29',
     text: 'The Sound switches work. With a TV in the room only the TV plays, unless you turn your phone back on.',
