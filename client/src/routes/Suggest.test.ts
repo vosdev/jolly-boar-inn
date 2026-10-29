@@ -128,7 +128,10 @@ describe('Suggest', () => {
     const shown = screen.getByLabelText(/Show my name to players/) as HTMLInputElement
     expect(shown.disabled).toBe(true)
     expect(shown.checked).toBe(false)
-    expect(screen.getByText(/do not support displaying the author of a question/)).toBeTruthy()
+    expect(
+      screen.getByText(/Pixel Hunt do not support displaying the author of a question/),
+    ).toBeTruthy()
+    expect(screen.getByText(/for More or Less, The Price is Right and Pixel Hunt\./)).toBeTruthy()
 
     await type(/Item name/, ' Ancient mace ')
     await type('Your name', 'AFKFisher')

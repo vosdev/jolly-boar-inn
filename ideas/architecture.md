@@ -241,7 +241,7 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   above" box, so ranks follow, `picks` optional. Release Order's entries carry their date as `detail`.
   `MatchingForm` writes field and answer pairs side by side, then decoys, for Bestiary, Drop Table,
   the NPCs and a question with no round; a suggestion's fields are names only, and `/admin` adds icons.
-- Every round on Create takes suggestions, the price rounds as items and Random Events Only as the
+- Every round on Create takes suggestions, the price rounds and Pixel Hunt as items and Random Events Only as the
   NPCs' questions; a test fails on a new round that does neither. Not-yet-built image modes are not on Create.
 
 `select(packs, custom, settings, rng)` fixes a room's questions at creation:

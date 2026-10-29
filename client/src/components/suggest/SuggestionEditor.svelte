@@ -340,8 +340,8 @@
   </label>
   {#if choice.kind === 'item'}
     <p class="note hint">
-      More or Less and The Price is Right do not support displaying the author of a question. Reldo
-      still sees your name.
+      More or Less, The Price is Right and Pixel Hunt do not support displaying the author of a
+      question. Reldo still sees your name.
     </p>
   {/if}
 {/snippet}
@@ -589,8 +589,8 @@
         <h3 id="{id}-title">{choice.label}</h3>
         <StepCard number={1} step={steps[0]!}>
           <p class="note item-note">
-            An item players will recognise, for More or Less and The Price is Right. Untradeable
-            items are welcome: those rounds use alch and shop prices too.
+            An item players will recognise, for More or Less, The Price is Right and Pixel Hunt.
+            Untradeable items are welcome: the price rounds use alch and shop prices too.
           </p>
           <div class="field">
             <label for="{id}-item">Item name, as the wiki spells it</label>

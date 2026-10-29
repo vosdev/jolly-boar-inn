@@ -297,7 +297,7 @@ export const CHOICES: readonly Choice[] = [
     id: 'item',
     kind: 'item',
     label: 'A popular item',
-    hint: 'For More or Less and The Price is Right.',
+    hint: 'For More or Less, The Price is Right and Pixel Hunt.',
     host: 'grand_exchange_clerk',
     types: [],
   },
