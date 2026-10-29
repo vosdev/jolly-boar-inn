@@ -235,8 +235,9 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 - Create's editor writes `multiple_choice`, `free_text`, `closest_number`, `number_slider` and
   `pick_all_that_apply` (`picks` only as a "tell players how many" box), and `MatchingForm` a
   text-only `matching` with limits read from the schema, refuses what the server would 422, the slot cap included, and exports
-  `[{type, payload, random_event?}]`, which Import reads back byte for byte. The list is kept in localStorage as it
-  changes, one `jbi:own-question:<n>` per question under a count; one the checks refuse is dropped on load.
+  `[{type, payload, random_event?}]`, which Import reads back byte for byte. The host's questions are a bank of up
+  to 100 in localStorage, one `jbi:own-question:<n>` `{question, used}` each; the room sends the ticked ones in bank
+  order. Import adds unticked and skips duplicates; Export writes the bank; one the checks refuse is dropped on load.
 - `/suggest` adds an `ordering` form for the rounds that sort, Bestiary's and random events'
   (NPC and intro) beside their other types: entries first to last and a "tied with the one
   above" box, so ranks follow, `picks` optional. Release Order's entries carry their date as `detail`.

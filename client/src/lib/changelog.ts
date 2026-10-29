@@ -46,7 +46,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.219.0',
     date: '2026-10-29',
-    text: 'Your own questions now stay in this browser for your next room, with a Clear all button to start fresh.',
+    text: 'Your own questions now stay in this browser as a list to pick from: tick the ones each room should ask.',
   },
   {
     version: '0.218.1',

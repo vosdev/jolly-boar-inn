@@ -1,7 +1,7 @@
 /**
- * The host's questions on Create's Random events step: written, edited, moved and removed in
- * the form, saved to a file and loaded from one, kept in the browser, and sent with the room
- * only when every one of them fits a random-event slot.
+ * The host's question bank on Create's Random events step: written, edited, moved, ticked
+ * and deleted, kept in the browser, saved to a file and added to from one, and the ticked
+ * ones sent with the room only when every one of them fits a random-event slot.
  */
 
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/svelte'
@@ -11,7 +11,7 @@ import * as api from '../lib/api'
 import { exportText, importText, type CustomQuestion } from '../lib/customQuestions'
 import { profile } from '../lib/profile'
 import { RANDOM_EVENTS } from '../lib/randomEvents'
-import { loadQuestions, saveQuestions } from '../lib/savedQuestions'
+import { BANK_MAX, loadBank, saveBank, type Banked } from '../lib/savedQuestions'
 import Create from '../routes/Create.svelte'
 
 // Two rounds of ten: 20 round questions, so 1 event at Less, 2 at Default, 4 at More.
@@ -119,6 +119,24 @@ function listed(panel: HTMLElement): string[] {
   return [...panel.querySelectorAll('.list .prompt')].map((node) => node.textContent ?? '')
 }
 
+function tick(panel: HTMLElement, place: number): HTMLInputElement {
+  return within(panel).getByRole('checkbox', { name: `Use question ${place} in this room` })
+}
+
+function ticks(panel: HTMLElement): boolean[] {
+  return within(panel)
+    .queryAllByRole('checkbox', { name: /^Use question/ })
+    .map((box) => (box as HTMLInputElement).checked)
+}
+
+function question(prompt: string): CustomQuestion {
+  return { type: 'multiple_choice', payload: { prompt, options: ['x', 'y'], answer_index: 0 } }
+}
+
+function banked(prompt: string, used = true): Banked {
+  return { question: question(prompt), used }
+}
+
 function chooseFile(panel: HTMLElement, text: string): Promise<boolean> {
   const input = panel.querySelector<HTMLInputElement>('input[type=file]')!
   return fireEvent.change(input, { target: { files: [new File([text], 'questions.json')] } })
@@ -162,7 +180,7 @@ describe('CustomQuestions', () => {
     })
   })
 
-  it('adds, edits, removes and reorders all three types, and sends them in that order', async () => {
+  it('adds, edits, deletes and reorders all three types, and sends them in that order', async () => {
     const panel = await loaded()
     await setFrequency('More')
 
@@ -191,7 +209,8 @@ describe('CustomQuestions', () => {
     await type(editor(), 'Answer 2', 'B')
     await click(editor(), 'Add question')
     expect(listed(panel)).toHaveLength(4)
-    await click(panel, 'Remove question 4')
+    await click(panel, 'Delete question 4')
+    await click(screen.getByRole('dialog'), 'Delete')
 
     await click(panel, 'Edit question 2')
     await click(editor(), 'Remove accepted answer 2')
@@ -430,16 +449,18 @@ describe('CustomQuestions', () => {
     expect(create.disabled).toBe(false)
   })
 
-  it('stops adding at the event cap and says More would allow more', async () => {
+  it('stops ticking at the event cap, banks a new question unticked, and says More would allow more', async () => {
     const panel = await loaded()
     await writeChoice(panel, 'One')
     await writeChoice(panel, 'Two')
-    expect(
-      (within(panel).getByRole('button', { name: 'Write a question' }) as HTMLButtonElement)
-        .disabled,
-    ).toBe(true)
     expect(panel.textContent).toContain('Every random event is already one of yours.')
     expect(panel.textContent).toContain('pick More frequency')
+    await writeChoice(panel, 'Three')
+    expect(listed(panel)).toEqual(['One', 'Two', 'Three'])
+    expect(ticks(panel)).toEqual([true, true, false])
+    expect(tick(panel, 3).disabled).toBe(true)
+    await setFrequency('More')
+    expect(tick(panel, 3).disabled).toBe(false)
   })
 
   it('refuses to submit past the event cap, naming the count, the limit and the frequency', async () => {
@@ -482,15 +503,26 @@ describe('CustomQuestions', () => {
     ])
   })
 
-  it('replaces the list with an imported file', async () => {
+  it('adds an imported file to the bank, unticked, skipping questions already in it', async () => {
     const panel = await loaded()
     await writeChoice(panel, 'Old')
+    const old: CustomQuestion = {
+      type: 'multiple_choice',
+      payload: { prompt: 'Old', options: ['Hans', 'Bartender'], answer_index: 1 },
+    }
     const file: CustomQuestion[] = [
+      old,
       { type: 'free_text', payload: { prompt: 'New', accepted: ['Fluffs'] }, random_event: 'bob' },
     ]
     await chooseFile(panel, exportText(file))
-    await waitFor(() => expect(listed(panel)).toEqual(['New']))
+    await waitFor(() => expect(listed(panel)).toEqual(['Old', 'New']))
+    expect(ticks(panel)).toEqual([true, false])
     expect(panel.textContent).toContain('Type the answer · Evil Bob')
+    expect(panel.textContent).toContain('Added 1 question, unticked; 1 was already in your list.')
+    await chooseFile(panel, exportText(file))
+    await within(panel).findByText('Every question in this file is already in your list.')
+    expect(listed(panel)).toEqual(['Old', 'New'])
+    await fireEvent.click(tick(panel, 2))
     expect(await submitted()).toEqual(file)
   })
 
@@ -512,74 +544,109 @@ describe('CustomQuestions', () => {
     expect(listed(panel)).toEqual(['Kept'])
   })
 
-  it('keeps the list in this browser, so the next Create starts with it', async () => {
+  it(`refuses a file that would take the bank past ${BANK_MAX} questions`, async () => {
+    saveBank(Array.from({ length: BANK_MAX - 2 }, (_, i) => banked(`Q${i}`, false)))
+    const panel = await loaded()
+    const three = ['A', 'B', 'C'].map((prompt) => question(prompt))
+    await chooseFile(panel, JSON.stringify(three))
+    await within(panel).findByText(/Nothing was imported/)
+    expect(panel.querySelector('.banner')!.textContent).toContain(
+      `This file has 3 new questions, and your list has room for 2 more of the ${BANK_MAX} it keeps.`,
+    )
+    expect(listed(panel)).toHaveLength(BANK_MAX - 2)
+  })
+
+  it(`stops writing at ${BANK_MAX} questions`, async () => {
+    saveBank(Array.from({ length: BANK_MAX }, (_, i) => banked(`Q${i}`, false)))
+    const panel = await loaded()
+    const write = within(panel).getByRole('button', { name: 'Write a question' })
+    expect((write as HTMLButtonElement).disabled).toBe(true)
+    expect(panel.textContent).toContain(
+      `Saved in this browser for your next room, ${BANK_MAX} at most.`,
+    )
+  })
+
+  it('sends only the ticked questions, in bank order', async () => {
+    const panel = await loaded()
+    await setFrequency('More')
+    for (const prompt of ['A', 'B', 'C']) await writeChoice(panel, prompt)
+    await fireEvent.click(tick(panel, 2))
+    expect(ticks(panel)).toEqual([true, false, true])
+    expect((await submitted()).map((q) => q.payload.prompt)).toEqual(['A', 'C'])
+  })
+
+  it('unticks every question at once and keeps them all in the bank', async () => {
+    const panel = await loaded()
+    await writeChoice(panel, 'A')
+    await writeChoice(panel, 'B')
+    await click(panel, 'Untick all')
+    expect(ticks(panel)).toEqual([false, false])
+    expect(listed(panel)).toEqual(['A', 'B'])
+    expect(within(panel).queryByRole('button', { name: 'Untick all' })).toBeNull()
+    expect(await submitted()).toEqual([])
+  })
+
+  it('keeps the bank and its ticks in this browser, so the next Create starts with them', async () => {
     let panel = await loaded()
     await writeChoice(panel, 'First', 'Genie')
     await writeChoice(panel, 'Second')
+    await fireEvent.click(tick(panel, 2))
     expect(panel.textContent).toContain('Saved in this browser for your next room.')
     await submitted()
     cleanup()
     panel = await loaded()
     expect(listed(panel)).toEqual(['First', 'Second'])
+    expect(ticks(panel)).toEqual([true, false])
     expect(panel.textContent).toContain('Multiple choice · Genie')
   })
 
   it('leaves out a saved question the rules no longer pass, and says so', async () => {
-    saveQuestions([
-      { type: 'free_text', payload: { prompt: 'Kept', accepted: ['Fluffs'] } },
+    saveBank([
       {
-        type: 'free_text',
-        payload: { prompt: 'Gone', accepted: ['Fluffs'] },
-        random_event: 'zezima',
+        question: { type: 'free_text', payload: { prompt: 'Kept', accepted: ['Fluffs'] } },
+        used: true,
+      },
+      {
+        question: {
+          type: 'free_text',
+          payload: { prompt: 'Gone', accepted: ['Fluffs'] },
+          random_event: 'zezima',
+        },
+        used: true,
       },
     ])
     const panel = await loaded()
     expect(listed(panel)).toEqual(['Kept'])
     expect(panel.textContent).toContain('1 saved question no longer works and was removed.')
-    expect(loadQuestions()).toEqual({ questions: [expect.anything()], dropped: 0 })
+    expect(loadBank()).toEqual({ bank: [expect.anything()], dropped: 0 })
   })
 
-  it('loads a saved list too long for these rounds and refuses to submit until it fits', async () => {
-    saveQuestions(
-      ['A', 'B', 'C'].map((prompt) => ({
-        type: 'multiple_choice' as const,
-        payload: { prompt, options: ['x', 'y'], answer_index: 0 },
-      })),
-    )
+  it('loads a bank ticked past these rounds and refuses to submit until it fits', async () => {
+    saveBank(['A', 'B', 'C'].map((prompt) => banked(prompt)))
     const panel = await loaded()
-    expect(listed(panel)).toEqual(['A', 'B', 'C'])
+    expect(ticks(panel)).toEqual([true, true, true])
     expect(panel.textContent).toContain('you have 3 questions of your own')
     expect(
       (screen.getByRole('button', { name: 'Create room' }) as HTMLButtonElement).disabled,
     ).toBe(true)
+    await fireEvent.click(tick(panel, 3))
+    expect(
+      (screen.getByRole('button', { name: 'Create room' }) as HTMLButtonElement).disabled,
+    ).toBe(false)
   })
 
-  it('clears the list, here and in the browser, only once the host confirms', async () => {
+  it('deletes a question, here and in the browser, only once the host confirms', async () => {
     const panel = await loaded()
     await writeChoice(panel, 'Doomed')
-    await writeChoice(panel, 'Also doomed')
-    await click(panel, 'Clear all')
+    await writeChoice(panel, 'Kept')
+    await click(panel, 'Delete question 1')
     await fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
-    expect(listed(panel)).toEqual(['Doomed', 'Also doomed'])
-    await click(panel, 'Clear all')
+    expect(listed(panel)).toEqual(['Doomed', 'Kept'])
+    await click(panel, 'Delete question 1')
     const dialog = screen.getByRole('dialog')
-    expect(dialog.textContent).toContain('Remove all 2 of your questions from this browser?')
-    await click(dialog, 'Clear all')
-    expect(listed(panel)).toEqual([])
-    expect(within(panel).queryByRole('button', { name: 'Clear all' })).toBeNull()
-    expect(loadQuestions().questions).toEqual([])
-  })
-
-  it('refuses a file with more questions than the room has events for', async () => {
-    const panel = await loaded()
-    const three = ['A', 'B', 'C'].map((prompt) => ({
-      type: 'multiple_choice',
-      payload: { prompt, options: ['x', 'y'], answer_index: 0 },
-    }))
-    await chooseFile(panel, JSON.stringify(three))
-    await within(panel).findByText(/This file has 3 questions/)
-    const alert = panel.querySelector('.banner')!
-    expect(alert.textContent).toContain('This file has 3 questions.')
-    expect(listed(panel)).toEqual([])
+    expect(dialog.textContent).toContain('Delete “Doomed” from your questions? It can’t be undone.')
+    await click(dialog, 'Delete')
+    expect(listed(panel)).toEqual(['Kept'])
+    expect(loadBank().bank.map((entry) => entry.question.payload.prompt)).toEqual(['Kept'])
   })
 })
