@@ -292,6 +292,10 @@ def test_abandoning_a_game_counts_the_round_it_was_in(
 def test_a_game_start_counts_its_players(table, client: TestClient, db) -> None:
     game = table("Zezima", "Woox", "Lynx", "B0aty", "Faux", questions=1, seconds=30)
     game.start()
+    # start_game commits the count before it broadcasts, so the room moving on is the
+    # only point at which the row is guaranteed to be there.
+    while game.admin.take("room_updated")["room"]["status"] != "playing":
+        pass
     assert counts(db)[(Metric.GAME_PLAYERS, "5-9")] == 1
 
 
