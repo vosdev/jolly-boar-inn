@@ -809,8 +809,8 @@ CLAUDE.md has the bump rule.
 - `/VERSION` is the source; `pyproject.toml` and `package.json` copy it and `test_version.py` fails
   on drift. The client builds it in as `__APP_VERSION__` and shows `0.6` for `0.6.0`; the server
   sends it in `welcome`. The footer's version opens What's new from `lib/changelog.ts`, which
-  needs an entry for every version, a stacked PR's and the Dependabot bump's too.
+  needs an entry for every version, a stacked PR's too.
 - CI's `release` job tags `v<VERSION>` with a GitHub Release once the other jobs pass, and fails if
   `VERSION` went backwards. `make image` builds locally; no registry.
-- Dependabot gathers every ecosystem's minor and patch updates into one weekly PR, which gets one
-  patch bump before merge. CI fails on a high or critical known vulnerability in a lockfile or the image.
+- Dependabot gathers every ecosystem's minor and patch updates into one PR, checked Monday and Thursday, which keeps
+  the version: no bump, no changelog entry. CI fails on a high or critical known vulnerability in a lockfile or the image.

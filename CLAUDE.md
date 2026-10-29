@@ -43,7 +43,7 @@ Kahoot-style OSRS quiz game. Server: Python 3.14, FastAPI, asyncpg with hand-wri
 ## Git and PRs
 
 - Always branch: `<N>-<slug>` for issue N (`82-release-order`), a short descriptive name otherwise. A PR for an issue says `Closes #N`, one line per issue it closes.
-- Every PR bumps the version once, however many issues it closes: minor if any is a `feature` or `design` issue, patch otherwise. Update `VERSION`, `server/pyproject.toml` and `client/package.json` together, then run `cd server && uv lock`. Add the version to `client/src/lib/changelog.ts`, dated today, in words a player follows: up to two lines for a minor, one for a patch.
+- Every PR but Dependabot's bumps the version once, however many issues it closes: minor if any is a `feature` or `design` issue, patch otherwise. Update `VERSION`, `server/pyproject.toml` and `client/package.json` together, then run `cd server && uv lock`. Add the version to `client/src/lib/changelog.ts`, dated today, in words a player follows: up to two lines for a minor, one for a patch.
 - PR descriptions under 10 lines.
 - Give each new issue a milestone and a board Size: XS a line or a doc, S a few files, M one module with its tests, L several modules or a protocol or schema change, XL too big, so split it. When you start an issue, set its Status to In progress; the board adds issues and marks them Done on merge by itself. Item, field and option ids for `gh project item-edit` come from `gh project item-list 3 --owner vosdev` and `gh project field-list 3 --owner vosdev`.
 
