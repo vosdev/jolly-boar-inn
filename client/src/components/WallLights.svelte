@@ -80,11 +80,11 @@
 {/if}
 
 <style>
-  /* Under #app's content, like the Party Room's floor, but fixed: a light is on the wall,
-     so it stays where it hangs while the page scrolls past. */
+  /* Under #app's content, like the Party Room's floor: a light is on the wall, so it
+     scrolls away with the page rather than following the window down it. */
   .wall-lights {
     display: none;
-    position: fixed;
+    position: absolute;
     inset: 0;
     z-index: -1;
     overflow: hidden;
@@ -245,8 +245,8 @@
     image-rendering: pixelated;
   }
 
-  /* On a phone the stage fills the window, so only the left ring shows, in the bottom
-     corner and partly off it, behind the page. */
+  /* On a phone the stage fills the window, so only the left ring shows, in the page's
+     bottom corner and partly off it, behind the page. */
   @media (max-width: 49.99rem) {
     .wall-lights[data-lights='zanaris'] {
       display: block;

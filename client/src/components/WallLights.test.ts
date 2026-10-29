@@ -150,6 +150,12 @@ describe('WallLights', () => {
     )
   })
 
+  it('hangs on the page, so the lights scroll away with it rather than following the window', () => {
+    const style = source.slice(source.indexOf('<style>')).replace(/\/\*[\s\S]*?\*\//g, '')
+    expect(style).toMatch(/\.wall-lights \{[^}]*position: absolute;/)
+    expect(style).not.toMatch(/position: fixed/)
+  })
+
   describe('beside a room', () => {
     afterEach(() => roomShown.set(null))
 
