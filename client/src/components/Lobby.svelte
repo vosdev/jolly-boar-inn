@@ -33,19 +33,18 @@
    * The host also adds a god the room lacks and removes one, never below two; removing a
    * team with players asks first, since they go back to no team and lose their ready.
    *
-   * The sheet's code row is the link's prefix, small, and the code in the large face, on one
-   * line with "Copy invite link". An invite-only room has no prefix, since the link without
-   * its key lets nobody in.
+   * The sheet's code row is the code alone in the large face, with "Copy invite link" in the
+   * row's top-right corner, or under the code where a phone leaves no room. The link itself
+   * is never drawn.
    *
    * Up to 8 rounds show as cards; from 9 the eighth tile is "+N more", a button that opens
    * every round as the same cards in a popover (Escape, a click outside or the button closes
    * it), so the panel does not outgrow the stage. Below scale 1 the full-screen switch is
    * offered with a line saying why.
    *
-   * The code and "Copy invite link" copy the invite link. An invite-only room's link carries
-   * its key, which only admins are sent, and the key is never drawn, because lobbies get
-   * streamed, so the scroll says the room is invite-only instead of printing it; only a
-   * refused clipboard shows the link, so it can be copied by hand. The refresh button makes
+   * "Copy invite link" copies the invite link, which says "Link copied" or "Couldn't copy"
+   * for a moment. An invite-only room's link carries its key, which only admins are sent,
+   * and the key is never drawn, because lobbies get streamed. The refresh button makes
    * a new key, which is also the room lock: a key nobody else has yet lets nobody in.
    * Somebody without the link can still ask; they wait on Join until a host lets them in or
    * turns them away here, with no confirm, since either can be put right by Kick or by
@@ -269,26 +268,19 @@
       .join(' · ')
   }
 
-  let copied = $state(false)
-  let copyFailed = $state(false)
+  let copyResult = $state<'copied' | 'failed' | null>(null)
   let copiedTimer: ReturnType<typeof setTimeout> | undefined
 
-  /** Put the invite link on the clipboard, or show it to copy by hand where that is refused. */
+  /** Put the invite link on the clipboard, and say so, or say it was refused. */
   async function copy(): Promise<void> {
     try {
       await navigator.clipboard.writeText(link)
-      copyFailed = false
-      copied = true
-      clearTimeout(copiedTimer)
-      copiedTimer = setTimeout(() => (copied = false), 2000)
+      copyResult = 'copied'
     } catch {
-      copied = false
-      copyFailed = true
+      copyResult = 'failed'
     }
-  }
-
-  function selectAll(field: HTMLInputElement): void {
-    field.select()
+    clearTimeout(copiedTimer)
+    copiedTimer = setTimeout(() => (copyResult = null), 2000)
   }
 
   /** The question the host is being asked, and what a yes does. */
@@ -543,45 +535,23 @@
         <h1 class="sr">Lobby</h1>
         <p class="lead">Your friends join with this code</p>
         <div class="code-row">
-          {#if !inviteOnly}
-            <span class="prefix">{location.host}/r/</span>
-          {/if}
-          <button
-            type="button"
-            class="code"
-            style:--chars={code.length}
-            aria-label="{code}, copy the invite link"
-            onclick={copy}
-          >
-            <span>{code}</span>
-            <Icon name="copy" />
-          </button>
+          <span class="code" style:--chars={code.length}>{code}</span>
           <span class="invite-actions">
-            <button type="button" class="copy-link" onclick={copy}>Copy invite link</button>
+            <button type="button" class="copy-link" onclick={copy} aria-live="polite">
+              <Icon name="copy" />
+              {copyResult === 'copied'
+                ? 'Link copied'
+                : copyResult === 'failed'
+                  ? "Couldn't copy"
+                  : 'Copy invite link'}
+            </button>
             {#if isAdmin && inviteOnly}
               <button type="button" class="glyph" aria-label="New link" onclick={rotateKey}>
                 <Icon name="refresh" />
               </button>
             {/if}
-            <span class="copied" aria-live="polite">{copied ? 'Link copied' : ''}</span>
           </span>
         </div>
-        {#if inviteOnly}
-          <p class="invite">
-            <span class="address">Invite-only: the link lets people straight in</span>
-          </p>
-        {/if}
-        {#if copyFailed}
-          <p class="copy-failed">Couldn't copy the link. Copy it from here:</p>
-          <input
-            class="link-field"
-            type="text"
-            readonly
-            aria-label="Link for players"
-            value={link}
-            use:selectAll
-          />
-        {/if}
       {/snippet}
       {#if settings !== null}
         <section class="panel board" aria-labelledby="tonight">
@@ -860,83 +830,57 @@
     line-height: 1.15;
   }
 
-  /* The prefix, the code and the copy button on one line, wrapping only where a phone
-     leaves no room. */
+  /* The code on its own line with the copy button under it, or in the row's top-right
+     corner where the scroll is wide enough not to crowd the code. */
   .code-row {
+    position: relative;
     container-type: inline-size;
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 0 0.5rem;
-  }
-
-  .prefix {
-    color: var(--scroll-muted);
-    font-size: max(0.8rem, 0.85rem * var(--scroll-text, 1));
-    overflow-wrap: anywhere;
-  }
-
-  /* The code is the sheet's ink, not a gem or a panel's button: it is something to read
-     aloud across the room first and to tap second. A button takes the surface's ink back
-     (app.css), which on a dark theme is light, so the sheet's is named here. */
-  .code-row .code {
-    --ink: var(--scroll-ink);
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    min-height: 44px;
-    padding: 0 0.35rem;
-    border-color: transparent;
-    background: transparent;
-    color: var(--ink);
+    gap: 0.25rem;
   }
 
   /* A code is words run together, up to 34 letters. The display face is
-     about 1em a letter, so the size shrinks to keep the code on one line beside its icon,
-     and only a code too long even at the floor breaks. */
+     about 1em a letter, so the size shrinks to keep the code on one line, and only a code
+     too long even at the floor breaks. It is read aloud across the room, so it is the
+     sheet's ink in the large face. */
   .code {
-    margin-left: -0.35rem;
+    color: var(--scroll-ink);
     font-family: var(--font-display);
     font-size: clamp(
       0.95rem,
-      (100cqi - 17rem) / var(--chars, 12),
+      (100cqi - 4rem) / var(--chars, 12),
       max(1.4rem, 1.8rem * var(--scroll-text, 1))
     );
     letter-spacing: 0.06em;
+    overflow-wrap: anywhere;
   }
 
-  .code :global(.icon) {
-    font-size: 1rem;
+  @container (min-width: 34rem) {
+    .code-row {
+      min-height: 44px;
+      justify-content: center;
+    }
+
+    .code {
+      font-size: clamp(
+        0.95rem,
+        (100cqi - 36rem) / var(--chars, 12),
+        max(1.4rem, 1.8rem * var(--scroll-text, 1))
+      );
+    }
+
+    .code-row .invite-actions {
+      position: absolute;
+      top: 0;
+      right: 0;
+    }
   }
 
   .glyph {
     min-width: 44px;
     justify-content: center;
-  }
-
-  /* Under the buttons without making a line of its own, so the sheet does not grow when it appears. */
-  .copied {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    text-align: center;
-    pointer-events: none;
-    font-size: 0.85rem;
-    color: var(--scroll-muted);
-  }
-
-  .copy-failed {
-    margin: 0.25rem 0;
-    font-size: 0.9rem;
-    font-weight: 600;
-  }
-
-  .link-field {
-    width: 100%;
-    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-    font-size: 0.85rem;
   }
 
   .count {
@@ -950,28 +894,16 @@
     color: var(--scroll-muted);
   }
 
-  .invite {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 0.25rem 0.75rem;
-    margin: 0;
-    color: var(--scroll-muted);
-    font-size: max(0.85rem, 0.95rem * var(--scroll-text, 1));
-  }
-
-  .address {
-    overflow-wrap: anywhere;
-  }
-
   .invite-actions {
-    position: relative;
     display: inline-flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
     gap: 0.25rem 0.5rem;
+  }
+
+  .copy-link :global(.icon) {
+    font-size: 1rem;
   }
 
   /* On the sheet, so in its inks rather than a panel's. */

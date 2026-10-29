@@ -360,27 +360,23 @@ describe('Lobby', () => {
     const paper = document.querySelector('.paper') as HTMLElement
     expect(within(paper).getByRole('heading', { level: 1, name: 'Lobby' })).toBeTruthy()
     expect(within(paper).getByText('Your friends join with this code')).toBeTruthy()
-    expect(
-      within(paper).getByRole('button', { name: 'ABYSSAL, copy the invite link' }),
-    ).toBeTruthy()
+    expect(within(paper).getByText('ABYSSAL')).toBeTruthy()
     expect(within(paper).getByRole('button', { name: 'Copy invite link' })).toBeTruthy()
     const board = document.querySelector('.board') as HTMLElement
     expect(within(board).getByText('1 round · 5 questions · Run pace · ~5 min')).toBeTruthy()
   })
 
-  it('says an invite-only room is one, instead of printing its link', () => {
+  it('gives the host of an invite-only room a button for a new link', () => {
     lobby([HOST, WOOX], { ...ROOM, key: 'abc_DEF-123' })
     const paper = document.querySelector('.paper') as HTMLElement
-    expect(within(paper).getByText('Invite-only: the link lets people straight in')).toBeTruthy()
     expect(within(paper).getByRole('button', { name: 'New link' })).toBeTruthy()
   })
 
-  it('copies an invite-only room’s whole link from the code, and never draws its key', async () => {
+  it('copies an invite-only room’s whole link, and never draws its key', async () => {
     const writeText = vi.fn().mockResolvedValue(undefined)
     clipboard(writeText)
     lobby([HOST, WOOX], { ...ROOM, key: 'abc_DEF-123' })
-    expect(document.querySelector('.copied')?.textContent).toBe('')
-    await fireEvent.click(screen.getByRole('button', { name: 'ABYSSAL, copy the invite link' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Copy invite link' }))
     expect(writeText).toHaveBeenCalledWith(`${location.origin}/r/ABYSSAL#k=abc_DEF-123`)
     expect(await screen.findByText('Link copied')).toBeTruthy()
     expect(document.body.innerHTML).not.toContain('abc_DEF-123')
@@ -390,24 +386,24 @@ describe('Lobby', () => {
     const writeText = vi.fn().mockResolvedValue(undefined)
     clipboard(writeText)
     lobby()
-    await fireEvent.click(screen.getByRole('button', { name: 'ABYSSAL, copy the invite link' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Copy invite link' }))
     expect(writeText).toHaveBeenCalledWith(`${location.origin}/r/ABYSSAL`)
   })
 
   it.each([
     ['refuses', vi.fn().mockRejectedValue(new Error('denied'))],
     ['is missing', undefined],
-  ])('says so and shows the link to copy by hand when the clipboard %s', async (_, writeText) => {
-    clipboard(writeText)
-    lobby([HOST, WOOX], { ...ROOM, key: 'abc' })
-    await fireEvent.click(screen.getByRole('button', { name: 'ABYSSAL, copy the invite link' }))
-    expect(
-      (await screen.findByText("Couldn't copy the link. Copy it from here:")).textContent,
-    ).toBe("Couldn't copy the link. Copy it from here:")
-    const field = screen.getByRole('textbox', { name: 'Link for players' }) as HTMLInputElement
-    expect(field.value).toBe(`${location.origin}/r/ABYSSAL#k=abc`)
-    expect(screen.queryByText('Link copied')).toBeNull()
-  })
+  ])(
+    'says so on the button, and never draws the link, when the clipboard %s',
+    async (_, writeText) => {
+      clipboard(writeText)
+      lobby([HOST, WOOX], { ...ROOM, key: 'abc' })
+      await fireEvent.click(screen.getByRole('button', { name: 'Copy invite link' }))
+      expect(await screen.findByRole('button', { name: "Couldn't copy" })).toBeTruthy()
+      expect(screen.queryByText('Link copied')).toBeNull()
+      expect(document.body.innerHTML).not.toContain('abc')
+    },
+  )
 
   it('sends rotate_key only once the host confirms a new link', async () => {
     lobby([HOST, WOOX], { ...ROOM, key: 'abc' })
@@ -566,9 +562,7 @@ describe('Lobby', () => {
 
   it('shows the code as the server spells it', () => {
     lobby([HOST], { ...ROOM, code: 'AbyssalWhip07' })
-    expect(
-      screen.getByRole('button', { name: 'AbyssalWhip07, copy the invite link' }).textContent,
-    ).toContain('AbyssalWhip07')
+    expect(screen.getByText('AbyssalWhip07')).toBeTruthy()
   })
 
   it('says under each pet who hosts and who is away, and bolds yours', () => {
@@ -679,26 +673,23 @@ describe('Lobby', () => {
   })
 
   describe('the code row', () => {
-    it('is the link’s prefix and the code as separate parts, on one line with Copy invite link', () => {
+    it('is the code alone, never the link’s address, with Copy invite link beside it', () => {
       lobby()
       const row = document.querySelector('.paper .code-row') as HTMLElement
-      expect(row.querySelector('.prefix')!.textContent).toBe(`${location.host}/r/`)
-      const code = row.querySelector('.code') as HTMLElement
-      expect(code.querySelector('span')!.textContent).toBe('ABYSSAL')
-      expect(code.textContent).not.toContain('/r/')
+      expect(row.querySelector('.code')!.textContent).toBe('ABYSSAL')
+      expect(row.textContent).not.toContain('/r/')
       expect(within(row).getByRole('button', { name: 'Copy invite link' })).toBeTruthy()
     })
 
-    it('has the prefix small and the code in the large face', () => {
+    it('has the code in the large face', () => {
       const rule = (selector: string) =>
         lobbySource.match(new RegExp(`\\n  ${selector} \\{([^}]*)\\}`))?.[1] ?? ''
-      expect(rule('\\.prefix')).toMatch(/font-size: max\(0\.8rem/)
       expect(rule('\\.code')).toMatch(/font-family: var\(--font-display\)/)
     })
 
-    it('has no prefix in an invite-only room, whose link without its key lets nobody in', () => {
+    it('draws no address in a public or an invite-only room', () => {
       lobby([HOST, WOOX], { ...ROOM, key: 'abc_DEF-123' })
-      expect(document.querySelector('.paper .prefix')).toBeNull()
+      expect(document.querySelector('.paper')!.textContent).not.toContain(location.host)
     })
   })
 
