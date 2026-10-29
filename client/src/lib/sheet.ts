@@ -62,6 +62,18 @@ export function sheetFor(theme: string): Sheet {
   }
 }
 
+/** The width in pixels of one swag of the Party Room's bunting, from knot to knot. */
+export const SWAG_WIDTH = 180
+
+/**
+ * How many swags the bunting hangs in across `width` pixels, two at the least.
+ *
+ * The count grows with the sheet rather than the flags, so a wide stage keeps them small.
+ */
+export function buntingSwags(width: number): number {
+  return Math.max(2, Math.round(width / SWAG_WIDTH))
+}
+
 /** Whether the sheet hangs between the scroll's two rolls, which the stage makes room for. */
 export function hasRolls(sheet: Sheet): boolean {
   return sheet === 'scroll'

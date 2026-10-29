@@ -1,8 +1,8 @@
-/** Which sheet each theme hangs on the stage, and which of them has rolls. */
+/** Which sheet each theme hangs on the stage, which of them has rolls, and how the bunting hangs. */
 
 import { describe, expect, it } from 'vitest'
 
-import { hasRolls, sheetFor } from './sheet'
+import { buntingSwags, hasRolls, sheetFor } from './sheet'
 
 describe('sheetFor', () => {
   it('gives each theme its own sheet', () => {
@@ -37,5 +37,18 @@ describe('hasRolls', () => {
       'sign',
     ]
     expect(sheets.filter((sheet) => hasRolls(sheet as never))).toEqual(['scroll'])
+  })
+})
+
+describe('buntingSwags', () => {
+  it('hangs one swag for about every 180 pixels, so the flags keep their size on a wide sheet', () => {
+    expect(buntingSwags(540)).toBe(3)
+    expect(buntingSwags(900)).toBe(5)
+    expect(buntingSwags(1000)).toBe(6)
+  })
+
+  it('hangs two at the least, on a phone or before the sheet is measured', () => {
+    expect(buntingSwags(0)).toBe(2)
+    expect(buntingSwags(320)).toBe(2)
   })
 })
