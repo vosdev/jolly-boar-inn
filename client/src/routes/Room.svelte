@@ -65,6 +65,7 @@
   import RevealTally from '../components/RevealTally.svelte'
   import Standings from '../components/Standings.svelte'
   import Splash from '../components/Splash.svelte'
+  import SoundChip from '../components/SoundChip.svelte'
   import SharedStageView from '../components/stage/SharedStageView.svelte'
   import { barWhere, whereOf } from '../lib/barWhere'
   import { hostMenu, type HostAction } from '../lib/hostMenu'
@@ -485,6 +486,9 @@
   {:else}
     {#if $connection === 'reconnecting'}
       <div class="banner">Connection lost — reconnecting…</div>
+    {/if}
+    {#if isTv}
+      <SoundChip />
     {/if}
 
     {#if $room === null}

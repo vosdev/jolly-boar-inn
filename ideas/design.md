@@ -215,12 +215,15 @@ who sends none is given one by the server, so every client draws the same pet fo
 | **Music & effects** | Splash stings, the countdown tick, the reveal chime, lobby music, a random event's entrance | Yes. Decorative. |
 | **Question audio** | Audio that is the question (Name that spell, a music round) | **No.** Those rounds become unplayable. |
 
-- One mute button could not warn anyone, so there are two, in the bar menu's Sound section (§5).
-  Muting question audio says: *"Some rounds are audio-only. You will not be able to answer those."*
-- The CSP has no `media-src` yet, so audio is blocked until #102 adds `media-src 'self'`.
-- Browsers block audio until a gesture. The ready tap (§9) unlocks it. A player who never sees a
-  splash (a reload mid-game) unlocks it with their first answer tap. An
-  audio-only question that cannot play says so rather than sitting silent.
+- One mute button could not warn anyone, so there are two, in the bar menu's Sound section (§5),
+  both on by default (`lib/audio.ts`). Muting question audio says: *"Some rounds are audio-only.
+  You will not be able to answer those."*
+- **A TV room has one loudspeaker.** While a TV is connected, a phone's switches turn off for that
+  room ("The TV plays the sound in this room."); a player may turn one back on, say to follow a
+  stream, until they leave. The TV's are fixed on.
+- Browsers block audio until a gesture: the first tap or key press anywhere unlocks it. A TV not
+  touched since loading shows a "Tap for sound" chip. An audio-only question that cannot play says
+  so rather than sitting silent.
 - `prefers-reduced-motion` is the sibling setting: anything that moves has a static fallback.
 
 ## 8. The stage: a host and a sheet
@@ -548,7 +551,7 @@ All from the CSP in `server/app/http/headers.py`:
    component with classes, because an SVG loaded by `<img>` or `url()` cannot see custom
    properties.
 2. **`font-src 'self'`.** Self-hosted fonts only. No Google Fonts, no CDN.
-3. **No `media-src`**, so audio is blocked until #102.
+3. **`media-src 'self'`**: sound files are the client's own.
 4. **`img-src 'self' data:`** covers local art and Vite's inlined assets.
 
 The theme must be set before first paint, and `script-src 'self'` forbids an inline script. So
