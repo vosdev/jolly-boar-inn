@@ -37,6 +37,22 @@ export function position(value: number, low: number, high: number, scale: Scale 
   return Math.log(value / low) / Math.log(high / low)
 }
 
+/** The lowest and highest whole numbers that round to `answer` at two figures. */
+export function band(answer: number): [number, number] {
+  // Just under a power of ten the grid is ten times finer, so the band's lower half is too.
+  const near = answer > 1 ? answer - Math.floor(sigStep(answer - 1, ANSWER_FIGURES) / 2) : answer
+  return [near, answer + Math.floor((sigStep(answer, ANSWER_FIGURES) - 1) / 2)]
+}
+
+/** `slider.credit`: 1 inside the answer's band, falling to 0 at `REACH` of the width past it. */
+export function credit(low: number, high: number, answer: number, guess: number): number {
+  const [near, far] = band(answer)
+  if (near <= guess && guess <= far) return 1
+  const edge = guess < near ? near : far
+  const distance = Math.abs(position(guess, low, high) - position(edge, low, high))
+  return Math.max(0, 1 - distance / REACH)
+}
+
 /** The grid value nearest the track's `fraction` (0 to 1), kept within the ends. */
 export function valueAt(fraction: number, low: number, high: number, scale: Scale = 'log'): number {
   const along = Math.min(1, Math.max(0, fraction))

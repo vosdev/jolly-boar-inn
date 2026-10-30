@@ -11,6 +11,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { OpenQuestion } from '../../lib/protocol'
 import { clearVocabCache } from '../../lib/vocab'
 import Question from './Question.svelte'
+import pickFromListSource from './types/PickFromList.svelte?raw'
 
 const ENTRIES = [
   { id: 4151, name: 'Abyssal whip' },
@@ -372,5 +373,13 @@ describe('pick_from_list', () => {
     )
     expect(screen.queryByText(/no points/)).toBeNull()
     expect(screen.getByText('A very powerful onyx amulet.')).toBeTruthy()
+  })
+
+  it("sets the list's text in the panel's ink, not the floor's it sits over", () => {
+    // Vitest hands component styles over empty, so the rule is read from the source.
+    const rule = /\[role='listbox'\] \{[^}]*\}/.exec(pickFromListSource)?.[0]
+    expect(rule).toContain('--ink: var(--surface-ink);')
+    expect(rule).toContain('--muted: var(--surface-muted);')
+    expect(rule).toContain('color: var(--ink);')
   })
 })

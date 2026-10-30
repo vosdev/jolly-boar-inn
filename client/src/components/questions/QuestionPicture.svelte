@@ -36,6 +36,7 @@
 
   let {
     name,
+    url = null,
     shadow = false,
     lifted = false,
     large = false,
@@ -43,6 +44,8 @@
     build = null,
   }: {
     name: string | null | undefined
+    /** A URL to draw instead of the file called `name`. */
+    url?: string | null
     shadow?: boolean
     build?: Build | null
     lifted?: boolean
@@ -51,7 +54,7 @@
     caption?: string | null
   } = $props()
 
-  const src = $derived(pictureUrl(name))
+  const src = $derived(url ?? pictureUrl(name))
   const building = $derived(build !== null && !lifted)
 
   let box = $state<HTMLElement | null>(null)

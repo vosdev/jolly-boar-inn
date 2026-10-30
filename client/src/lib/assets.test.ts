@@ -9,6 +9,7 @@ import MANIFEST from '../../../data/assets.json'
 import { HOUSE, MODES, UPCOMING_MODES } from './modes'
 import { TIERS } from './hiscores'
 import { RANDOM_EVENTS, randomEventFor } from './randomEvents'
+import { SAMPLES, type ListSample } from './samples'
 
 const targets = Object.keys(MANIFEST)
 
@@ -33,6 +34,15 @@ describe('the asset manifest', () => {
     const hosts = new Set(UPCOMING_MODES.map((mode) => mode.host))
     expect([...hosts].filter((id) => !hasNpc(id))).toEqual([])
     expect(RANDOM_EVENTS.filter((npc) => hosts.has(npc.id)).map((npc) => npc.id)).toEqual([])
+  })
+
+  it("has a render for Who's That NPC?'s sample, whose shadow is the question", () => {
+    expect(hasEntry('npcs', String((SAMPLES.whos_that_npc as ListSample).answer))).toBe(true)
+  })
+
+  it("has the detail picture Pixel Hunt's sample builds up", () => {
+    const { answer } = SAMPLES.pixel_hunt as ListSample
+    expect(hasEntry('items', `detail_${answer}`)).toBe(true)
   })
 
   it('has art for the Mysterious Old Man, who stands in for an unknown event NPC', () => {

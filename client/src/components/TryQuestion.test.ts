@@ -7,12 +7,12 @@ import { fireEvent, render, screen } from '@testing-library/svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { MODES } from '../lib/modes'
-import { SAMPLES } from '../lib/samples'
+import { SAMPLES, type OneAnswerSample } from '../lib/samples'
 import HowToPage from './HowToPage.svelte'
 import timerBarSource from './TimerBar.svelte?raw'
 import TryQuestion from './TryQuestion.svelte'
 
-const sample = SAMPLES.guess_examine!
+const sample = SAMPLES.guess_examine as OneAnswerSample
 const options = sample.view.options as string[]
 const lines = MODES.guess_examine!.verdict
 
@@ -104,6 +104,75 @@ describe('Try a question', () => {
     await fireEvent.click(screen.getByRole('button', { name: new RegExp(options[sample.answer]!) }))
     expect(fetch).not.toHaveBeenCalled()
     expect(socket).not.toHaveBeenCalled()
+  })
+
+  it('grades a price by how close it lands', async () => {
+    render(TryQuestion, { sample: SAMPLES.price_is_right!, next: 'bestiary', onnext: noop })
+    await fireEvent.keyDown(screen.getByRole('slider'), { key: 'End' })
+    await fireEvent.click(screen.getByRole('button', { name: 'Submit' }))
+    expect(document.body.textContent).toContain('It goes for 130k gp')
+    expect(document.body.textContent).toContain('+447')
+  })
+
+  it('sends an unsent Sort It Out a second before time, and reveals each fact', async () => {
+    vi.useFakeTimers()
+    render(TryQuestion, { sample: SAMPLES.sort_it_out!, next: 'bestiary', onnext: noop })
+    await vi.advanceTimersByTimeAsync(33_500)
+    expect(document.body.textContent).not.toContain('Heals 20')
+    await vi.advanceTimersByTimeAsync(1_000)
+    expect(document.body.textContent).toContain('Heals 20')
+    expect(document.body.textContent).toContain('of 3 in place')
+  })
+
+  it("shows Who's That NPC? as a shadow, then Elvarg", async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve(
+          new Response(
+            JSON.stringify({
+              vocab: 'npcs',
+              version: 'a',
+              entries: [{ id: 817, name: 'Elvarg' }],
+            }),
+          ),
+        ),
+      ),
+    )
+    render(TryQuestion, { sample: SAMPLES.whos_that_npc!, next: 'bestiary', onnext: noop })
+    expect(document.querySelector('.frame.shadow img')).not.toBeNull()
+    expect(document.body.textContent).not.toContain('Elvarg')
+    await fireEvent.input(await screen.findByRole('combobox'), { target: { value: 'elv' } })
+    await fireEvent.click(await screen.findByRole('option', { name: 'Elvarg' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Submit' }))
+    expect(document.body.textContent).toContain('+1,000')
+    expect(document.querySelector('.frame.lifted')).not.toBeNull()
+    expect(document.body.textContent).toContain('Elvarg')
+  })
+
+  it('pays Pixel Hunt by the step its picture has reached', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve(
+          new Response(
+            JSON.stringify({
+              vocab: 'items',
+              version: 'a',
+              entries: [{ id: 4151, name: 'Abyssal whip' }],
+            }),
+          ),
+        ),
+      ),
+    )
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    render(TryQuestion, { sample: SAMPLES.pixel_hunt!, next: 'bestiary', onnext: noop })
+    const search = await screen.findByRole('combobox')
+    await vi.advanceTimersByTimeAsync(9_000)
+    await fireEvent.input(search, { target: { value: 'whip' } })
+    await fireEvent.click(await screen.findByRole('option', { name: 'Abyssal whip' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Submit' }))
+    expect(document.body.textContent).toMatch(/\+(6|7)\d\d/)
   })
 
   it('keeps the timer bar still with reduced motion', () => {

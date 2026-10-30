@@ -50,6 +50,7 @@
 
   let {
     question,
+    pictureUrl = null,
     reveal = null,
     yourValue,
     result = null,
@@ -62,6 +63,8 @@
   }: {
     /** The question as it was sent open. After close it is still what picks the pair. */
     question: OpenQuestion
+    /** A picture from the bundle rather than `/pictures/`, for a sample: no server names one. */
+    pictureUrl?: string | null
     /** `question_closed.reveal`, or null while the question is open. */
     reveal?: Record<string, unknown> | null
     yourValue: unknown
@@ -133,6 +136,7 @@
     {/if}
     <QuestionPicture
       name={question.picture}
+      url={pictureUrl}
       large={pictured}
       shadow={shadowed}
       {build}
