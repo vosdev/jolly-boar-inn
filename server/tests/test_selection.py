@@ -1,7 +1,7 @@
 """``rooms/selection.py`` contract: pure, seeded, without replacement, one round per mode.
 
 The selection half: at ``default`` one mode of 10 questions plays 11, and
-``less`` and ``more`` give the counts in phase2.md's table; seeded, no two events share a
+``less`` and ``more`` give the counts in architecture.md §5; seeded, no two events share a
 window of N and none is a round's or the game's first question; a one-mode room gets
 events; a custom question's named NPC is the one that asks it, and two naming one NPC are
 both honoured; seeded over many rooms, no drawn face repeats while an unused one is left,
@@ -314,7 +314,7 @@ def test_seeded_and_deterministic(stubs: tuple[str, ...]) -> None:
 def test_the_frequency_adds_events_on_top_of_the_rounds(
     stubs: tuple[str, ...], frequency: str, round_questions: int, played: int
 ) -> None:
-    """phase2.md's table: one event per 20, 10 or 5 round questions, added, not taken out.
+    """architecture.md §5: one event per 20, 10 or 5 round questions, added, not taken out.
 
     Forty questions are four rounds of ten, so the windows cross from one round into the
     next and the count still comes out the same.

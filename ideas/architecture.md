@@ -1,7 +1,7 @@
 # Architecture
 
 How Jolly Boar Inn is built today, and the reason behind each choice that looks odd. The product is
-`ideas/plan.md`, the open tasks are `ideas/phase2.md` and `ideas/design.md`. Everything here is
+in the README, the open tasks are GitHub issues and `ideas/design.md`. Everything here is
 final. The licence is AGPL-3.0.
 
 ## 0. Stack
@@ -272,6 +272,22 @@ Random events:
 - Faces: a named NPC asks its question. Others come from the unseen NPCs, then the least seen, never
   next to the same face. An NPC with no file yet only asks host questions.
 - `MAX_QUESTIONS_PER_ROOM` (100) counts events.
+
+Writing an NPC's questions:
+
+- The roster is the ids in `server/app/random_events.py` (`a-z0-9_`, at most 32 characters, stored in
+  `questions.random_event`, never renamed). The copy (name, `theme`, `right`/`wrong` reveal lines of at
+  most 60 characters, `asset` as `npc:<id>`) is in `client/src/lib/randomEvents.ts`. The questions are
+  `data/packs/random_events/<id>.json`, one file per NPC, which names the NPC once as `random_event`.
+  Every NPC needs at least two questions (`test_random_events.py`); around five is the target.
+- `intro` is the NPC talking, at most 150 characters, typed in while the question waits. `prompt` is
+  the plain question and must make sense without it. An `explanation` is welcome: a random event is
+  the place for the one fact nobody knew.
+- Every type but `more_less` and `price_is_right` is allowed (only their own round shows the item they
+  ask about; "which heals more?" is `multiple_choice`). Payload fields follow
+  `schema/question.schema.json`.
+- Stay on the NPC's theme: the joke is that they only care about their own subject. Check every fact on
+  the wiki; `make validate-packs` checks the shape, not the truth.
 
 `segments_of` groups rows into rounds by the stored `questions.round`, and an event carries the round
 it interrupts. Deriving rounds fails silently: settings break on a short round, runs of `mode` on an
