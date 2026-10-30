@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import * as admin from '../lib/admin'
 import * as api from '../lib/api'
 import { pastGames, savePastGame } from '../lib/history'
-import { loadModes, slugOf } from '../lib/howToPlay'
+import { NIGHT_STOPS, loadModes, slugOf } from '../lib/howToPlay'
 import { DISCORD_URL } from '../lib/links'
 import { MODES } from '../lib/modes'
 import { npcArt } from '../lib/npcs'
@@ -85,7 +85,7 @@ describe('How to play on Home', () => {
     render(Home, { navigate, howTo })
   }
 
-  it("goes to /how-to-play from the sheet's How to play", async () => {
+  it("goes to /how-to-play from Reldo's box", async () => {
     render(Home, { navigate })
     await fireEvent.click(screen.getByRole('button', { name: 'How to play' }))
     expect(navigate).toHaveBeenCalledWith('/how-to-play', {
@@ -93,19 +93,22 @@ describe('How to play on Home', () => {
     })
   })
 
-  it('puts How to play at the top of the slideshow', () => {
+  it('leaves How to play out of the slideshow, for Reldo to offer', () => {
     render(Home, { navigate })
     const showcase = document.querySelector('.showcase') as HTMLElement
-    expect(showcase.firstElementChild?.textContent?.trim()).toBe('How to play')
+    expect(within(showcase).queryByRole('button', { name: 'How to play' })).toBeNull()
+    const reldo = screen.getByRole('heading', { name: 'Talk to Reldo' }).closest('section')!
+    expect(within(reldo).getByRole('button', { name: 'How to play' })).toBeTruthy()
+    expect(reldo.textContent).toContain('free for all')
   })
 
   it('draws the page in place of the sheet, the dialogue box still on top', () => {
     openPage()
     expect(screen.getByRole('heading', { level: 1, name: 'How to play' })).toBeTruthy()
     expect(screen.queryByLabelText('Room code')).toBeNull()
-    expect(document.querySelector('.scroll')).toBeNull()
-    expect(speaker()).toBe('Wise Old Man')
-    expect(said()).toContain('New here?')
+    expect(document.querySelector('.scroll .trail')).toBeTruthy()
+    expect(speaker()).toBe('Reldo')
+    expect(said()).toContain('a new face')
   })
 
   it('fades from Home to the page when the address changes, the dialogue box staying', async () => {
@@ -118,22 +121,36 @@ describe('How to play on Home', () => {
     await waitFor(() => expect(screen.getByLabelText('Room code')).toBeTruthy())
   })
 
-  it('walks through a night in four steps, then every way of answering', async () => {
+  it('walks a night along the trail, ending on every way of answering', async () => {
     openPage()
-    const steps = screen.getByRole('heading', { name: 'A night at the inn' }).nextElementSibling
-    expect(within(steps as HTMLElement).getAllByRole('listitem')).toHaveLength(4)
-    const answers = screen.getByRole('region', { name: 'Ways to answer' })
-    await within(answers).findByRole('heading', { name: 'One answer' })
-    expect(within(answers).getAllByRole('heading', { level: 3 })).toHaveLength(7)
-    expect(within(answers).getByText('Quicker and correct answers score more.')).toBeTruthy()
+    const night = screen.getByRole('region', { name: 'A night at the inn' })
+    expect(within(night).getAllByRole('listitem')).toHaveLength(NIGHT_STOPS.length)
+    await fireEvent.click(within(night).getByRole('button', { name: /Answer$/ }))
+    await within(night).findByRole('heading', { name: 'One answer' })
+    expect(within(night).getByText('Quicker and correct answers score more.')).toBeTruthy()
   })
 
-  it('explains teams and the TV', () => {
+  it('goes to Create from the last stop, as Home does', async () => {
     openPage()
-    const teams = screen.getByRole('region', { name: 'Teams' })
-    expect(teams.textContent).toContain("Speed doesn't count")
-    expect(teams.textContent).toContain('average')
-    expect(screen.getByRole('region', { name: 'On the TV' }).textContent).toContain('Make TV')
+    const night = screen.getByRole('region', { name: 'A night at the inn' })
+    await fireEvent.click(within(night).getByRole('button', { name: /Answer$/ }))
+    await fireEvent.click(within(night).getByRole('button', { name: 'Create a room' }))
+    expect(navigate).toHaveBeenCalledWith('/create')
+  })
+
+  it('draws the three ways to play, teams and the TV explained', () => {
+    openPage()
+    const ways = screen.getByRole('heading', { name: 'Ways to play' }).nextElementSibling
+    const shown = within(ways as HTMLElement).getAllByRole('listitem')
+    expect(shown.map((way) => way.querySelector('h3')?.textContent)).toEqual([
+      'Free for all',
+      'Team against team',
+      'On the sofa',
+    ])
+    expect(shown[1]?.textContent).toContain("Speed doesn't count")
+    expect(shown[1]?.textContent).toContain('average')
+    expect(shown[2]?.textContent).toContain("room's TV")
+    expect(within(ways as HTMLElement).getAllByRole('img')).toHaveLength(3)
   })
 
   it('has a tile for every playable mode, and one for random events', () => {
@@ -777,10 +794,14 @@ describe('Suggest or report a question', () => {
     expect(navigate).toHaveBeenCalledWith('/report')
   })
 
-  it('offers only the feedback link before a game has finished here', () => {
+  it('offers only How to play and the feedback link before a game has finished here', () => {
     render(Home, { navigate })
     const section = screen.getByRole('heading', { name: heading }).closest('section')!
-    expect(within(section).queryByRole('button')).toBeNull()
+    expect(
+      within(section)
+        .getAllByRole('button')
+        .map((button) => button.textContent),
+    ).toEqual(['How to play'])
     expect(section.textContent).not.toContain("Know a question we don't ask yet")
     expect(within(section).getByRole('link', { name: 'Give feedback' })).toBeTruthy()
   })

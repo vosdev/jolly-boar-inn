@@ -35,7 +35,7 @@ describe('Try a question', () => {
     vi.unstubAllGlobals()
   })
 
-  it('is offered by each mode with a sample, and the overview', () => {
+  it("is offered by each mode with a sample, and the overview's last stop", async () => {
     for (const id of Object.keys(MODES)) {
       const { unmount } = render(HowToPage, {
         view: id,
@@ -43,14 +43,23 @@ describe('Try a question', () => {
         onall: noop,
         onback: noop,
         ontry: noop,
+        oncreate: noop,
       })
       const offered = screen.queryByRole('button', { name: 'Try a question' }) !== null
       expect(offered, id).toBe(id in SAMPLES)
       unmount()
     }
     const ontry = vi.fn()
-    render(HowToPage, { view: 'overview', onopen: noop, onall: noop, onback: noop, ontry })
-    void fireEvent.click(screen.getByRole('button', { name: 'Try a question' }))
+    render(HowToPage, {
+      view: 'overview',
+      onopen: noop,
+      onall: noop,
+      onback: noop,
+      ontry,
+      oncreate: noop,
+    })
+    await fireEvent.click(screen.getByRole('button', { name: /Answer$/ }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Try a question' }))
     expect(ontry).toHaveBeenCalledWith('more_less')
   })
 

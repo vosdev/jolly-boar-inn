@@ -329,12 +329,12 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
   sheet. A mode with no host, or a host with no art, gets the generic boar.
 - **Home** is a 960px column. Its host, as the lobby's (§9), is the selfhoster's hero for the theme
   (§14), else the Wise Old Man, saying the site's line in the dialogue box at its usual sizes. The
-  theme's sheet under it holds the room code, Join, Create a room and How to play (§9), and beside them
+  theme's sheet under it holds the room code, Join and Create a room, and beside them
   one playable mode at a time, shuffled per visit: host's chathead, name, hint, "Presented by: <host>". It crossfades
   every 4.5 s, holds on hover or keyboard focus and under reduced motion, and is as tall as the
   tallest mode; a row of chatheads (dots on a phone) picks one. Then Public
   rooms while any are listed, Rooms you created here and Past games side by side while they have
-  rows, and Reldo's dialogue box, his chathead right: *Give feedback* (the Discord) for all, and for
+  rows, and Reldo's dialogue box, his chathead right: *How to play* and *Give feedback* (the Discord) for all, and for
   a browser that may suggest or holds the admin token also Suggest a question, Report a question and *Admin (n)*, n the pending suggestions.
 
 ## 9. The table panel, the splash and the ready check
@@ -385,10 +385,12 @@ chrome or circle around them), on in `--ok`, in lobby and splash;
 - **How to play:** a row per way of answering: a small drawing of the control and one plain
   sentence, with every Submit named in bold, since players overlooked it. The Lobby's link opens
   them on a sheet: its rounds' types, or all of them when random events, host's questions or
-  hidden rounds could bring any, ending "Quicker and correct answers score more." On Home, How to
-  play and a slide's mode name open `/how-to-play` and `/how-to-play/<mode>`: under the dialogue
-  box, which stays, the sheet and panels fade out and the page fades in. The overview (the hero speaking): Back, four steps of a night, a tile per
-  playable mode and one for Random events, every way of answering, Teams and On the TV. A tile
+  hidden rounds could bring any, ending "Quicker and correct answers score more." On Home, Reldo's
+  How to play and a slide's mode name open `/how-to-play` and `/how-to-play/<mode>`: under the dialogue
+  box, which stays, the sheet and panels fade out and the page fades in. The overview (Reldo speaking): Back,
+  the three ways to play, each a drawing in theme tokens, the trail, and a tile per playable mode and one
+  for Random events. The trail sits on the theme's sheet: a dashed path of stamps, an X on the last, with
+  the stop you are on open under it (a drawing, or every way of answering, then Create a room and Try a question). A tile
   swaps the page to its mode (the host saying greeting and blurb; name, host, hint and only its
   types from `/api/modes`) or to Random events (the Mysterious Old Man; every event NPC and its
   theme), with All game modes back. Try a question (the overview's is More or Less's, a mode's

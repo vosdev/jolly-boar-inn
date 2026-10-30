@@ -6,9 +6,9 @@
 <script lang="ts">
   /**
    * Home's How to play page, under Home's dialogue box, which speaks for it: the overview
-   * (a night in four steps, the game modes, every way of answering, teams and the TV), or
-   * one mode's view, or the random events'. Picking a mode swaps the whole page, as
-   * Suggest's editor does; which view shows is the address's (`/how-to-play/<mode>`).
+   * (the three ways to play, the trail through a night and the game modes), or one mode's
+   * view, or the random events'. Picking a mode swaps the whole page, as Suggest's editor
+   * does; which view shows is the address's (`/how-to-play/<mode>`).
    *
    * Which modes there are is the slideshow's list; which types each is answered in is
    * `/api/modes`, so a mode's view shows only what its round asks.
@@ -16,24 +16,18 @@
   import { onMount } from 'svelte'
 
   import type { ModePacing } from '../lib/api'
-  import {
-    NIGHT_STEPS,
-    SCORING_LINE,
-    TEAMS_PARAGRAPH,
-    TEAMS_SETUP,
-    TEAMS_STANDINGS,
-    TV_PARAGRAPHS,
-    allTypes,
-    loadModes,
-    modeTypes,
-    rowsFor,
-  } from '../lib/howToPlay'
+  import { WAYS_TO_PLAY, loadModes, modeTypes, rowsFor } from '../lib/howToPlay'
   import { MODES } from '../lib/modes'
   import { npcArt } from '../lib/npcs'
   import { RANDOM_EVENTS, STRANGER } from '../lib/randomEvents'
   import { SAMPLES } from '../lib/samples'
+  import { sheetFor } from '../lib/sheet'
+  import { watchTheme } from '../lib/theme'
   import AnswerRows from './AnswerRows.svelte'
+  import HowToScene from './HowToScene.svelte'
+  import HowToTrail from './HowToTrail.svelte'
   import { SHOWN } from './ModeShowcase.svelte'
+  import ClueScroll from './stage/ClueScroll.svelte'
 
   let {
     view,
@@ -41,6 +35,8 @@
     onall,
     onback,
     ontry,
+    oncreate,
+    createDisabled = false,
   }: {
     view: HowToView
     /** Open a mode's view, or the random events'. */
@@ -51,11 +47,17 @@
     onback: () => void
     /** Play a mode's sample question in the dialogue box's place. */
     ontry: (mode: string) => void
+    /** Go and create a room. */
+    oncreate: () => void
+    /** At the room limit, where Home refuses Create too. */
+    createDisabled?: boolean
   } = $props()
 
   let modes = $state<ModePacing[] | null>(null)
   let heading = $state<HTMLElement | null>(null)
+  let theme = $state('')
 
+  onMount(() => watchTheme((now) => (theme = now)))
   onMount(() => {
     loadModes().then(
       (loaded) => (modes = loaded),
@@ -78,25 +80,27 @@
 
 {#if view === 'overview'}
   <div>
-    <section class="panel">
+    <section class="panel" aria-labelledby="how-title">
       <p class="back">
         <button type="button" class="link" onclick={onback}>← Back</button>
       </p>
-      <h1 tabindex="-1" bind:this={heading}>How to play</h1>
-      <p>
-        <button type="button" class="primary" onclick={() => ontry('more_less')}
-          >Try a question</button
-        >
-      </p>
-      <h2>A night at the inn</h2>
-      <ol class="steps">
-        {#each NIGHT_STEPS as step (step.title)}
+      <h1 id="how-title" tabindex="-1" bind:this={heading}>How to play</h1>
+      <h2>Ways to play</h2>
+      <ul class="ways">
+        {#each WAYS_TO_PLAY as way (way.id)}
           <li>
-            <h3>{step.title}</h3>
-            <p>{step.text}</p>
+            <HowToScene way={way.id} label={way.drawing} />
+            <h3>{way.title}</h3>
+            <p>{way.text}</p>
           </li>
         {/each}
-      </ol>
+      </ul>
+    </section>
+
+    <section class="night" aria-label="A night at the inn">
+      <ClueScroll sheet={sheetFor(theme)} {theme}>
+        <HowToTrail ontry={() => ontry('more_less')} {oncreate} {createDisabled} />
+      </ClueScroll>
     </section>
 
     <section class="panel" aria-labelledby="how-modes">
@@ -123,30 +127,6 @@
           </button>
         </li>
       </ul>
-    </section>
-
-    <section class="panel" aria-labelledby="how-answer">
-      <h2 id="how-answer">Ways to answer</h2>
-      {#if modes === null}
-        <p class="note">Loading…</p>
-      {:else}
-        <AnswerRows rows={rowsFor(allTypes(modes))} />
-        <p class="scoring">{SCORING_LINE}</p>
-      {/if}
-    </section>
-
-    <section class="panel" aria-labelledby="how-teams">
-      <h2 id="how-teams">Teams</h2>
-      <p>{TEAMS_SETUP}</p>
-      <p>{TEAMS_PARAGRAPH}</p>
-      <p>{TEAMS_STANDINGS}</p>
-    </section>
-
-    <section class="panel" aria-labelledby="how-tv">
-      <h2 id="how-tv">On the TV</h2>
-      {#each TV_PARAGRAPHS as paragraph, i (i)}
-        <p>{paragraph}</p>
-      {/each}
     </section>
   </div>
 {:else if view === 'events'}
@@ -221,35 +201,26 @@
     margin: 0 0 0.75rem;
   }
 
-  .steps {
+  .ways {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
     gap: 1rem;
     margin: 0;
     padding: 0;
     list-style: none;
-    counter-reset: step;
   }
 
-  .steps li {
-    counter-increment: step;
-  }
-
-  .steps li::before {
-    content: counter(step);
-    display: grid;
-    place-items: center;
-    width: 2rem;
-    height: 2rem;
-    margin-bottom: 0.4rem;
-    border-radius: 50%;
-    background: var(--accent);
-    color: var(--accent-ink);
-    font-weight: 700;
-  }
-
-  .steps p {
+  .ways p {
     margin: 0.2rem 0 0;
+    color: var(--muted);
+  }
+
+  .ways h3 {
+    margin-top: 0.6rem;
+  }
+
+  .night {
+    margin-block: 1.5rem;
   }
 
   /* As many columns as keep a hint readable: one on a phone, where tiles become rows. */
@@ -295,10 +266,5 @@
 
   strong {
     display: block;
-  }
-
-  .scoring {
-    margin: 1rem 0 0;
-    font-weight: 700;
   }
 </style>

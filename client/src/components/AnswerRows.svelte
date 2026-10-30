@@ -10,12 +10,12 @@
    */
   import type { HowToRow } from '../lib/howToPlay'
 
-  let { rows }: { rows: HowToRow[] } = $props()
+  let { rows, columns = false }: { rows: HowToRow[]; columns?: boolean } = $props()
 </script>
 
 {#snippet submit()}<span class="submit">Submit</span>{/snippet}
 
-<ul class="rows">
+<ul class="rows" class:columns>
   {#each rows as row (row.title)}
     <li>
       <div class="drawing {row.drawing}" aria-hidden="true">
@@ -76,6 +76,14 @@
     margin: 0;
     padding: 0;
     list-style: none;
+  }
+
+  /* Two across where a row has the room, for the trail's wide sheet. */
+  @media (min-width: 48rem) {
+    .rows.columns {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
 
   li {

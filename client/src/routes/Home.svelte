@@ -9,8 +9,10 @@
    * is free again the moment it answers. That is the only way to be rid of a room before
    * it expires, so the button asks first.
    *
-   * A browser that has finished a game is asked for its questions too, and for what was wrong
-   * with ours (`lib/suggestions.ts`, `lib/reports.ts`), by Reldo at the column's foot.
+   * Reldo, at the column's foot, sends a newcomer to How to play. That is under a returning
+   * player's rooms and games, who needs it least. A browser that has finished a game is asked
+   * by him for its questions too, and for what was wrong with ours (`lib/suggestions.ts`,
+   * `lib/reports.ts`).
    *
    * How to play, at `/how-to-play` and a view under it, is drawn here too: everything
    * under the dialogue box fades out and the page fades in, while the box stays and its
@@ -289,7 +291,8 @@
 
 {#snippet newHere()}
   <p>
-    New here? This is how a night at {siteName} goes. Pick one of my hosts below to see their round.
+    Ah, a new face. Choose how your table plays, then follow the trail from the first room to the
+    first question.
   </p>
 {/snippet}
 
@@ -319,8 +322,9 @@
     {/key}
   {:else}
     <Stage
-      host={howToMode?.host.id ?? (shown === 'events' ? STRANGER : 'wise_old_man')}
-      hero={howToMode === null && shown !== 'events' ? heroArt : null}
+      host={howToMode?.host.id ??
+        (shown === 'events' ? STRANGER : shown === null ? 'wise_old_man' : 'reldo')}
+      hero={shown === null ? heroArt : null}
       bubble="on"
       paper={shown === null ? sheet : undefined}
     >
@@ -329,8 +333,10 @@
           <Said name={howToMode.host.name} line={presents} />
         {:else if shown === 'events'}
           <Said name="Mysterious Old Man" line={visitors} />
+        {:else if shown === null}
+          <Said name={speakerFor(heroArt)} line={welcome} />
         {:else}
-          <Said name={speakerFor(heroArt)} line={shown === null ? welcome : newHere} />
+          <Said name="Reldo" line={newHere} />
         {/if}
       {/snippet}
     </Stage>
@@ -338,7 +344,15 @@
 
   <div class="below">
     {#if shown !== null}
-      <HowToPage view={shown} onopen={open} onall={allModes} onback={leaveHowTo} ontry={tryMode} />
+      <HowToPage
+        view={shown}
+        onopen={open}
+        onall={allModes}
+        onback={leaveHowTo}
+        ontry={tryMode}
+        oncreate={() => navigate('/create')}
+        createDisabled={full === true}
+      />
     {:else}
       {@render rest()}
     {/if}
@@ -386,11 +400,7 @@
       </button>
     </div>
     <span class="split" aria-hidden="true"></span>
-    <ModeShowcase onpick={open}>
-      {#snippet top()}
-        <button type="button" class="how-to" onclick={() => open('overview')}> How to play </button>
-      {/snippet}
-    </ModeShowcase>
+    <ModeShowcase onpick={open} />
   </div>
 {/snippet}
 
@@ -521,11 +531,16 @@
   <section class="reldo" aria-labelledby="suggest-heading">
     <h2 id="suggest-heading" class="sr">Talk to Reldo</h2>
     <DialogueBox npc="reldo" name="Reldo" side="right">
+      <p>
+        First night here? Play free for all, team against team, or on the sofa with a TV and your
+        phones. It's all possible here!
+      </p>
       {#if suggesting || adminToken !== null}
         <p>Know a question we don't ask yet, or spotted a wrong answer or an outdated fact?</p>
       {/if}
       <p>Something else on your mind? Come and tell us.</p>
       <div class="row">
+        <button type="button" class="primary" onclick={() => open('overview')}>How to play</button>
         {#if suggesting || adminToken !== null}
           <button type="button" onclick={() => navigate('/suggest')}>Suggest a question</button>
           <button type="button" onclick={() => navigate('/report')}>Report a question</button>
@@ -693,19 +708,6 @@
     content: '';
     flex: 1;
     border-top: 1px dashed currentColor;
-  }
-
-  .how-to {
-    --ink: var(--scroll-ink);
-    justify-self: center;
-    padding: 0.35rem 0.25rem;
-    min-height: 44px;
-    border: 0;
-    background: transparent;
-    color: var(--ink);
-    font-weight: 600;
-    text-decoration: underline;
-    text-underline-offset: 0.2em;
   }
 
   /* Side by side when both have rows and there is room for two; one alone takes the width. */

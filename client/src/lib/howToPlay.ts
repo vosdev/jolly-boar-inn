@@ -82,38 +82,97 @@ export const SCORING_LINE = 'Quicker and correct answers score more.'
 export const TEAMS_PARAGRAPH =
   "In a team game everyone picks a team in the lobby. Speed doesn't count: your team scores the average of its members' points."
 
-/** Home's How to play page: the night in four steps, each a title and a sentence. */
-export const NIGHT_STEPS: readonly { title: string; text: string }[] = [
+export type WayId = 'free' | 'teams' | 'sofa'
+
+/** How to play's three ways to play; `drawing` is the scene's words for a screen reader. */
+export const WAYS_TO_PLAY: readonly { id: WayId; title: string; text: string; drawing: string }[] =
+  [
+    {
+      id: 'free',
+      title: 'Free for all',
+      text: 'Everyone on their own laptop, PC or mobile phone. Everyone scores points for themselves. Quicker and correct answers score more. Up to 50 players.',
+      drawing: 'A laptop showing a question, with a pet in front of it scoring 820 points.',
+    },
+    {
+      id: 'teams',
+      title: 'Team against team',
+      text: "Pick a god in the lobby. Speed doesn't count: your team scores the average of its members' points. Up to 6 teams, up to 50 players total.",
+      drawing: 'Saradomin and Zamorak side by side, three pets on each, with their team scores.',
+    },
+    {
+      id: 'sofa',
+      title: 'On the sofa',
+      text: "Join from the TV and make it the room's TV in the lobby. The TV shows the questions, and everyone else only sees the answers on their phone. Works with either free-for-all or in teams. Up to 50 players, or as many as your sofa fits.",
+      drawing: 'A TV showing a question, with four pets on a sofa below it, each holding a phone.',
+    },
+  ]
+
+export type StopId = 'create' | 'choose' | 'invite' | 'ready' | 'splash' | 'answer'
+
+/** A stop's stamp on the trail: an item's icon, an NPC's chathead, or the map's X. */
+export type Stamp = { kind: 'item'; id: number } | { kind: 'npc'; id: string } | { kind: 'x' }
+
+export interface NightStop {
+  id: StopId
+  /** Under its stamp on the trail. */
+  label: string
+  title: string
+  text: string
+  /** The stop's drawing, in words for a screen reader. */
+  drawing: string
+  stamp: Stamp
+}
+
+/** How to play's walk through a night, from the first room to the first answer. */
+export const NIGHT_STOPS: readonly NightStop[] = [
   {
+    id: 'create',
+    label: 'Create a room',
     title: 'Create a room',
-    text: 'Pick the hosts, each of whom runs one round, and set the house rules. The room is kept for a few days.',
+    text: 'Press Create a room on the front page. Whoever creates the room runs it. It stays available for up to 48 hours.',
+    drawing: 'The front page, with Create a room picked out.',
+    stamp: { kind: 'item', id: 2347 },
   },
   {
-    title: 'Share the code',
-    text: 'Friends join with the code or the invite link. They pick a name and a pet; nobody needs an account.',
+    id: 'choose',
+    label: 'Modes and settings',
+    title: 'Choose your game modes and settings',
+    text: 'Each host runs one round of their own game mode. Set the house rules, and go team against team if you like.',
+    drawing: 'Choosing hosts and house rules for the room.',
+    stamp: { kind: 'npc', id: 'historian_minas' },
   },
   {
-    title: 'Play the rounds',
-    text: 'Each host asks in their own way, and random events can barge in with questions of their own.',
+    id: 'invite',
+    label: 'Invite friends',
+    title: 'Invite your friends and clan members',
+    text: 'Send the code or the invite link. Nobody needs an account: they pick a display name and a pet.',
+    drawing: 'The lobby with the room code, a Copy invite link button and pets joining.',
+    stamp: { kind: 'npc', id: 'postie_pete' },
   },
   {
-    title: 'Climb the hiscores',
-    text: 'Quicker and correct answers score more, and the hiscores between rounds show who is ahead.',
+    id: 'ready',
+    label: 'Ready up',
+    title: 'Ready up to start',
+    text: 'Everyone flips the Ready switch, then whoever created the room presses Start.',
+    drawing: 'The Ready and Not ready yet lists, with the Ready switch on and the Start button.',
+    stamp: { kind: 'item', id: 1917 },
   },
-]
-
-/** The page's Teams section, before `TEAMS_PARAGRAPH`. */
-export const TEAMS_SETUP =
-  'Whoever creates the room can make it a team game, on Create or later in the lobby, with a team for each god they pick.'
-
-/** After `TEAMS_PARAGRAPH`: what the standings show of a team. */
-export const TEAMS_STANDINGS =
-  'The hiscores rank the teams, each with its members and their points under it, so a weak link shows.'
-
-/** The page's TV section, a paragraph each. */
-export const TV_PARAGRAPHS: readonly string[] = [
-  'Playing in one room? Put the game on a TV. Open the room on the TV and join it like anyone else, then whoever created the room taps its pet in the lobby and picks Make TV.',
-  'The TV shows every question large, the answers as they come in and the hiscores, for the whole room to see. Everyone answers on their own phone; the TV never answers and scores nothing.',
+  {
+    id: 'splash',
+    label: 'Splash screen',
+    title: 'Read the splash screen, ready up and enjoy',
+    text: 'Each round opens with its host and what is coming. Read it, ready up, and the questions start.',
+    drawing: 'A splash screen naming the round and its host, starting in 4.',
+    stamp: { kind: 'npc', id: 'ali_morrisane' },
+  },
+  {
+    id: 'answer',
+    label: 'Answer',
+    title: 'Answer the questions',
+    text: 'There are eight ways to answer. Anything with a Submit button needs that press before the timer runs out.',
+    drawing: '',
+    stamp: { kind: 'x' },
+  },
 ]
 
 /** The types a round of mode `id` is answered in, by `/api/modes`; null for a mode it does not list. */
