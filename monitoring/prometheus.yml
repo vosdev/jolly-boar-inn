@@ -1,0 +1,19 @@
+# Example Prometheus scrape config for Jolly Boar Inn.
+# Put the value of METRICS_TOKEN from .env in a file Prometheus can read, with no trailing
+# newline, and mode 600:  printf %s "$METRICS_TOKEN" > /etc/prometheus/jolly-boar-token
+# The job name matches monitoring/alerts.yml.
+
+global:
+  scrape_interval: 30s
+
+rule_files:
+  - alerts.yml
+
+scrape_configs:
+  - job_name: jolly-boar-inn
+    metrics_path: /metrics
+    authorization:
+      type: Bearer
+      credentials_file: /etc/prometheus/jolly-boar-token
+    static_configs:
+      - targets: ["jollyboar.games.nas.vos.dev:8000"]

@@ -28,7 +28,7 @@ schema/                            question.schema.json (section 4), protocol.sc
 data/packs/                        prices (generated, ignored), examine, sample, random_events/
 data/                              assets, pets, popular-items/-npcs, player-names, room-words
 branding/                          a selfhoster's logo, gitignored
-monitoring/                        Prometheus alert rules and a starter Grafana dashboard
+monitoring/                        Prometheus scrape config and alert rules, starter Grafana dashboard
 server/app/                        main, config, db, static, accesslog, errors, metrics, pets,
                                    random_events, suggestions, reports, question_edits, roster_edits
 server/app/rooms/                  state (RoomManager), joins, lobby, loop (its parts), models,
