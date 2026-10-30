@@ -501,7 +501,7 @@ on the game's entry.
 ## 12. Random events: the interlude (#106)
 
 A random event is a question from an NPC who has nothing to do with the round. How often and who
-asks what are architecture §5 and `ideas/random-events.md`. This is how it looks.
+asks what are architecture §5. This is how it looks.
 
 **The event NPC sits on the right** of the dialogue box above the sheet; no box carries a tag,
 only the speaker's name. The host always stands left, so position says "this is not the round's

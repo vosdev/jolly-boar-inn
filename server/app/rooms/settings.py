@@ -82,7 +82,7 @@ TIERS: dict[str, frozenset[str]] = {
     "mixed": frozenset({"easy", "medium", "hard"}),
     "hard": frozenset({"medium", "hard"}),
 }
-# One random event per this many round questions (ideas/phase2.md, "How often"). Ten is
+# One random event per this many round questions. Ten is
 # roughly once a round at the default round lengths, which is about as often as the game
 # itself interrupts anyone; five is a room that came for the NPCs.
 EVENT_EVERY: dict[str, int] = {"less": 20, "default": 10, "more": 5}

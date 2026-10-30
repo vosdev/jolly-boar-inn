@@ -220,7 +220,7 @@ describe('more_less on the plain buttons', () => {
   }
   const reveal = { ...VIEW, answer_index: 0 }
 
-  // The ideas/IDEAS.md bug: an unanswered question drew its answer in the pressed style,
+  // An early bug: an unanswered question drew its answer in the pressed style,
   // which read as "you chose the right one".
   it('draws no button pressed on a reveal we did not answer', () => {
     render(Question, { question: open, reveal, yourValue: null, onAnswer: () => {} })

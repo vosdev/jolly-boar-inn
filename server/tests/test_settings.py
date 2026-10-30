@@ -144,7 +144,7 @@ def test_the_cap_counts_the_random_events_at_the_frequency_asked_for(
 def test_one_event_per_twenty_ten_or_five_round_questions(
     more_modes: list[str], frequency: str, questions: int, slots: int
 ) -> None:
-    """phase2.md's table, which is what Create shows before the room exists."""
+    """architecture.md §5, which is what Create shows before the room exists."""
     modes = [{"mode": more_modes[0], "questions": questions // 2}]
     modes.append({"mode": more_modes[1], "questions": questions - questions // 2})
     settings = NewRoomSettings(modes=modes, random_event_frequency=frequency)

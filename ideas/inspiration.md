@@ -1,9 +1,9 @@
-In this file, we have a list of other OSRS themed games and some reddit links from where we can draw inspiration
-
 # Other OSRS themed games
 
+In this file, we have a list of other OSRS themed games and some reddit links from where we can draw inspiration
 
 ## Wordle type of games
+
 ### Runedle
 
 https://runedle.com/
@@ -16,8 +16,8 @@ https://scapedle.net/
 
 https://scapedle.com/
 
-
 ## GeoGuessr type of games
+
 ### OSRSGuessr
 
 https://osrsguesser.app/
@@ -30,7 +30,6 @@ https://gieliguessr.com/
 
 https://tapscape.andrewhathaway.net/
 
-
 ## Trivia games
 
 ### OSRSTrivia
@@ -41,12 +40,10 @@ https://osrstrivia.com
 
 https://osrspuzzles.com/
 
+## Question inspiration
 
+### Examines
 
-# Question inspiration
-
-
-## Examines
 https://www.reddit.com/r/2007scape/comments/isqwt7/favorite_examine_text/
 
 https://www.reddit.com/r/2007scape/comments/ju5u6a/top_ten_examines/
@@ -54,10 +51,9 @@ https://www.reddit.com/r/2007scape/comments/ju5u6a/top_ten_examines/
 
 https://www.reddit.com/r/2007scape/comments/1jfqkbn/favorite_examine_texts_this_is_a_personal/
 
-
 https://oldschool.runescape.wiki/w/Chaos_Elemental
 
-## NPC funny chats
+### NPC funny chats
 
 https://oldschool.runescape.wiki/w/Chaos_Fanatic
 
@@ -65,7 +61,7 @@ https://oldschool.runescape.wiki/w/Crazy_archaeologist
 https://oldschool.runescape.wiki/w/Transcript:Crazy_archaeologist
 https://oldschool.runescape.wiki/w/Transcript:Deranged_archaeologist
 
-## Trivia
+### Trivia
 
 https://www.reddit.com/r/2007scape/comments/16kp878/whats_some_of_the_best_osrs_trivia_you_know/?utm_source=gemini
 
@@ -77,7 +73,5 @@ https://www.reddit.com/r/runescape/comments/qlkbgv/i_need_hard_trivia_questions_
 
 https://www.reddit.com/r/2007scape/comments/1hlc1nx/10_osrs_inventory_sporcle_quizzes_back_by_popular/?utm_source=gemini
 
-
 Sort races by length
 Gnomes -> Dwarves -> Goblins
-

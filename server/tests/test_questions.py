@@ -351,7 +351,7 @@ NPC_QUESTION["id"] = schema.content_id(NPC_QUESTION)
 
 
 def _write_npc(directory: Path, npc: str, questions: list[dict[str, Any]], **extra: Any) -> Path:
-    """An NPC's file, the way ``ideas/random-events.md`` has it written."""
+    """An NPC's file, the way ``ideas/architecture.md`` §5 has it written."""
     folder = directory / "random_events"
     folder.mkdir(exist_ok=True)
     path = folder / f"{npc}.json"

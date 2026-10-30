@@ -12,7 +12,7 @@
  * file of questions, with no cleverness anywhere. Each question opens with its own
  * `intro`, so the NPC's lines here are for the reveal, where there is time to read them:
  * `right` or `wrong`, short, in the game's voice, the way its dialogue boxes put it. `theme` is
- * the rule its questions are written to (`ideas/random-events.md`), and the NPC picker
+ * the rule its questions are written to (`ideas/architecture.md` §5), and the NPC picker
  * lists it in its select and on a face's tooltip.
  *
  * `asset` is the picture's reference, `npc:<id>`: `lib/npcs.ts` finds the file by that id.
