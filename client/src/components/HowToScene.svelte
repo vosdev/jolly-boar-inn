@@ -188,10 +188,9 @@
     width: 20em;
   }
 
-  /* The hardware is the same dark plastic in every theme. */
   .lid,
   .tv {
-    background: #1b1916;
+    background: var(--line);
   }
 
   .lid {
@@ -202,7 +201,7 @@
   .base {
     height: 0.9em;
     margin: 0 -1.4em;
-    background: #57504a;
+    background: var(--muted);
     border-radius: 0 0 0.9em 0.9em;
   }
 
@@ -308,8 +307,8 @@
     bottom: 0.8em;
     left: 2em;
     height: 4.6em;
-    background: #8a3a24;
-    border: 0.2em solid #5f2615;
+    background: var(--bad);
+    border: 0.2em solid color-mix(in srgb, var(--bad) 70%, var(--bg));
     border-radius: 1em 1em 0.4em 0.4em;
   }
 
@@ -320,7 +319,7 @@
     bottom: 0;
     left: 1.4em;
     height: 1.9em;
-    background: #a4492f;
+    background: color-mix(in srgb, var(--bad) 80%, var(--panel));
     border-radius: 0.5em 0.5em 0 0;
   }
 
@@ -365,7 +364,7 @@
     margin-top: -1em;
     padding: 0.22em 0.18em;
     background: var(--scroll-paper);
-    border: 0.16em solid #1b1916;
+    border: 0.16em solid var(--line);
     border-radius: 0.3em;
   }
 
