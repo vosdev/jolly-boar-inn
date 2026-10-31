@@ -15,7 +15,13 @@
   import { MODES, hostOf, pickLines } from '../lib/modes'
   import { verdictFor } from '../lib/award'
   import type { OpenQuestion, PlayerResult } from '../lib/protocol'
-  import { SAMPLE_SECONDS, sampleReveal, sampleResult, type Sample } from '../lib/samples'
+  import {
+    samplePicture,
+    sampleResult,
+    sampleReveal,
+    sampleSeconds,
+    type Sample,
+  } from '../lib/samples'
   import PointsSlot from './PointsSlot.svelte'
   import Question from './questions/Question.svelte'
   import Said from './stage/Said.svelte'
@@ -37,7 +43,8 @@
   let revealed = $state(false)
   let result = $state<PlayerResult | null>(null)
 
-  const endsAt = $derived(new Date(startedAt + SAMPLE_SECONDS * 1000).toISOString())
+  const seconds = $derived(sampleSeconds(sample))
+  const endsAt = $derived(new Date(startedAt + seconds * 1000).toISOString())
   const host = $derived(hostOf(sample.mode))
   const question: OpenQuestion = $derived({
     question_id: `sample:${sample.mode}`,
@@ -63,7 +70,7 @@
   const nextLabel = $derived(MODES[next]?.label ?? '')
 
   $effect(() => {
-    if (!revealed && $serverNow >= startedAt + SAMPLE_SECONDS * 1000) revealed = true
+    if (!revealed && $serverNow >= startedAt + seconds * 1000) revealed = true
   })
 
   function answer(value: unknown): void {
@@ -88,10 +95,11 @@
 {/snippet}
 
 {#if !revealed}
-  <TimerBar {endsAt} totalSeconds={SAMPLE_SECONDS} label="left to answer" />
+  <TimerBar {endsAt} totalSeconds={seconds} label="left to answer" />
 {/if}
 <Question
   {question}
+  pictureUrl={samplePicture(sample)}
   reveal={revealed ? sampleReveal(sample) : null}
   yourValue={result?.value ?? null}
   {result}

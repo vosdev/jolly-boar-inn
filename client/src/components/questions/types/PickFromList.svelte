@@ -359,6 +359,10 @@
     overscroll-behavior: contain;
     border: var(--border-width) solid var(--line);
     border-radius: var(--radius);
+    /* A panel over the floor: without its own ink it takes the floor's, made for the dark. */
+    --ink: var(--surface-ink);
+    --muted: var(--surface-muted);
+    color: var(--ink);
     background: var(--panel-raised);
   }
 

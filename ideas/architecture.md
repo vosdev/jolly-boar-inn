@@ -812,6 +812,7 @@ Right until it does (More/Less keeps `sample.json`'s five). The tests generate o
   maps asset to file; a file keeps its name until its written bytes change, and an unused one is removed.
   An item's picture is its wiki detail image: `add_detail_pictures.py` adds one for each roster
   item that has one, in one batched `imageinfo` lookup, and lists the rest.
+  How to play's samples bundle theirs (`npcs/817.png`, `items/detail_4151.png`): no server names one.
   Every item the roster or a pack question names has an `items/<id>.png`, its inventory icon:
   never a picture's file, whose bytes would match the icon bundled under the item's id.
   Questions from the wiki keep its CC BY-NC-SA notice, which the README (#98) carries.
