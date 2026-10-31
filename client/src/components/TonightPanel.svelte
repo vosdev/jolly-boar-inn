@@ -51,9 +51,6 @@
   /** The server's cap on a room, over every round. `NewRoomSettings` checks the same. */
   const MAX_QUESTIONS = 100
 
-  /** Below this a screen is a phone, and a question is written in a sheet of its own. */
-  const NARROW = '(max-width: 49.99rem)'
-
   const TABS = [
     { id: 'rounds', label: 'Rounds' },
     { id: 'rules', label: 'House rules' },
@@ -103,7 +100,6 @@
   let editingQuestion = $state(false)
 
   let tab = $state<Tab>('rounds')
-  let narrow = $state(window.matchMedia(NARROW).matches)
 
   /** What the server will play and what it will accept for each, or null until it says. */
   let pacing = $state<ModePacing[] | null>(null)
@@ -260,18 +256,12 @@
   })
 
   onMount(() => {
-    const query = window.matchMedia(NARROW)
-    const change = (event: MediaQueryListEvent): void => {
-      narrow = event.matches
-    }
-    query.addEventListener('change', change)
     void getModes().then(
       (modes) => (pacing = modes),
       (error: unknown) =>
         (pacingFailure =
           error instanceof ApiFailure ? error.message : 'could not reach the server'),
     )
-    return () => query.removeEventListener('change', change)
   })
 
   /** A round of `mode` at that mode's own length, which is what ticking it gives you. */
@@ -422,7 +412,6 @@
         slots={eventCount}
         {frequency}
         atMore={eventsAtMore}
-        sheet={narrow}
       />
     {/if}
   </div>

@@ -11,6 +11,7 @@
     labelledby = undefined,
     label = undefined,
     full = false,
+    wide = false,
     outside = false,
     onclose,
     children,
@@ -19,6 +20,8 @@
     labelledby?: string
     label?: string
     full?: boolean
+    /** For a form with a preview beside it: wider on a wider screen. */
+    wide?: boolean
     outside?: boolean
     onclose: () => void
     children: Snippet
@@ -53,6 +56,7 @@
   bind:this={dialog}
   class="sheet"
   class:full
+  class:wide
   aria-labelledby={labelledby}
   aria-label={label}
   oncancel={escape}
@@ -75,6 +79,12 @@
 
   .sheet::backdrop {
     background: var(--scrim);
+  }
+
+  @media (min-width: 50rem) {
+    .sheet.wide {
+      width: min(56rem, 100% - 2rem);
+    }
   }
 
   @media (max-width: 49.99rem) {

@@ -5,16 +5,12 @@
  * sends how often the NPCs interrupt, and counts their questions in the total it shows.
  * It never asks for a name: the host is the profile, and a browser with none gets one
  * the way Join gives one.
- *
- * A test is a desktop unless it says otherwise: two steps, the rounds and house rules
- * beside the hosts, and the room code in the header. `onPhone` makes it a phone: three
- * steps, and the code in the sheet that Create opens.
  */
 
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/svelte'
 import { tick } from 'svelte'
 import { get } from 'svelte/store'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '../lib/api'
 import { profile } from '../lib/profile'
@@ -54,8 +50,6 @@ vi.mock('../lib/api', async (importOriginal) => {
   }
 })
 
-const desktop = window.matchMedia
-
 beforeEach(() => {
   vi.clearAllMocks()
   localStorage.clear()
@@ -80,16 +74,6 @@ beforeEach(() => {
   })
   profile.set({ name: 'Zezima', pet: 'aggy' })
 })
-
-afterEach(() => {
-  window.matchMedia = desktop
-})
-
-/** Every media query that asks for a narrow screen matches, as on a phone. */
-function onPhone(): void {
-  window.matchMedia = (query: string): MediaQueryList =>
-    ({ ...desktop(query), matches: query.includes('max-width') }) as MediaQueryList
-}
 
 /** The button that makes the room. */
 function createButton(): HTMLButtonElement {
@@ -805,16 +789,13 @@ describe('Create', () => {
   })
 })
 
-describe('Create on a phone', () => {
-  beforeEach(onPhone)
-
-  it('writes a question in a sheet over the whole page', async () => {
+describe('Writing a question', () => {
+  it('opens in a wide pop-up, which Cancel closes', async () => {
     await loaded(...BOTH)
     await tab('Random events')
-    await tab('Random events')
-    await press(screen.getByRole('region', { name: 'Write your own' }), 'Write a question')
+    await fireEvent.click(screen.getByRole('button', { name: 'Write a question' }))
     const sheet = screen.getByRole('dialog', { name: 'New question' })
-    expect(sheet.classList.contains('full')).toBe(true)
+    expect(sheet.classList.contains('wide')).toBe(true)
     expect(within(sheet).getByRole('group', { name: 'New question' })).toBeTruthy()
     await press(sheet, 'Cancel')
     expect(screen.queryByRole('dialog')).toBeNull()

@@ -364,7 +364,7 @@ take-back rule are architecture §7.
   round that Esc, a click outside or the button closes), "How to play" and "Quicker and correct answers score
   more." For the host, Tonight's game in its place, filling what the room has left: its title and tabs on
   one row, Rounds (the hosts beside Pick for me and the running order), House rules and Random
-  events, sent as they edit, 250 ms after the last change. At the table: the host's Free for all or Teams, then join requests, a team game's gods, the halves,
+  events, sent as they edit, 250 ms after the last change. A host's own question is written in a pop-up, which fills a phone. At the table: the host's Free for all or Teams, then join requests, a team game's gods, the halves,
   the Ready switch, and Start (plain at the threshold, "Start anyway" below it, which asks first; off
   until a round is picked) or "Waiting for the host to start…". The host taps a pet to kick or promote.
 - **Doors shut.** `/create` is that lobby before the room exists: "Your room's code" and Reroll on
