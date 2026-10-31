@@ -57,7 +57,10 @@
   {#if failure !== null}
     <p class="banner bad">{failure}</p>
   {/if}
-  <p class="note">These settings and the room's code are fixed once you open the doors. Rooms last 72 hours after opening.</p>
+  <p class="note">
+    These settings and the room's code are fixed once you open the doors. Rooms last 72 hours after
+    opening.
+  </p>
 </section>
 
 <style>

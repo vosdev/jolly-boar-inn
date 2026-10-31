@@ -40,7 +40,9 @@
 {#if available}
   <Switch label="Full screen" checked={on} onclick={toggle} />
   {#if short}
-    <p class="short">Your screen seems a bit small. We recommend using full screen for a better experience.</p>
+    <p class="short">
+      Your screen seems a bit small. We recommend using full screen for a better experience.
+    </p>
   {/if}
 {/if}
 

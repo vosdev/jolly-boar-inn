@@ -891,7 +891,8 @@ describe('Lobby', () => {
       left: 0,
       compact: true,
     })
-    const HINT = 'Your screen seems a bit small. We recommend using full screen for a better experience.'
+    const HINT =
+      'Your screen seems a bit small. We recommend using full screen for a better experience.'
 
     beforeEach(() => {
       document.documentElement.requestFullscreen = () => Promise.resolve()
