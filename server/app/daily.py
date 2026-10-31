@@ -21,7 +21,7 @@ import asyncpg
 
 from app.config import Settings
 from app.modes import drawable, offered
-from app.questions.packs import EVENT_MODE, Pack, live_packs
+from app.questions.packs import EVENT_MODE, STALE_PACKS, Pack, live_packs
 
 DAY_OPENS = timedelta(hours=8)
 SET_SIZE = 10
@@ -88,6 +88,7 @@ def candidates(
     return [
         question
         for pack in live_packs(packs)
+        if pack.name not in STALE_PACKS
         for question in pack.questions
         if question["mode"] in modes and drawable(question, pictures)
     ]

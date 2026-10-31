@@ -1,8 +1,8 @@
 """A fresh clone before ``make gen-price-questions``: no price pack, so no Price is Right.
 
 The price pack is generated on each instance and never committed, so until it exists a
-round it alone feeds is left out everywhere a host or a player could pick it. So is
-More/Less, whose only questions are ``sample.json``'s stale prices, which no game draws.
+round it alone feeds is left out everywhere a host or a player could pick it. More/Less
+keeps the five questions of ``sample.json``, which a priced instance never draws.
 """
 
 import shutil
@@ -32,7 +32,7 @@ def unpriced(test_db_dsn: str, dist: Path, tmp_path: Path) -> Iterator[TestClien
 def test_the_create_form_leaves_the_round_out(unpriced: TestClient) -> None:
     ids = {mode["id"] for mode in unpriced.get("/api/modes").json()}
     assert MODE not in ids
-    assert "more_less" not in ids
+    assert "more_less" in ids
 
 
 def test_a_room_with_the_round_is_refused(unpriced: TestClient) -> None:
