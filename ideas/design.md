@@ -362,7 +362,7 @@ take-back rule are architecture §7.
   night's line, a card per round A–Z (its host's chathead, name and question count; a hidden
   round is "A surprise" with a "?"; from 9 rounds the 8th tile is "+N more", a popover of every
   round that Esc, a click outside or the button closes), "How to play" and "Quicker and correct answers score
-  more." For the host, Tonight's game in its place, filling what the room has left: its title and tabs on
+  more." For the host, the dialogue box and scroll share a row, and Tonight's game takes the rest of the room: its title and tabs on
   one row, Rounds (the hosts beside Pick for me and the running order), House rules and Random
   events, sent as they edit, 250 ms after the last change. A host's own question is written in a pop-up, which fills a phone. At the table: the host's Free for all or Teams, then join requests, a team game's gods, the halves,
   the Ready switch, and Start (plain at the threshold, "Start anyway" below it, which asks first; off

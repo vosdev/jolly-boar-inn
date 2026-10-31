@@ -446,6 +446,30 @@
     margin-bottom: 0;
   }
 
+  /* The host's dialogue box and sheet share a row, which leaves the height to the panel. */
+  :global(.fitted .stage.stage:has(.tonight)) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto minmax(0, 1fr);
+    column-gap: 1rem;
+    align-items: stretch;
+  }
+
+  :global(.fitted .stage.stage:has(.tonight) > .under) {
+    grid-column: 1 / -1;
+  }
+
+  /* As tall as the sheet beside it, so the row ends level. */
+  :global(.fitted .stage.stage:has(.tonight) > .speaker .bubble) {
+    height: 100%;
+    align-content: center;
+  }
+
+  /* Half the column, so the sheet's words come down from the size a whole one can take. */
+  :global(.fitted .stage.stage:has(.tonight) > .stage-row) {
+    --scroll-text: 1.15;
+  }
+
   .tonight {
     display: flex;
     flex-direction: column;
