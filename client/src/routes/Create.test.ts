@@ -119,9 +119,9 @@ async function press(scope: HTMLElement, name: string, times = 1): Promise<void>
   for (let i = 0; i < times; i++) await fireEvent.click(within(scope).getByRole('button', { name }))
 }
 
-/** Click the Tonight's rounds tab named. */
+/** Click the Tonight's game tab named. */
 async function tab(name: string): Promise<void> {
-  await fireEvent.click(screen.getByRole('tab', { name }))
+  await fireEvent.click(screen.getByRole('tab', { name: new RegExp(`· ${name}`) }))
 }
 
 const BOTH = ['More or Less', 'The Price is Right']
@@ -467,6 +467,14 @@ describe('Create', () => {
       'price_is_right',
       'more_less',
     ])
+  })
+
+  it('gives an ordered round its grip and number in place of the face, so the row still fits', async () => {
+    await loaded(...BOTH)
+    expect(document.querySelectorAll('.round .face')).toHaveLength(2)
+    await fireEvent.click(screen.getByRole('radio', { name: 'In order' }))
+    expect(document.querySelectorAll('.round .face')).toHaveLength(0)
+    expect(document.querySelectorAll('.round .grip')).toHaveLength(2)
   })
 
   it('offers no order to arrange for a single round', async () => {
@@ -903,7 +911,7 @@ describe('Create, picking for the host', () => {
     expect(screen.queryByRole('checkbox', { name: /^More or Less/ })).toBeNull()
     expect(screen.queryByRole('group', { name: 'Round order' })).toBeNull()
     expect(screen.getByText('1 surprise round, drawn when the game starts')).toBeTruthy()
-    expect(screen.getByRole('region', { name: "Tonight's rounds" }).textContent).toContain(
+    expect(screen.getByRole('region', { name: "Tonight's game" }).textContent).toContain(
       '1 surprise round',
     )
     await fireEvent.click(createButton())

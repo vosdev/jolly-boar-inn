@@ -714,9 +714,9 @@ describe('Lobby', () => {
     it('shows the host the tabs and a player the rounds', () => {
       lobby()
       expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual([
-        'Rounds',
-        'House rules',
-        'Random events',
+        '1 · Rounds',
+        '2 · House rules',
+        '3 · Random events and custom questions',
       ])
       expect(document.querySelector('.board')).toBeNull()
       cleanup()
@@ -729,7 +729,7 @@ describe('Lobby', () => {
       lobby([HOST, WOOX], NONE)
       await screen.findByRole('checkbox', { name: 'More or Less' })
       await fireEvent.click(screen.getByRole('checkbox', { name: 'More or Less' }))
-      await fireEvent.click(screen.getByRole('tab', { name: 'House rules' }))
+      await fireEvent.click(screen.getByRole('tab', { name: /· House rules$/ }))
       await fireEvent.click(screen.getByRole('radio', { name: 'Walk' }))
       expect(sent).toEqual([])
       await vi.advanceTimersByTimeAsync(300)

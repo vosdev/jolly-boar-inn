@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * The host's Tonight's rounds panel, the same with the doors shut and open: the hosts and
+   * The host's Tonight's game panel, the same with the doors shut and open: the hosts and
    * their running order, the house rules and the random events, a tab each. Every tab stays
    * mounted and only hides, so nothing set on one is lost by moving to another, a question
    * half written included.
@@ -57,7 +57,7 @@
   const TABS = [
     { id: 'rounds', label: 'Rounds' },
     { id: 'rules', label: 'House rules' },
-    { id: 'events', label: 'Random events' },
+    { id: 'events', label: 'Random events and custom questions' },
   ] as const
 
   type Tab = (typeof TABS)[number]['id']
@@ -303,24 +303,22 @@
 
 <section class="panel tonight" aria-labelledby="{id}-title">
   <div class="head">
-    <h2 id="{id}-title">Tonight's rounds</h2>
-    <p class="sum">{summary}</p>
-    <button type="button" onclick={() => (pickingForMe = true)} disabled={roundModes.length === 0}
-      >Pick for me</button
-    >
-  </div>
-
-  <div class="tabs" role="tablist" aria-label="Tonight's settings">
-    {#each TABS as one (one.id)}
-      <button
-        type="button"
-        role="tab"
-        id="{id}-{one.id}"
-        aria-selected={tab === one.id}
-        aria-controls="{id}-{one.id}-panel"
-        onclick={() => (tab = one.id)}>{one.label}</button
-      >
-    {/each}
+    <div class="title">
+      <h2 id="{id}-title">Tonight's game</h2>
+      <p class="sum">{summary}</p>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Tonight's settings">
+      {#each TABS as one, index (one.id)}
+        <button
+          type="button"
+          role="tab"
+          id="{id}-{one.id}"
+          aria-selected={tab === one.id}
+          aria-controls="{id}-{one.id}-panel"
+          onclick={() => (tab = one.id)}>{index + 1} · {one.label}</button
+        >
+      {/each}
+    </div>
   </div>
 
   {#if problem !== null}
@@ -371,13 +369,21 @@
         </div>
       {/if}
     </div>
-    <RoundList
-      bind:rounds
-      bind:order={modeOrder}
-      {bounds}
-      surprise={surprise ? randomRounds : null}
-      {tally}
-    />
+    <div class="side">
+      <button
+        type="button"
+        class="pick"
+        onclick={() => (pickingForMe = true)}
+        disabled={roundModes.length === 0}>Pick for me</button
+      >
+      <RoundList
+        bind:rounds
+        bind:order={modeOrder}
+        {bounds}
+        surprise={surprise ? randomRounds : null}
+        {tally}
+      />
+    </div>
   </div>
 
   <div
@@ -439,22 +445,41 @@
     --scroll-lines: 2;
   }
 
+  /* The panel takes what the room has left, so the stage never scrolls around it: it runs
+     from the room's stage down through everything that holds this panel. */
+  :global(.fitted .stage-in:has(.tonight)),
+  :global(.fitted .stage-in :has(.tonight)) {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    width: 100%;
+    margin-bottom: 0;
+  }
+
   .tonight {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    min-height: 0;
-    /* Stacked, the table comes after this, so a phone scrolls the hosts in here to reach it. */
-    max-height: calc(var(--room-height, 54rem) - 20rem);
     margin-bottom: 0;
     container-type: inline-size;
+  }
+
+  /* Stacked, the table comes after this, so a phone scrolls the hosts in here to reach it. */
+  :global(.frame:not(.fitted)) .tonight {
+    max-height: 34rem;
+  }
+
+  :global(.fitted) .tonight {
+    flex: 1;
+    min-height: 0;
   }
 
   .head {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.25rem 0.75rem;
+    gap: 0.5rem 1.5rem;
   }
 
   .head h2 {
@@ -463,38 +488,47 @@
   }
 
   .sum {
-    flex: 1;
-    min-width: 0;
     margin: 0;
     color: var(--muted);
-    font-size: 0.9rem;
-  }
-
-  .head button {
-    min-height: 2.25rem;
-    padding-block: 0;
+    font-size: 0.85rem;
   }
 
   .tabs {
+    flex: 1 1 18rem;
     display: flex;
-    gap: 2px;
-    border-bottom: 2px solid var(--line);
+    gap: 0.4rem;
   }
 
   .tabs button {
-    min-height: 2.5rem;
-    margin-bottom: -2px;
-    padding: 0 0.85rem;
-    border: none;
-    border-bottom: 3px solid transparent;
-    border-radius: 0;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 0 0 0.2rem;
+    border: 0;
     background: none;
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-align: left;
     color: var(--muted);
-    font-weight: 600;
+    cursor: pointer;
   }
 
-  .tabs [aria-selected='true'] {
-    border-bottom-color: var(--accent);
+  .tabs button::before {
+    content: '';
+    align-self: stretch;
+    height: 5px;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--line) 40%, var(--panel));
+  }
+
+  .tabs [aria-selected='true']::before {
+    background: var(--accent);
+  }
+
+  .tabs [aria-selected='true'],
+  .tabs button:hover {
     color: var(--ink);
   }
 
@@ -515,7 +549,7 @@
     display: none;
   }
 
-  /* Hosts on the left, what they add up to on the right; one column on a phone. */
+  /* Hosts on the left, what they add up to on the right, staying while the hosts scroll. */
   .rounds {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 17rem;
@@ -523,24 +557,44 @@
     align-items: start;
   }
 
+  .side {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .pick {
+    min-height: 2.5rem;
+  }
+
+  /* One column on a phone, with Pick for me over the hosts it picks from. */
   @container (max-width: 36rem) {
     .rounds {
       grid-template-columns: minmax(0, 1fr);
     }
 
-    .head h2 {
-      flex: 1;
+    .side {
+      display: contents;
     }
 
-    .sum {
-      order: 1;
-      flex-basis: 100%;
+    .pick {
+      order: -1;
+    }
+
+    /* The last tab's name takes a row of its own, under the two short ones. */
+    .tabs {
+      flex-wrap: wrap;
     }
 
     .tabs button {
-      flex: 1;
-      padding-inline: 0.25rem;
       white-space: nowrap;
+    }
+
+    .tabs button:last-child {
+      flex-basis: 100%;
+      white-space: normal;
     }
   }
 

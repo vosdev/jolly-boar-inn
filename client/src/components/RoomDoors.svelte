@@ -57,7 +57,7 @@
   {#if failure !== null}
     <p class="banner bad">{failure}</p>
   {/if}
-  <p class="note">These stay as they are once the doors are open. Rooms keep for 72 hours.</p>
+  <p class="note">Fixed once open. Rooms last 72 hours.</p>
 </section>
 
 <style>

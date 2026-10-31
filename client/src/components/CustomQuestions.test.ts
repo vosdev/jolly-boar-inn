@@ -68,7 +68,7 @@ async function loaded(): Promise<HTMLElement> {
   for (const name of ['More or Less', 'The Price is Right']) {
     await fireEvent.click(screen.getByRole('checkbox', { name }))
   }
-  await fireEvent.click(screen.getByRole('tab', { name: 'Random events' }))
+  await fireEvent.click(screen.getByRole('tab', { name: /· Random events/ }))
   return screen.getByRole('region', { name: 'Write your own' })
 }
 

@@ -362,16 +362,16 @@ take-back rule are architecture §7.
   night's line, a card per round A–Z (its host's chathead, name and question count; a hidden
   round is "A surprise" with a "?"; from 9 rounds the 8th tile is "+N more", a popover of every
   round that Esc, a click outside or the button closes), "How to play" and "Quicker and correct answers score
-  more." For the host, Tonight's rounds in its place: Rounds (the hosts beside the running order),
-  House rules and Random events, a tab each, and Pick for me, sent as they edit, 250 ms after the
-  last change. At the table: the host's Free for all or Teams, then join requests, a team game's gods, the halves,
+  more." For the host, Tonight's game in its place, filling what the room has left: its title and tabs on
+  one row, Rounds (the hosts beside Pick for me and the running order), House rules and Random
+  events, sent as they edit, 250 ms after the last change. At the table: the host's Free for all or Teams, then join requests, a team game's gods, the halves,
   the Ready switch, and Start (plain at the threshold, "Start anyway" below it, which asks first; off
   until a round is picked) or "Waiting for the host to start…". The host taps a pet to kick or promote.
 - **Doors shut.** `/create` is that lobby before the room exists: "Your room's code" and Reroll on
-  the scroll, Tonight's rounds under it, and at the head of the table column a room panel, Who can
+  the scroll, Tonight's game under it, and at the head of the table column a room panel, Who can
   join, Surprise rounds and Open the doors, which goes when they open. Those stay as they are from
   then on, and only a room with Surprise rounds lets Pick for me keep its draw from the host too.
-  Under 1024px the room panel stands under the scroll, and Tonight's rounds scrolls inside itself so
+  Under 1024px the room panel stands under the scroll, and Tonight's game scrolls inside itself so
   the table stays in reach.
 - **TV row:** the host's pet menu makes another player or admin the TV ("Make TV", never the
   last admin) and back ("Not the TV"), at once. Its pet wears a screen. The TV gets no ready,

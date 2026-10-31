@@ -3,7 +3,7 @@
    * The rounds picked, as they will play: how many questions each, and, when the host
    * orders them, which goes first. A round is moved by dragging its grip, or with the
    * arrow keys while the grip has focus; a shuffled room has no order to arrange, so
-   * then there are no grips and no numbers.
+   * then there are no grips and no numbers, and the host's face has their place.
    *
    * Dragging swaps a round with its neighbour once it is pulled past half the neighbour's
    * height, so the list under the finger is always the order that will be sent.
@@ -150,10 +150,11 @@
               </svg>
             </button>
             <span class="number" aria-hidden="true">{index + 1}</span>
+          {:else}
+            <span class="face" aria-hidden="true"
+              ><img class={art.cut} src={art.url} alt="" draggable="false" /></span
+            >
           {/if}
-          <span class="face" aria-hidden="true"
-            ><img class={art.cut} src={art.url} alt="" draggable="false" /></span
-          >
           {#if bounds[round.mode]}
             <Stepper
               {label}
@@ -197,13 +198,14 @@
     margin: 0;
     padding: 0;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.4rem;
   }
 
   .round {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.3rem;
     padding: 0.25rem 0.4rem 0.25rem 0.3rem;
     background: var(--panel-raised);
     border: var(--border-width) solid var(--line);
@@ -229,7 +231,7 @@
   /* 44px tall to grab; touch-action keeps a drag on it from scrolling the page. */
   .grip {
     flex: none;
-    width: 1.75rem;
+    width: 1.25rem;
     height: 2.75rem;
     padding: 0;
     display: grid;
