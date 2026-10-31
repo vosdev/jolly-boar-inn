@@ -163,6 +163,12 @@ def test_count_without_replacement_and_only_chosen_modes() -> None:
     assert {q["mode"] for q in got} == {"more_less"}
 
 
+def test_the_stale_sample_pack_is_never_drawn() -> None:
+    packs = [_pack("sample", "more_less", 5), _pack("prices", "more_less", 5)]
+    rounds = select(packs, [], _settings(("more_less", 10)), random.Random(1))
+    assert {q["id"] for q in _questions(rounds)} == {f"q_prices_{i}" for i in range(5)}
+
+
 def test_a_mode_is_a_round(stubs: tuple[str, ...]) -> None:
     """The whole rule: one round per mode, as long as that mode asked to be."""
     settings = _settings(("more_less", 8), ("second_round", 3))
