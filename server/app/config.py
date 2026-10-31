@@ -3,6 +3,7 @@
 Every variable is documented in `.env.example` at the repo root.
 """
 
+from datetime import date
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
@@ -49,6 +50,8 @@ class Settings(BaseSettings):
     public_rooms: bool = True
     # Whether hosts can pick Random Events Only, a round of nothing but the NPCs' questions.
     random_event_game_mode: bool = False
+    # The day the daily counts as #1; its number shows in what players share.
+    daily_first_day: date = date(2026, 10, 31)
     packs_dir: Path = Path("../data/packs")
     # Set by ``make dev-server``: Vite serves ``client/public``, so a missing or stale build
     # must not decide which question pictures exist.
