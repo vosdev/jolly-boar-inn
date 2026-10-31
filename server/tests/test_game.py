@@ -46,6 +46,7 @@ from app.questions.types import (
     answer_seconds,
     more_less,
     multiple_choice,
+    pictured,
     reveal_seconds,
 )
 from app.questions.types.scoring import Scoring
@@ -2117,7 +2118,11 @@ def play_right_and_wrong(game: Game, index: int) -> dict[str, Any]:
     game.skip()
     closed = game.admin.take("question_closed")
     question = game.question(index)
-    assert closed["reveal"] == TYPES[question.type].reveal(question.payload)
+    plain = TYPES[question.type].reveal(question.payload)
+    rooms = game.app.state.rooms
+    # A matching round's reveal draws its fields' pictures, when the drawn question has them.
+    expected = pictured(question.type, plain, question.payload, rooms._pictures(question))
+    assert closed["reveal"] == expected
     zezimas, wooxs = (closed["results"][seat.id] for seat in (zezima, woox))
     assert (zezimas["correct"], zezimas["points"] > 0) == (True, True)
     assert wooxs["correct"] is False
