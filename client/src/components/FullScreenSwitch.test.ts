@@ -76,7 +76,7 @@ describe('FullScreenSwitch', () => {
     device({ touch: false, api: true })
     render(FullScreenSwitch, { short: true })
     expect(await toggle()).toBeTruthy()
-    expect(screen.getByText('Short on room? Full screen shows the whole question.')).toBeTruthy()
+    expect(screen.getByText('Your screen seems a bit small. We recommend using full screen for a better experience.')).toBeTruthy()
   })
 
   it('says nothing in a short room where the browser has no Fullscreen API', () => {
