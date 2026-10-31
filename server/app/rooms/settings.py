@@ -1,4 +1,4 @@
-"""``rooms.settings`` (section 4 of ideas/architecture.md): fixed at creation.
+"""``rooms.settings`` (section 4 of ideas/architecture.md): set in the lobby, fixed at the start.
 
 A room plays one round per game mode: pick three modes and the room is three rounds long.
 Each mode carries its own ``questions`` (``ModeSettings``), defaulting to what the mode
@@ -162,11 +162,11 @@ class RoomSettings(BaseModel):
 
     model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
 
-    modes: list[ModeSettings] = Field(default_factory=default_modes, min_length=1)
+    modes: list[ModeSettings] = Field(default_factory=default_modes)
     """One round each, in this order unless ``mode_order`` says to shuffle them."""
     mode_order: Literal["listed", "random"] = "listed"
     """``"listed"``: the rounds play in the order the host arranged them, which is the order
-    this list is in. ``"random"``: shuffled once, at creation.
+    this list is in. ``"random"``: shuffled once, at the start.
     """
     random_event_frequency: Frequency | None = "default"
     """One random event per 20, 10 or 5 round questions. ``None`` is a room stored while the
@@ -199,7 +199,7 @@ class RoomSettings(BaseModel):
     existed.
     """
     surprise_modes: int = Field(default=0, ge=0, exclude_if=lambda count: count == 0)
-    """Surprise modes: this many rounds drawn by the server at creation, hidden from the admin
+    """Surprise modes: this many rounds drawn by the server at the start, hidden from the admin
     too, who did not pick them either. Implies ``hide_rounds``. Left off the wire at 0, like
     ``hide_rounds``.
     """
@@ -283,6 +283,29 @@ class RoomSettings(BaseModel):
         lengths = [entry.questions for entry in self.modes]
         return len(event_windows(lengths, EVENT_EVERY[self.random_event_frequency]))
 
+    def check_custom_questions(self, count: int) -> None:
+        """Refuse more of the host's own questions than the room has random-event slots.
+
+        Raises ``ValueError`` naming the count, the limit and the frequency. Never
+        truncates: a host who loses two of five questions to a silent cut finds out during
+        the game.
+        """
+        if count <= self.random_event_slots or self.surprise_modes:
+            # A surprise room's slots depend on its draw; ``selection`` refuses it then.
+            return
+        frequency = self.random_event_frequency
+        assert frequency is not None  # a lobby's room was created with a frequency
+        remedy = (
+            "Add questions to the rounds or write fewer of your own"
+            if frequency == "more"
+            else "Pick random_event_frequency 'more', add questions, or write fewer of your own"
+        )
+        raise ValueError(
+            f"{count} custom questions, but {self.question_count} round questions at"
+            f" random_event_frequency {frequency!r} make room for {self.random_event_slots}"
+            f" random events: one per {EVENT_EVERY[frequency]}. {remedy}"
+        )
+
     def drawn(self, offered: Sequence[str], rng: random.Random) -> Self:
         """These settings with ``surprise_modes`` rounds drawn from ``offered``, each at its
         mode's default length; unchanged without surprise modes.
@@ -354,26 +377,3 @@ class NewRoomSettings(RoomSettings):
     def _within_the_room_cap(self) -> Self:
         _check_cap(self)
         return self
-
-    def check_custom_questions(self, count: int) -> None:
-        """Refuse more of the host's own questions than the room has random-event slots.
-
-        Raises ``ValueError`` naming the count, the limit and the frequency. Never
-        truncates: a host who loses two of five questions to a silent cut finds out during
-        the game.
-        """
-        if count <= self.random_event_slots or self.surprise_modes:
-            # A surprise room's slots depend on its draw; ``selection`` refuses it then.
-            return
-        frequency = self.random_event_frequency
-        assert frequency is not None  # ``NewRoomSettings`` has no ``None`` to offer
-        remedy = (
-            "Add questions to the rounds or write fewer of your own"
-            if frequency == "more"
-            else "Pick random_event_frequency 'more', add questions, or write fewer of your own"
-        )
-        raise ValueError(
-            f"{count} custom questions, but {self.question_count} round questions at"
-            f" random_event_frequency {frequency!r} make room for {self.random_event_slots}"
-            f" random events: one per {EVENT_EVERY[frequency]}. {remedy}"
-        )

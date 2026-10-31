@@ -246,10 +246,13 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 - Every round on Create takes suggestions, the price rounds and Pixel Hunt as items and Random Events Only as the
   NPCs' questions; a test fails on a new round that does neither. Not-yet-built image modes are not on Create.
 
-`select(packs, custom, settings, rng)` fixes a room's questions at creation:
+`select(packs, custom, settings, rng)` fixes a room's questions at `start_game`, from the settings
+at that moment. Until then a lobby's `total`, `events`, `rounds` and `estimated_seconds` come from
+a dry `select` thrown away (`rooms/plan.py`), redone on every change of settings:
 
-- `surprise_modes: N` draws N distinct offered round modes in `create`, each at its default
-  `questions`, and forces `hide_rounds`. A request with both it and `modes` is a 422.
+- `surprise_modes: N` draws N distinct offered round modes at the start, each at its default
+  `questions`, and needs `hide_rounds`. The plan counts the N shortest. A request with both it and
+  `modes` is a 422.
 - `difficulty` draws `easy` and `medium` (`easy`), every tier (`mixed`) or `medium` and `hard`
   (`hard`) first, and tops a round up from the other tier before cutting it short. Events and
   the host's questions ignore it.
@@ -265,8 +268,8 @@ Random events:
   `more`). There is no off switch; `less` is the quiet end.
 - Round questions are cut into windows of that size, one slot per whole window. A slot follows a
   question that is not its round's last, so an event never opens the game or a round.
-- The host's questions take slots in order. More than the slot count is a 422 naming the count, the
-  limit and the frequency, because a silent drop would surface mid-game.
+- The host's questions take slots in order. More than the slot count refuses the start, naming the
+  count, the limit and the frequency, because a silent drop would surface mid-game.
 - Other slots take an NPC's own question, drawn with its face, preferring a type the interrupted
   round does not play. A slot stays empty only when nothing qualifies.
 - Faces: a named NPC asks its question. Others come from the unseen NPCs, then the least seen, never
@@ -312,7 +315,8 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 | `set_profile` | `display_name?`, `avatar?` | all | Lobby only. Validated exactly like a join. One change a second. Clears `editing`. |
 | `set_team` | `team` | all | Lobby of a team game, not while ready or the TV; a god not in the room is `bad_value`. One change a second. |
 | `move_team` | `player_id`, `team` | admin | Lobby of a team game: anyone but the TV, ready or not, connected or not. Their ready stays. |
-| `set_teams` | `teams` | admin | Lobby of a team game: the whole list, 2 to 6 gods in order, else `bad_value`. A dropped team's players go teamless and un-ready. |
+| `set_teams` | `teams` | admin | Lobby: the whole list, 2 to 6 gods in order, or `[]` for free for all, else `bad_value`. A dropped team's players go teamless; in a team game they, and everyone if teams just began, go un-ready. |
+| `set_settings` | `settings` | admin | Lobby: the whole game, checked like `POST /api/rooms`, as the host edits it. `teams` and `max_players` stay the room's, and a changed `hide_rounds` is `bad_value`. A plain object on the wire, so a bad one costs no socket. |
 | `editing` | `on: bool` | all | Name field focused. Lobby only, else ignored. An `on` within 1 s of a change is ignored; 60 s unsent, a disconnect or `start_game` clears it. |
 | `start_game` | | admin | `lobby → playing`. |
 | `skip` | `phase`, `index` | admin | Ends that phase if the room is still in it, so a double tap ends one. |
@@ -327,7 +331,7 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 | Server `t` | Fields | When |
 |---|---|---|
 | `welcome` | `room`, `you`, `players`, `question`, `your_answer`, `standings`, `team_standings`, `server_time`, `server_version` | Reply to `hello`. The full state. |
-| `room_updated` | `room`, `players`, `standings`?, `team_standings`? | Join, leave, promote, `set_tv`, kick, rename, `set_teams`, status change, a splash or standings starting (with both standings), a ready change that moves `next_at`. |
+| `room_updated` | `room`, `players`, `standings`?, `team_standings`? | Join, leave, promote, `set_tv`, kick, rename, `set_teams`, `set_settings`, status change, a splash or standings starting (with both standings), a ready change that moves `next_at`. |
 | `players_updated` | `players` | A ready, team, editing, connect or disconnect that changed players only. |
 | `question_open` | `question` | A question opens. |
 | `answer_ack` | `question_id`, `scoring`, `band`, `answered`, `of` | Answer committed. Never correctness. |
@@ -388,7 +392,7 @@ What the server withholds. The admin is a player with a flag; there is no admin 
 - The question list is never sent. `GET /api/rooms/{code}` returns only `{status, players}`, a count;
   `GET /api/rooms/public` is in section 10.
 - With `hide_rounds`, a non-admin's `welcome` and `room_updated` list in `settings.modes` only the
-  rounds `current_index` has reached, and the standings `next_segment`. The lobby names none, admins' included: screens get shared.
+  rounds `current_index` has reached, and the standings `next_segment`. An admin's lobby lists them on the panel that edits them.
   With `surprise_modes`, admins get the same withheld list: the host did not pick them either.
 - An admin can read the room's custom questions before the game. They cannot score on them.
 - An invite-only room's key and join requests reach admins only. The key is a column, not a setting.
@@ -424,8 +428,11 @@ finished ─▶ deleted: FINISHED_ROOM_GRACE_MINUTES (60) after finished_at (cle
   lists them under Past games, five to a page, where each can be removed. `/r/:code` for a gone room (4004, 404, 410) opens the newest entry
   for that code, if any.
 
-- A room is born with its host; there is no state before `lobby`. Only `lobby` is joinable.
-- `start_game` needs an admin, a question and a connected player who is not the TV. It resets `expires_at`. A team
+- A room is born with its host; there is no state before `lobby`. Only `lobby` is joinable. `/create`
+  is a lobby with its doors shut, held in the host's browser (`jbi:draft`) because a room's code is
+  its address: Open the doors is the POST, so an unopened room costs the server nothing.
+- `start_game` needs an admin, a round and a connected player who is not the TV. It selects the
+  questions, and a selection that fails leaves the room in the lobby. It resets `expires_at`. A team
   game also needs every player, connected or not, in a team and players in two teams or more.
   Teams are fixed from then on; `players.team` and `settings.teams` are written before memory.
 - A deleted room closes its sockets with 4004, and its code is free again.
@@ -465,11 +472,12 @@ The ready check (`rooms/ready.py`):
 - A countdown is never pushed back. An un-ready below the threshold stops it, once per player per
   splash. A disconnect lowers the threshold instead of stalling the round.
 
-Settings (`rooms.settings`, fixed at creation but for `teams`, which `set_teams` changes in the lobby):
+Settings (`rooms.settings`, changed in the lobby by `set_settings` and `set_teams`, but for
+`hide_rounds`, since rounds already shown cannot be hidden again):
 
 ```jsonc
 {
-  "modes": [{"mode": "more_less", "questions": 5}],  // one round each
+  "modes": [{"mode": "more_less", "questions": 5}],  // one round each; [] until picked
   "mode_order": "random",                // or "listed"
   "random_event_frequency": "default",   // "less" | "default" | "more"
   "pace": "run",                         // "walk" | "run" | "teleport", section 3
@@ -486,8 +494,8 @@ Settings (`rooms.settings`, fixed at creation but for `teams`, which `set_teams`
 
 - `modes[].mode` keys `MODES`, never `TYPES`, once each. `questions` is optional.
 - `teams` are distinct gods in `rooms/teams.py`'s order (`GODS`), the one list of them, checked by
-  `check_teams` at creation and on `set_teams`. A room never gains or loses teams altogether.
-- `NewRoomSettings` checks the ranges at creation. `RoomSettings`, the stored model, keeps a round
+  `check_teams` at creation and on `set_teams`.
+- `NewRoomSettings` checks the ranges at creation and on `set_settings`. `RoomSettings`, the stored model, keeps a round
   whose mode was removed and ignores unknown keys (an old room's `seconds` and `reveal_seconds`
   too, playing at `run`), so no downgrade strands a room.
 
@@ -601,10 +609,14 @@ gates `GET /metrics` (OpenMetrics text, fixed-set labels only) by the same rules
    stored and looked up uppercase, and sent spelled as their word (`AbyssalWhip07`). The create
    page shows `GET /api/rooms/free-code` → `{code}`, a draw no room holds yet, reserved for nobody.
 4. Insert the admin outside that savepoint, or a session collision would be retried as a code
-   collision. Then select and insert the questions.
+   collision. `custom_questions` wait in `rooms.custom_questions` for the start, with their
+   `custom_author`.
 5. Return `201 {code, session, player, expires_at}`. The plain session is returned once and never
    logged. Any failure rolls everything back.
 
+- `POST /api/rooms/{code}/questions {session, custom_questions}` replaces them in a lobby, for an
+  admin. A POST, since a bank of 100 outgrows a websocket frame. Only the browser that made the
+  room offers it: the bank is that browser's.
 - Join is `POST /api/rooms/{code}/join {display_name, avatar?, returning, key?, theme?, device?, via?}` → `{session, player}`.
 - Create's `invite_only` gives the room a key, `secrets.token_urlsafe(9)` in `rooms.invite_key`.
   A join then needs it before anything else is checked: 403 `key_required` or `bad_key`, compared

@@ -47,19 +47,21 @@ def _room_from_row(row: asyncpg.Record, total: int, lock: asyncio.Lock) -> Room:
         finished_at=row["finished_at"],
         invite_key=row["invite_key"],
         public=row["public"],
+        custom_questions=row["custom_questions"],
+        custom_author=row["custom_author"],
     )
 
 
 def _question_rows(
     room_id: UUID,
     questions: Sequence[tuple[int, dict[str, Any]]],
-    author: UUID,
+    author: UUID | None,
     authored: Collection[str],
 ) -> list[tuple[Any, ...]]:
     """Rows for ``selection.flatten``'s ``(round, question)`` pairs, position by position.
 
-    ``author`` is the room's creator, and it is written against the questions they wrote
-    -- the content ids in ``authored`` -- and nothing else. It goes by where a question came
+    ``author`` is who sent the host's questions, and it is written against those -- the
+    content ids in ``authored`` -- and nothing else. It goes by where a question came
     from rather than by the ``source`` it carries, so a claim in the envelope can never be
     what decides who the author is.
     """
@@ -81,14 +83,16 @@ def _question_rows(
     ]
 
 
-async def _count_game_started(conn: asyncpg.Connection, room: Room) -> None:
+async def _count_game_started(
+    conn: asyncpg.Connection, room: Room, questions: Sequence[RoomQuestion]
+) -> None:
     """Count a game starting: its players, event frequency and the host's own questions."""
     await bump(conn, Metric.GAMES_STARTED)
     playing = sum(1 for player in room.players.values() if player.role != "tv")
     await bump(conn, Metric.GAME_PLAYERS, players_bucket(playing))
     if room.settings.random_event_frequency is not None:
         await bump(conn, Metric.EVENT_FREQUENCY, room.settings.random_event_frequency)
-    own = Counter(q.type for q in room.questions if q.source == "room")
+    own = Counter(q.type for q in questions if q.source == "room")
     for type_, n in own.items():
         await bump(conn, Metric.CUSTOM_QUESTIONS, type_, n)
     if own:
@@ -204,7 +208,7 @@ def _round_start(questions: Sequence[RoomQuestion], position: int | None) -> int
 async def _fetch_room(conn: asyncpg.Connection, code: str, grace: timedelta) -> asyncpg.Record:
     row = await conn.fetchrow(
         "select id, code, status, settings, current_index, created_at, expires_at, finished_at,"
-        " invite_key, public from rooms where code = $1",
+        " invite_key, public, custom_questions, custom_author from rooms where code = $1",
         code,
     )
     if row is None:

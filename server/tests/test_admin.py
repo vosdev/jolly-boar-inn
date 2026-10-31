@@ -25,6 +25,7 @@ from app.rooms import codes
 from tests.conftest import BASE
 from tests.game_api import Game
 from tests.packs import PACKS_DIR
+from tests.rooms_api import begin
 
 TOKEN = "0123456789abcdef0123456789abcdef"
 BEARER = {"Authorization": f"Bearer {TOKEN}"}
@@ -287,6 +288,7 @@ def test_no_admin_payload_names_anyone_or_holds_a_question_or_answer(
         },
     )
     assert created.status_code == 201, created.text
+    begin(client, created.json()["code"].upper(), created.json())
     # On the day a price pack is made, its questions' date is the day the history shows.
     today = datetime.now(UTC).date().isoformat()
     app.state.packs[:] = [

@@ -78,7 +78,7 @@ def select(
 
     ``settings.mode_order`` decides the running order: ``"listed"`` plays the rounds in
     the order the host arranged the modes in, ``"random"`` shuffles them once, here, at
-    creation. Either way the order is fixed before the first question is stored, because
+    the start. Either way the order is fixed before the first question is stored, because
     the stored questions *are* the running order.
 
     Pack questions are drawn without replacement from a pool per mode, so no question

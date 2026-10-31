@@ -13,7 +13,7 @@ import pytest
 from app.modes import offered, questions_bounds
 from app.rooms.settings import RoomSettings
 from tests.game_api import Game, Seat, reseat
-from tests.rooms_api import create, hello
+from tests.rooms_api import begin, create, hello
 
 # Three real modes, played in this order. Neither later id is also a question type an
 # event could carry, so finding one in a frame means the round leaked.
@@ -295,7 +295,8 @@ def surprise_modes(table: Any, count: int = 3) -> Game:
 def test_surprise_modes_are_drawn_from_the_offered_rounds_at_their_default_length(
     client,
 ) -> None:
-    code, _ = create(client, surprise_modes=3)
+    code, admin = create(client, surprise_modes=3)
+    begin(client, code, admin)
     settings = client.app.state.rooms.rooms[code].settings
     offered_rounds = {
         m.id for m in offered(client.app.state.settings, client.app.state.packs) if m.is_round

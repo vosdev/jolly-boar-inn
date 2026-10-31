@@ -350,6 +350,15 @@ class Editing(_Message):
     on: bool = Field(strict=True)
 
 
+class SetSettings(_Message):
+    """Admin: the game's whole settings, in the lobby. Left a plain object here and checked by
+    the manager, so a wrong value is ``bad_value`` and costs nobody their socket.
+    """
+
+    t: Literal["set_settings"]
+    settings: dict[str, Any]
+
+
 ClientMessage = Annotated[
     Hello
     | Ping
@@ -368,6 +377,7 @@ ClientMessage = Annotated[
     | SetTeam
     | MoveTeam
     | SetTeams
+    | SetSettings
     | Editing,
     Field(discriminator="t"),
 ]

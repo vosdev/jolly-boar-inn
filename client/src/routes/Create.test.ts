@@ -91,9 +91,9 @@ function onPhone(): void {
     ({ ...desktop(query), matches: query.includes('max-width') }) as MediaQueryList
 }
 
-/** The button that makes the room from wherever the host is: Create now, or Create room last. */
+/** The button that makes the room. */
 function createButton(): HTMLButtonElement {
-  return screen.getByRole('button', { name: /^Create (now|room)$/ }) as HTMLButtonElement
+  return screen.getByRole('button', { name: 'Open the doors' }) as HTMLButtonElement
 }
 
 /** The settings sent; `modes` is typed as present, since only a surprise room leaves it out. */
@@ -119,22 +119,18 @@ async function press(scope: HTMLElement, name: string, times = 1): Promise<void>
   for (let i = 0; i < times; i++) await fireEvent.click(within(scope).getByRole('button', { name }))
 }
 
-async function next(): Promise<void> {
-  await fireEvent.click(screen.getByRole('button', { name: /^Next: / }))
-}
-
-/** Click the step bar named, the way the host jumps straight to a step. */
-async function step(name: string): Promise<void> {
-  const steps = screen.getByRole('list', { name: 'Steps' })
-  await fireEvent.click(within(steps).getByRole('button', { name: new RegExp(`· ${name}$`) }))
-}
-
-/** Open a house rule's row, closed to begin with. */
-async function rule(name: string): Promise<void> {
-  await fireEvent.click(screen.getByRole('button', { name: new RegExp(`^${name}`) }))
+/** Click the Tonight's rounds tab named. */
+async function tab(name: string): Promise<void> {
+  await fireEvent.click(screen.getByRole('tab', { name }))
 }
 
 const BOTH = ['More or Less', 'The Price is Right']
+
+function radioIn(group: string, name: string): HTMLInputElement {
+  return within(screen.getByRole('group', { name: group })).getByRole('radio', {
+    name,
+  }) as HTMLInputElement
+}
 
 /** Tick the modes named, in that order: the order is the running order. */
 async function pick(...names: string[]): Promise<void> {
@@ -148,9 +144,9 @@ async function loaded(...modes: string[]): Promise<void> {
   await pick(...modes)
 }
 
-/** The line over the step's buttons, whole, however its parts are marked up. */
+/** The panel's line about the game, whole, however its parts are marked up. */
 function status(): string {
-  return document.querySelector('.status')?.textContent?.replace(/\s+/g, ' ').trim() ?? ''
+  return document.querySelector('.sum')?.textContent?.replace(/\s+/g, ' ').trim() ?? ''
 }
 
 function shownNames(selector: string): string[] {
@@ -159,7 +155,7 @@ function shownNames(selector: string): string[] {
 
 /** Turn the team game on. */
 async function teamGame(): Promise<void> {
-  const choice = screen.getByRole('group', { name: 'Play as' })
+  const choice = screen.getByRole('group', { name: 'How to play' })
   await fireEvent.click(within(choice).getByRole('radio', { name: 'Teams' }))
 }
 
@@ -172,11 +168,11 @@ function ticked(): string[] {
 }
 
 describe('Create', () => {
-  it('puts its heading, how long a room keeps and that its settings are final on panels', async () => {
-    await loaded()
-    const intro = screen.getByRole('heading', { level: 1, name: 'Create a room' }).closest('.panel')
-    expect(intro?.querySelector('.tagline')?.textContent).toContain('48 hours')
-    expect(document.querySelector('.footer')?.textContent).toContain('final once the room is open')
+  it('is a lobby with its doors shut, and nothing reaches the server until they open', async () => {
+    await loaded(...BOTH)
+    expect(screen.getByText("Your room's code")).toBeTruthy()
+    expect(screen.getByRole('region', { name: 'Your room' }).textContent).toContain('72 hours')
+    expect(api.createRoom).not.toHaveBeenCalled()
   })
 
   it('has no name field', async () => {
@@ -239,7 +235,7 @@ describe('Create', () => {
     const field = (await screen.findByRole('textbox')) as HTMLInputElement
     await fireEvent.input(field, { target: { value: 'Zezima' } })
     await fireEvent.click(
-      within(field.closest('dialog')!).getByRole('button', { name: 'Create room' }),
+      within(field.closest('dialog')!).getByRole('button', { name: 'Open the doors' }),
     )
     await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
     const [name, , pet, returning] = vi.mocked(api.createRoom).mock.calls[0]!
@@ -257,17 +253,17 @@ describe('Create', () => {
     await fireEvent.click(createButton())
     const field = await screen.findByRole('textbox')
     await fireEvent.click(
-      within(field.closest('dialog')!).getByRole('button', { name: 'Create room' }),
+      within(field.closest('dialog')!).getByRole('button', { name: 'Open the doors' }),
     )
     expect(await screen.findByText(/./, { selector: '.banner.bad' })).toBeTruthy()
     expect(get(profile)).not.toBeNull()
     expect(document.querySelector('dialog')).toBeNull()
   })
 
-  it('shows the code it was handed in the header and creates the room under it', async () => {
+  it('shows the code it was handed on the sheet and creates the room under it', async () => {
     await loaded(...BOTH)
     const code = await screen.findByText('AbyssalWhip')
-    expect(code.closest('.intro')).toBeTruthy()
+    expect(code.closest('.paper')).toBeTruthy()
     await submitted()
     expect(vi.mocked(api.createRoom).mock.calls[0]![7]).toBe('AbyssalWhip')
   })
@@ -321,7 +317,6 @@ describe('Create', () => {
   it('leaves the code to the server when none could be fetched', async () => {
     vi.mocked(api.getFreeCode).mockRejectedValue(new api.ApiFailure(429, 'rate_limited', 'slow'))
     await loaded(...BOTH)
-    expect(screen.queryByRole('button', { name: 'Reroll' })).toBeNull()
     await submitted()
     expect(vi.mocked(api.createRoom).mock.calls[0]![7]).toBeUndefined()
   })
@@ -332,17 +327,17 @@ describe('Create', () => {
     expect(screen.queryByRole('checkbox', { name: /Host's Questions|custom/ })).toBeNull()
   })
 
-  it('starts with no mode picked, and says so until the host picks one', async () => {
+  it('starts with no mode picked, and can open its doors like that', async () => {
     await loaded()
     for (const name of BOTH) {
       expect((screen.getByRole('checkbox', { name }) as HTMLInputElement).checked).toBe(false)
     }
-    expect(status()).toBe('Pick at least one host; a room with no rounds is no game.')
-    expect(document.querySelector('.status')?.classList.contains('error')).toBe(true)
-    expect(createButton().disabled).toBe(true)
+    expect(status()).toBe('None yet')
+    expect(document.body.textContent).toContain('Pick at least one round to start.')
     await pick('More or Less')
     expect(status()).toBe('1 round · 5 questions · ~2 min')
-    expect(createButton().disabled).toBe(false)
+    await pick('More or Less')
+    expect((await submitted()).modes).toEqual([])
   })
 
   it("shows each mode's host by face, with no line naming them", async () => {
@@ -408,12 +403,11 @@ describe('Create', () => {
     ])
   })
 
-  it('keeps the order choice in place and says what is wrong over the buttons', async () => {
+  it('keeps the order choice in place with nothing picked', async () => {
     await loaded(...BOTH)
     await pick(...BOTH)
-    expect(status()).toBe('Pick at least one host; a room with no rounds is no game.')
+    expect(status()).toBe('None yet')
     expect(screen.getByRole('radio', { name: 'Shuffled' })).toBeTruthy()
-    expect(createButton().disabled).toBe(true)
   })
 
   it("steps questions by one, stops at the server's bounds, and offers no seconds", async () => {
@@ -518,7 +512,7 @@ describe('Create', () => {
     await loaded(...BOTH)
     expect(screen.queryByRole('group', { name: 'Random events frequency' })).toBeNull()
     expect(screen.queryByRole('region', { name: 'Write your own' })).toBeNull()
-    await next()
+    await tab('Random events')
     expect(screen.getByRole('group', { name: 'Random events frequency' })).toBeTruthy()
     expect(screen.getByRole('region', { name: 'Write your own' })).toBeTruthy()
     expect(screen.queryByRole('checkbox', { name: 'More or Less' })).toBeNull()
@@ -527,7 +521,7 @@ describe('Create', () => {
 
   it('lets the host pick how often, says what each means, and offers no way off', async () => {
     await loaded(...BOTH)
-    await next()
+    await tab('Random events')
     const choice = screen.getByRole('group', { name: 'Random events frequency' })
     expect(
       within(choice)
@@ -541,7 +535,7 @@ describe('Create', () => {
   it('counts the events in this game, and what the host wrote fills them first', async () => {
     await loaded('More or Less')
     await press(round('More or Less'), 'More questions', 15)
-    await next()
+    await tab('Random events')
     const events = screen.getByRole('region', { name: 'Random events' })
     expect(events.textContent).toContain('2 in this game')
     expect(events.textContent).toContain('Each one a surprise.')
@@ -561,63 +555,31 @@ describe('Create', () => {
     expect(events.textContent).toContain('1 written by you, 1 surprise')
   })
 
-  it('keeps everything set on a step when the host moves between them', async () => {
-    const navigate = vi.fn()
-    render(Create, { navigate })
-    await screen.findByRole('checkbox', { name: /^More or Less/ })
-    await pick('More or Less')
-    await next()
+  it('keeps everything set on a tab when the host moves between them', async () => {
+    await loaded('More or Less')
+    await tab('Random events')
     await fireEvent.click(screen.getByRole('radio', { name: /^Less/ }))
-    await fireEvent.click(screen.getByRole('button', { name: 'Back' }))
+    await tab('Rounds')
     expect(
       (screen.getByRole('checkbox', { name: 'More or Less' }) as HTMLInputElement).checked,
     ).toBe(true)
-    await next()
+    await tab('Random events')
     expect((screen.getByRole('radio', { name: /^Less/ }) as HTMLInputElement).checked).toBe(true)
-    await fireEvent.click(screen.getByRole('button', { name: 'Change' }))
-    expect(screen.getByRole('checkbox', { name: 'More or Less' })).toBeTruthy()
-    await fireEvent.click(screen.getByRole('button', { name: 'Back' }))
-    expect(navigate).toHaveBeenCalledWith('/')
   })
 
-  it('shows two steps on a wide screen, the rules beside the hosts', async () => {
-    await loaded(...BOTH)
-    expect(shownNames('.steps li')).toEqual(['1 · Rounds & rules', '2 · Random events'])
-    expect(screen.getByRole('region', { name: 'House rules' })).toBeTruthy()
-    expect(screen.getByRole('region', { name: "Tonight's rounds" })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Create now' })).toBeTruthy()
-    await next()
-    expect(screen.getByRole('region', { name: 'Tonight' }).textContent).toContain('More or Less')
-    expect(screen.queryByRole('button', { name: /^Next/ })).toBeNull()
-    expect(screen.getByRole('button', { name: 'Create room' })).toBeTruthy()
-  })
-
-  it('moves to the step whose bar the host clicks', async () => {
-    await loaded(...BOTH)
-    await step('Random events')
-    expect(screen.getByRole('group', { name: 'Random events frequency' })).toBeTruthy()
-    expect(screen.queryByRole('region', { name: 'House rules' })).toBeNull()
-    await step('Rounds & rules')
+  it('keeps what was set through a reload, until the doors open', async () => {
+    await loaded('More or Less')
+    await fireEvent.click(radioIn('Who can join', 'Public'))
+    cleanup()
+    await loaded()
     expect(
       (screen.getByRole('checkbox', { name: 'More or Less' }) as HTMLInputElement).checked,
     ).toBe(true)
-    expect(screen.getByRole('region', { name: 'House rules' })).toBeTruthy()
-  })
-
-  it('keeps one house rule open at a time, each showing its value while closed', async () => {
-    await loaded(...BOTH)
-    const rules = screen.getByRole('region', { name: 'House rules' })
-    expect(rules.textContent).toContain('Run')
-    expect(rules.textContent).toContain('Room code')
-    expect(rules.textContent).toContain('Standard')
-    expect(screen.queryByRole('group', { name: 'Pace' })).toBeNull()
-    await rule('Pace')
-    expect(screen.getByRole('group', { name: 'Pace' })).toBeTruthy()
-    await rule('Who can join')
-    expect(screen.queryByRole('group', { name: 'Pace' })).toBeNull()
-    expect(screen.getByRole('group', { name: 'Access' })).toBeTruthy()
-    await rule('Who can join')
-    expect(screen.queryByRole('group', { name: 'Access' })).toBeNull()
+    expect(radioIn('Who can join', 'Public').checked).toBe(true)
+    await submitted()
+    cleanup()
+    await loaded()
+    expect(status()).toBe('None yet')
   })
 
   it('names who got it wrong unless the host turns it off', async () => {
@@ -625,16 +587,15 @@ describe('Create', () => {
     expect((await submitted()).name_wrong_answers).toBe(true)
   })
 
-  it('sends the switches under Fine print as set, and counts what changed', async () => {
+  it('sends the house rules as set', async () => {
     await loaded(...BOTH)
-    await rule('Fine print')
+    await tab('House rules')
     const flip = async (group: string, to: 'Off' | 'On'): Promise<void> => {
       const switches = screen.getByRole('group', { name: group })
       await fireEvent.click(within(switches).getByRole('radio', { name: to }))
     }
     await flip('Close when everyone has answered', 'Off')
     await flip('Name who got it wrong', 'Off')
-    expect(screen.getByRole('button', { name: /^Fine print/ }).textContent).toContain('2 changed')
     const settings = await submitted()
     expect(settings.close_when_all_answered).toBe(false)
     expect(settings.name_wrong_answers).toBe(false)
@@ -642,15 +603,9 @@ describe('Create', () => {
 
   it('keeps the rounds out of the lobby only when the host asks for surprise rounds', async () => {
     await loaded(...BOTH)
-    await rule('Fine print')
-    const choice = screen.getByRole('group', { name: 'Surprise rounds' })
-    expect((within(choice).getByRole('radio', { name: 'Off' }) as HTMLInputElement).checked).toBe(
-      true,
-    )
-    expect(choice.nextElementSibling?.textContent).toBe(
-      'Hide the game modes in the lobby from the players',
-    )
-    await fireEvent.click(within(choice).getByRole('radio', { name: 'On' }))
+    const surprise = screen.getByRole('switch', { name: 'Surprise rounds' })
+    expect(surprise.getAttribute('aria-checked')).toBe('false')
+    await fireEvent.click(surprise)
     expect((await submitted()).hide_rounds).toBe(true)
   })
 
@@ -681,11 +636,13 @@ describe('Create', () => {
     expect((await submitted()).teams).toEqual(['zamorak', 'guthix', 'bandos', 'zaros'])
   })
 
-  it('blocks Create with a hint when fewer than two gods are ticked', async () => {
+  it('keeps the doors shut with a hint when fewer than two gods are ticked', async () => {
     await loaded(...BOTH)
     await teamGame()
     await pick('Zamorak')
-    expect(status()).toBe('Tick at least two gods for a team game.')
+    expect(document.querySelector('.doors')?.textContent).toContain(
+      'Tick at least two gods for a team game.',
+    )
     expect(createButton().disabled).toBe(true)
     await pick('Bandos')
     expect(createButton().disabled).toBe(false)
@@ -695,16 +652,14 @@ describe('Create', () => {
     await loaded(...BOTH)
     await teamGame()
     await pick('Zamorak')
-    const choice = screen.getByRole('group', { name: 'Play as' })
-    await fireEvent.click(within(choice).getByRole('radio', { name: 'Individuals' }))
+    await fireEvent.click(radioIn('How to play', 'Free for all'))
     expect(createButton().disabled).toBe(false)
     expect((await submitted()).teams).toEqual([])
   })
 
   it('lets anyone with the code in unless the host picks the link or the public list', async () => {
     await loaded(...BOTH)
-    await rule('Who can join')
-    const choice = screen.getByRole('group', { name: 'Access' })
+    const choice = screen.getByRole('group', { name: 'Who can join' })
     const radio = (name: string): HTMLInputElement =>
       within(choice).getByRole('radio', { name }) as HTMLInputElement
     expect(radio('Room code').checked).toBe(true)
@@ -720,7 +675,6 @@ describe('Create', () => {
     expect(choice.nextElementSibling?.textContent).toBe(
       "Listed on this site's homepage, where anyone can join it.",
     )
-    expect(screen.getByRole('button', { name: /^Who can join/ }).textContent).toContain('Public')
     await submitted()
     expect(vi.mocked(api.createRoom).mock.calls[0]![4]).toBe('public')
   })
@@ -733,7 +687,7 @@ describe('Create', () => {
     expect(document.querySelector('.tally')?.textContent).toBe(
       '10 questions in the rounds, plus 1 random event.',
     )
-    await next()
+    await tab('Random events')
     await fireEvent.click(screen.getByRole('radio', { name: /^Less/ }))
     expect(status()).toBe('1 round · 10 questions · ~3 min')
     await fireEvent.click(screen.getByRole('radio', { name: /^More/ }))
@@ -756,11 +710,11 @@ describe('Create', () => {
     // 10 × 15 + 5 × 12, one event of 30, two splashes of 15, 10 s of standings and a
     // second for the names on each of the 16 reveals: 296 s.
     expect(status()).toBe('2 rounds · 16 questions · ~5 min')
-    await rule('Pace')
+    await tab('House rules')
     await fireEvent.click(screen.getByRole('radio', { name: 'Teleport' }))
     // 10 × 11 + 5 × 9 + 20 + 30 + 10 + 16: 231 s.
     expect(status()).toBe('2 rounds · 16 questions · ~4 min')
-    await rule('Fine print')
+    await tab('House rules')
     await press(document.body, 'Fewer standings seconds', 2)
     // 221 s.
     expect(status()).toBe('2 rounds · 16 questions · ~4 min')
@@ -784,7 +738,7 @@ describe('Create', () => {
   it('steps the standings by five, from 0 for none to 30', async () => {
     const page = document.body
     await loaded(...BOTH)
-    await rule('Fine print')
+    await tab('House rules')
     await press(page, 'More standings seconds', 4)
     expect(screen.getByRole('button', { name: 'More standings seconds' })).toHaveProperty(
       'disabled',
@@ -800,7 +754,7 @@ describe('Create', () => {
 
   it('sends the run pace unless changed, and no reveal of its own', async () => {
     await loaded(...BOTH)
-    await rule('Pace')
+    await tab('House rules')
     expect(screen.getByRole('radio', { name: 'Run' })).toHaveProperty('checked', true)
     expect(screen.queryByRole('button', { name: 'More reveal seconds' })).toBeNull()
     const settings = await submitted()
@@ -810,7 +764,7 @@ describe('Create', () => {
 
   it('offers walk, run and teleport, and sends the one picked', async () => {
     await loaded(...BOTH)
-    await rule('Pace')
+    await tab('House rules')
     for (const name of ['Walk', 'Run', 'Teleport'])
       expect(screen.getByRole('radio', { name })).toBeTruthy()
     await fireEvent.click(screen.getByRole('radio', { name: 'Teleport' }))
@@ -825,7 +779,7 @@ describe('Create', () => {
 
   it('offers easy, mixed and hard questions, and sends the one picked', async () => {
     await loaded(...BOTH)
-    await rule('Questions')
+    await tab('House rules')
     for (const name of ['Easy', 'Mixed', 'Hard'])
       expect(screen.getByRole('radio', { name })).toBeTruthy()
     await fireEvent.click(screen.getByRole('radio', { name: 'Hard' }))
@@ -846,100 +800,10 @@ describe('Create', () => {
 describe('Create on a phone', () => {
   beforeEach(onPhone)
 
-  it('splits the hosts, the rules and the random events into three steps', async () => {
-    await loaded(...BOTH)
-    expect(shownNames('.steps li')).toEqual(['1 · Rounds', '2 · Rules', '3 · Random events'])
-    expect(screen.queryByRole('region', { name: 'House rules' })).toBeNull()
-    await next()
-    expect(screen.queryByRole('checkbox', { name: 'More or Less' })).toBeNull()
-    expect(screen.getByRole('region', { name: 'House rules' })).toBeTruthy()
-    expect(screen.getByRole('region', { name: "Tonight's rounds" })).toBeTruthy()
-    await next()
-    expect(screen.queryByRole('region', { name: 'House rules' })).toBeNull()
-    expect(screen.getByRole('group', { name: 'Random events frequency' })).toBeTruthy()
-  })
-
-  it('jumps past a step and back again when the host clicks its bar', async () => {
-    await loaded(...BOTH)
-    await step('Random events')
-    expect(screen.getByRole('group', { name: 'Random events frequency' })).toBeTruthy()
-    expect(document.querySelector('[aria-current="step"]')?.textContent?.trim()).toBe(
-      '3 · Random events',
-    )
-    await step('Rules')
-    expect(screen.getByRole('region', { name: 'House rules' })).toBeTruthy()
-    await step('Rounds')
-    expect(
-      (screen.getByRole('checkbox', { name: 'More or Less' }) as HTMLInputElement).checked,
-    ).toBe(true)
-  })
-
-  it('offers Create on every step', async () => {
-    await loaded(...BOTH)
-    expect(createButton().textContent).toBe('Create now')
-    await next()
-    expect(createButton().textContent).toBe('Create now')
-    await next()
-    expect(createButton().textContent).toBe('Create room')
-  })
-
-  it('keeps the code out of the header and shows it, with a reroll, in the sheet Create opens', async () => {
-    await loaded(...BOTH)
-    await screen.findByRole('button', { name: 'Next: Rules' })
-    expect(screen.queryByText('AbyssalWhip')).toBeNull()
-    await fireEvent.click(createButton())
-    const sheet = screen.getByRole('dialog', { name: 'Open the doors?' })
-    expect(within(sheet).getByText('AbyssalWhip')).toBeTruthy()
-    expect(sheet.textContent).toContain('2 rounds · 11 questions')
-    expect(api.createRoom).not.toHaveBeenCalled()
-    vi.mocked(api.getFreeCode).mockResolvedValueOnce('Cabbage07')
-    await press(sheet, 'Reroll')
-    expect(await within(sheet).findByText('Cabbage07')).toBeTruthy()
-    await press(sheet, 'Create room')
-    await waitFor(() => expect(api.createRoom).toHaveBeenCalledOnce())
-    expect(vi.mocked(api.createRoom).mock.calls[0]![7]).toBe('Cabbage07')
-  })
-
-  it('makes nothing when the host says Not yet', async () => {
-    await loaded(...BOTH)
-    await fireEvent.click(createButton())
-    await press(screen.getByRole('dialog'), 'Not yet')
-    expect(screen.queryByRole('dialog')).toBeNull()
-    expect(api.createRoom).not.toHaveBeenCalled()
-  })
-
-  it('asks a browser with no profile for a name first, then shows the code', async () => {
-    profile.set(null)
-    await loaded(...BOTH)
-    await fireEvent.click(createButton())
-    const field = await screen.findByRole('textbox')
-    await fireEvent.click(
-      within(field.closest('dialog')!).getByRole('button', { name: 'Continue' }),
-    )
-    expect(get(profile)).not.toBeNull()
-    expect(api.createRoom).not.toHaveBeenCalled()
-    await press(screen.getByRole('dialog', { name: 'Open the doors?' }), 'Create room')
-    await waitFor(() => expect(api.createRoom).toHaveBeenCalledOnce())
-  })
-
-  it('says a taken code in the sheet, beside the reroll it needs', async () => {
-    vi.mocked(api.createRoom).mockRejectedValueOnce(
-      new api.ApiFailure(409, 'code_taken', 'that room code is taken'),
-    )
-    await loaded(...BOTH)
-    await fireEvent.click(createButton())
-    const sheet = screen.getByRole('dialog', { name: 'Open the doors?' })
-    await press(sheet, 'Create room')
-    expect((await within(sheet).findByText(/just taken/)).textContent).toBe(
-      'That code was just taken — roll a new one.',
-    )
-    expect(within(sheet).getByRole('button', { name: 'Reroll' })).toBeTruthy()
-  })
-
   it('writes a question in a sheet over the whole page', async () => {
     await loaded(...BOTH)
-    await next()
-    await next()
+    await tab('Random events')
+    await tab('Random events')
     await press(screen.getByRole('region', { name: 'Write your own' }), 'Write a question')
     const sheet = screen.getByRole('dialog', { name: 'New question' })
     expect(sheet.classList.contains('full')).toBe(true)
@@ -955,10 +819,36 @@ describe('Create, picking for the host', () => {
     await fireEvent.click(screen.getByRole('button', { name: 'Pick for me' }))
     const dialog = screen.getByRole('dialog', { name: 'Pick for me' })
     if (by !== 0) await press(dialog, by < 0 ? 'Fewer game modes' : 'More game modes', Math.abs(by))
-    const secret = within(dialog).getByRole('checkbox', { name: 'Keep them a surprise' })
-    if ((secret as HTMLInputElement).checked !== surprise) await fireEvent.click(secret)
+    const secret = within(dialog).queryByRole('checkbox', { name: 'Keep them a surprise' })
+    if (secret !== null && (secret as HTMLInputElement).checked !== surprise) {
+      await fireEvent.click(secret)
+    }
     await press(dialog, 'Pick')
   }
+
+  async function hideRounds(): Promise<void> {
+    await fireEvent.click(screen.getByRole('switch', { name: 'Surprise rounds' }))
+  }
+
+  it('keeps picks a surprise only in a room that hides its rounds', async () => {
+    await loaded()
+    await fireEvent.click(screen.getByRole('button', { name: 'Pick for me' }))
+    const dialog = screen.getByRole('dialog', { name: 'Pick for me' })
+    expect(within(dialog).queryByRole('checkbox')).toBeNull()
+    await press(dialog, 'Cancel')
+    await hideRounds()
+    await fireEvent.click(screen.getByRole('button', { name: 'Pick for me' }))
+    expect(screen.getByRole('checkbox', { name: 'Keep them a surprise' })).toBeTruthy()
+  })
+
+  it('brings the cards back when the room stops hiding its rounds', async () => {
+    await loaded()
+    await hideRounds()
+    await pickForMe(-1, true)
+    expect(screen.queryByRole('checkbox', { name: 'More or Less' })).toBeNull()
+    await hideRounds()
+    expect(screen.getByRole('checkbox', { name: 'More or Less' })).toBeTruthy()
+  })
 
   it('suggests four modes to begin with', async () => {
     const more = ['guess_examine', 'sort_it_out', 'who_said_that'].map((id) => ({
@@ -1008,15 +898,14 @@ describe('Create, picking for the host', () => {
 
   it('folds the cards away for a surprise, counts the rounds unseen, and sends only how many', async () => {
     await loaded('More or Less')
+    await hideRounds()
     await pickForMe(-1, true)
     expect(screen.queryByRole('checkbox', { name: /^More or Less/ })).toBeNull()
     expect(screen.queryByRole('group', { name: 'Round order' })).toBeNull()
-    expect(screen.getByText('1 surprise round, drawn when the room is created')).toBeTruthy()
+    expect(screen.getByText('1 surprise round, drawn when the game starts')).toBeTruthy()
     expect(screen.getByRole('region', { name: "Tonight's rounds" }).textContent).toContain(
       '1 surprise round',
     )
-    await rule('Fine print')
-    expect(screen.queryByRole('group', { name: 'Surprise rounds' })).toBeNull()
     await fireEvent.click(createButton())
     await waitFor(() => expect(api.createRoom).toHaveBeenCalledOnce())
     const sent = vi.mocked(api.createRoom).mock.calls[0]![1]
@@ -1028,23 +917,20 @@ describe('Create, picking for the host', () => {
 
   it('estimates a surprise from the average round at the shortest draw', async () => {
     await loaded()
+    await hideRounds()
     await pickForMe(0, true)
     // Two rounds of five at 13.5 s, one event at the same, two splashes and one standings: 188.5 s.
     expect(status()).toBe('2 surprise rounds · at least 11 questions · ~3 min')
   })
 
-  it('brings the cards back when Change unticks the surprise', async () => {
+  it('brings the cards back when the host would rather choose', async () => {
     await loaded()
+    await hideRounds()
     await pickForMe(0, true)
-    await fireEvent.click(screen.getByRole('button', { name: 'Change' }))
-    const secret = within(screen.getByRole('dialog')).getByRole('checkbox', {
-      name: 'Keep them a surprise',
-    })
-    expect((secret as HTMLInputElement).checked).toBe(true)
-    await fireEvent.click(secret)
-    await press(screen.getByRole('dialog'), 'Pick')
+    await fireEvent.click(screen.getByRole('button', { name: 'Choose the rounds instead' }))
+    await pick('More or Less')
     const settings = await submitted()
-    expect(settings.modes).toHaveLength(2)
+    expect(settings.modes).toHaveLength(1)
     expect(settings).not.toHaveProperty('surprise_modes')
   })
 })
@@ -1066,10 +952,7 @@ describe('Create with five rooms already', () => {
     expect(banner.textContent?.replace(/\s+/g, ' ').trim()).toBe(
       'You already have five rooms. Remove one on the homepage to make another.',
     )
-    expect(screen.queryByRole('button', { name: /^Create (now|room)$/ })).toBeNull()
-    // The top of the page, above the hosts, not under the buttons where it goes unseen.
-    const hosts = screen.getByRole('region', { name: "Who's hosting tonight?" })
-    expect(banner.compareDocumentPosition(hosts) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Open the doors' })).toBeNull()
     await fireEvent.click(within(banner).getByRole('link', { name: 'homepage' }))
     expect(navigate).toHaveBeenCalledWith('/')
     expect(api.createRoom).not.toHaveBeenCalled()

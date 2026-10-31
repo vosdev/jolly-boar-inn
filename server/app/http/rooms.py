@@ -1,6 +1,6 @@
 """``POST /api/rooms``, ``GET /api/rooms/free-code``,
 ``GET /api/rooms/public``, ``GET /api/rooms/{code}``,
-``DELETE /api/rooms/{code}``."""
+``POST /api/rooms/{code}/questions``, ``DELETE /api/rooms/{code}``."""
 
 from typing import Any, Self
 from uuid import UUID
@@ -42,28 +42,35 @@ class CreateRoom(BaseModel):
     code: str | None = Field(default=None, max_length=40, strict=True)
     settings: NewRoomSettings = Field(default_factory=NewRoomSettings)
     # The host's own questions, each a random event in a round it does not belong to. The
-    # bound is only the outer one; ``settings`` decides how many this room has room for.
+    # bound is only the outer one; the start decides how many this room has room for.
     custom_questions: list[dict[str, Any]] = Field(
         default_factory=list, max_length=MAX_QUESTIONS_PER_ROOM
     )
 
-    # Both checks run while the body is parsed, so a bad question is a 422 before the
-    # rate limiter has counted anything -- the same courtesy as a bad display name.
+    # Runs while the body is parsed, so a bad question is a 422 before the rate limiter has
+    # counted anything -- the same courtesy as a bad display name.
     @field_validator("custom_questions")
     @classmethod
     def _complete_and_valid(cls, questions: list[dict[str, Any]]) -> list[dict[str, Any]]:
         return custom.envelopes(questions)
 
     @model_validator(mode="after")
-    def _room_for_them(self) -> Self:
-        self.settings.check_custom_questions(len(self.custom_questions))
-        return self
-
-    @model_validator(mode="after")
     def _public_or_keyed(self) -> Self:
         if self.public and self.invite_only:
             raise ValueError("a public room cannot be invite-only")
         return self
+
+
+class SetQuestions(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    session: str = Field(max_length=200)  # as on ``DeleteRoom``
+    custom_questions: list[dict[str, Any]] = Field(max_length=MAX_QUESTIONS_PER_ROOM)
+
+    @field_validator("custom_questions")
+    @classmethod
+    def _complete_and_valid(cls, questions: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        return custom.envelopes(questions)
 
 
 class DeleteRoom(BaseModel):
@@ -156,7 +163,7 @@ def public_room(room: Room) -> PublicRoom:
         host=PublicHost(id=host.id, display_name=host.display_name, avatar=host.avatar),
         players=len(room.players),
         max_players=room.max_players,
-        rounds=len(room.segments),
+        rounds=room.round_count,
         **({} if room.settings.hide_rounds else {"modes": [m.mode for m in room.settings.modes]}),
     )
 
@@ -213,6 +220,14 @@ async def get_room(code: str, request: Request) -> dict[str, Any]:
     with room_lookup(request.app.state.lookup_misses, client_host(request)):
         room = await manager(request).get(code)
     return {"status": room.status, "players": len(room.players)}
+
+
+@router.post("/{code}/questions", status_code=204, response_class=Response)
+async def set_questions(code: str, body: SetQuestions, request: Request) -> Response:
+    """Replace the host's own questions in a lobby; the session is in the body, as on delete."""
+    with room_lookup(request.app.state.lookup_misses, client_host(request)):
+        await manager(request).set_questions(code, body.session, body.custom_questions)
+    return Response(status_code=204)
 
 
 @router.delete("/{code}", status_code=204, response_class=Response)

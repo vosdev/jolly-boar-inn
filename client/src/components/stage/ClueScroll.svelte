@@ -328,7 +328,9 @@
     flex-direction: column;
     padding: calc(1.1rem * var(--k)) calc(0.9rem * var(--k) + var(--tuck)) calc(1rem * var(--k));
     /* Four lines of prompt at the least, so a one-liner still makes a sheet. */
-    min-height: calc(4 * 1.3 * max(1rem, 1.2rem * var(--scroll-text, 1)) + 2.1rem * var(--k));
+    min-height: calc(
+      var(--scroll-lines, 4) * 1.3 * max(1rem, 1.2rem * var(--scroll-text, 1)) + 2.1rem * var(--k)
+    );
     background: var(--scroll-paper);
     color: var(--ink);
     --font-display: 'RuneScape', var(--font-body);

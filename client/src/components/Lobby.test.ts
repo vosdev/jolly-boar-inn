@@ -16,7 +16,7 @@ import { applyServerMessage, resetRoom } from '../lib/stores'
 import type { RoomSocket } from '../lib/ws'
 import { petsDrawn } from '../test-pets'
 import Lobby from './Lobby.svelte'
-import lobbySource from './Lobby.svelte?raw'
+import joinCodeSource from './JoinCode.svelte?raw'
 
 const HOST: PlayerView = {
   id: 'a',
@@ -167,7 +167,7 @@ describe('Lobby', () => {
         ),
       ),
     )
-    lobby()
+    lobby([HOST, WOOX], ROOM, WOOX)
     await fireEvent.click(screen.getByRole('button', { name: 'How to play' }))
     const sheet = screen.getByRole('dialog', { name: 'How to play' })
     await within(sheet).findByRole('heading', { name: 'One answer' })
@@ -208,7 +208,7 @@ describe('Lobby', () => {
   })
 
   it('names the difficulty only when the host narrowed it', () => {
-    lobby([HOST, WOOX], { ...ROOM, settings: { ...ROOM.settings, difficulty: 'hard' } })
+    lobby([HOST, WOOX], { ...ROOM, settings: { ...ROOM.settings, difficulty: 'hard' } }, WOOX)
     expect(
       screen.getByText('1 round · 5 questions · Run pace · Hard questions · ~5 min'),
     ).toBeTruthy()
@@ -362,6 +362,10 @@ describe('Lobby', () => {
     expect(within(paper).getByText('Your friends join with this code')).toBeTruthy()
     expect(within(paper).getByText('ABYSSAL')).toBeTruthy()
     expect(within(paper).getByRole('button', { name: 'Copy invite link' })).toBeTruthy()
+  })
+
+  it('tells a player the length of the game under the scroll', () => {
+    lobby([HOST, WOOX], ROOM, WOOX)
     const board = document.querySelector('.board') as HTMLElement
     expect(within(board).getByText('1 round · 5 questions · Run pace · ~5 min')).toBeTruthy()
   })
@@ -618,12 +622,16 @@ describe('Lobby', () => {
       { mode: 'drop_table', questions: 5 },
       { mode: 'sort_it_out', questions: 5 },
     ]
-    lobby([HOST, WOOX], {
-      ...ROOM,
-      settings: { ...ROOM.settings, modes },
-      total: 15 + events,
-      events,
-    })
+    lobby(
+      [HOST, WOOX],
+      {
+        ...ROOM,
+        settings: { ...ROOM.settings, modes },
+        total: 15 + events,
+        events,
+      },
+      WOOX,
+    )
     expect(screen.getByText(line)).toBeTruthy()
   })
 
@@ -632,7 +640,7 @@ describe('Lobby', () => {
       { mode: 'more_less', questions: 5 },
       { mode: 'drop_table', questions: 1 },
     ]
-    lobby([HOST, WOOX], { ...ROOM, settings: { ...ROOM.settings, modes }, total: 6 })
+    lobby([HOST, WOOX], { ...ROOM, settings: { ...ROOM.settings, modes }, total: 6 }, WOOX)
     expect(screen.getByText('2 rounds · 6 questions · Run pace · ~5 min')).toBeTruthy()
     const cards = [...document.querySelectorAll('.board .round')]
     expect(cards.map((card) => card.textContent?.replace(/\s+/g, ' ').trim())).toEqual([
@@ -645,21 +653,17 @@ describe('Lobby', () => {
   })
 
   it('gives the server’s estimate of the game in whole minutes', () => {
-    lobby([HOST, WOOX], { ...ROOM, estimated_seconds: 1290 })
+    lobby([HOST, WOOX], { ...ROOM, estimated_seconds: 1290 }, WOOX)
     expect(screen.getByText('1 round · 5 questions · Run pace · ~22 min')).toBeTruthy()
   })
 
   it('names the pace the host picked', () => {
-    lobby([HOST, WOOX], { ...ROOM, settings: { ...ROOM.settings, pace: 'teleport' } })
+    lobby([HOST, WOOX], { ...ROOM, settings: { ...ROOM.settings, pace: 'teleport' } }, WOOX)
     expect(screen.getByText('1 round · 5 questions · Teleport pace · ~5 min')).toBeTruthy()
   })
 
-  it.each([
-    ['player', WOOX, SECRET],
-    // The host is sent every round, and the lobby still keeps them off a shared screen.
-    ['host', HOST, { ...SECRET, settings: { ...SECRET.settings, modes: ROOM.settings.modes } }],
-  ])('counts surprise rounds for the %s and offers none to show', (_, you, room) => {
-    lobby([HOST, WOOX], room, you)
+  it('counts surprise rounds for a player, with a question mark for each', () => {
+    lobby([HOST, WOOX], SECRET, WOOX)
     expect(
       screen.getByText('5 secret rounds · 40 questions · 2 random events · Run pace · ~5 min'),
     ).toBeTruthy()
@@ -668,8 +672,124 @@ describe('Lobby', () => {
     ).toBeTruthy()
     const cards = [...document.querySelectorAll('.board .round')]
     expect(cards).toHaveLength(5)
-    expect(cards.every((card) => card.textContent?.trim() === 'A surprise')).toBe(true)
+    expect(
+      cards.every((card) => card.textContent?.replace(/\s+/g, ' ').trim() === '? A surprise'),
+    ).toBe(true)
     expect(screen.queryByText('More or Less')).toBeNull()
+  })
+
+  describe('the host editing tonight', () => {
+    const NONE: RoomView = {
+      ...ROOM,
+      settings: { ...ROOM.settings, modes: [] },
+      total: 0,
+      estimated_seconds: 0,
+    }
+
+    beforeEach(() => {
+      vi.useFakeTimers({ shouldAdvanceTime: true })
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(() =>
+          Promise.resolve(
+            Response.json([
+              {
+                id: 'more_less',
+                types: ['more_less'],
+                questions: { default: 5, min: 1, max: 30 },
+                seconds: { walk: 19, run: 15, teleport: 11 },
+                as_of: null,
+              },
+            ]),
+          ),
+        ),
+      )
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+      vi.unstubAllGlobals()
+    })
+
+    it('shows the host the tabs and a player the rounds', () => {
+      lobby()
+      expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual([
+        'Rounds',
+        'House rules',
+        'Random events',
+      ])
+      expect(document.querySelector('.board')).toBeNull()
+      cleanup()
+      lobby([HOST, WOOX], ROOM, WOOX)
+      expect(screen.queryByRole('tab')).toBeNull()
+      expect(document.querySelector('.board')).toBeTruthy()
+    })
+
+    it('sends a settled edit whole, once, and keeps the room hidden as it was', async () => {
+      lobby([HOST, WOOX], NONE)
+      await screen.findByRole('checkbox', { name: 'More or Less' })
+      await fireEvent.click(screen.getByRole('checkbox', { name: 'More or Less' }))
+      await fireEvent.click(screen.getByRole('tab', { name: 'House rules' }))
+      await fireEvent.click(screen.getByRole('radio', { name: 'Walk' }))
+      expect(sent).toEqual([])
+      await vi.advanceTimersByTimeAsync(300)
+      expect(sent).toEqual([
+        {
+          t: 'set_settings',
+          settings: expect.objectContaining({
+            modes: [{ mode: 'more_less', questions: 5 }],
+            pace: 'walk',
+            hide_rounds: false,
+          }),
+        },
+      ])
+    })
+
+    it('does not send what the room just told it', async () => {
+      lobby()
+      await screen.findByRole('checkbox', { name: 'More or Less' })
+      await vi.advanceTimersByTimeAsync(300)
+      expect(sent).toEqual([])
+    })
+
+    it('takes another admin’s change over', async () => {
+      lobby([HOST, WOOX], NONE)
+      await screen.findByRole('checkbox', { name: 'More or Less' })
+      applyServerMessage({
+        t: 'room_updated',
+        room: ROOM,
+        players: [HOST, WOOX],
+      })
+      await tick()
+      expect(
+        (screen.getByRole('checkbox', { name: 'More or Less' }) as HTMLInputElement).checked,
+      ).toBe(true)
+      await vi.advanceTimersByTimeAsync(300)
+      expect(sent).toEqual([])
+    })
+
+    it('holds Start until a round is picked', () => {
+      lobby([HOST, WOOX], NONE)
+      expect(document.querySelector('.start')).toHaveProperty('disabled', true)
+      expect(screen.getByText('Pick at least one round to start.')).toBeTruthy()
+    })
+
+    it('tells a player the rounds are still to come', () => {
+      lobby([HOST, WOOX], NONE, WOOX)
+      expect(screen.getByText('The rounds show up here as the host picks them.')).toBeTruthy()
+    })
+
+    it('swaps between free for all and teams from the top of the table', async () => {
+      lobby()
+      const swap = screen.getByRole('group', { name: 'How to play' })
+      await fireEvent.click(within(swap).getByRole('radio', { name: 'Teams' }))
+      expect(sent).toEqual([{ t: 'set_teams', teams: ['saradomin', 'zamorak'] }])
+    })
+
+    it('offers the swap to no player', () => {
+      lobby([HOST, WOOX], ROOM, WOOX)
+      expect(screen.queryByRole('group', { name: 'How to play' })).toBeNull()
+    })
   })
 
   describe('the code row', () => {
@@ -683,7 +803,7 @@ describe('Lobby', () => {
 
     it('has the code in the large face', () => {
       const rule = (selector: string) =>
-        lobbySource.match(new RegExp(`\\n  ${selector} \\{([^}]*)\\}`))?.[1] ?? ''
+        joinCodeSource.match(new RegExp(`\\n  ${selector} \\{([^}]*)\\}`))?.[1] ?? ''
       expect(rule('\\.code')).toMatch(/font-family: var\(--font-display\)/)
     })
 
@@ -718,20 +838,20 @@ describe('Lobby', () => {
     const fold = () => screen.queryByRole('button', { name: /more$/ })
 
     it('shows 8 rounds as 8 tiles', () => {
-      lobby([HOST, WOOX], rounds(8))
+      lobby([HOST, WOOX], rounds(8), WOOX)
       expect(tiles()).toHaveLength(8)
       expect(fold()).toBeNull()
     })
 
     it('shows 9 rounds as 7 tiles and "+2 more"', () => {
-      lobby([HOST, WOOX], rounds(9))
+      lobby([HOST, WOOX], rounds(9), WOOX)
       expect(tiles()).toHaveLength(8)
       expect(document.querySelectorAll('.board > .rounds .round')).toHaveLength(7)
       expect(fold()!.textContent!.trim()).toBe('+2 more')
     })
 
     it('opens every round as the same cards, and closes on Escape', async () => {
-      lobby([HOST, WOOX], rounds(10))
+      lobby([HOST, WOOX], rounds(10), WOOX)
       expect(screen.queryByRole('dialog', { name: 'All rounds' })).toBeNull()
       await fireEvent.click(fold()!)
       const all = screen.getByRole('dialog', { name: 'All rounds' })
@@ -743,7 +863,7 @@ describe('Lobby', () => {
     })
 
     it('closes on a click outside it and on the button, and stays for a click inside', async () => {
-      lobby([HOST, WOOX], rounds(9))
+      lobby([HOST, WOOX], rounds(9), WOOX)
       await fireEvent.click(fold()!)
       const all = screen.getByRole('dialog', { name: 'All rounds' })
       await fireEvent.pointerDown(all.querySelector('.round')!)

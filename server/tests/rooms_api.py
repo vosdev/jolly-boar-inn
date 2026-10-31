@@ -32,6 +32,18 @@ def create(
     return body["code"].upper(), {"session": body["session"], "player": body["player"]}
 
 
+def begin(client: TestClient, code: str, admin: dict[str, Any]) -> None:
+    """Start the game of a lobby, which is what selects its questions."""
+    with client.websocket_connect(f"/ws/{code}") as ws:
+        hello(ws, admin["session"])
+        ws.send_json({"t": "start_game"})
+        while not (
+            (frame := ws.receive_json())["t"] == "room_updated"
+            and frame["room"]["status"] == "playing"
+        ):
+            assert frame["t"] != "error", frame
+
+
 def join(client: TestClient, code: str, name: str, returning: bool = False) -> httpx.Response:
     return client.post(
         f"/api/rooms/{code}/join", json={"returning": returning, "display_name": name}

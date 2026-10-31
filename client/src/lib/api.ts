@@ -87,6 +87,18 @@ export type NewRoomSettings = Omit<
   max_players?: number | null
 }
 
+/** Replace the host's own questions in a lobby; the session stays in the body. */
+export async function setRoomQuestions(
+  code: string,
+  session: string,
+  customQuestions: readonly HostQuestion[],
+): Promise<void> {
+  await request<void>(`/api/rooms/${code}/questions`, {
+    method: 'POST',
+    body: JSON.stringify({ session, custom_questions: customQuestions }),
+  })
+}
+
 /** One number a mode's round is set with: what to offer, and what the server accepts. */
 export interface ModeBounds {
   default: number

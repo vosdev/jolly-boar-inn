@@ -129,6 +129,7 @@
           "ready": "#/$defs/Ready",
           "rotate_key": "#/$defs/RotateKey",
           "set_profile": "#/$defs/SetProfile",
+          "set_settings": "#/$defs/SetSettings",
           "set_team": "#/$defs/SetTeam",
           "set_teams": "#/$defs/SetTeams",
           "set_tv": "#/$defs/SetTv",
@@ -188,6 +189,9 @@
         },
         {
           "$ref": "#/$defs/SetTeams"
+        },
+        {
+          "$ref": "#/$defs/SetSettings"
         },
         {
           "$ref": "#/$defs/Editing"
@@ -891,12 +895,11 @@
           "items": {
             "$ref": "#/$defs/ModeSettings"
           },
-          "minItems": 1,
           "type": "array"
         },
         "mode_order": {
           "default": "listed",
-          "description": "``\"listed\"``: the rounds play in the order the host arranged them, which is the order\nthis list is in. ``\"random\"``: shuffled once, at creation.",
+          "description": "``\"listed\"``: the rounds play in the order the host arranged them, which is the order\nthis list is in. ``\"random\"``: shuffled once, at the start.",
           "enum": [
             "listed",
             "random"
@@ -962,7 +965,7 @@
         },
         "surprise_modes": {
           "default": 0,
-          "description": "Surprise modes: this many rounds drawn by the server at creation, hidden from the admin\ntoo, who did not pick them either. Implies ``hide_rounds``. Left off the wire at 0, like\n``hide_rounds``.",
+          "description": "Surprise modes: this many rounds drawn by the server at the start, hidden from the admin\ntoo, who did not pick them either. Implies ``hide_rounds``. Left off the wire at 0, like\n``hide_rounds``.",
           "minimum": 0,
           "type": "integer"
         },
@@ -1322,6 +1325,26 @@
         "t"
       ],
       "title": "SetProfile",
+      "type": "object"
+    },
+    "SetSettings": {
+      "additionalProperties": false,
+      "description": "Admin: the game's whole settings, in the lobby. Left a plain object here and checked by\nthe manager, so a wrong value is ``bad_value`` and costs nobody their socket.",
+      "properties": {
+        "t": {
+          "const": "set_settings",
+          "type": "string"
+        },
+        "settings": {
+          "additionalProperties": true,
+          "type": "object"
+        }
+      },
+      "required": [
+        "t",
+        "settings"
+      ],
+      "title": "SetSettings",
       "type": "object"
     },
     "SetTeam": {

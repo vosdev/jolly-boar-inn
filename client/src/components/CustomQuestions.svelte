@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * Create's panel for the host's own questions: their bank, kept in this browser, with a
+   * The host's own questions on the Random events tab: their bank, kept in this browser, with a
    * tick on each the room should ask; one question open at a time in `CustomQuestionForm`;
    * and the file the bank can be saved to and added to from. Ticks are saved too, so the
    * questions tried out in one room come back ticked for the next. On a phone the form is a
@@ -9,7 +9,7 @@
    * Each ticked question takes one of the room's random-event slots, so the slot count caps
    * the ticks, and `RandomEvents` above shows it before the host ticks one that will not
    * fit rather than after. Rounds and frequency can still change under a full room, as can
-   * a bank ticked for a bigger one; then Create refuses to submit and this panel says why.
+   * a bank ticked for a bigger one; then the game will not start and this panel says why.
    */
   import {
     CUSTOM_TYPES,
@@ -39,7 +39,7 @@
   }: {
     /** The ticked questions, in bank order: what the room will ask. */
     questions: HostQuestion[]
-    /** Whether a question is open in the form, which Create will not submit past. */
+    /** Whether a question is open in the form, which the doors will not open past. */
     editing: boolean
     /** Random events the rounds make room for at `frequency`. */
     slots: number

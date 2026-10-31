@@ -47,7 +47,7 @@ from app.questions.packs import Pack
 from app.questions.types import TYPES
 from app.questions.types.scoring import Scoring
 from app.questions.types.timing import MIN_REVEAL
-from app.rooms import codes, scoring
+from app.rooms import codes, scoring, selection
 from app.rooms.errors import (
     AlreadyAnswered,
     BadSession,
@@ -86,11 +86,13 @@ from app.rooms.queries import (
     _fetch_room,
     _fetch_totals,
     _player_from_row,
+    _question_rows,
     _room_from_row,
     _round_key,
     _round_start,
     _void_question,
 )
+from app.rooms.settings import RoomSettings
 from app.stats import Metric, bump, peak, round_key
 from app.ws.outbox import Outbox
 from app.ws.protocol import AnswerCount, PlayersUpdated, RoomUpdated, RoomView, Welcome
@@ -302,6 +304,8 @@ class RoomManager(Joins, Lobby, Loop):
         room = _room_from_row(row, total=len(questions), lock=self._locks[code].lock)
         room.players = {p["id"]: _player_from_row(p) for p in players}
         room.questions = questions
+        if room.status == "lobby" and not questions:
+            self._plan_lobby(room)
         room.totals = totals
         room.totals_round = round_start
         log.info(
@@ -725,23 +729,41 @@ class RoomManager(Joins, Lobby, Loop):
             _require_admin(by)
             if room.status != "lobby":
                 raise BadState(f"room {code} is {room.status}, not in the lobby")
-            if not room.questions:
-                raise BadState(f"room {code} has no questions")
+            if not room.settings.modes and not room.settings.surprise_modes:
+                raise BadState("pick at least one round to start")
             if not any(room.players[pid].role != "tv" for pid in room.sockets):
                 raise BadState("nobody but the TV is connected to play")
             if room.settings.teams:
                 _check_teams_ready(room)
+            settings, selected = self._select(room)
             # A room made near its expiry must not expire mid-game, so it gets a full
             # lifetime from here.
             expires_at = datetime.now(UTC) + timedelta(days=self.settings.room_ttl_days)
             async with pool.acquire() as conn, conn.transaction():
                 await conn.execute(
-                    "update rooms set status = 'playing', current_index = 0, expires_at = $2"
-                    " where id = $1",
+                    "update rooms set status = 'playing', current_index = 0, expires_at = $2,"
+                    " settings = $3 where id = $1",
                     room.id,
                     expires_at,
+                    settings.model_dump(),
                 )
-                await _count_game_started(conn, room)
+                await conn.executemany(
+                    "insert into questions (room_id, position, question_id, type, mode, source,"
+                    " payload, host_only, round, random_event, author_player_id)"
+                    " values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+                    _question_rows(
+                        room.id,
+                        selected,
+                        room.custom_author,
+                        {q["id"] for q in room.custom_questions},
+                    ),
+                )
+                questions = await _fetch_questions(conn, room.id)
+                await _count_game_started(conn, room, questions)
+            room.settings = settings
+            room.questions = questions
+            room.total = len(questions)
+            room.plan = None
             room.status = "playing"
             room.expires_at = expires_at
             room.current_index = 0
@@ -754,6 +776,26 @@ class RoomManager(Joins, Lobby, Loop):
             update = self._room_updated(room)
         self._broadcast(update)
         self._start_timer(room, 0)
+
+    def _select(self, room: Room) -> tuple[RoomSettings, list[tuple[int, dict[str, Any]]]]:
+        """The settings and questions the game plays. A refusal leaves the room in the lobby.
+
+        A room that was a lobby when questions were still selected at creation keeps its own.
+        """
+        if room.questions:
+            return room.settings, []
+        try:
+            settings = room.settings.drawn(self._rounds_offered(), self.rng)
+            settings.check_custom_questions(len(room.custom_questions))
+            rounds = selection.select(
+                self.packs, room.custom_questions, settings, self.rng, self.pictures
+            )
+        except ValueError as exc:
+            raise BadState(str(exc)) from None
+        questions = selection.flatten(rounds)
+        if not questions:
+            raise BadState(f"room {room.code} has no questions")
+        return settings, questions
 
     async def submit_answer(
         self, code: str, player: Player, question_id: str, value: Any

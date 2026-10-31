@@ -100,7 +100,7 @@
 
 <section class="panel rounds" aria-labelledby="rounds-title">
   <div class="head">
-    <h2 id="rounds-title">Tonight's rounds</h2>
+    <h2 id="rounds-title">Running order</h2>
     {#if surprise === null}
       <Segmented
         legend="Round order"
@@ -117,7 +117,7 @@
   {#if surprise !== null}
     <p class="count">{surprise} surprise round{surprise === 1 ? '' : 's'}</p>
     <p class="note">
-      Drawn when the room is created. Nobody sees them, you included, until each round starts.
+      Drawn when the game starts. Nobody sees them, you included, until each round starts.
     </p>
   {:else if rounds.length === 0}
     <p class="empty">Tick a host to add their round.</p>

@@ -17,7 +17,7 @@ from app.main import create_app
 from app.modes import MODES, offered
 from app.questions.packs import load_packs
 from tests.packs import PACKS_DIR
-from tests.rooms_api import create
+from tests.rooms_api import begin, create
 
 MODE = "random_events_only"
 SEED = 0
@@ -91,7 +91,9 @@ def test_it_is_refused_before_the_limiter_counts_the_attempt(client: TestClient)
 def test_a_room_of_it_plays_npc_questions_in_one_round(on: TestClient, db) -> None:
     response = _create(on, modes=[{"mode": MODE, "questions": 12}], random_event_frequency="more")
     assert response.status_code == 201, response.text
-    room = on.app.state.rooms.rooms[response.json()["code"].upper()]
+    body = response.json()
+    begin(on, body["code"].upper(), body)
+    room = on.app.state.rooms.rooms[body["code"].upper()]
     assert [(s.mode, s.count) for s in room.segments] == [(MODE, 14)]
     rows = db("select mode, round, random_event from questions order by position")
     assert len(rows) == 14  # twelve, and the two events ``more`` adds to twelve
@@ -120,11 +122,11 @@ def test_a_round_of_it_plays_through_every_question_type(table, app) -> None:
     app.state.rooms.rng = random.Random(SEED)
     game = table("Zezima", "Woox", modes=[MODE], questions=20, seconds=10)
     zezima, woox = game.players
+    game.start()
     questions = game.room.questions
     # The pool's one ``pick_all_that_apply`` may or may not be drawn; its own end-to-end
     # test is in ``test_pick_all_that_apply.py``.
     assert {q.type for q in questions} >= {"multiple_choice", "free_text", "closest_number"}
-    game.start()
     for index in range(len(questions)):
         game.opened(index)
         game.answer(zezima, index, game.right(index))

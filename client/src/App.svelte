@@ -101,7 +101,6 @@
   const wide = $derived(
     route.name === 'home' ||
       route.name === 'how-to' ||
-      route.name === 'create' ||
       route.name === 'admin' ||
       route.name === 'suggest',
   )
@@ -112,7 +111,7 @@
   /** The room's TV, which is watched from across the room: no footer, and a bar that hides. */
   const tv = $derived(route.name === 'room' && $you?.role === 'tv')
   /** A room runs the bar across the window; its lobby alone has the footer under it. */
-  const inRoom = $derived(route.name === 'room' && !tv)
+  const inRoom = $derived((route.name === 'room' && !tv) || route.name === 'create')
   // A past game is drawn as the room's final, which has none either.
   const footer = $derived(
     route.name === 'history' ? false : route.name !== 'room' || (!tv && $room?.status === 'lobby'),

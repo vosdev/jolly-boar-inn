@@ -25,6 +25,7 @@ export type ClientMessage =
   | SetTeam
   | MoveTeam
   | SetTeams
+  | SetSettings
   | Editing
 export type ServerMessage =
   | Welcome
@@ -152,6 +153,16 @@ export interface SetTeams {
   teams: string[]
 }
 /**
+ * Admin: the game's whole settings, in the lobby. Left a plain object here and checked by
+ * the manager, so a wrong value is `bad_value` and costs nobody their socket.
+ */
+export interface SetSettings {
+  t: 'set_settings'
+  settings: {
+    [k: string]: unknown
+  }
+}
+/**
  * The name field gained focus (`on`), or lost it. Lobby only; ignored anywhere else.
  */
 export interface Editing {
@@ -252,13 +263,11 @@ export interface RoomView {
 export interface RoomSettings {
   /**
    * One round each, in this order unless `mode_order` says to shuffle them.
-   *
-   * @minItems 1
    */
   modes: ModeSettings[]
   /**
    * `"listed"`: the rounds play in the order the host arranged them, which is the order
-   * this list is in. `"random"`: shuffled once, at creation.
+   * this list is in. `"random"`: shuffled once, at the start.
    */
   mode_order: 'listed' | 'random'
   /**
@@ -298,7 +307,7 @@ export interface RoomSettings {
    */
   hide_rounds?: boolean
   /**
-   * Surprise modes: this many rounds drawn by the server at creation, hidden from the admin
+   * Surprise modes: this many rounds drawn by the server at the start, hidden from the admin
    * too, who did not pick them either. Implies `hide_rounds`. Left off the wire at 0, like
    * `hide_rounds`.
    */

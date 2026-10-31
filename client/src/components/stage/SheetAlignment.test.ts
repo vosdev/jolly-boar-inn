@@ -2,7 +2,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import lobbySource from '../Lobby.svelte?raw'
+import joinCodeSource from '../JoinCode.svelte?raw'
 import scrollSource from './ClueScroll.svelte?raw'
 
 function rule(source: string, selector: string): string {
@@ -18,7 +18,7 @@ describe('the sheet aligns its text', () => {
   })
 
   it('centres the lobby code and its actions', () => {
-    expect(rule(lobbySource, '.code-row')).toContain('align-items: center')
-    expect(rule(lobbySource, '.invite-actions')).toContain('justify-content: center')
+    expect(rule(joinCodeSource, '.code-row')).toContain('align-items: center')
+    expect(rule(joinCodeSource, '.actions')).toContain('justify-content: center')
   })
 })

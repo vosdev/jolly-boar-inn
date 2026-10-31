@@ -79,6 +79,7 @@ class Game:
     client: TestClient
     code: str
     seats: list[Seat]
+    started: bool = False
 
     @property
     def admin(self) -> Seat:
@@ -93,6 +94,8 @@ class Game:
         return call(self.client, self.app.state.rooms.get, self.code)
 
     def question(self, index: int) -> RoomQuestion:
+        """Question ``index``, starting the game if it is not yet: only that selects them."""
+        self.start()
         return self.room.questions[index]
 
     def right(self, index: int) -> Any:
@@ -106,7 +109,13 @@ class Game:
         return wrong_value(question.type, question.payload)
 
     def start(self) -> None:
+        """Start the game once, and return when its questions are there to look at."""
+        if self.started:
+            return
+        self.started = True
         self.admin.send(t="start_game")
+        while self.room.status == "lobby":
+            time.sleep(0.005)
 
     def skip(self, seat: Seat | None = None) -> None:
         """Skip the phase the room is in now, named as a client that is up to date would."""

@@ -146,7 +146,6 @@ describe('App', () => {
 
   it.each([
     ['/', true],
-    ['/create', true],
     ['/r/ABYSSAL', false],
   ])('gives %s the wide page: %s', async (path, wide) => {
     at(path)
