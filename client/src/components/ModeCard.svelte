@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * One game mode on Create's first step: its host's chathead, name and hint, and a box
+   * One game mode on the Rounds tab: its host's chathead, name and hint, and a box
    * in the corner that a tick fills. Picking is all a card does; how long its round is and
    * where it plays are set on the Rules step, so picking never grows a card or moves the
    * grid under the host's finger.

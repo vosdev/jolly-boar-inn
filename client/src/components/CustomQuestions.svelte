@@ -1,15 +1,15 @@
 <script lang="ts">
   /**
-   * Create's panel for the host's own questions: their bank, kept in this browser, with a
+   * The host's own questions on the Random events tab: their bank, kept in this browser, with a
    * tick on each the room should ask; one question open at a time in `CustomQuestionForm`;
    * and the file the bank can be saved to and added to from. Ticks are saved too, so the
-   * questions tried out in one room come back ticked for the next. On a phone the form is a
-   * sheet over the whole page, where a question has the screen to itself.
+   * questions tried out in one room come back ticked for the next. The form is a pop-up, which
+   * fills a phone, since a question needs more room than a tab has; saved, it joins the list.
    *
    * Each ticked question takes one of the room's random-event slots, so the slot count caps
    * the ticks, and `RandomEvents` above shows it before the host ticks one that will not
    * fit rather than after. Rounds and frequency can still change under a full room, as can
-   * a bank ticked for a bigger one; then Create refuses to submit and this panel says why.
+   * a bank ticked for a bigger one; then the game will not start and this panel says why.
    */
   import {
     CUSTOM_TYPES,
@@ -35,19 +35,16 @@
     slots,
     frequency,
     atMore,
-    sheet = false,
   }: {
     /** The ticked questions, in bank order: what the room will ask. */
     questions: HostQuestion[]
-    /** Whether a question is open in the form, which Create will not submit past. */
+    /** Whether a question is open in the form, which the doors will not open past. */
     editing: boolean
     /** Random events the rounds make room for at `frequency`. */
     slots: number
     frequency: EventFrequency
     /** The same at `more`, to say whether it would help. */
     atMore: number
-    /** Write in a sheet over the page, as a phone does, rather than in the list. */
-    sheet?: boolean
   } = $props()
 
   /** The question open in the form: its place in the bank, `new` for one being added, or null. */
@@ -213,69 +210,62 @@
     <ol class="list">
       {#each bank as entry, index (entry)}
         <li>
-          {#if open === index && !sheet}
-            {@render editor(entry.question)}
-          {:else}
-            <div class="summary" class:unused={!entry.used}>
-              <input
-                type="checkbox"
-                class="use"
-                checked={entry.used}
-                disabled={!entry.used && full}
-                aria-label="Use question {index + 1} in this room"
-                onchange={() => toggle(index)}
-              />
-              <span class="face"><NpcFace npc={entry.question.random_event} /></span>
-              <div class="words">
-                <p class="prompt">{entry.question.payload.prompt}</p>
-                <p class="note">
-                  {HOST_TYPE_LABELS[entry.question.type]} · {askedBy(entry.question)}
-                </p>
-              </div>
-              <div class="row actions">
-                <button
-                  type="button"
-                  class="small"
-                  aria-label="Move question {index + 1} earlier"
-                  disabled={index === 0}
-                  onclick={() => move(index, -1)}>↑</button
-                >
-                <button
-                  type="button"
-                  class="small"
-                  aria-label="Move question {index + 1} later"
-                  disabled={index === bank.length - 1}
-                  onclick={() => move(index, 1)}>↓</button
-                >
-                <button
-                  type="button"
-                  class="small"
-                  aria-label="Edit question {index + 1}"
-                  disabled={open !== null}
-                  onclick={() => edit(index)}>Edit</button
-                >
-                <button
-                  type="button"
-                  class="small"
-                  aria-label="Delete question {index + 1}"
-                  disabled={open !== null}
-                  onclick={() => (deleting = index)}>Delete</button
-                >
-              </div>
+          <div class="summary" class:unused={!entry.used}>
+            <input
+              type="checkbox"
+              class="use"
+              checked={entry.used}
+              disabled={!entry.used && full}
+              aria-label="Use question {index + 1} in this room"
+              onchange={() => toggle(index)}
+            />
+            <span class="face"><NpcFace npc={entry.question.random_event} /></span>
+            <div class="words">
+              <p class="prompt">{entry.question.payload.prompt}</p>
+              <p class="note">
+                {HOST_TYPE_LABELS[entry.question.type]} · {askedBy(entry.question)}
+              </p>
             </div>
-          {/if}
+            <div class="row actions">
+              <button
+                type="button"
+                class="small"
+                aria-label="Move question {index + 1} earlier"
+                disabled={index === 0}
+                onclick={() => move(index, -1)}>↑</button
+              >
+              <button
+                type="button"
+                class="small"
+                aria-label="Move question {index + 1} later"
+                disabled={index === bank.length - 1}
+                onclick={() => move(index, 1)}>↓</button
+              >
+              <button
+                type="button"
+                class="small"
+                aria-label="Edit question {index + 1}"
+                disabled={open !== null}
+                onclick={() => edit(index)}>Edit</button
+              >
+              <button
+                type="button"
+                class="small"
+                aria-label="Delete question {index + 1}"
+                disabled={open !== null}
+                onclick={() => (deleting = index)}>Delete</button
+              >
+            </div>
+          </div>
         </li>
       {/each}
     </ol>
   {/if}
 
-  {#if open === 'new' && !sheet}
-    {@render editor(undefined)}
-  {/if}
-
-  {#if open !== null && sheet}
+  {#if open !== null}
     <Sheet
       full
+      wide
       label={open === 'new' ? 'New question' : 'Edit question'}
       onclose={() => (open = null)}
     >
@@ -290,11 +280,9 @@
   {/if}
 
   <div class="row tools">
-    {#if open !== 'new' || sheet}
-      <button type="button" disabled={bankFull || open !== null} onclick={() => edit('new')}>
-        Write a question
-      </button>
-    {/if}
+    <button type="button" disabled={bankFull || open !== null} onclick={() => edit('new')}>
+      Write a question
+    </button>
     {#if used > 0}
       <button type="button" disabled={open !== null} onclick={untickAll}>Untick all</button>
     {/if}
@@ -366,7 +354,7 @@
     margin: 0;
   }
 
-  /* The sheet is the editor's frame on a phone; a second one inside it only costs width. */
+  /* The sheet is the editor's frame; a second one inside it only costs width. */
   .in-sheet :global(.editor) {
     padding: 0;
     border: none;

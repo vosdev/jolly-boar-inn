@@ -1,16 +1,16 @@
 <script lang="ts">
   /**
-   * Whether the room is a team game, and which gods are its teams. Individuals sends no gods;
-   * Teams sends the ticked ones in `TEAMS` order, whatever order they were ticked in, since
+   * Whether a room with its doors shut is a team game, and which gods are its teams. Free for
+   * all sends no gods; Teams sends the ticked ones in `TEAMS` order, whatever order they were ticked in, since
    * every list of teams takes that order. The ticks survive the switch going off and on.
-   * Too few ticked is said over Create's buttons, which it blocks.
+   * Too few ticked is said on the room panel, whose button it blocks.
    */
   import { TEAMS, type TeamId } from '../lib/teams'
   import Segmented from './Segmented.svelte'
   import TeamLogo from './TeamLogo.svelte'
 
   const MODES = [
-    { value: false, label: 'Individuals' },
+    { value: false, label: 'Free for all' },
     { value: true, label: 'Teams' },
   ]
 
@@ -23,16 +23,13 @@
     picked: TeamId[]
   } = $props()
 
-  const id = $props.id()
-
   function tick(god: TeamId, ticked: boolean): void {
     picked = TEAMS.map((t) => t.id).filter((t) => (t === god ? ticked : picked.includes(t)))
   }
 </script>
 
-<section class="panel teams" aria-labelledby="{id}-title">
-  <h2 id="{id}-title">Teams</h2>
-  <Segmented legend="Play as" options={MODES} bind:value={on} />
+<div class="teams">
+  <Segmented legend="How to play" hideLegend options={MODES} bind:value={on} />
   {#if on}
     <p class="note">
       Everyone picks a god. Speed doesn't count: each team scores its members' average.
@@ -52,13 +49,9 @@
       {/each}
     </fieldset>
   {/if}
-</section>
+</div>
 
 <style>
-  h2 {
-    margin-bottom: 0.5rem;
-  }
-
   .note {
     margin: 0.5rem 0 0;
   }

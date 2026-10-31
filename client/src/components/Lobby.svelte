@@ -57,7 +57,6 @@
   import { inviteLink } from '../lib/invite'
   import { roomShown } from '../lib/roomFit'
   import { hostOf, modeLabel } from '../lib/modes'
-  import { FALLBACK_NPC } from '../lib/npcs'
   import { minutes } from '../lib/duration'
   import { difficultyLabel } from '../lib/difficulty'
   import { paceLabel } from '../lib/pace'
@@ -70,8 +69,15 @@
   import { MIN_TEAMS, TEAMS, teamsWith, type TeamId } from '../lib/teams'
   import { Cooldown } from '../lib/cooldown.svelte'
   import { Typist, lettersOf } from '../lib/typing.svelte'
+  import { ApiFailure, setRoomQuestions } from '../lib/api'
+  import type { HostQuestion } from '../lib/customQuestions'
+  import { createdRooms, getSession } from '../lib/session'
+  import { tonightOf, type TonightSettings } from '../lib/gameSetup'
   import type { RoomSocket } from '../lib/ws'
   import AtTable from './AtTable.svelte'
+  import JoinCode from './JoinCode.svelte'
+  import Segmented from './Segmented.svelte'
+  import TonightPanel from './TonightPanel.svelte'
   import ConfirmDialog from './ConfirmDialog.svelte'
   import ErrorBanner from './ErrorBanner.svelte'
   import FullScreenSwitch from './FullScreenSwitch.svelte'
@@ -89,6 +95,10 @@
 
   let { socket }: { socket: RoomSocket } = $props()
 
+  function errorMessage(error: unknown): string {
+    return error instanceof ApiFailure ? error.message : 'could not send your questions, try again'
+  }
+
   let theme = $state('')
   const heroArt = $derived(heroFor(theme))
   onMount(() => watchTheme((current) => (theme = current)))
@@ -102,6 +112,22 @@
       : interludeFor(Infinity, [lettersOf(GREETING)], SPLASH_TYPE_FROM_MS, SPLASH_TYPE_FROM_MS),
     Date.now(),
   )
+
+  /** How long an edit waits for the next one, so a stepper held down is one frame. */
+  const EDIT_SETTLES_MS = 250
+
+  const PLAY_AS = [
+    { value: false, label: 'Free for all' },
+    { value: true, label: 'Teams' },
+  ]
+  const FIRST_TEAMS: TeamId[] = ['saradomin', 'zamorak']
+
+  /** What in the setup stops the game starting, in words, or null when nothing does. */
+  let setupBlock = $state<string | null>(null)
+  /** The edit waiting for the next one, and the timers that send what has settled. */
+  let unsent: TonightSettings | null = null
+  let editTimer: ReturnType<typeof setTimeout> | undefined
+  let questionsTimer: ReturnType<typeof setTimeout> | undefined
 
   const isAdmin = $derived($you?.role === 'admin')
   const isTV = $derived($you?.role === 'tv')
@@ -124,10 +150,9 @@
           ? 'Players are needed in two teams or more.'
           : null,
   )
-  const canStart = $derived(
-    isAdmin && $room?.status === 'lobby' && $players.length > 0 && teamsBlockStart === null,
-  )
   const code = $derived($room?.code ?? '')
+  /** Only the browser that made the room holds the question bank it was made with. */
+  const creator = $derived(createdRooms().includes(code))
   const link = $derived(inviteLink(location.origin, code, $room?.key))
   /** Only a host is sent the key, so only a host's lobby knows the room is invite-only. */
   const inviteOnly = $derived($room?.key !== undefined)
@@ -141,6 +166,13 @@
    * room's `modes` holds only rounds that have started, so the server counts them.
    */
   const rounds = $derived(secret ? ($room?.rounds ?? 0) : (settings?.modes.length ?? 0))
+  /** Why the host cannot start tonight's game yet, in words, or null when they can. */
+  const startBlock = $derived(
+    rounds === 0 ? 'Pick at least one round to start.' : (setupBlock ?? teamsBlockStart),
+  )
+  const canStart = $derived(
+    isAdmin && $room?.status === 'lobby' && $players.length > 0 && startBlock === null,
+  )
   /**
    * Every question the room actually holds, which the server counted off the questions it
    * stored rather than off the settings. The two disagree whenever the plan and the
@@ -179,7 +211,7 @@
     secret
       ? Array.from({ length: rounds }, (_, index) => ({
           key: String(index),
-          npc: FALLBACK_NPC as string | undefined,
+          npc: undefined as string | undefined,
           name: 'A surprise',
           questions: null as number | null,
         }))
@@ -299,7 +331,43 @@
   }
 
   /** Start, asking first when the room is short of its threshold: the host's override. */
+  /** The whole game goes on each edit: a socket that dropped one has lost nothing. */
+  function sendSettings(next: TonightSettings): void {
+    socket.send({
+      t: 'set_settings',
+      settings: { ...next, hide_rounds: settings?.hide_rounds === true },
+    })
+  }
+
+  function edited(next: TonightSettings): void {
+    unsent = next
+    clearTimeout(editTimer)
+    editTimer = setTimeout(flushEdit, EDIT_SETTLES_MS)
+  }
+
+  function flushEdit(): void {
+    clearTimeout(editTimer)
+    if (unsent !== null) sendSettings(unsent)
+    unsent = null
+  }
+
+  function questionsTicked(questions: HostQuestion[]): void {
+    const session = getSession(code)
+    if (!creator || session === null) return
+    clearTimeout(questionsTimer)
+    questionsTimer = setTimeout(() => {
+      void setRoomQuestions(code, session, questions).catch(
+        (error: unknown) => (setupBlock = errorMessage(error)),
+      )
+    }, EDIT_SETTLES_MS)
+  }
+
+  function swapTeams(on: boolean): void {
+    socket.send({ t: 'set_teams', teams: on ? FIRST_TEAMS : [] })
+  }
+
   function start(): void {
+    flushEdit()
     if (enoughReady) {
       socket.send({ t: 'start_game' })
       return
@@ -532,33 +600,31 @@
         <Said name={speakerFor(heroArt)} line={greeting} />
       {/snippet}
       {#snippet paper()}
-        <h1 class="sr">Lobby</h1>
-        <p class="lead">Your friends join with this code</p>
-        <div class="code-row">
-          <span class="code" style:--chars={code.length}>{code}</span>
-          <span class="invite-actions">
-            <button type="button" class="copy-link" onclick={copy} aria-live="polite">
-              <Icon name="copy" />
-              {copyResult === 'copied'
-                ? 'Link copied'
-                : copyResult === 'failed'
-                  ? "Couldn't copy"
-                  : 'Copy invite link'}
+        <JoinCode {code} lead="Your friends join with this code">
+          <button type="button" onclick={copy} aria-live="polite">
+            <Icon name="copy" />
+            {copyResult === 'copied'
+              ? 'Link copied'
+              : copyResult === 'failed'
+                ? "Couldn't copy"
+                : 'Copy invite link'}
+          </button>
+          {#if isAdmin && inviteOnly}
+            <button type="button" class="glyph" aria-label="New link" onclick={rotateKey}>
+              <Icon name="refresh" />
             </button>
-            {#if isAdmin && inviteOnly}
-              <button type="button" class="glyph" aria-label="New link" onclick={rotateKey}>
-                <Icon name="refresh" />
-              </button>
-            {/if}
-          </span>
-        </div>
+          {/if}
+        </JoinCode>
       {/snippet}
-      {#if settings !== null}
+      {#if settings !== null && !isAdmin}
         <section class="panel board" aria-labelledby="tonight">
           <div class="board-line">
             <h2 id="tonight">Tonight's rounds</h2>
             <p class="aside">{length}</p>
           </div>
+          {#if rounds === 0}
+            <p class="empty">The rounds show up here as the host picks them.</p>
+          {/if}
           <ul class="rounds">
             {#each shown as card (card.key)}
               {@render round(card)}
@@ -615,6 +681,14 @@
           manage={isAdmin ? { can: manageable, label: menuOf, open: manage } : null}
         >
           {#snippet head()}
+            {#if isAdmin}
+              <Segmented
+                legend="How to play"
+                hideLegend
+                options={PLAY_AS}
+                bind:value={() => teamGame, swapTeams}
+              />
+            {/if}
             {#if requests.length > 0}
               <section class="asking" aria-labelledby="asking">
                 <h2 id="asking">Asking to join ({requests.length})</h2>
@@ -694,15 +768,15 @@
             <p class="hint" id="pick-first">Pick a team first.</p>
           {/if}
           {#if isAdmin}
-            {#if teamsBlockStart !== null}
-              <p class="hint" id="start-blocked">{teamsBlockStart}</p>
+            {#if startBlock !== null}
+              <p class="hint" id="start-blocked">{startBlock}</p>
             {/if}
             <button
               class="start"
               class:primary={enoughReady}
               type="button"
               disabled={!canStart}
-              aria-describedby={teamsBlockStart !== null ? 'start-blocked' : undefined}
+              aria-describedby={startBlock !== null ? 'start-blocked' : undefined}
               onclick={start}
             >
               {enoughReady ? 'Start the game' : 'Start anyway'}
@@ -712,6 +786,16 @@
           {/if}
         </TablePanel>
       </AtTable>
+      {#if settings !== null && isAdmin}
+        <TonightPanel
+          settings={tonightOf(settings)}
+          hidden={secret}
+          own={creator}
+          onchange={edited}
+          onquestions={questionsTicked}
+          onproblems={(_, start) => (setupBlock = start)}
+        />
+      {/if}
     </Stage>
   </section>
 {/if}
@@ -830,54 +914,6 @@
     line-height: 1.15;
   }
 
-  /* The code on its own line with the copy button under it, or in the row's top-right
-     corner where the scroll is wide enough not to crowd the code. */
-  .code-row {
-    position: relative;
-    container-type: inline-size;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.25rem;
-  }
-
-  /* A code is words run together, up to 34 letters. The display face is
-     about 1em a letter, so the size shrinks to keep the code on one line, and only a code
-     too long even at the floor breaks. It is read aloud across the room, so it is the
-     sheet's ink in the large face. */
-  .code {
-    color: var(--scroll-ink);
-    font-family: var(--font-display);
-    font-size: clamp(
-      0.95rem,
-      (100cqi - 4rem) / var(--chars, 12),
-      max(1.4rem, 1.8rem * var(--scroll-text, 1))
-    );
-    letter-spacing: 0.06em;
-    overflow-wrap: anywhere;
-  }
-
-  @container (min-width: 34rem) {
-    .code-row {
-      min-height: 44px;
-      justify-content: center;
-    }
-
-    .code {
-      font-size: clamp(
-        0.95rem,
-        (100cqi - 36rem) / var(--chars, 12),
-        max(1.4rem, 1.8rem * var(--scroll-text, 1))
-      );
-    }
-
-    .code-row .invite-actions {
-      position: absolute;
-      top: 0;
-      right: 0;
-    }
-  }
-
   .glyph {
     min-width: 44px;
     justify-content: center;
@@ -886,34 +922,6 @@
   .count {
     margin: 0.4rem 0 0.2rem;
     font-size: max(0.9rem, 1rem * var(--scroll-text, 1));
-  }
-
-  .lead {
-    margin: 0;
-    font-size: max(0.9rem, 1rem * var(--scroll-text, 1));
-    color: var(--scroll-muted);
-  }
-
-  .invite-actions {
-    display: inline-flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 0.25rem 0.5rem;
-  }
-
-  .copy-link :global(.icon) {
-    font-size: 1rem;
-  }
-
-  /* On the sheet, so in its inks rather than a panel's. */
-  .copy-link,
-  .invite-actions .glyph {
-    --ink: var(--scroll-ink);
-    min-height: 44px;
-    border-color: var(--scroll-muted);
-    background: transparent;
-    color: var(--ink);
   }
 
   .board {

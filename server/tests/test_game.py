@@ -46,6 +46,7 @@ from app.questions.types import (
     answer_seconds,
     more_less,
     multiple_choice,
+    pictured,
     reveal_seconds,
 )
 from app.questions.types.scoring import Scoring
@@ -397,7 +398,7 @@ def test_a_pick_from_list_answer_must_be_an_id_in_its_vocabulary(table, picked_r
 
 def test_answering_before_the_game_starts_is_not_open(game) -> None:
     player = game.players[0]
-    player.send(t="answer", question_id=str(game.question(0).id), value="higher")
+    player.send(t="answer", question_id=str(uuid4()), value="higher")
     assert player.take("error")["code"] == "not_open"
 
 
@@ -896,10 +897,19 @@ def test_can_answer(host_only: bool, source: str, is_author: bool, expected: boo
     assert question.can_answer(player_id) is expected
 
 
-def test_a_host_only_question_cannot_be_answered_by_anyone(game, db) -> None:
-    """``host_only`` scores nobody, and the question still shows and closes normally."""
-    game.room.questions[0].host_only = True  # what the Phase 2 editor will store
+def before_the_first_question(table) -> Game:
+    """``game``, started and held on its splash: its questions exist and none has opened."""
+    game = table("Zezima", "Woox", seconds=10, reveal_seconds=1, splash=True)
     game.start()
+    game.splash()
+    return game
+
+
+def test_a_host_only_question_cannot_be_answered_by_anyone(table, db) -> None:
+    """``host_only`` scores nobody, and the question still shows and closes normally."""
+    game = before_the_first_question(table)
+    game.room.questions[0].host_only = True  # what the Phase 2 editor will store
+    game.skip()
     opened = game.opened(0)
     assert all(message["question"]["you_can_answer"] is False for message in opened)
     for seat in game.seats:
@@ -914,12 +924,14 @@ def test_a_host_only_question_cannot_be_answered_by_anyone(game, db) -> None:
     assert_memory_matches_db(game, db)
 
 
-def test_the_reveal_lists_who_could_answer_and_did_not(game) -> None:
+def test_the_reveal_lists_who_could_answer_and_did_not(table) -> None:
     """``unanswered``: connected and allowed, with no answer in. The author counts like anyone."""
+    game = before_the_first_question(table)
     author, other = game.players
     question = game.room.questions[0]
     question.source = "room"
     question.author_player_id = UUID(author.id)
+    game.skip()
     game.start()
     game.opened(0)
     game.answer(game.admin, 0, game.wrong(0))
@@ -940,12 +952,14 @@ def test_naming_wrong_answers_holds_the_reveal_a_second_longer(game) -> None:
     assert room.question_reveal_seconds(question) == plain
 
 
-def test_the_author_of_a_room_question_answers_and_scores_on_it(game, db) -> None:
+def test_the_author_of_a_room_question_answers_and_scores_on_it(table, db) -> None:
     """An author is a player like any other on their own question, and holds up the early close."""
+    game = before_the_first_question(table)
     author, other = game.players
     question = game.room.questions[0]
     question.source = "room"
     question.author_player_id = UUID(author.id)
+    game.skip()
     game.start()
     opened = {seat.name: seat.take("question_open") for seat in game.seats}
     assert {name: frame["question"]["you_can_answer"] for name, frame in opened.items()} == {
@@ -1288,14 +1302,16 @@ def test_a_restart_before_the_first_question_opened_still_plays_it(
     in the database before question 0 is stamped ``shown_at``.
 
     A restart in there has nothing to void and is still owed that question, so the reveal
-    ends by opening it rather than skipping past it. The row is edited behind the app's
-    back because the window itself is too narrow to hit on purpose.
+    ends by opening it rather than skipping past it. A splash holds the room in that same
+    state, and for longer: the window itself is too narrow to hit on purpose.
     """
-    game = table("Zezima", seconds=10, reveal_seconds=30)
-    db("update rooms set status = 'playing', current_index = 0 where code = $1", game.code)
+    game = table("Zezima", seconds=10, reveal_seconds=30, splash=True)
+    game.start()
+    game.splash()
+    game.app.state.rooms.splashes = False
     assert evict(game.code) is True
     for seat in game.seats:
-        assert closed_with(seat.ws) == 1012
+        assert closed_with(seat.ws, drain=True) == 1012
 
     with client.websocket_connect(f"/ws/{game.code}") as ws:
         admin = reseat(game.admin, ws)
@@ -1383,8 +1399,8 @@ def test_a_mode_is_a_round_and_every_round_is_introduced(table, second_mode) -> 
             {"mode": "more_less", "questions": 1},
         ],
     )
-    assert [q.mode for q in game.room.questions] == [second_mode, "more_less"]
     game.start()
+    assert [q.mode for q in game.room.questions] == [second_mode, "more_less"]
     assert game.splash()["room"]["segment"]["mode"] == second_mode
     game.skip()
     game.opened(0)
@@ -2102,7 +2118,11 @@ def play_right_and_wrong(game: Game, index: int) -> dict[str, Any]:
     game.skip()
     closed = game.admin.take("question_closed")
     question = game.question(index)
-    assert closed["reveal"] == TYPES[question.type].reveal(question.payload)
+    plain = TYPES[question.type].reveal(question.payload)
+    rooms = game.app.state.rooms
+    # A matching round's reveal draws its fields' pictures, when the drawn question has them.
+    expected = pictured(question.type, plain, question.payload, rooms._pictures(question))
+    assert closed["reveal"] == expected
     zezimas, wooxs = (closed["results"][seat.id] for seat in (zezima, woox))
     assert (zezimas["correct"], zezimas["points"] > 0) == (True, True)
     assert wooxs["correct"] is False
@@ -2139,6 +2159,7 @@ def test_a_game_of_two_real_modes_changes_type_between_rounds(table, db) -> None
             {"mode": "guess_examine", "questions": 2},
         ],
     )
+    game.start()
     assert [q.type for q in game.room.questions] == [
         "more_less",
         "more_less",
@@ -2186,6 +2207,7 @@ def event_rooms(second_mode: str, questions: int = 3) -> dict[str, Any]:
 
 
 def the_event(game: Game) -> RoomQuestion:
+    game.start()
     (event,) = [q for q in game.room.questions if q.random_event is not None]
     return event
 
@@ -2305,6 +2327,7 @@ def test_two_identical_custom_questions_each_take_their_own_answers(table, secon
         **event_rooms(second_mode, questions=5),
     )
     admin, zezima, woox = game.seats
+    game.start()
     first, second = (q for q in game.room.questions if q.random_event is not None)
     assert first.content_id == second.content_id and first.id != second.id
 
@@ -2423,6 +2446,7 @@ def test_no_splash_for_an_event_or_for_the_question_after_it(table, second_mode)
     questions are introduced, and each event sits in the round it interrupts.
     """
     game = table("Zezima", splash=True, reveal_seconds=1, **event_rooms(second_mode, 5))
+    game.start()
     events = [q for q in game.room.questions if q.random_event is not None]
     assert len(events) == 2
     assert {(q.mode, q.source) for q in events} == {("random_event", "pack")}

@@ -24,7 +24,7 @@ from starlette.websockets import WebSocketDisconnect
 from app.db import _init_connection
 from app.main import cleanup_expired_rooms
 from app.rooms.state import PURGE_BATCH
-from tests.rooms_api import call, create, create_fast, hello, join
+from tests.rooms_api import begin, call, create, create_fast, hello, join
 
 
 def expire(db, code: str, when: datetime) -> None:
@@ -67,7 +67,8 @@ def test_purge_deletes_the_expired_room_and_its_children(
     cleanup note that is easy to assume and worth checking.
     """
     expired, _ = create(client, "Host")
-    live, _ = create(client, "Host")
+    live, host = create(client, "Host")
+    begin(client, live, host)
     player = join(client, expired, "Zezima").json()["player"]
     answer_one_question(db, expired, player["id"])
     (gone,) = db("select id from rooms where code = $1", expired)

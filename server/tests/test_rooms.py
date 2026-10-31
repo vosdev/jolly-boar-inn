@@ -33,7 +33,7 @@ from app.questions import schema
 from app.random_events import RANDOM_EVENTS
 from app.rooms import codes, errors, joins, queries
 from app.rooms.settings import RoomSettings
-from tests.rooms_api import call, create, held, hello, join
+from tests.rooms_api import begin, call, create, held, hello, join
 
 
 def sha256(token: str) -> str:
@@ -230,7 +230,8 @@ def test_a_code_no_draw_could_give_is_422_before_the_limiter(
 
 def test_questions_rows_equal_what_the_modes_asked_for(client: TestClient, db) -> None:
     """A mode is a round, and its ``questions`` is how long that round is."""
-    code, _ = create(client, modes=[{"mode": "more_less", "questions": 7}])
+    code, admin = create(client, modes=[{"mode": "more_less", "questions": 7}])
+    begin(client, code, admin)
     (room,) = db("select id from rooms where code = $1", code)
     rows = db(
         "select position, question_id, type, mode, source, payload, host_only, round"
@@ -253,7 +254,8 @@ def test_questions_rows_equal_what_the_modes_asked_for(client: TestClient, db) -
         assert row["payload"]["payload"]["answer_index"] in (0, 1)
 
     # Thirty at the default frequency: three random events on top, each an NPC's own.
-    code, _ = create(client, modes=[{"mode": "more_less", "questions": 30}])
+    code, admin = create(client, modes=[{"mode": "more_less", "questions": 30}])
+    begin(client, code, admin)
     rows = db(
         "select q.mode, q.source, q.random_event, q.round from questions q"
         " join rooms r on r.id = q.room_id where r.code = $1 order by q.position",
@@ -303,7 +305,6 @@ def test_create_defaults_the_pace_to_run(client: TestClient, db) -> None:
 
 def test_create_rejects_bad_settings(client: TestClient) -> None:
     bad = [
-        {"modes": []},
         {"modes": [{"mode": "closest_number"}]},  # not a type this build plays
         {"modes": [{"mode": "more_less"}, {"mode": "more_less"}]},  # a mode is one round
         {"modes": [{"mode": "more_less", "questions": 0}]},  # under the type's minimum
@@ -378,6 +379,28 @@ def post(
     )
 
 
+def started(client: TestClient, response: httpx.Response) -> None:
+    """Start the game ``post`` created, which is what places the host's questions."""
+    assert response.status_code == 201, response.text
+    begin(client, response.json()["code"].upper(), response.json())
+
+
+def refused_start(client: TestClient, response: httpx.Response) -> str:
+    """Why the room ``post`` created will not start. It stays in the lobby."""
+    assert response.status_code == 201, response.text
+    return refusal(client, response.json()["code"].upper(), response.json()["session"])
+
+
+def refusal(client: TestClient, code: str, session: str) -> str:
+    with client.websocket_connect(f"/ws/{code}") as ws:
+        hello(ws, session)
+        ws.send_json({"t": "start_game"})
+        error = ws.receive_json()
+    assert error["t"] == "error", error
+    assert client.get(f"/api/rooms/{code}").json()["status"] == "lobby"
+    return error["message"]
+
+
 def assert_no_room(db) -> None:
     for table in ("rooms", "questions", "players"):
         assert db(f"select count(*) as n from {table}")[0]["n"] == 0, table
@@ -412,7 +435,7 @@ def test_custom_questions_are_stored_as_the_hosts_own_random_events(client: Test
         "host_only": True,
     }
     response = post(client, [own_question(), number], random_event_frequency="more")
-    assert response.status_code == 201, response.text
+    started(client, response)
     admin = response.json()["player"]["id"]
     rows = db(
         "select position, question_id, type, mode, source, payload, host_only, round,"
@@ -445,8 +468,7 @@ def test_a_custom_question_is_asked_by_the_npc_it_names(client: TestClient, db) 
     """The named NPC asks it, and two questions naming one NPC are both
     honoured -- even back to back, which a drawn face never is."""
     named = [own_question("Who?", random_event="death"), own_question("Why?", random_event="death")]
-    response = post(client, named, random_event_frequency="more")
-    assert response.status_code == 201, response.text
+    started(client, post(client, named, random_event_frequency="more"))
     rows = db("select random_event from questions where source = 'room' order by position")
     assert [row["random_event"] for row in rows] == ["death", "death"]
 
@@ -461,37 +483,33 @@ def test_a_custom_question_naming_nobody_on_the_roster_is_refused(client: TestCl
 
 
 def test_too_many_custom_questions_are_refused_naming_the_frequency(client: TestClient, db) -> None:
-    """Fifteen questions at ``default`` make one slot. Refused, never truncated,
+    """Fifteen questions at ``default`` make one slot. Refused at the start, never truncated,
     and the refusal says which frequency would make room."""
-    response = post(client, [own_question(f"Question {n}?") for n in range(2)])
-    assert response.status_code == 422
-    assert "2 custom questions" in response.text
-    assert "random_event_frequency 'default' make room for 1 random events" in response.text
-    assert "Pick random_event_frequency 'more'" in response.text
-    assert_no_room(db)
+    few = post(client, [own_question(f"Question {n}?") for n in range(2)])
+    message = refused_start(client, few)
+    assert "2 custom questions" in message
+    assert "random_event_frequency 'default' make room for 1 random events" in message
+    assert "Pick random_event_frequency 'more'" in message
     busy = post(
         client, [own_question(f"Question {n}?") for n in range(4)], random_event_frequency="more"
     )
-    assert busy.status_code == 422
-    assert "make room for 3" in busy.text
-    assert_no_room(db)
+    assert "make room for 3" in refused_start(client, busy)
+    assert db("select count(*) as n from questions")[0]["n"] == 0
 
 
-def test_rounds_too_short_for_the_hosts_questions_are_refused_as_the_body_is_read(
-    client: TestClient, db, monkeypatch: pytest.MonkeyPatch
+def test_rounds_too_short_for_the_hosts_questions_are_refused_at_the_start(
+    app: FastAPI, client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Five one-question rounds at ``more`` hold no event: a round's last question is never
-    followed by one. The body says so, as it does for too few round questions, rather than
-    the room finding out once it has drawn them."""
+    followed by one, as the start says for too few round questions too."""
     stubs = [f"stub_{index}" for index in range(4)]
     for name in stubs:
         monkeypatch.setitem(MODES, name, Mode(id=name, types=frozenset({"more_less"})))
     ones = [{"mode": name, "questions": 1} for name in ("more_less", *stubs)]
-    response = post(client, [own_question()], ones, random_event_frequency="more")
-    assert response.status_code == 422
-    assert "detail" in response.json(), response.text  # the body's refusal, not the room's
-    assert "5 round questions at random_event_frequency 'more' make room for 0" in response.text
-    assert_no_room(db)
+    settings = RoomSettings(modes=ones, random_event_frequency="more")
+    room, _, session = call(client, app.state.rooms.create, "Zezima", settings, [own_question()])
+    message = refusal(client, room.code, session)
+    assert "5 round questions at random_event_frequency 'more' make room for 0" in message
 
 
 @pytest.mark.parametrize(
@@ -562,9 +580,6 @@ def test_the_manager_refuses_what_the_body_would_have(app: FastAPI, client: Test
     settings = RoomSettings(modes=THREE_MODES)
     with pytest.raises(errors.BadQuestion, match=r"custom_questions\[0\] \$\.type"):
         call(client, app.state.rooms.create, "Zezima", settings, [own_question(type="x")])
-    too_many = [own_question(f"Question {n}?") for n in range(3)]
-    with pytest.raises(errors.BadSettings, match="3 custom questions"):
-        call(client, app.state.rooms.create, "Zezima", settings, too_many)
     borrowed = [own_question(source="pack")]
     with pytest.raises(errors.BadQuestion, match=r"custom_questions\[0\] \$\.source"):
         call(client, app.state.rooms.create, "Zezima", settings, borrowed)
@@ -693,6 +708,8 @@ def test_the_room_counts_its_random_events_among_its_questions(client: TestClien
     )
     with client.websocket_connect(f"/ws/{code}") as ws:
         room = hello(ws, admin["session"])["room"]
+    assert room["events"] > 0
+    assert room["total"] == 10 + room["events"]
+    begin(client, code, admin)
     events = db("select count(*) as n from questions where random_event is not null")[0]["n"]
-    assert events > 0
-    assert (room["total"], room["events"]) == (10 + events, events)
+    assert events == room["events"]

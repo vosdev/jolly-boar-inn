@@ -73,8 +73,8 @@ def names_the_id(frame: dict[str, Any], item_id: int) -> bool:
 def open_at(game: Game, item_id: int) -> list[dict[str, Any]]:
     """Start ``game`` and play on to the question answered by ``item_id``; everyone's
     ``question_open`` for it. The reveal before it ends on its own."""
-    index = next(i for i, q in enumerate(game.room.questions) if q.payload["answer_id"] == item_id)
     game.start()
+    index = next(i for i, q in enumerate(game.room.questions) if q.payload["answer_id"] == item_id)
     opened = game.opened(0)
     if index == 1:
         game.skip()

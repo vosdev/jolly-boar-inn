@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.222.0',
+    date: '2026-10-31',
+    text: 'Start in your room and set up the game there, doors shut or with friends watching the rounds arrive.',
+  },
+  {
     version: '0.221.0',
     date: '2026-10-30',
     text: 'How to play lets you try every game mode, now with The Price is Right, Sort It Out, Who is That NPC? and Pixel Hunt.',

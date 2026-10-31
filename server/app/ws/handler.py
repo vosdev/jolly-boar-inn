@@ -302,6 +302,8 @@ async def _dispatch(
             await manager.move_team(code, player, message.player_id, message.team)
         case protocol.SetTeams():
             await manager.set_teams(code, player, message.teams)
+        case protocol.SetSettings():
+            await manager.set_settings(code, player, message.settings)
         case protocol.Editing():
             await manager.set_editing(code, player, message.on)
     return None

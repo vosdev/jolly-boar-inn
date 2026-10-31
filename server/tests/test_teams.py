@@ -1,5 +1,6 @@
 """Team games: ``settings.teams`` names the gods playing, and every player starts teamless."""
 
+from collections.abc import Callable
 from typing import Any
 from uuid import UUID
 
@@ -374,9 +375,8 @@ def test_removing_a_team_sends_its_players_to_no_team_unready(
         ["saradomin", "saradomin"],
         ["saradomin", "seren"],
         ["zamorak", "saradomin"],
-        [],
     ],
-    ids=["one", "seven", "duplicate", "unknown", "out_of_order", "none"],
+    ids=["one", "seven", "duplicate", "unknown", "out_of_order"],
 )
 def test_set_teams_refuses_any_other_list(
     client: TestClient, team_lobby: dict[str, Any], teams: list[str]
@@ -412,11 +412,49 @@ def test_set_teams_is_refused_once_the_game_starts(
     assert held(client, code)["room"]["settings"]["teams"] == TWO
 
 
-def test_a_room_without_teams_cannot_become_a_team_room(
+def test_a_room_swaps_to_teams_and_everyone_is_teamless_and_not_ready(
     client: TestClient, lobby: dict[str, Any]
 ) -> None:
-    code, admin = lobby["code"], lobby["admin"]
+    code, admin, player = lobby["code"], lobby["admin"], lobby["player"]
+    with (
+        client.websocket_connect(f"/ws/{code}") as ws,
+        client.websocket_connect(f"/ws/{code}") as p,
+    ):
+        hello(ws, admin["session"])
+        hello(p, player["session"])
+        p.send_json({"t": "ready", "ready": True})
+        wait_for(ws, lambda frame: frame["t"] == "players_updated" and any_ready(frame))
+        ws.send_json({"t": "set_teams", "teams": TWO})
+        update = wait_for(ws, lambda frame: frame["t"] == "room_updated")
+    assert update["room"]["settings"]["teams"] == TWO
+    assert not any(seat["ready"] or seat["team"] for seat in update["players"])
+    assert held(client, code)["room"]["settings"]["teams"] == TWO
+
+
+def test_a_room_swaps_back_to_free_for_all_and_ready_stays(
+    client: TestClient, team_lobby: dict[str, Any], db
+) -> None:
+    """Without teams a ready needs no team, so nobody has to tap it again."""
+    code, admin = team_lobby["code"], team_lobby["admin"]
     with client.websocket_connect(f"/ws/{code}") as ws:
         hello(ws, admin["session"])
-        assert refused(ws, {"t": "set_teams", "teams": TWO}) == "bad_state"
-    assert held(client, code)["room"]["settings"]["teams"] == []
+        ws.send_json({"t": "set_team", "team": "saradomin"})
+        wait_for(ws, lambda frame: frame["t"] == "players_updated")
+        ws.send_json({"t": "ready", "ready": True})
+        wait_for(ws, lambda frame: frame["t"] == "players_updated" and any_ready(frame))
+        ws.send_json({"t": "set_teams", "teams": []})
+        update = wait_for(ws, lambda frame: frame["t"] == "room_updated")
+    assert update["room"]["settings"]["teams"] == []
+    (seat,) = [p for p in update["players"] if p["id"] == admin["player"]["id"]]
+    assert (seat["team"], seat["ready"]) == (None, True)
+    assert db("select team from players where team is not null") == []
+
+
+def any_ready(frame: dict[str, Any]) -> bool:
+    return any(seat["ready"] for seat in frame["players"])
+
+
+def wait_for(ws: Any, wanted: Callable[[dict[str, Any]], bool]) -> dict[str, Any]:
+    while not wanted(frame := ws.receive_json()):
+        assert frame["t"] != "error", frame
+    return frame

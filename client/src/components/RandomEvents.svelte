@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * Create's random events: who might turn up, how often, and what that comes to in this
+   * The Random events tab: who might turn up, how often, and what that comes to in this
    * game. Each event is a slot, and the host's own questions fill slots before the room
    * draws the rest, so the strip shows the host's askers first and a "?" for every
    * surprise left.

@@ -182,8 +182,8 @@ The profile, `localStorage["jbi:profile"]`, holds this browser's name and pet pe
 player is per room and temporary. There are no accounts.
 
 - **Join and Create** ask once. A browser with no profile gets a modal before its first room (on
-  Create, when the button is pressed, before a phone's room code sheet): a generated name and pet,
-  pre-filled so one tap on *Join*, *Create room* or *Continue* is an answer. Nothing dismisses it, the room is joined or made only on that tap,
+  Create, when Open the doors is pressed): a generated name and pet,
+  pre-filled so one tap on *Join* or *Open the doors* is an answer. Nothing dismisses it, the room is joined or made only on that tap,
   and the answer becomes the profile. A browser with a profile is never asked.
 - **Renaming** is `set_profile`. Most players take the pre-filled name, so every generated name
   must be one you are happy to see win.
@@ -290,7 +290,7 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
   standing, or the host stepping up above the sheet), the host and its bubble leave with the words
   (200 ms) and the next walks on before them (200 ms). An open question's reveal, a hidden page and reduced motion cut instead. An
   event clears the words before its own entrance and return (§12).
-- **Between routes** (Create to the lobby, Home to Join), Create's tabs and Suggest's list and editor the old screen fades out (150 ms) and the new
+- **Between routes** (Create to the lobby, Home to Join), Suggest's list and editor the old screen fades out (150 ms) and the new
   one in (200 ms); reduced motion cuts. A room's first frame waits behind a "Connecting…" popup that
   only appears after 400 ms.
   After the first screen loads, the browser fetches the NPCs, emblems, team logos and pet chatheads
@@ -358,13 +358,21 @@ take-back rule are architecture §7.
   "Your friends join with this code", then on one line the link's prefix ("jollyboar.com/r/"), small,
   the code in the large face, which copies the invite link, and "Copy invite link"; an invite-only
   room has no prefix and says so instead of printing a link that carries its key
-  (an error and the link to copy by hand where the clipboard refuses). Under it, a panel: the
+  (an error and the link to copy by hand where the clipboard refuses). Under it, for a player, a panel: the
   night's line, a card per round A–Z (its host's chathead, name and question count; a hidden
-  round is "A surprise" with the boar; from 9 rounds the 8th tile is "+N more", a popover of every
+  round is "A surprise" with a "?"; from 9 rounds the 8th tile is "+N more", a popover of every
   round that Esc, a click outside or the button closes), "How to play" and "Quicker and correct answers score
-  more." At the table: join requests first, for the host, then a team game's gods, the halves,
-  the Ready switch, and Start (plain at the threshold, "Start anyway" below it, which asks first) or
-  "Waiting for the host to start…". The host taps a pet to kick or promote.
+  more." For the host, the dialogue box and scroll share a row, and Tonight's game takes the rest of the room: its title and tabs on
+  one row, Rounds (the hosts beside Pick for me and the running order), House rules and Random
+  events, sent as they edit, 250 ms after the last change. A host's own question is written in a pop-up, which fills a phone. At the table: the host's Free for all or Teams, then join requests, a team game's gods, the halves,
+  the Ready switch, and Start (plain at the threshold, "Start anyway" below it, which asks first; off
+  until a round is picked) or "Waiting for the host to start…". The host taps a pet to kick or promote.
+- **Doors shut.** `/create` is that lobby before the room exists: "Your room's code" and Reroll on
+  the scroll, Tonight's game under it, and at the head of the table column a room panel, Who can
+  join, Surprise rounds and Open the doors, which goes when they open. Those stay as they are from
+  then on, and only a room with Surprise rounds lets Pick for me keep its draw from the host too.
+  Under 1024px the room panel stands under the scroll, and Tonight's game scrolls inside itself so
+  the table stays in reach.
 - **TV row:** the host's pet menu makes another player or admin the TV ("Make TV", never the
   last admin) and back ("Not the TV"), at once. Its pet wears a screen. The TV gets no ready,
   and its settings no name or pet.

@@ -11,12 +11,15 @@
     count,
     max,
     surprise,
+    canHide,
     onPick,
     onCancel,
   }: {
     count: number
     max: number
     surprise: boolean
+    /** The room hides its rounds, so these can be hidden too. */
+    canHide: boolean
     onPick: (count: number, surprise: boolean) => void
     onCancel: () => void
   } = $props()
@@ -50,13 +53,17 @@
     {max}
     onchange={(value) => (howMany = value)}
   />
-  <label class="secret">
-    <input type="checkbox" bind:checked={secret} />
-    Keep them a surprise
-  </label>
-  <p class="note">Nobody sees them, you included, until each round starts.</p>
+  {#if canHide}
+    <label class="secret">
+      <input type="checkbox" bind:checked={secret} />
+      Keep them a surprise
+    </label>
+    <p class="note">Nobody sees them, you included, until each round starts.</p>
+  {/if}
   <div class="row">
-    <button type="button" class="primary" onclick={() => onPick(howMany, secret)}>Pick</button>
+    <button type="button" class="primary" onclick={() => onPick(howMany, canHide && secret)}
+      >Pick</button
+    >
     <button type="button" onclick={onCancel}>Cancel</button>
   </div>
 </dialog>

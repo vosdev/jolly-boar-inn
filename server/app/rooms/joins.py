@@ -17,10 +17,9 @@ from uuid import UUID, uuid4
 
 import asyncpg
 
-from app.modes import offered
 from app.questions import custom
 from app.questions.schema import QuestionError
-from app.rooms import codes, selection
+from app.rooms import codes
 from app.rooms.errors import (
     BadCode,
     BadKey,
@@ -46,7 +45,7 @@ from app.rooms.models import (
     new_token,
     normalize_name,
 )
-from app.rooms.queries import _fetch_questions, _player_from_row, _question_rows, _room_from_row
+from app.rooms.queries import _player_from_row, _room_from_row
 from app.rooms.settings import RoomSettings
 from app.stats import UNREPORTED, Arrival, Metric, bump, joined
 
@@ -106,15 +105,15 @@ class Joins:
         arrival: Arrival = UNREPORTED,
         code: str | None = None,
     ) -> tuple[Room, Player, str]:
-        """Insert the room, its fixed question set and its admin, in one transaction.
+        """Insert the room and its admin, in one transaction; its questions wait for the start.
 
         ``code`` is the host's preferred one: taken, it is ``CodeTaken`` rather than a
         different code, so the host is never handed one they did not see.
 
-        ``custom_questions`` are the creator's own: stored ``source: room``, ``mode:
-        custom``, with the creator as their author, each placed as a random event. The HTTP
-        body has already checked them and how many there are; they are checked again here
-        for callers that did not come through it, before anything is written.
+        ``custom_questions`` are the creator's own, held until ``start_game`` places each
+        as a random event. The HTTP body has already checked them; they are checked again
+        here for callers that did not come through it, before anything is written. How many
+        fit is the start's to say, since the settings can change until then.
 
         Returns the room, the admin player and their plaintext session token, once.
         """
@@ -134,18 +133,10 @@ class Joins:
             settings = settings.model_copy(update={"max_players": cap})
         elif settings.max_players > cap:
             raise BadSettings(f"max_players may not exceed {cap}")
-        rounds_offered = [
-            mode.id for mode in offered(self.settings, self.packs, self.pictures) if mode.is_round
-        ]
         try:
-            settings = settings.drawn(rounds_offered, self.rng)
+            settings.drawn(self._rounds_offered(), self.rng)
         except ValueError as exc:
             raise BadSettings(str(exc)) from None
-        try:
-            rounds = selection.select(self.packs, own, settings, self.rng, self.pictures)
-        except selection.TooManyEvents as exc:
-            raise BadSettings(str(exc)) from None
-        questions = selection.flatten(rounds)
         session = new_token()
         now = datetime.now(UTC)
         expires_at = now + timedelta(days=self.settings.room_ttl_days)
@@ -160,15 +151,18 @@ class Joins:
                     async with conn.transaction():  # savepoint, so a collision is retryable
                         room_row = await conn.fetchrow(
                             "insert into rooms"
-                            " (code, status, settings, expires_at, invite_key, public)"
-                            " values ($1, 'lobby', $2, $3, $4, $5)"
+                            " (code, status, settings, expires_at, invite_key, public,"
+                            " custom_questions)"
+                            " values ($1, 'lobby', $2, $3, $4, $5, $6)"
                             " returning id, code, status, settings, current_index,"
-                            " created_at, expires_at, finished_at, invite_key, public",
+                            " created_at, expires_at, finished_at, invite_key, public,"
+                            " custom_questions, custom_author",
                             code,
                             settings.model_dump(),
                             expires_at,
                             new_invite_key() if invite_only else None,
                             public,
+                            own,
                         )
                 except asyncpg.UniqueViolationError:
                     return False
@@ -199,20 +193,17 @@ class Joins:
             assert player_row is not None
             await bump(conn, Metric.ROOMS_CREATED)
             await joined(conn, returning, arrival)
-            await conn.executemany(
-                "insert into questions (room_id, position, question_id, type, mode, source,"
-                " payload, host_only, round, random_event, author_player_id)"
-                " values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
-                _question_rows(room_row["id"], questions, player_row["id"], {q["id"] for q in own}),
+            await conn.execute(
+                "update rooms set custom_author = $2 where id = $1",
+                room_row["id"],
+                player_row["id"],
             )
-            # Read them back so a freshly created room holds exactly what a rehydrated
-            # one would, ids included.
-            inserted = await _fetch_questions(conn, room_row["id"])
         code = room_row["code"]
         player = _player_from_row(player_row)
         async with self._locked(code) as lock:
-            room = _room_from_row(room_row, total=len(inserted), lock=lock)
-            room.questions = inserted
+            room = _room_from_row(room_row, total=0, lock=lock)
+            room.custom_author = player_row["id"]
+            self._plan_lobby(room)
             # Before ``setdefault``: the copy that lands in ``self.rooms`` is never re-read,
             # so a room cached without its admin would reject the host's own ``hello``.
             room.players[player.id] = player

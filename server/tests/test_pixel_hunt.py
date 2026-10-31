@@ -18,7 +18,7 @@ from app.questions.types.scoring import Steps
 from app.rooms.selection import select
 from app.rooms.settings import RoomSettings
 from tests.packs import PACKS_DIR
-from tests.rooms_api import create
+from tests.rooms_api import begin, create
 
 sys.path.insert(0, str(REPO_ROOT / "server" / "scripts"))
 
@@ -176,7 +176,8 @@ def test_the_server_offers_pixel_hunt_once_it_has_the_pictures(client: TestClien
     rooms = client.app.state.rooms  # type: ignore[attr-defined]
     rooms.pictures = {asset: "0123456789abcdef.png" for asset in ALL}
     assert listed()
-    code, _ = create(client, modes=[{"mode": "pixel_hunt", "questions": 5}])
+    code, admin = create(client, modes=[{"mode": "pixel_hunt", "questions": 5}])
+    begin(client, code, admin)
     assert client.portal is not None
     room = client.portal.call(rooms.get, code)
     assert [q.mode for q in room.questions] == ["pixel_hunt"] * 5

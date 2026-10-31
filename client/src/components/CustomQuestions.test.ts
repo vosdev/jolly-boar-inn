@@ -68,7 +68,7 @@ async function loaded(): Promise<HTMLElement> {
   for (const name of ['More or Less', 'The Price is Right']) {
     await fireEvent.click(screen.getByRole('checkbox', { name }))
   }
-  await fireEvent.click(screen.getByRole('button', { name: 'Next: Random events' }))
+  await fireEvent.click(screen.getByRole('tab', { name: /· Random events/ }))
   return screen.getByRole('region', { name: 'Write your own' })
 }
 
@@ -110,7 +110,7 @@ async function writeChoice(panel: HTMLElement, prompt: string, npc = ''): Promis
 }
 
 async function submitted(): Promise<CustomQuestion[]> {
-  await fireEvent.click(screen.getByRole('button', { name: 'Create room' }))
+  await fireEvent.click(screen.getByRole('button', { name: 'Open the doors' }))
   await waitFor(() => expect(api.createRoom).toHaveBeenCalledOnce())
   return vi.mocked(api.createRoom).mock.calls[0]![5] as CustomQuestion[]
 }
@@ -442,7 +442,7 @@ describe('CustomQuestions', () => {
   it('will not create the room while a question is open and unsaved', async () => {
     const panel = await loaded()
     await click(panel, 'Write a question')
-    const create = screen.getByRole('button', { name: 'Create room' }) as HTMLButtonElement
+    const create = screen.getByRole('button', { name: 'Open the doors' }) as HTMLButtonElement
     expect(create.disabled).toBe(true)
     expect(document.body.textContent).toContain('Add or cancel the question you are writing')
     await click(editor(), 'Cancel')
@@ -463,7 +463,7 @@ describe('CustomQuestions', () => {
     expect(tick(panel, 3).disabled).toBe(false)
   })
 
-  it('refuses to submit past the event cap, naming the count, the limit and the frequency', async () => {
+  it('warns past the event cap, leaving the doors free to open, naming the count, the limit and the frequency', async () => {
     const panel = await loaded()
     await writeChoice(panel, 'One')
     await writeChoice(panel, 'Two')
@@ -472,12 +472,10 @@ describe('CustomQuestions', () => {
       'Your rounds make room for 1 random event at Less frequency, and you have 2 questions of your own. More frequency would make room for 4.'
     expect(panel.querySelector('.error')?.textContent).toBe(message)
     expect(screen.getAllByText(message)).toHaveLength(2)
-    expect(
-      (screen.getByRole('button', { name: 'Create room' }) as HTMLButtonElement).disabled,
-    ).toBe(true)
     await setFrequency('Default')
+    expect(screen.queryByText(message)).toBeNull()
     expect(
-      (screen.getByRole('button', { name: 'Create room' }) as HTMLButtonElement).disabled,
+      (screen.getByRole('button', { name: 'Open the doors' }) as HTMLButtonElement).disabled,
     ).toBe(false)
   })
 
@@ -621,18 +619,13 @@ describe('CustomQuestions', () => {
     expect(loadBank()).toEqual({ bank: [expect.anything()], dropped: 0 })
   })
 
-  it('loads a bank ticked past these rounds and refuses to submit until it fits', async () => {
+  it('loads a bank ticked past these rounds and says so until it fits', async () => {
     saveBank(['A', 'B', 'C'].map((prompt) => banked(prompt)))
     const panel = await loaded()
     expect(ticks(panel)).toEqual([true, true, true])
     expect(panel.textContent).toContain('you have 3 questions of your own')
-    expect(
-      (screen.getByRole('button', { name: 'Create room' }) as HTMLButtonElement).disabled,
-    ).toBe(true)
     await fireEvent.click(tick(panel, 3))
-    expect(
-      (screen.getByRole('button', { name: 'Create room' }) as HTMLButtonElement).disabled,
-    ).toBe(false)
+    expect(panel.textContent).not.toContain('you have 3 questions of your own')
   })
 
   it('deletes a question, here and in the browser, only once the host confirms', async () => {

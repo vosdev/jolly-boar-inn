@@ -24,6 +24,7 @@ from app.questions.types import (
 from app.questions.types.scoring import Scoring, Steps
 from app.rooms import codes, duration, scoring, segments
 from app.rooms.errors import BadName, NotAdmin
+from app.rooms.plan import Plan
 from app.rooms.settings import RoomSettings
 from app.rooms.teams import God
 from app.stats import Arrival
@@ -342,6 +343,12 @@ class Room:
     requests: dict[str, JoinRequest] = field(default_factory=dict, repr=False)
     sockets: dict[UUID, Outbox] = field(default_factory=dict, repr=False)
     questions: list[RoomQuestion] = field(default_factory=list, repr=False)  # by position
+    # The host's own questions, as envelopes, until ``start_game`` selects them into
+    # ``questions``, and who sent them.
+    custom_questions: list[dict[str, Any]] = field(default_factory=list, repr=False)
+    custom_author: UUID | None = None
+    # A lobby's numbers, until ``questions`` holds the real ones.
+    plan: Plan | None = field(default=None, repr=False)
     # Rebuilt from ``sum(answers.points)`` at every close, never added to.
     totals: dict[UUID, Totals] = field(default_factory=dict, repr=False)
     # Where the round that ``Totals.round_points`` covers starts: the latest close's.
@@ -367,6 +374,16 @@ class Room:
     # Set when the ready check starts, shortens or stops a splash's countdown, so the
     # timer task wakes and sleeps to the new ``next_mono`` rather than the old one.
     rescheduled: asyncio.Event = field(default_factory=asyncio.Event, repr=False)
+
+    @property
+    def round_count(self) -> int:
+        return len(self.segments) if self.plan is None else self.plan.rounds
+
+    @property
+    def event_count(self) -> int:
+        if self.plan is not None:
+            return self.plan.events
+        return sum(q.random_event is not None for q in self.questions)
 
     @property
     def segments(self) -> list[Segment]:
@@ -405,6 +422,8 @@ class Room:
 
     def estimated_seconds(self) -> int:
         """How long the whole game takes at most (``rooms/duration.py``)."""
+        if self.plan is not None:
+            return self.plan.seconds
         return duration.game_seconds(
             [(q.type, q.payload) for q in self.questions],
             len(self.segments),
@@ -454,7 +473,7 @@ class Room:
         settings = self.settings
         rounds = None
         if settings.hide_rounds:
-            rounds = len(self.segments)
+            rounds = self.round_count
             if withhold:
                 current = self.current_segment
                 started = {s.mode for s in self.segments[: current.index + 1]} if current else set()
@@ -466,7 +485,7 @@ class Room:
             settings=settings,
             current_index=self.current_index,
             total=self.total,
-            events=sum(q.random_event is not None for q in self.questions),
+            events=self.event_count,
             phase=self.phase,  # type: ignore[arg-type]
             next_at=self.next_at,
             reveal_seconds=self.reveal_seconds if self.phase == "reveal" else None,
