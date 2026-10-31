@@ -1786,8 +1786,10 @@ describe('a daily room', () => {
       finished_at: '2026-10-31T09:00:00Z',
       daily: DAILY,
     })
-    await arrive(welcome(finished))
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Daily #1')
+    render(Room, { code: 'ABYSSAL', navigate: () => {} })
+    applyServerMessage(welcome(finished))
+    await tick()
+    expect(document.querySelector('.hiscores')).toBeNull()
     expect(pastGames()).toEqual([])
   })
 })

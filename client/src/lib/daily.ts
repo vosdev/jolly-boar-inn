@@ -52,3 +52,30 @@ export function noteDaily(last: LastDaily): void {
 export function resumes(last: LastDaily | null, today: string): boolean {
   return last !== null && (!last.finished || last.day === today)
 }
+
+/** A finished attempt, as `POST /api/daily/result` returns it. */
+export interface DailyResult {
+  day: string
+  number: number
+  points: number
+  /** Full credit only, the 🟩 in the row. */
+  correct: number
+  results: ('right' | 'partial' | 'missed')[]
+}
+
+export const SQUARES: Record<DailyResult['results'][number], string> = {
+  right: '🟩',
+  partial: '🟨',
+  missed: '🟥',
+}
+
+/**
+ * What the copy button gives: the day, the score, the row and a link to `/daily`, and no
+ * answer. The points group in thousands with a comma, whatever the browser's language, so
+ * every pasted result reads alike.
+ */
+export function shareText(result: DailyResult, origin: string): string {
+  const points = result.points.toLocaleString('en-US')
+  const row = result.results.map((one) => SQUARES[one]).join('')
+  return `Daily #${result.number}: ${result.correct}/${result.results.length} · ${points}\n${row}\n${origin}/daily`
+}

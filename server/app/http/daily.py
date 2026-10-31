@@ -1,6 +1,7 @@
-"""``GET /api/daily`` and ``POST /api/daily``: the day's set, played alone and once."""
+"""``GET /api/daily``, ``POST /api/daily`` and ``POST /api/daily/result``: the day's set,
+played alone and once."""
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from typing import Any
 
 from fastapi import APIRouter, Request
@@ -8,6 +9,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.daily import day_of, number_of
+from app.errors import ApiError
 from app.http.ratelimit import client_key
 from app.http.rooms import client_host, manager
 from app.rooms.daily_room import DailyPlayed, DailyResult
@@ -23,6 +25,18 @@ class StartDaily(BaseModel):
     # As on ``CreateRoom``: the profile's name, or one the browser made up.
     display_name: str = Field(max_length=200)
     avatar: str | None = Field(default=None, max_length=64, strict=True)
+
+
+class ResultOf(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    token: str = Field(min_length=16, max_length=200, strict=True)
+    # The attempt's own day, which is yesterday for one that ran past the rollover.
+    day: date
+
+
+class NoResult(ApiError):
+    status, code = 404, "no_result"
 
 
 def result_view(result: DailyResult) -> dict[str, Any]:
@@ -65,3 +79,12 @@ async def start(body: StartDaily, request: Request) -> dict[str, Any] | JSONResp
             status_code=played.status,
         )
     return {"code": code, "session": session}
+
+
+@router.post("/result")
+async def result(body: ResultOf, request: Request) -> dict[str, Any]:
+    """This token's finished attempt on ``day``, for the end screen; it starts nothing."""
+    found = await manager(request).daily_result(body.token, body.day)
+    if found is None:
+        raise NoResult("no finished daily for that day")
+    return result_view(found)

@@ -353,3 +353,23 @@ def test_the_day_and_its_number(quick: FastAPI, client: TestClient) -> None:
 
 def test_the_name_must_be_a_name(quick: FastAPI, client: TestClient) -> None:
     assert start(client, name="!!").status_code == 422
+
+
+def test_the_result_of_a_finished_attempt_starts_nothing(
+    quick: FastAPI, client: TestClient, db
+) -> None:
+    day = day_of(datetime.now(UTC)).isoformat()
+    asked = {"token": TOKEN, "day": day}
+    assert client.post("/api/daily/result", json=asked).status_code == 404
+    code, session = started(client)
+    assert client.post("/api/daily/result", json=asked).status_code == 404
+    with seat(client, code, session) as ws:
+        play(client, code, ws, how=lambda index: "right" if index != 3 else None)
+    body = client.post("/api/daily/result", json=asked).json()
+    assert body["day"] == day
+    assert body["correct"] == 9
+    assert body["results"][3] == "missed"
+    assert body == start(client).json()["result"]
+    other = client.post("/api/daily/result", json={"token": OTHER, "day": day})
+    assert other.status_code == 404
+    assert len(db("select 1 from daily_attempts")) == 1

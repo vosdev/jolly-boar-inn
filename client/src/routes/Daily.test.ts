@@ -5,15 +5,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '../lib/api'
 import { ApiFailure } from '../lib/api'
-import { dailyToken, lastDaily, noteDaily } from '../lib/daily'
+import { dailyToken, lastDaily, noteDaily, type DailyResult } from '../lib/daily'
 import { profile } from '../lib/profile'
 import { getSession } from '../lib/session'
-import { resetRoom } from '../lib/stores'
+import { applyServerMessage, resetRoom } from '../lib/stores'
 import Daily from './Daily.svelte'
 
 vi.mock('../lib/api', async (importOriginal) => {
   const real = await importOriginal<typeof import('../lib/api')>()
-  return { ...real, getDaily: vi.fn(), startDaily: vi.fn() }
+  return { ...real, getDaily: vi.fn(), startDaily: vi.fn(), getDailyResult: vi.fn() }
 })
 
 vi.mock('../lib/ws', () => ({
@@ -27,6 +27,24 @@ vi.mock('../lib/ws', () => ({
 }))
 
 const TODAY = { day: '2026-10-31', number: 12 }
+const RESULT: DailyResult = {
+  day: TODAY.day,
+  number: 12,
+  points: 7420,
+  correct: 7,
+  results: [
+    'right',
+    'right',
+    'partial',
+    'right',
+    'missed',
+    'right',
+    'right',
+    'missed',
+    'partial',
+    'right',
+  ],
+}
 const navigate = vi.fn()
 
 beforeEach(() => {
@@ -35,6 +53,7 @@ beforeEach(() => {
   profile.set(null)
   vi.mocked(api.getDaily).mockResolvedValue(TODAY)
   vi.mocked(api.startDaily).mockResolvedValue({ code: 'AbyssalWhip', session: 'secret' })
+  vi.mocked(api.getDailyResult).mockResolvedValue(RESULT)
 })
 
 afterEach(() => {
@@ -76,12 +95,70 @@ describe('/daily', () => {
     expect(api.startDaily).not.toHaveBeenCalled()
   })
 
-  it('says today’s is played when the server refuses a second', async () => {
+  it('shows the result on a second visit that day', async () => {
     noteDaily({ day: TODAY.day, finished: true })
     vi.mocked(api.startDaily).mockRejectedValue(
       new ApiFailure(409, 'daily_played', 'you have played today’s daily already'),
     )
     render(Daily, { navigate })
-    await screen.findByText(/You have played today's daily/)
+    await screen.findByRole('heading', { name: 'Daily #12' })
+    expect(screen.getByRole('button', { name: 'Copy your result' })).toBeTruthy()
+    expect(api.getDailyResult).toHaveBeenCalledWith(dailyToken(), TODAY.day)
+  })
+
+  it('shows the result for the attempt’s own day when it finishes', async () => {
+    noteDaily({ day: '2026-10-30', finished: false })
+    render(Daily, { navigate })
+    await vi.waitFor(() => expect(getSession('AbyssalWhip')).toBe('secret'))
+    applyServerMessage({
+      t: 'welcome',
+      room: {
+        code: 'AbyssalWhip',
+        status: 'finished',
+        settings: {
+          modes: [],
+          mode_order: 'listed',
+          random_event_frequency: 'default',
+          pace: 'run',
+          difficulty: 'mixed',
+          standings_seconds: 0,
+          close_when_all_answered: true,
+          max_players: 1,
+          name_wrong_answers: false,
+          teams: [],
+        },
+        current_index: 9,
+        total: 10,
+        events: 0,
+        phase: 'idle',
+        next_at: null,
+        reveal_seconds: null,
+        estimated_seconds: 0,
+        played: [],
+        segment: null,
+        finished_at: '2026-10-31T08:05:00Z',
+        daily: { day: '2026-10-30', number: 11 },
+      },
+      you: {
+        id: 'a',
+        display_name: 'Zezima',
+        role: 'player',
+        connected: true,
+        avatar: null,
+        ready: false,
+        editing: false,
+        team: null,
+      },
+      players: [],
+      question: null,
+      your_answer: null,
+      standings: [],
+      team_standings: null,
+      server_time: new Date().toISOString(),
+      server_version: __APP_VERSION__,
+    })
+    await screen.findByRole('button', { name: 'Copy your result' })
+    expect(api.getDailyResult).toHaveBeenCalledWith(dailyToken(), '2026-10-30')
+    expect(lastDaily()).toEqual({ day: '2026-10-30', finished: true })
   })
 })

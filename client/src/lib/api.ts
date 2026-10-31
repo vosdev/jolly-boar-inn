@@ -13,6 +13,7 @@
 
 import { storedAdminToken } from './admin'
 import type { HostQuestion } from './customQuestions'
+import type { DailyResult } from './daily'
 import type {
   EventFrequency,
   ModeSettings,
@@ -262,6 +263,14 @@ export function startDaily(
   return request('/api/daily', {
     method: 'POST',
     body: JSON.stringify({ token, display_name: displayName, avatar }),
+  })
+}
+
+/** This browser's finished daily on `day`, for the end screen. Starts nothing. */
+export function getDailyResult(token: string, day: string): Promise<DailyResult> {
+  return request<DailyResult>('/api/daily/result', {
+    method: 'POST',
+    body: JSON.stringify({ token, day }),
   })
 }
 

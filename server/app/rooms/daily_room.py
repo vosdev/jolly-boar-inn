@@ -170,6 +170,17 @@ class DailyRooms:
                 raise DailyPlayed(self._daily_result(row["day"], row["points"], row["results"]))
         return None
 
+    async def daily_result(self, token: str, day: date) -> DailyResult | None:
+        """This token's finished attempt on ``day``, or ``None``: an end screen's numbers."""
+        pool = await self._pool()
+        row = await pool.fetchrow(
+            "select points, results from daily_attempts"
+            " where day = $1 and token_hash = $2 and finished_at is not null",
+            day,
+            hash_token(token),
+        )
+        return None if row is None else self._daily_result(day, row["points"], row["results"])
+
     def _daily_result(self, day: date, points: int, results: Sequence[str]) -> DailyResult:
         number = number_of(day, self.settings.daily_first_day)
         # An attempt whose room went mid-game missed what it never reached.

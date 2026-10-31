@@ -501,13 +501,8 @@
         <Lobby {socket} />
       {/if}
     {:else if $room.status === 'finished' && daily !== null}
-      <section class="panel">
-        <h1>Daily #{daily.number}</h1>
-        <p>{$standings[0]?.points ?? 0} points</p>
-        <div class="row">
-          <button type="button" onclick={leave}>Home</button>
-        </div>
-      </section>
+      <!-- `/daily` swaps this for the result as soon as it has it. -->
+      <Connecting />
     {:else if $room.status === 'finished'}
       <FinalStandings
         standings={$standings}

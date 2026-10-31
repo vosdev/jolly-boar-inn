@@ -460,7 +460,10 @@ one question a round, with one `player` and settings `run`, early close, no name
   (`jbi:daily:token`), stored as sha256 in `daily_attempts` under the attempt's day, once per day.
   An unfinished attempt resumes, whatever its day, with a new session; a finished one today is
   409 `daily_played` with its `result` `{day, number, points, correct, results}`. A gone room ends
-  its attempt there. `GET /api/daily` → `{day, number}`.
+  its attempt there. `GET /api/daily` → `{day, number}`. `POST /api/daily/result {token, day}`
+  returns a finished attempt's `result`, or 404, and starts nothing.
+- The end screen, and `/daily` after playing, shows the result and copies a share text without
+  answers: `Daily #12: 7/10 · 7,420`, a row of 🟩 full, 🟨 partial, 🟥 none, and `location.origin/daily`.
 - Join, requests and `GET /api/rooms/{code}` answer 404 for it, and Home never lists it. The first
   question opens on the player's first `hello`; no splash, no standings, no Past games entry.
 - The reveal has no countdown: Next is the player's `skip`, and the server moves on after 300 s.

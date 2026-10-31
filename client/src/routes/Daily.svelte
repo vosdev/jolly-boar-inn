@@ -5,15 +5,17 @@
    * Start asks the server for a room built from the stored set (`POST /api/daily`) and
    * plays it in `Room`, which knows a daily room by `room.daily`. Opening the page again
    * while an attempt runs, or after one today, goes straight to the server, which resumes
-   * the attempt with a fresh session or refuses with `daily_played`.
+   * the attempt with a fresh session or refuses with `daily_played`. Either end, finishing
+   * or that refusal, shows the result (`DailyResult`), fetched for the attempt's own day.
    *
    * The name is the profile's, else a generated one. Nobody else sees it.
    */
   import { onMount } from 'svelte'
   import { get } from 'svelte/store'
 
-  import { ApiFailure, getDaily, startDaily, type DailyToday } from '../lib/api'
-  import { dailyToken, lastDaily, noteDaily, resumes } from '../lib/daily'
+  import DailyResultScreen from '../components/DailyResult.svelte'
+  import { ApiFailure, getDaily, getDailyResult, startDaily, type DailyToday } from '../lib/api'
+  import { dailyToken, lastDaily, noteDaily, resumes, type DailyResult } from '../lib/daily'
   import { generateName } from '../lib/names'
   import { profile } from '../lib/profile'
   import { setSession } from '../lib/session'
@@ -26,7 +28,7 @@
     | { name: 'loading' }
     | { name: 'intro'; today: DailyToday }
     | { name: 'playing'; code: string }
-    | { name: 'played'; today: DailyToday }
+    | { name: 'result'; result: DailyResult }
     | { name: 'error'; message: string }
 
   let view = $state<View>({ name: 'loading' })
@@ -60,7 +62,7 @@
     } catch (error) {
       if (error instanceof ApiFailure && error.code === 'daily_played') {
         noteDaily({ day: today.day, finished: true })
-        view = { name: 'played', today }
+        await showResult(today.day)
       } else {
         view = { name: 'error', message: error instanceof Error ? error.message : String(error) }
       }
@@ -69,11 +71,21 @@
     }
   }
 
+  async function showResult(day: string): Promise<void> {
+    try {
+      view = { name: 'result', result: await getDailyResult(dailyToken(), day) }
+    } catch (error) {
+      view = { name: 'error', message: error instanceof Error ? error.message : String(error) }
+    }
+  }
+
   // The day comes from the room, since a resumed attempt can be yesterday's.
   $effect(() => {
     const daily = $room?.daily
     if (view.name !== 'playing' || daily == null) return
-    noteDaily({ day: daily.day, finished: $room?.status === 'finished' })
+    const finished = $room?.status === 'finished'
+    noteDaily({ day: daily.day, finished })
+    if (finished) void showResult(daily.day)
   })
 </script>
 
@@ -81,6 +93,8 @@
   {#key view.code}
     <Room code={view.code} {navigate} />
   {/key}
+{:else if view.name === 'result'}
+  <DailyResultScreen result={view.result} onHome={() => navigate('/')} />
 {:else}
   <section class="panel daily">
     {#if view.name === 'loading'}
@@ -95,12 +109,6 @@
           disabled={starting}
           onclick={() => view.name === 'intro' && begin(view.today)}>Start</button
         >
-        <button type="button" onclick={() => navigate('/')}>Home</button>
-      </div>
-    {:else if view.name === 'played'}
-      <h1>Daily #{view.today.number}</h1>
-      <p>You have played today's daily. Come back tomorrow.</p>
-      <div class="row">
         <button type="button" onclick={() => navigate('/')}>Home</button>
       </div>
     {:else}
