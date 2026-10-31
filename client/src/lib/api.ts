@@ -240,6 +240,31 @@ export function joinRoom(
   })
 }
 
+export interface DailyToday {
+  day: string
+  number: number
+}
+
+/** Today's daily, before anything is started. */
+export function getDaily(): Promise<DailyToday> {
+  return request<DailyToday>('/api/daily')
+}
+
+/**
+ * Start this browser's daily, or resume its unfinished one: the room and a fresh session.
+ * A daily played today is a 409 `daily_played`. The token goes in the body, like a session.
+ */
+export function startDaily(
+  token: string,
+  displayName: string,
+  avatar: string | undefined,
+): Promise<{ code: string; session: string }> {
+  return request('/api/daily', {
+    method: 'POST',
+    body: JSON.stringify({ token, display_name: displayName, avatar }),
+  })
+}
+
 /**
  * Ask an invite-only room's host to let you in without its key. The ticket answers to
  * `pollRequest` and `cancelRequest`, in their bodies only, like a session. `arrival` is

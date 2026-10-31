@@ -20,6 +20,7 @@ from app.errors import ApiError
 from app.http import (
     admin,
     credits,
+    daily,
     modes,
     players,
     questions,
@@ -38,6 +39,7 @@ from app.http.headers import SecurityHeaders, content_security_policy
 from app.http.jsonbody import JsonBody
 from app.http.metrics import HttpMetrics
 from app.http.ratelimit import (
+    DAILIES_PER_HOUR,
     FREE_CODES,
     FREE_CODES_WINDOW,
     JOIN_FAILURES_PER_HOUR,
@@ -278,6 +280,7 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
     app.state.reports = RateLimiter(REPORTS_PER_HOUR, name="reports")
     app.state.similar = RateLimiter(SIMILAR_PER_HOUR, name="similar")
     app.state.tries = RateLimiter(TRIES_PER_HOUR, name="tries")
+    app.state.dailies = RateLimiter(DAILIES_PER_HOUR, name="dailies")
     app.add_middleware(JsonBody)  # inside BodyLimit, so an oversized body is a 413 first
     app.add_middleware(BodyLimit)
     app.add_middleware(HttpMetrics)
@@ -294,6 +297,7 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
         return JSONResponse({"ok": db, "db": db}, status_code=200 if db else 503)
 
     app.include_router(rooms.router)
+    app.include_router(daily.router)
     app.include_router(players.router)
     app.include_router(stats.router)
     app.include_router(modes.router)

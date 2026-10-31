@@ -18,6 +18,7 @@ from app.stats import (
     LAST_ROUND_KEY,
     PLAYER_BUCKETS,
     ROUND_BUCKETS,
+    DailyKey,
     Device,
     JoinFailure,
     Metric,
@@ -672,6 +673,7 @@ def keys_allowed() -> dict[Metric, set[str]]:
         Metric.DEVICES: set(get_args(Device)),
         Metric.JOIN_ROUTES: set(get_args(Route)),
         Metric.JOIN_FAILURES: set(get_args(JoinFailure)),
+        Metric.DAILY: set(get_args(DailyKey)),
     }
 
 

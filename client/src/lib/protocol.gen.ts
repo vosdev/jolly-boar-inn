@@ -256,6 +256,10 @@ export interface RoomView {
    * its admins only, as the key is.
    */
   requests?: JoinRequestView[]
+  /**
+   * A daily room's day. Its reveal waits for the player's `skip` instead of a countdown.
+   */
+  daily?: Daily
 }
 /**
  * A room's settings as stored in and read back from `rooms.settings`.
@@ -371,6 +375,19 @@ export interface JoinRequestView {
    * As on `PlayerView`.
    */
   avatar: string | null
+}
+/**
+ * The day's set a daily room plays: one player, alone, once.
+ */
+export interface Daily {
+  /**
+   * The date the set's 08:00 UTC window opened on.
+   */
+  day: string
+  /**
+   * The day's number, counting `DAILY_FIRST_DAY` as #1.
+   */
+  number: number
 }
 export interface PlayerView {
   id: string
@@ -567,9 +584,10 @@ export interface QuestionClosed {
   team_standings: TeamStanding[] | null
   next_at: string | null
   /**
-   * How long this reveal holds, even for the last question, whose `next_at` is null.
+   * How long this reveal holds, even for the last question. Null in a daily room, whose
+   * reveal waits for the player.
    */
-  reveal_seconds: number
+  reveal_seconds: number | null
   /**
    * The player who suggested the question, when they asked to be named. Left out otherwise.
    */

@@ -9,7 +9,7 @@ The shared shapes (``RoomView``, ``PlayerView``, ``Standing``, ``OpenQuestion``)
 too, because the HTTP room view is the same ``RoomView`` the websocket sends.
 """
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
@@ -71,6 +71,15 @@ class Segment(_Message):
     """Questions in the round."""
 
 
+class Daily(_Message):
+    """The day's set a daily room plays: one player, alone, once."""
+
+    day: date
+    """The date the set's 08:00 UTC window opened on."""
+    number: int
+    """The day's number, counting ``DAILY_FIRST_DAY`` as #1."""
+
+
 class JoinRequestView(_Message):
     id: UUID
     display_name: str
@@ -130,6 +139,8 @@ class RoomView(_Message):
     """Who is asking to be let in without the key, oldest first: an invite-only room's, sent to
     its admins only, as the key is.
     """
+    daily: Daily | None = Field(default=None, exclude_if=lambda daily: daily is None)
+    """A daily room's day. Its reveal waits for the player's ``skip`` instead of a countdown."""
 
 
 class PlayerView(_Message):
@@ -499,8 +510,9 @@ class QuestionClosed(_Message):
     standings: list[Standing]
     team_standings: list[TeamStanding] | None
     next_at: datetime | None
-    reveal_seconds: int
-    """How long this reveal holds, even for the last question, whose ``next_at`` is null."""
+    reveal_seconds: int | None
+    """How long this reveal holds, even for the last question. Null in a daily room, whose
+    reveal waits for the player."""
     suggested_by: str | None = Field(default=None, exclude_if=lambda name: name is None)
     """The player who suggested the question, when they asked to be named. Left out otherwise."""
 

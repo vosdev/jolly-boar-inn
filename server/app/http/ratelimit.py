@@ -39,6 +39,9 @@ SIMILAR_PER_HOUR = 120
 TRIES_PER_HOUR = 600
 # A player reports what they just met in a game, a question or two; not a review of the packs.
 REPORTS_PER_HOUR = 3
+# Daily starts per address, refreshes and resumes aside: a household on one address plays a
+# few each, and a private window is a new start.
+DAILIES_PER_HOUR = 10
 
 
 class RateLimited(ApiError):

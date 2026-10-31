@@ -48,6 +48,7 @@ LimiterName = Literal[
     "reports",
     "similar",
     "tries",
+    "dailies",
     "ws_messages",
 ]
 DisconnectReason = Literal[

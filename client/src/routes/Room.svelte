@@ -168,6 +168,8 @@
   )
 
   const isAdmin = $derived($you?.role === 'admin')
+  /** A daily attempt: one player, a Next button for a reveal, and a result for an end. */
+  const daily = $derived($room?.daily ?? null)
   /** The position, 0-based. `index` is it while open; `current_index` survives a close. */
   const position = $derived($question?.index ?? $room?.current_index ?? 0)
   /**
@@ -199,7 +201,7 @@
   // spelling once the room answers, so a copied link reads as the word.
   $effect(() => {
     const spelled = $room?.code
-    if (spelled === undefined || normalizeCode(spelled) !== code) return
+    if (spelled === undefined || daily !== null || normalizeCode(spelled) !== code) return
     const path = `/r/${spelled}`
     if (location.pathname !== path) history.replaceState(history.state, '', path + location.hash)
   })
@@ -228,7 +230,8 @@
       })
     } else if (
       (current.phase === 'reveal' || current.phase === 'standings') &&
-      current.next_at !== null
+      current.next_at !== null &&
+      daily === null
     ) {
       const standing = current.phase === 'standings'
       const revealed = $lastClosed?.was ?? open
@@ -497,6 +500,14 @@
       {#if socket !== null}
         <Lobby {socket} />
       {/if}
+    {:else if $room.status === 'finished' && daily !== null}
+      <section class="panel">
+        <h1>Daily #{daily.number}</h1>
+        <p>{$standings[0]?.points ?? 0} points</p>
+        <div class="row">
+          <button type="button" onclick={leave}>Home</button>
+        </div>
+      </section>
     {:else if $room.status === 'finished'}
       <FinalStandings
         standings={$standings}
@@ -611,10 +622,22 @@
           <section class="panel">
             <p class="note">
               {$room.phase === 'reveal'
-                ? 'Between questions — the next one opens shortly.'
+                ? daily !== null
+                  ? 'Between questions.'
+                  : 'Between questions — the next one opens shortly.'
                 : 'Waiting for the next question…'}
             </p>
           </section>
+        {/if}
+
+        {#if daily !== null && $room.phase === 'reveal'}
+          <div class="row next">
+            <button type="button" class="primary" onclick={skip}>
+              {$room.current_index !== null && $room.current_index + 1 >= $room.total
+                ? 'See your score'
+                : 'Next'}
+            </button>
+          </div>
         {/if}
       </div>
     {/if}
@@ -655,6 +678,11 @@
   /* On the desktop frame a question's column is as wide as the stage it holds. */
   :global(.fitted) .column {
     max-width: var(--stage-wide);
+  }
+
+  .next {
+    justify-content: center;
+    margin-top: 1rem;
   }
 
   .round {

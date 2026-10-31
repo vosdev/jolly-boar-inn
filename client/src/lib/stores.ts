@@ -175,6 +175,8 @@ const ANSWER_REJECTED: ReadonlySet<string> = new Set(['not_open', 'excluded', 'b
 function fileFinishedGame(): void {
   const current = get(room)
   if (current?.status !== 'finished' || current.finished_at === null) return
+  // A daily has its own end screen, and Past games are rooms to look back on with others.
+  if (current.daily != null) return
   savePastGame({
     code: current.code,
     finishedAt: current.finished_at,

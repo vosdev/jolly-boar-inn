@@ -13,6 +13,7 @@
    *   /admin/:tab      on its overview, or on its suggestions, reports or questions tab
    *   /suggest         A question for the packs, linked from Home once this browser has played
    *   /report          A problem with a pack question, linked from the same place
+   *   /daily           The day's set, played alone and once
    *
    * `/r/:code/admin` was the claim screen. It still matches, and now resolves like
    * `/r/:code`: somebody holding a stale host link knows the code, and sending them to
@@ -32,6 +33,7 @@
   import TopBar from './components/TopBar.svelte'
   import Admin from './routes/Admin.svelte'
   import Create from './routes/Create.svelte'
+  import Daily from './routes/Daily.svelte'
   import History from './routes/History.svelte'
   import Home from './routes/Home.svelte'
   import Join from './routes/Join.svelte'
@@ -62,6 +64,7 @@
     | { name: 'admin'; tab: AdminTab }
     | { name: 'suggest' }
     | { name: 'report' }
+    | { name: 'daily' }
 
   // Section 1 lists `/r/:code/create` as well; it resolves to the same Create screen.
   const ROOM_PATH = /^\/r\/([A-Za-z0-9]{1,32})(?:\/(admin|create))?$/
@@ -78,6 +81,7 @@
     if (tab !== null) return { name: 'admin', tab }
     if (path === '/suggest') return { name: 'suggest' }
     if (path === '/report') return { name: 'report' }
+    if (path === '/daily') return { name: 'daily' }
     const view = howToViewOf(path, SHOWN)
     if (view !== null) return { name: 'how-to', view }
     const past = HISTORY_PATH.exec(path)
@@ -111,10 +115,18 @@
   /** The room's TV, which is watched from across the room: no footer, and a bar that hides. */
   const tv = $derived(route.name === 'room' && $you?.role === 'tv')
   /** A room runs the bar across the window; its lobby alone has the footer under it. */
-  const inRoom = $derived((route.name === 'room' && !tv) || route.name === 'create')
+  const inRoom = $derived(
+    (route.name === 'room' && !tv) ||
+      route.name === 'create' ||
+      (route.name === 'daily' && $roomShown !== null),
+  )
   // A past game is drawn as the room's final, which has none either.
   const footer = $derived(
-    route.name === 'history' ? false : route.name !== 'room' || (!tv && $room?.status === 'lobby'),
+    route.name === 'history'
+      ? false
+      : route.name === 'daily'
+        ? $roomShown === null
+        : route.name !== 'room' || (!tv && $room?.status === 'lobby'),
   )
   $effect(() => wearTeam(team))
 
@@ -136,6 +148,7 @@
       route.name !== 'suggest' &&
       route.name !== 'report' &&
       route.name !== 'how-to' &&
+      route.name !== 'daily' &&
       !invite &&
       (location.hash !== '' || currentPath().endsWith('/admin'))
     ) {
@@ -195,6 +208,8 @@
         <Suggest {navigate} />
       {:else if route.name === 'report'}
         <Report {navigate} />
+      {:else if route.name === 'daily'}
+        <Daily {navigate} />
       {:else if route.name === 'history'}
         {#key `${route.code}/${route.stamp}`}
           <History code={route.code} stamp={route.stamp} {navigate} />
