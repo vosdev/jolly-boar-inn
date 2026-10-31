@@ -20,7 +20,7 @@ from typing import Any
 from fastapi import APIRouter, Request
 
 from app.modes import offered, questions_bounds
-from app.questions.packs import mode_questions
+from app.questions.packs import live_packs, mode_questions
 from app.rooms.duration import typical_seconds
 
 router = APIRouter(prefix="/api/modes")
@@ -33,7 +33,7 @@ def list_modes(request: Request) -> list[dict[str, Any]]:
     A mode the instance has not switched on (``Mode.setting``) is left out, so the form
     never offers what ``POST /api/rooms`` would refuse.
     """
-    packs = request.app.state.packs
+    packs = live_packs(request.app.state.packs)
     # Without its lifespan the app has no rooms, and so no pictures.
     rooms = request.app.state.rooms
     pictures = {} if rooms is None else rooms.pictures

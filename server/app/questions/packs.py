@@ -46,6 +46,10 @@ EVENT_PACK_KEYS = {"pack", "random_event", "questions"}
 # The NPCs' own questions, one file each, under the packs directory.
 EVENTS_DIR = "random_events"
 EVENT_MODE = "random_event"
+# Hand-written prices from one day: the Grand Exchange has moved since. A room draws them only
+# on an instance with no generated prices, which would otherwise have no More or Less.
+STALE_PACKS = frozenset({"sample"})
+PRICES_PACK = "prices"
 
 
 class PackError(ValueError):
@@ -164,6 +168,14 @@ def _repeated_prompts(
         else:
             seen[key] = (payload["answer_id"], f"{label} questions[{index}]")
     return errors
+
+
+def live_packs(packs: Iterable[Pack]) -> list[Pack]:
+    """The packs a room may draw from: the stale ones only while no prices are generated."""
+    packs = list(packs)
+    if not any(pack.name == PRICES_PACK for pack in packs):
+        return packs
+    return [pack for pack in packs if pack.name not in STALE_PACKS]
 
 
 def mode_questions(packs: Iterable[Pack], mode: str) -> list[dict[str, Any]]:

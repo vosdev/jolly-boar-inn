@@ -25,7 +25,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from app.modes import MODES, drawable
-from app.questions.packs import EVENT_MODE, Pack
+from app.questions.packs import EVENT_MODE, Pack, live_packs
 from app.random_events import RANDOM_EVENTS
 from app.rooms.settings import EVENT_EVERY, TIERS, RoomSettings, event_windows
 
@@ -98,7 +98,7 @@ def select(
     A ``pictured`` mode's pool holds only the questions whose picture is in ``pictures``.
     """
     pools: dict[str, list[dict[str, Any]]] = {}
-    for pack in packs:
+    for pack in live_packs(packs):
         for question in pack.questions:
             if drawable(question, pictures):
                 pools.setdefault(question["mode"], []).append(question)

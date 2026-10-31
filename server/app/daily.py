@@ -21,7 +21,7 @@ import asyncpg
 
 from app.config import Settings
 from app.modes import drawable, offered
-from app.questions.packs import EVENT_MODE, Pack
+from app.questions.packs import EVENT_MODE, STALE_PACKS, Pack, live_packs
 
 DAY_OPENS = timedelta(hours=8)
 SET_SIZE = 10
@@ -31,8 +31,6 @@ TYPE_LIMITS = {"multiple_choice": 3}
 REST_DAYS = 60
 # A draw can corner itself on the caps, and a short pool wants the fewest returning questions.
 TRIES = 100
-# Fixed prices, kept for an instance with no generated pack: a daily never asks stale ones.
-LEFT_OUT_PACKS = frozenset({"sample"})
 
 
 class NoDailySet(RuntimeError):
@@ -89,8 +87,8 @@ def candidates(
     }
     return [
         question
-        for pack in packs
-        if pack.name not in LEFT_OUT_PACKS
+        for pack in live_packs(packs)
+        if pack.name not in STALE_PACKS
         for question in pack.questions
         if question["mode"] in modes and drawable(question, pictures)
     ]

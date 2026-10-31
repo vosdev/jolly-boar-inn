@@ -142,10 +142,12 @@ def drawable(question: dict[str, Any], pictures: Collection[str]) -> bool:
 def offered(settings: Any, packs: Iterable[Pack], pictures: Collection[str] = ()) -> list[Mode]:
     """The modes this instance lets a host pick: switched on, and a round only with questions
     it can draw, given the ``pictures`` it has."""
+    from app.questions.packs import live_packs  # packs import this module
+
     # The price pack is generated on each instance, so a fresh clone has none yet.
     pooled = {
         question["mode"]
-        for pack in packs
+        for pack in live_packs(packs)
         for question in pack.questions
         if drawable(question, pictures)
     }

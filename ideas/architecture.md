@@ -25,7 +25,7 @@ Dockerfile, docker-compose.yml     three-stage image + data; app + postgres:18 (
 Makefile, .github/workflows/ci.yml all, setup, dev, lint, test, gen-*, import-suggestions, edit-packs,
                                    edit-roster, rehash-questions, fetch-assets, logo, image; CI: audit, release
 schema/                            question.schema.json (section 4), protocol.schema.json (section 6)
-data/packs/                        prices (generated, ignored), examine, sample, random_events/
+data/packs/                        prices (generated, ignored), examine, sample (stale), random_events/
 data/                              assets, pets, popular-items/-npcs, player-names, room-words
 branding/                          a selfhoster's logo, gitignored
 monitoring/                        Prometheus scrape config and alert rules, starter Grafana dashboard
@@ -301,7 +301,7 @@ The daily set (`app/daily.py`) is ten questions for everyone. A day runs from 08
 and stores it (section 11), with no cron, never seeded from the date, since the packs are public.
 
 - The pool is the offered rounds' own pools and the NPCs': never a mode with a `pool`, so never
-  `random_events_only`, a host's question, an undrawable one, or `sample.json`'s fixed prices.
+  `random_events_only`, a host's question, an undrawable one, or `sample.json`'s stale prices.
 - Each place draws a random mode, then a question in it: by question, the largest pools would take
   their places every day.
 - At most 2 per `mode`, so the NPCs' pool counts as one and a round's own NPC question counts under
@@ -816,7 +816,7 @@ key into them, so cleanup leaves it.
 ## 12. Data pipeline
 
 Packs are committed, bar `prices.json`: each instance generates its own, and offers no Price is
-Right until it does (More/Less keeps `sample.json`'s five). The tests generate one offline (`tests/packs.py`).
+Right until it does (More/Less keeps `sample.json`'s five, which `live_packs` drops once `prices.json` exists). The tests generate one offline (`tests/packs.py`).
 
 - The `make` targets for scripts that write into the checkout (`gen-*`, `fetch-assets`, `logo`) run
   them in `docker-compose.data.yml`, so a host needs only git, docker and make. Its `data` stage is

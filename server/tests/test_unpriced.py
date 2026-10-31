@@ -2,7 +2,7 @@
 
 The price pack is generated on each instance and never committed, so until it exists a
 round it alone feeds is left out everywhere a host or a player could pick it. More/Less
-keeps the five questions of ``sample.json``.
+keeps the five questions of ``sample.json``, which a priced instance never draws.
 """
 
 import shutil
