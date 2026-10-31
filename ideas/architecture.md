@@ -29,7 +29,7 @@ data/packs/                        prices (generated, ignored), examine, sample,
 data/                              assets, pets, popular-items/-npcs, player-names, room-words
 branding/                          a selfhoster's logo, gitignored
 monitoring/                        Prometheus scrape config and alert rules, starter Grafana dashboard
-server/app/                        main, config, db, static, accesslog, errors, metrics, pets,
+server/app/                        main, config, db, static, accesslog, errors, metrics, pets, daily,
                                    random_events, suggestions, reports, question_edits, roster_edits
 server/app/rooms/                  state (RoomManager), joins, lobby, loop (its parts), models,
                                    errors, queries, settings, selection, segments, scoring, ready, codes
@@ -295,6 +295,21 @@ Writing an NPC's questions:
 `segments_of` groups rows into rounds by the stored `questions.round`, and an event carries the round
 it interrupts. Deriving rounds fails silently: settings break on a short round, runs of `mode` on an
 event.
+
+The daily set (`app/daily.py`) is ten questions for everyone. A day runs from 08:00 UTC to the next
+08:00 UTC and carries the date it opens on; `DAILY_FIRST_DAY` is #1. The day's first request draws
+and stores it (section 11), with no cron, never seeded from the date, since the packs are public.
+
+- The pool is the offered rounds' own pools and the NPCs': never a mode with a `pool`, so never
+  `random_events_only`, a host's question, an undrawable one, or `sample.json`'s fixed prices.
+- Each place draws a random mode, then a question in it: by question, the largest pools would take
+  their places every day.
+- At most 2 per `mode`, so the NPCs' pool counts as one and a round's own NPC question counts under
+  that round, keeping its face. At most 3 `multiple_choice` and 2 of any other type, which makes
+  at least 5 types.
+- A question rests 60 days, tracked by id, but `price_is_right` by item and `more_less` by metric and
+  pair, whose ids change with the prices. A short pool brings back the oldest-used; a pool the
+  caps cannot fill raises and stores nothing. The play order is a shuffle.
 
 ## 6. Websocket protocol
 
@@ -718,6 +733,9 @@ key into them, so cleanup leaves it.
   missing room may be a Past games link), so it reports each to `POST /api/stats/join-failure
   {reason}`, 30 an hour per address, and the server counts no failure itself.
 
+- `daily_sets (day, questions, created_at)` holds each day's set whole, in play order, under the
+  date its window opens (section 5), so a restart or a pack edit leaves it. It has no key into
+  `rooms` and is never cleaned up: the draw reads it for when a question was last used.
 - `answers.points` is written once, at close, and standings are its sum. Memory keeps the same sum
   and reloads it on rehydrate. Scores are never tracked separately.
 - `questions.payload` holds the envelope extras at the top and the type payload under `payload`, so
