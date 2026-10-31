@@ -34,6 +34,7 @@ from app.rooms.errors import (
     RequestGone,
     RequestsFull,
     RoomFull,
+    RoomNotFound,
 )
 from app.rooms.models import (
     JoinRequest,
@@ -92,6 +93,19 @@ def _check_seat(room: Room) -> None:
 
 class Joins:
     """The ``RoomManager`` methods that make a room or let a player into one."""
+
+    async def get_listed(self, code: str) -> Room:
+        """``get`` for a stranger holding a code: a daily room is nobody else's to find."""
+        code = code.upper()
+        async with self._locked(code):
+            return await self._listed_room(code)
+
+    async def _listed_room(self, code: str) -> Room:
+        """``_room``, but a daily room reads as missing. Call with the room lock held."""
+        room = await self._room(code)
+        if room.daily is not None:
+            raise RoomNotFound(f"no room {code}")
+        return room
 
     async def create(
         self,
@@ -232,7 +246,7 @@ class Joins:
         name = normalize_name(display_name)
         self.check_avatar(avatar)
         async with self._locked(code):
-            room = await self._room(code)
+            room = await self._listed_room(code)
             _check_key(room, key)
             _check_joinable(room)
             player, session = await self._admit(room, name, avatar, returning, arrival)
@@ -284,7 +298,7 @@ class Joins:
         self.check_avatar(avatar)
         ticket = new_token()
         async with self._locked(code):
-            room = await self._room(code)
+            room = await self._listed_room(code)
             if room.invite_key is None:
                 raise BadState(f"room {code} takes anyone with its code")
             _check_joinable(room)
@@ -316,7 +330,7 @@ class Joins:
         """
         code = code.upper()
         async with self._locked(code):
-            room = await self._room(code)
+            room = await self._listed_room(code)
             _check_lobby(room)
             request = room.requests.get(hash_token(ticket))
             if request is None:
@@ -343,7 +357,7 @@ class Joins:
         """The requester gave up. A ticket that is no longer waiting is nothing to cancel."""
         code = code.upper()
         async with self._locked(code):
-            room = await self._room(code)
+            room = await self._listed_room(code)
             request = room.requests.pop(hash_token(ticket), None)
             if request is None:
                 return

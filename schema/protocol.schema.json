@@ -198,6 +198,27 @@
         }
       ]
     },
+    "Daily": {
+      "additionalProperties": false,
+      "description": "The day's set a daily room plays: one player, alone, once.",
+      "properties": {
+        "day": {
+          "description": "The date the set's 08:00 UTC window opened on.",
+          "format": "date",
+          "type": "string"
+        },
+        "number": {
+          "description": "The day's number, counting ``DAILY_FIRST_DAY`` as #1.",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "day",
+        "number"
+      ],
+      "title": "Daily",
+      "type": "object"
+    },
     "DecideRequest": {
       "additionalProperties": false,
       "description": "Let a join request in, or turn it away. Lobby of an invite-only room only.",
@@ -825,8 +846,15 @@
           ]
         },
         "reveal_seconds": {
-          "description": "How long this reveal holds, even for the last question, whose ``next_at`` is null.",
-          "type": "integer"
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "How long this reveal holds, even for the last question. Null in a daily room, whose\nreveal waits for the player."
         },
         "suggested_by": {
           "description": "The player who suggested the question, when they asked to be named. Left out otherwise.",
@@ -1174,6 +1202,10 @@
             "$ref": "#/$defs/JoinRequestView"
           },
           "type": "array"
+        },
+        "daily": {
+          "$ref": "#/$defs/Daily",
+          "description": "A daily room's day. Its reveal waits for the player's ``skip`` instead of a countdown."
         }
       },
       "required": [

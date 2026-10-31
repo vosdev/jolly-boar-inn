@@ -13,6 +13,7 @@
 
 import { storedAdminToken } from './admin'
 import type { HostQuestion } from './customQuestions'
+import type { DailyResult } from './daily'
 import type {
   EventFrequency,
   ModeSettings,
@@ -237,6 +238,39 @@ export function joinRoom(
   return request<Credentials>(`/api/rooms/${encodeURIComponent(code)}/join`, {
     method: 'POST',
     body: JSON.stringify({ display_name: displayName, avatar, returning, key, ...arrival }),
+  })
+}
+
+export interface DailyToday {
+  day: string
+  number: number
+}
+
+/** Today's daily, before anything is started. */
+export function getDaily(): Promise<DailyToday> {
+  return request<DailyToday>('/api/daily')
+}
+
+/**
+ * Start this browser's daily, or resume its unfinished one: the room and a fresh session.
+ * A daily played today is a 409 `daily_played`. The token goes in the body, like a session.
+ */
+export function startDaily(
+  token: string,
+  displayName: string,
+  avatar: string | undefined,
+): Promise<{ code: string; session: string }> {
+  return request('/api/daily', {
+    method: 'POST',
+    body: JSON.stringify({ token, display_name: displayName, avatar }),
+  })
+}
+
+/** This browser's finished daily on `day`, for the end screen. Starts nothing. */
+export function getDailyResult(token: string, day: string): Promise<DailyResult> {
+  return request<DailyResult>('/api/daily/result', {
+    method: 'POST',
+    body: JSON.stringify({ token, day }),
   })
 }
 

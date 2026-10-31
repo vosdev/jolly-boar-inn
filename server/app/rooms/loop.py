@@ -31,6 +31,7 @@ from app import metrics, question_stats
 from app.questions.submission import Submission
 from app.questions.types import TYPES, pictured
 from app.rooms import ready, scoring
+from app.rooms.daily_room import finish_attempt, record_close
 from app.rooms.errors import BadState
 from app.rooms.hold import hold_seconds, typed_lines
 from app.rooms.models import Broadcast, Player, Room, RoomQuestion, _require_admin
@@ -193,7 +194,8 @@ class Loop:
     """The ``RoomManager`` methods that run the timer task and end or skip what it is on."""
 
     async def skip(self, code: str, by: Player, phase: str, index: int) -> None:
-        """Admin: cut the splash, the open question, the reveal or the standings short.
+        """Admin: cut the splash, the open question, the reveal or the standings short. A
+        daily room's player may cut its reveal short, which is its Next button.
 
         Only if ``phase`` of question ``index`` is still the room's. The second tap of a
         double tap, or a second admin's, lands once the room has moved on, and it must not
@@ -208,7 +210,8 @@ class Loop:
         code = code.upper()
         async with self._locked(code):
             room = await self._room(code)
-            _require_admin(by)
+            if room.daily is None or phase != "reveal":
+                _require_admin(by)
             if room.status == "playing" and (room.phase, room.current_index) == (phase, index):
                 room.advance.set()
 
@@ -441,7 +444,12 @@ class Loop:
             if self.rooms.get(room.code) is not room or room.status != "playing":
                 return False
             segment = room.segment_at(index)
-            if not self.splashes or segment is None or segment.start != index:
+            if (
+                not self.splashes
+                or room.daily is not None
+                or segment is None
+                or segment.start != index
+            ):
                 return True
             room.current_index = index
             room.phase = "splash"
@@ -540,7 +548,7 @@ class Loop:
                 await conn.execute(
                     "update questions set shown_at = $1 where id = $2", shown_at, question.id
                 )
-                if index == segment.start:
+                if index == segment.start and room.daily is None:
                     await bump(conn, Metric.ROUNDS_STARTED, segment.mode)
             question.shown_at = shown_at
             question.seconds = seconds
@@ -617,8 +625,13 @@ class Loop:
                 await conn.execute(
                     "update questions set closed_at = $1 where id = $2", closed_at, question.id
                 )
-                await _count_round_finished(conn, room, question.position, closed_at)
-                await bump(conn, closed_by, question.mode)
+                if room.daily is None:
+                    await _count_round_finished(conn, room, question.position, closed_at)
+                    await bump(conn, closed_by, question.mode)
+                else:
+                    # One player: their answer, or a miss.
+                    got, _, points = next(iter(graded.values()), (None, False, 0))
+                    await record_close(conn, room, got, points)
                 if graded:
                     await conn.executemany(
                         "update answers set correct = $1, points = $2"
@@ -640,9 +653,9 @@ class Loop:
             room.totals = totals
             room.totals_round = round_start
             room.phase = "reveal"
-            room.reveal_seconds = self._reveal_seconds(room, question)
-            room.next_at = closed_at + timedelta(seconds=room.reveal_seconds)
-            room.next_mono = reveal_ends = now + room.reveal_seconds
+            hold, room.reveal_seconds = self._reveal_hold(room, question)
+            room.next_at = closed_at + timedelta(seconds=hold)
+            room.next_mono = reveal_ends = now + hold
             room.advance.clear()
             message = QuestionClosed(
                 question_id=str(question.id),
@@ -698,13 +711,17 @@ class Loop:
                     room.id,
                     finished_at,
                 )
-                await bump(conn, Metric.GAMES_FINISHED)
-                started_at = room.questions[0].shown_at
-                if started_at is not None:
-                    await bump(
-                        conn, Metric.GAME_DURATIONS, duration_bucket(finished_at - started_at)
-                    )
-            metrics.GAMES.labels(outcome="finished").inc()
+                if room.daily is not None:
+                    await finish_attempt(conn, room, finished_at)
+                else:
+                    await bump(conn, Metric.GAMES_FINISHED)
+                    started_at = room.questions[0].shown_at
+                    if started_at is not None:
+                        await bump(
+                            conn, Metric.GAME_DURATIONS, duration_bucket(finished_at - started_at)
+                        )
+            if room.daily is None:
+                metrics.GAMES.labels(outcome="finished").inc()
             broadcasts = self._finish(room, finished_at)
         for broadcast in broadcasts:
             self._broadcast(broadcast)

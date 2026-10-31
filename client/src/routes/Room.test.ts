@@ -28,7 +28,7 @@ import { roomShown } from '../lib/roomFit'
 import { timerBar } from '../lib/timerbar'
 import { stubAnimations } from '../test-animate'
 import { clearVocabCache } from '../lib/vocab'
-import { savePastGame } from '../lib/history'
+import { pastGames, savePastGame } from '../lib/history'
 import type { RoomSocketHandlers } from '../lib/ws'
 import Room from './Room.svelte'
 import frameSource from '../components/RoomFrame.svelte?raw'
@@ -1736,5 +1736,60 @@ describe('the wait for the first frame', () => {
     )
     await vi.advanceTimersByTimeAsync(1000)
     expect(screen.queryByText('Connecting…')).toBeNull()
+  })
+})
+
+describe('a daily room', () => {
+  const DAILY = { day: '2026-10-31', number: 1 }
+
+  function dailyReveal(index: number): RoomView {
+    return roomView({
+      phase: 'reveal',
+      current_index: index,
+      total: 10,
+      next_at: inSeconds(300),
+      reveal_seconds: null,
+      segment: { mode: 'bestiary', index, total: 10, start: index, count: 1 },
+      daily: DAILY,
+    })
+  }
+
+  beforeEach(() => {
+    resetRoom()
+    localStorage.clear()
+  })
+
+  it('waits on a Next button instead of a countdown, and Next skips the reveal', async () => {
+    await arrive(welcome(dailyReveal(2)))
+    expect(get(timerBar)).toBeNull()
+    expect(hostLabels()).toBeNull()
+    await fireEvent.click(screen.getByRole('button', { name: 'Next' }))
+    expect(sent).toEqual([{ t: 'skip', phase: 'reveal', index: 2 }])
+  })
+
+  it('goes to the score from the last reveal', async () => {
+    await arrive(welcome(dailyReveal(9)))
+    expect(screen.getByRole('button', { name: 'See your score' })).toBeTruthy()
+  })
+
+  it('keeps the daily’s address', async () => {
+    history.replaceState(null, '', '/daily')
+    await arrive(welcome(dailyReveal(0)))
+    expect(location.pathname).toBe('/daily')
+  })
+
+  it('ends on its own screen and files nothing under Past games', async () => {
+    const finished = roomView({
+      status: 'finished',
+      phase: 'idle',
+      next_at: null,
+      finished_at: '2026-10-31T09:00:00Z',
+      daily: DAILY,
+    })
+    render(Room, { code: 'ABYSSAL', navigate: () => {} })
+    applyServerMessage(welcome(finished))
+    await tick()
+    expect(document.querySelector('.hiscores')).toBeNull()
+    expect(pastGames()).toEqual([])
   })
 })

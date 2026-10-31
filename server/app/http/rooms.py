@@ -218,7 +218,7 @@ async def list_public_rooms(request: Request) -> list[PublicRoom]:
 async def get_room(code: str, request: Request) -> dict[str, Any]:
     """What the join page needs before joining, and nothing about who is in the room."""
     with room_lookup(request.app.state.lookup_misses, client_host(request)):
-        room = await manager(request).get(code)
+        room = await manager(request).get_listed(code)
     return {"status": room.status, "players": len(room.players)}
 
 

@@ -31,7 +31,7 @@ branding/                          a selfhoster's logo, gitignored
 monitoring/                        Prometheus scrape config and alert rules, starter Grafana dashboard
 server/app/                        main, config, db, static, accesslog, errors, metrics, pets, daily,
                                    random_events, suggestions, reports, question_edits, roster_edits
-server/app/rooms/                  state (RoomManager), joins, lobby, loop (its parts), models,
+server/app/rooms/                  state (RoomManager), joins, lobby, loop, daily_room (its parts), models,
                                    errors, queries, settings, selection, segments, scoring, ready, codes
 server/app/modes/, questions/      Mode and MODES; schema, packs, vocab, normalize, custom,
                                    submission, text; types/ one module per type
@@ -41,7 +41,7 @@ server/scripts/                    wiki, gen_price_questions, import_suggestions
                                    build_logo,
                                    validate_packs, check_contrast, smoke_ws, loadtest
 client/src/lib/                    api, ws, protocol, stores, session, history, profile, modes, …
-client/src/routes/, components/    Home, Create, Join, Room, History, Admin, Suggest, Report; TopBar, stage/, …
+client/src/routes/, components/    Home, Create, Join, Room, Daily, History, Admin, Suggest, Report; TopBar, …
 client/src/components/questions/   viewFor(type, mode), Question, gem buttons; types/, stems/
 ```
 
@@ -49,7 +49,7 @@ Routes: `/`, `/create`, `/r/:code` (the room with a session, Join without), `/r/
 `/history/:code/:stamp` (a finished game from this browser, `stamp` its `finished_at` as UTC
 `YYMMDDHHMM`), `/admin` and its tabs `/admin/suggestions`, `/reports`, `/questions` and `/roster` (the
 operator's view, section 10), linked from Reldo's box on Home once this
-browser holds the admin token, and `/suggest` and `/report` (section 11), linked once it has finished a game. The credits are a sheet from the footer.
+browser holds the admin token, `/suggest` and `/report` (section 11), linked once it has finished a game, and `/daily` (section 7). The credits are a sheet from the footer.
 `/how-to-play` and `/how-to-play/:view` (a mode's name as a slug, or `random-events`) are drawn by Home.
 The retired `/r/:code/admin` resolves like `/r/:code`, because whoever holds that link knows the code.
 
@@ -309,7 +309,7 @@ and stores it (section 11), with no cron, never seeded from the date, since the 
   at least 5 types.
 - A question rests 60 days, tracked by id, but `price_is_right` by item and `more_less` by metric and
   pair, whose ids change with the prices. A short pool brings back the oldest-used; a pool the
-  caps cannot fill raises and stores nothing. The play order is a shuffle.
+  caps cannot fill raises and stores nothing. The play order is a shuffle. Section 7 plays it.
 
 ## 6. Websocket protocol
 
@@ -334,7 +334,7 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 | `set_settings` | `settings` | admin | Lobby: the whole game, checked like `POST /api/rooms`, as the host edits it. `teams` and `max_players` stay the room's, and a changed `hide_rounds` is `bad_value`. A plain object on the wire, so a bad one costs no socket. |
 | `editing` | `on: bool` | all | Name field focused. Lobby only, else ignored. An `on` within 1 s of a change is ignored; 60 s unsent, a disconnect or `start_game` clears it. |
 | `start_game` | | admin | `lobby → playing`. |
-| `skip` | `phase`, `index` | admin | Ends that phase if the room is still in it, so a double tap ends one. |
+| `skip` | `phase`, `index` | admin | Ends that phase if the room is still in it, so a double tap ends one. In a daily room its player skips the reveal (Next). |
 | `promote` | `player_id` | admin | Makes them admin; the TV is `bad_state`. There is no demote. |
 | `set_tv` | `player_id`, `on: bool` | admin | Lobby only. `on` makes them the room's one TV, un-ready and teamless, and the old TV a `player`; the last admin is `bad_state`. `off` makes the TV a `player`. |
 | `kick` | `player_id` | admin | Deletes the player and their answers; closes 4003. Not on admins. |
@@ -351,7 +351,7 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 | `question_open` | `question` | A question opens. |
 | `answer_ack` | `question_id`, `scoring`, `band`, `answered`, `of` | Answer committed. Never correctness. |
 | `answer_count` | `question_id`, `answered`, `of`, `waiting` | Someone else answered. Who is still to, never what. |
-| `question_closed` | `question_id`, `reveal`, `picture`, `results`, `unanswered`, `standings`, `team_standings`, `next_at`, `reveal_seconds`, `suggested_by`? | Closed. `unanswered`: connected players who could answer and did not. `next_at` ends the reveal, the last one's too. `reveal_seconds` is its length. `suggested_by` is a shown `credit`. |
+| `question_closed` | `question_id`, `reveal`, `picture`, `results`, `unanswered`, `standings`, `team_standings`, `next_at`, `reveal_seconds`, `suggested_by`? | Closed. `unanswered`: connected players who could answer and did not. `next_at` ends the reveal, the last one's too. `reveal_seconds` is its length, null in a daily room. `suggested_by` is a shown `credit`. |
 | `game_finished` | `standings`, `team_standings` | Final. `team_standings` is null outside a team game. |
 | `pong` | `server_time` | Reply to `ping`. |
 | `error` | `code`, `message` | `bad_hello`, `bad_message`, `not_admin`, `not_open`, `already_answered`, `excluded`, `bad_value`, `bad_state`, `bad_name`, `name_taken`, `bad_avatar`. |
@@ -359,7 +359,8 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 ```
 RoomView     { code, status, settings, current_index, total, events, phase, next_at,
                reveal_seconds, estimated_seconds, segment, next_segment?, played, finished_at,
-               rounds?, key?, requests? }
+               rounds?, key?, requests?, daily? }
+Daily        { day, number }
 JoinRequest  { id, display_name, avatar }
 PlayerView   { id, display_name, avatar, role, team, connected, ready, editing }   role: player, admin, tv
 Standing     { player_id, display_name, avatar, points, rank, points_gained, previous_rank }
@@ -391,7 +392,7 @@ PlayerResult { value, correct, credit, points }
 - `rounds` counts the stored rounds, sent only with `hide_rounds`; `hide_rounds` and
   `surprise_modes` themselves only when set.
 - `key` and `requests` (waiting join requests, oldest first) are an invite-only room's, sent only
-  to its admins (section 10).
+  to its admins (section 10). `daily` marks a daily room (section 7).
 - `band` is the speed bucket for SPEED, the step for STEP, null for ACCURACY. `of` is every connected
   player who can answer, plus anyone who answered and dropped. `waiting` is the ids of the connected
   ones who can and have not, for the TV's panel (design §16).
@@ -451,6 +452,21 @@ finished ─▶ deleted: FINISHED_ROOM_GRACE_MINUTES (60) after finished_at (cle
   game also needs every player, connected or not, in a team and players in two teams or more.
   Teams are fixed from then on; `players.team` and `settings.teams` are written before memory.
 - A deleted room closes its sockets with 4004, and its code is free again.
+
+A daily attempt (`rooms/daily_room.py`, `/daily`) is a room born `playing` from the day's stored set,
+one question a round, with one `player` and settings `run`, early close, no names, no standings.
+
+- `POST /api/daily {token, display_name, avatar?}` → `{code, session}`. The token is the browser's
+  (`jbi:daily:token`), stored as sha256 in `daily_attempts` under the attempt's day, once per day.
+  An unfinished attempt resumes, whatever its day, with a new session; a finished one today is
+  409 `daily_played` with its `result` `{day, number, points, correct, results}`. A gone room ends
+  its attempt there. `GET /api/daily` → `{day, number}`. `POST /api/daily/result {token, day}`
+  returns a finished attempt's `result`, or 404, and starts nothing.
+- The end screen, and `/daily` after playing, shows the result and copies a share text without
+  answers: `Daily #12: 7/10 · 7,420`, a row of 🟩 full, 🟨 partial, 🟥 none, and `location.origin/daily`.
+- Join, requests and `GET /api/rooms/{code}` answer 404 for it, and Home never lists it. The first
+  question opens on the player's first `hello`; no splash, no standings, no Past games entry.
+- The reveal has no countdown: Next is the player's `skip`, and the server moves on after 300 s.
 
 One task per room runs `_run_questions(room, index, resume_at)`:
 
@@ -665,8 +681,8 @@ gates `GET /metrics` (OpenMetrics text, fixed-set labels only) by the same rules
 
 Limits:
 
-- 30 creates an hour (`ROOMS_PER_IP_PER_HOUR`), 100 joins an hour, 30 lookups of missing rooms per
-  10 minutes, 5 free codes per 10 seconds. Past those, every room request is 429 with a `Retry-After` (1008 on a socket), so a refusal never reveals
+- 30 creates an hour (`ROOMS_PER_IP_PER_HOUR`), 100 joins an hour, 10 daily starts an hour (a resume is
+  free), 30 lookups of missing rooms per 10 minutes, 5 free codes per 10 seconds. Past those, every room request is 429 with a `Retry-After` (1008 on a socket), so a refusal never reveals
   which codes are live.
 - Create refuses a sixth room while `jbi:created` holds five the server still has; one that
   answers 404 or 410 drops off the list. Clearing storage bypasses it; the create limit is the
@@ -719,13 +735,14 @@ key into them, so cleanup leaves it.
   length, keyed `mode/bucket`; a game ended early or abandoned the round it was in; a close, by
   the question's mode, whether everyone answered, time ran out or it was skipped. Two peaks keep
   the day's highest instead of a sum, written on a socket's connect: connected players (TVs
-  aside) and unfinished rooms with any. No IP, name, room code or player id ever goes in it, and
-  every key comes from a fixed set.
+  aside) and unfinished rooms with any. A daily room counts in none of these, only `daily`:
+  `started`, `finished`, and the finished ones' `points` and `correct` sums. No IP, name, room
+  code or player id ever goes in it, and every key comes from a fixed set.
 - `question_stats` (`app/question_stats.py`), also outside the cascade, sums per content id how
   players do on hand-written pack questions, the NPCs' included (not host, price modes or
   voided), in the close's transaction: `answers`, `credit_sum` (credit, not points), `correct`,
   `unanswered` and `games`. Admins' answers are left out; a close with fewer than two other
-  players adds nothing. A payload edit changes the id, so its numbers restart.
+  players adds nothing, but a daily room's one player counts. A payload edit changes the id, so its numbers restart.
   `/api/admin/questions/stats?mode=…` (every editable mode without one) returns each pack
   question whole with its totals, zeros if never counted; a row for an id the packs lost is
   left out. Bands and suggestions are the client's (`lib/questionStats.ts`), advice only.
@@ -736,6 +753,8 @@ key into them, so cleanup leaves it.
 - `daily_sets (day, questions, created_at)` holds each day's set whole, in play order, under the
   date its window opens (section 5), so a restart or a pack edit leaves it. It has no key into
   `rooms` and is never cleaned up: the draw reads it for when a question was last used.
+  `daily_attempts (day, token_hash, room_id, …, points, results)` outlives its room (`rooms.daily`
+  marks one): each close appends `right`, `partial` or `missed` in its transaction.
 - `answers.points` is written once, at close, and standings are its sum. Memory keeps the same sum
   and reloads it on rehydrate. Scores are never tracked separately.
 - `questions.payload` holds the envelope extras at the top and the type payload under `payload`, so

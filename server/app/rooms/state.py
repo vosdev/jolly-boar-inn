@@ -43,11 +43,13 @@ from starlette.websockets import WebSocket
 
 from app import metrics
 from app.config import APP_VERSION, Settings
+from app.daily import number_of
 from app.questions.packs import Pack
 from app.questions.types import TYPES
 from app.questions.types.scoring import Scoring
 from app.questions.types.timing import MIN_REVEAL
 from app.rooms import codes, scoring, selection
+from app.rooms.daily_room import DAILY_REVEAL_SECONDS, DailyRooms, record_close
 from app.rooms.errors import (
     AlreadyAnswered,
     BadSession,
@@ -95,7 +97,7 @@ from app.rooms.queries import (
 from app.rooms.settings import RoomSettings
 from app.stats import Metric, bump, peak, round_key
 from app.ws.outbox import Outbox
-from app.ws.protocol import AnswerCount, PlayersUpdated, RoomUpdated, RoomView, Welcome
+from app.ws.protocol import AnswerCount, Daily, PlayersUpdated, RoomUpdated, RoomView, Welcome
 
 log = logging.getLogger("app.rooms")
 # Close codes the manager itself uses (the handler owns the handshake codes).
@@ -117,7 +119,7 @@ _ROUNDS_UNDER_WAY = (
     "        order by q.random_event is not null, q.position limit 1) as mode,"
     " count(*) as n"
     " from rooms r join questions cur on cur.room_id = r.id and cur.position = r.current_index"
-    " where r.id = any($1) and r.status = 'playing'"
+    " where r.id = any($1) and r.status = 'playing' and r.daily is null"
     " and exists (select 1 from questions s where s.room_id = r.id and s.round = cur.round"
     "             and s.shown_at is not null)"
     " and exists (select 1 from questions c where c.room_id = r.id and c.round = cur.round"
@@ -133,7 +135,7 @@ _ROUND_REACHED = (
     " count(*) as n"
     " from rooms r join questions cur on cur.room_id = r.id"
     " and cur.position = coalesce(r.current_index, 0)"
-    " where r.id = any($1) and r.status = 'playing'"
+    " where r.id = any($1) and r.status = 'playing' and r.daily is null"
     " group by 1"
 )
 
@@ -146,7 +148,7 @@ class _Slot:
     users: int = 0
 
 
-class RoomManager(Joins, Lobby, Loop):
+class RoomManager(Joins, Lobby, Loop, DailyRooms):
     def __init__(
         self,
         pool: Callable[[], Awaitable[asyncpg.Pool]],
@@ -182,6 +184,8 @@ class RoomManager(Joins, Lobby, Loop):
         # this long, every reveal this long, whatever their type and the room's pace.
         self.answer_seconds: int | None = None
         self.reveal_seconds: int | None = None
+        # How long a daily room's reveal waits for its player; shorter only in the test suite.
+        self.daily_reveal_seconds: float = DAILY_REVEAL_SECONDS
         self.request_stale_seconds = REQUEST_STALE_SECONDS
         self.rooms: dict[str, Room] = {}
         # A room in memory shares its code's lock. The entry outlives the room while
@@ -195,7 +199,9 @@ class RoomManager(Joins, Lobby, Loop):
 
     async def _count_peaks(self) -> None:
         """Raise today's peaks to the players connected now and the unfinished rooms they are in."""
-        rooms = [room for room in self.rooms.values() if room.status != "finished"]
+        rooms = [
+            room for room in self.rooms.values() if room.status != "finished" and room.daily is None
+        ]
         connected = [
             sum(1 for p in room.players.values() if p.connected and p.role != "tv")
             for room in rooms
@@ -302,6 +308,9 @@ class RoomManager(Joins, Lobby, Loop):
             round_start = _round_start(questions, max(closed, default=None))
             totals = await _fetch_totals(conn, row["id"], round_start)
         room = _room_from_row(row, total=len(questions), lock=self._locks[code].lock)
+        if row["daily"] is not None:
+            number = number_of(row["daily"], self.settings.daily_first_day)
+            room.daily = Daily(day=row["daily"], number=number)
         room.players = {p["id"]: _player_from_row(p) for p in players}
         room.questions = questions
         if room.status == "lobby" and not questions:
@@ -345,23 +354,30 @@ class RoomManager(Joins, Lobby, Loop):
         question = room.current
         resume_from = room.current_index or 0
         if question is None or question.shown_at is None:
+            if room.daily is not None:
+                # One player, who has just connected: no reveal to sit through first.
+                self._start_timer(room, resume_from)
+                return
             resume_from -= 1
         elif question.closed_at is None:
             closed_at = datetime.now(UTC)
             pool = await self._pool()
             async with pool.acquire() as conn, conn.transaction():
                 await _void_question(conn, question, closed_at)
-                # The game plays on after a restart, so a round whose last question it
-                # voided was played through, not cut short.
-                await _count_round_finished(conn, room, question.position, closed_at)
+                if room.daily is not None:
+                    await record_close(conn, room, None, 0)
+                else:
+                    # The game plays on after a restart, so a round whose last question it
+                    # voided was played through, not cut short.
+                    await _count_round_finished(conn, room, question.position, closed_at)
             question.closed_at, question.voided = closed_at, True
             log.warning(
                 "room %s: question %d was open at the restart, voided", room.code, question.position
             )
         room.phase = "reveal"
-        room.reveal_seconds = self._reveal_seconds(room, question)
-        room.next_at = datetime.now(UTC) + timedelta(seconds=room.reveal_seconds)
-        room.next_mono = self.clock() + room.reveal_seconds
+        hold, room.reveal_seconds = self._reveal_hold(room, question)
+        room.next_at = datetime.now(UTC) + timedelta(seconds=hold)
+        room.next_mono = self.clock() + hold
         log.info(
             "room %s resumes in reveal until %s, then question %d",
             room.code,
@@ -380,6 +396,13 @@ class RoomManager(Joins, Lobby, Loop):
         if self.reveal_seconds is not None:
             return self.reveal_seconds
         return MIN_REVEAL if question is None else room.question_reveal_seconds(question)
+
+    def _reveal_hold(self, room: Room, question: RoomQuestion | None) -> tuple[float, int | None]:
+        """How long a reveal waits, and the length its countdown shows: none in a daily room."""
+        if room.daily is not None:
+            return self.daily_reveal_seconds, None
+        seconds = self._reveal_seconds(room, question)
+        return seconds, seconds
 
     def _forget(self, room: Room) -> list[Outbox]:
         """Take a room out of memory and detach its sockets, returning them to close.
@@ -467,7 +490,8 @@ class RoomManager(Joins, Lobby, Loop):
                     # Most of these rooms are not in memory, so the database says what
                     # was under way in them, read before the delete takes it.
                     abandoned = await conn.fetchval(
-                        "select count(*) from rooms where id = any($1) and status = 'playing'",
+                        "select count(*) from rooms"
+                        " where id = any($1) and status = 'playing' and daily is null",
                         ids,
                     )
                     rounds = await conn.fetch(_ROUNDS_UNDER_WAY, ids)

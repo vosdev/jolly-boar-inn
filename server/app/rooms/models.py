@@ -30,6 +30,7 @@ from app.rooms.teams import God
 from app.stats import Arrival
 from app.ws.outbox import Outbox
 from app.ws.protocol import (
+    Daily,
     JoinRequestView,
     OpenQuestion,
     PlayerView,
@@ -338,6 +339,8 @@ class Room:
     invite_key: str | None = field(default=None, repr=False)
     # Listed on Home for anyone to join while it is a lobby (``RoomManager.public_rooms``).
     public: bool = False
+    # One player's attempt at a day's set: no lobby, no splash, no standings, never joinable.
+    daily: Daily | None = None
     players: dict[UUID, Player] = field(default_factory=dict)  # in join order
     # Join requests by ticket hash, oldest first. Only an invite-only lobby has any.
     requests: dict[str, JoinRequest] = field(default_factory=dict, repr=False)
@@ -497,6 +500,7 @@ class Room:
             rounds=rounds,
             key=self.invite_key if admin else None,
             requests=self.waiting_requests() if admin and self.invite_key is not None else None,
+            daily=self.daily,
         )
 
     def waiting_requests(self) -> list[JoinRequestView]:
