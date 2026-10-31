@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '../lib/api'
 import { ApiFailure } from '../lib/api'
-import { dailyToken, lastDaily, noteDaily, type DailyResult } from '../lib/daily'
+import { dailyScores, dailyToken, lastDaily, noteDaily, type DailyResult } from '../lib/daily'
 import { profile } from '../lib/profile'
 import { getSession } from '../lib/session'
 import { applyServerMessage, resetRoom } from '../lib/stores'
@@ -26,7 +26,7 @@ vi.mock('../lib/ws', () => ({
   },
 }))
 
-const TODAY = { day: '2026-10-31', number: 12 }
+const TODAY = { day: '2026-10-31', number: 12, next_at: '2026-11-01T08:00:00+00:00' }
 const RESULT: DailyResult = {
   day: TODAY.day,
   number: 12,
@@ -159,6 +159,7 @@ describe('/daily', () => {
     })
     await screen.findByRole('button', { name: 'Copy your result' })
     expect(api.getDailyResult).toHaveBeenCalledWith(dailyToken(), '2026-10-30')
+    expect(dailyScores().map((score) => score.number)).toEqual([RESULT.number])
     expect(lastDaily()).toEqual({ day: '2026-10-30', finished: true })
   })
 })

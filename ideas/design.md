@@ -329,12 +329,13 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
   sheet. A mode with no host, or a host with no art, gets the generic boar.
 - **Home** is a 960px column. Its host, as the lobby's (§9), is the selfhoster's hero for the theme
   (§14), else the Wise Old Man, saying the site's line in the dialogue box at its usual sizes. The
-  theme's sheet under it holds the room code, Join and Create a room, and beside them
+  theme's sheet under it holds the code field, Join and Create a room, and beside them
   one playable mode at a time, shuffled per visit: host's chathead, name, hint, "Presented by: <host>". It crossfades
   every 4.5 s, holds on hover or keyboard focus and under reduced motion, and is as tall as the
-  tallest mode; a row of chatheads (dots on a phone) picks one. Then Public
-  rooms while any are listed, Rooms you created here and Past games side by side while they have
-  rows, and Reldo's dialogue box, his chathead right: *How to play* and *Give feedback* (the Discord) for all, and for
+  tallest mode; a row of chatheads (dots on a phone) picks one. The label over the field is "Join an existing room". Then Public
+  rooms while any are listed; Rooms you created here, Past party games while they have rows, and
+  the Daily challenge in two columns, under the shorter of those two, one panel alone at full width (By yourself, 10 questions,
+  One try and Play, then a ring with the points, with Your dailies under it); and Reldo's dialogue box, his chathead right: *How to play* and *Give feedback* (the Discord) for all, and for
   a browser that may suggest or holds the admin token also Suggest a question, Report a question and *Admin (n)*, n the pending suggestions.
 
 ## 9. The table panel, the splash and the ready check
@@ -505,7 +506,7 @@ record of that game. This browser kept no hiscores for it." over a sheet saying 
 and points, the god's colour on the team's edge, and under each its members with their own
 totals, best first, so the weak link shows. The ceremony presents teams, fifth to first, each with
 its logo, name, average points and the god's colour, in plain lines ("In fifth place…", "Tied
-for second…"), no trophy, and confetti from first's logo; the final line names the winning team ("Saradomin wins!", "Saradomin and Zamorak win!"), and Past games names it
+for second…"), no trophy, and confetti from first's logo; the final line names the winning team ("Saradomin wins!", "Saradomin and Zamorak win!"), and Past party games names it
 on the game's entry.
 
 ## 12. Random events: the interlude (#106)

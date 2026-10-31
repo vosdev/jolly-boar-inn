@@ -4,7 +4,16 @@
   let {
     name,
   }: {
-    name: 'trash' | 'trophy' | 'github' | 'copy' | 'refresh' | 'more' | 'chevron-up' | 'close'
+    name:
+      | 'trash'
+      | 'trophy'
+      | 'github'
+      | 'copy'
+      | 'refresh'
+      | 'more'
+      | 'chevron-up'
+      | 'close'
+      | 'person'
   } = $props()
 </script>
 
@@ -27,6 +36,8 @@
       <path d="M6 15l6-6 6 6" />
     {:else if name === 'close'}
       <path d="M6 6l12 12M18 6L6 18" />
+    {:else if name === 'person'}
+      <path d="M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM4 21c1-5 4-7 8-7s7 2 8 7" />
     {:else if name === 'more'}
       <path d="M5 12h.01M12 12h.01M19 12h.01" class="dots" />
     {:else}

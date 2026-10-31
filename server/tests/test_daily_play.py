@@ -2,7 +2,7 @@
 
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import pytest
@@ -10,7 +10,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from starlette.testclient import WebSocketTestSession
 
-from app.daily import day_of
+from app.daily import day_of, next_opens
 from app.question_stats import counts
 from app.questions.submission import Submission
 from app.questions.types import TYPES, pictured
@@ -348,7 +348,17 @@ def test_the_day_and_its_number(quick: FastAPI, client: TestClient) -> None:
     body = client.get("/api/daily").json()
     day = day_of(datetime.now(UTC))
     first = client.app.state.settings.daily_first_day  # type: ignore[attr-defined]
-    assert body == {"day": day.isoformat(), "number": (day - first).days + 1}
+    assert body == {
+        "day": day.isoformat(),
+        "number": (day - first).days + 1,
+        "next_at": next_opens(day).isoformat(),
+    }
+
+
+def test_the_next_daily_opens_at_the_rollover(quick: FastAPI, client: TestClient) -> None:
+    next_at = datetime.fromisoformat(client.get("/api/daily").json()["next_at"])
+    assert timedelta(0) < next_at - datetime.now(UTC) <= timedelta(days=1)
+    assert day_of(next_at) == day_of(datetime.now(UTC)) + timedelta(days=1)
 
 
 def test_the_name_must_be_a_name(quick: FastAPI, client: TestClient) -> None:

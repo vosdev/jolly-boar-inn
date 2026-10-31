@@ -186,7 +186,7 @@ describe('App', () => {
     await fireEvent.click(within(bar()).getByRole('link', { name: /, home$/ }))
     expect(location.pathname).toBe('/')
     expect(screen.getByRole('heading', { level: 1, name: 'The Jolly Boar Inn' })).toBeTruthy()
-    expect(screen.getByLabelText('Room code')).toBeTruthy()
+    expect(screen.getByLabelText('Join an existing room')).toBeTruthy()
   })
 
   it.each([['/'], ['/create'], ['/r/ABYSSAL']])('puts the footer under %s', async (path) => {
@@ -408,7 +408,7 @@ describe('App', () => {
       history.back()
       await screen.findByRole('heading', { level: 1, name: 'How to play' })
       history.back()
-      await waitFor(() => expect(screen.getByLabelText('Room code')).toBeTruthy())
+      await waitFor(() => expect(screen.getByLabelText('Join an existing room')).toBeTruthy())
       expect(location.pathname).toBe('/')
     })
 
@@ -422,7 +422,7 @@ describe('App', () => {
       await fireEvent.click(await screen.findByRole('button', { name: '← All game modes' }))
       await waitFor(() => expect(location.pathname).toBe('/how-to-play'))
       await fireEvent.click(await screen.findByRole('button', { name: '← Back' }))
-      await waitFor(() => expect(screen.getByLabelText('Room code')).toBeTruthy())
+      await waitFor(() => expect(screen.getByLabelText('Join an existing room')).toBeTruthy())
       expect(location.pathname).toBe('/')
       expect(history.state).toBeNull()
     })
@@ -433,7 +433,7 @@ describe('App', () => {
       await screen.findByRole('heading', { level: 1, name: 'How to play' })
       expect(location.pathname).toBe('/how-to-play')
       await fireEvent.click(screen.getByRole('button', { name: '← Back' }))
-      await waitFor(() => expect(screen.getByLabelText('Room code')).toBeTruthy())
+      await waitFor(() => expect(screen.getByLabelText('Join an existing room')).toBeTruthy())
       expect(location.pathname).toBe('/')
     })
   })

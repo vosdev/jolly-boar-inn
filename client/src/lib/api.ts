@@ -244,6 +244,8 @@ export function joinRoom(
 export interface DailyToday {
   day: string
   number: number
+  /** When the next daily opens. */
+  next_at: string
 }
 
 /** Today's daily, before anything is started. */

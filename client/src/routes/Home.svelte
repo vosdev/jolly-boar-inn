@@ -2,7 +2,7 @@
   /**
    * The front page (section 8 of ideas/design.md): the site's hero in the dialogue box over
    * the theme's sheet, which holds Join and Create beside the game modes; under it the public rooms, the rooms this
-   * browser created and the games it finished, each only while it has any.
+   * browser created and the games it finished, each only while it has any, then the daily.
    *
    * "Rooms you created here" is the list in localStorage, and removing one really
    * removes it: the server deletes the row, its players and their answers, and the code
@@ -22,6 +22,7 @@
   import { siteName } from 'virtual:branding'
 
   import ConfirmDialog from '../components/ConfirmDialog.svelte'
+  import DailyPanel from '../components/DailyPanel.svelte'
   import DialogueBox from '../components/DialogueBox.svelte'
   import HowToPage, { type HowToView } from '../components/HowToPage.svelte'
   import Icon from '../components/Icon.svelte'
@@ -30,7 +31,15 @@
   import Said from '../components/stage/Said.svelte'
   import Stage from '../components/stage/Stage.svelte'
   import TryQuestion from '../components/TryQuestion.svelte'
-  import { ApiFailure, deleteRoom, getPublicRooms, type PublicRoom } from '../lib/api'
+  import {
+    ApiFailure,
+    deleteRoom,
+    getDaily,
+    getPublicRooms,
+    type DailyToday,
+    type PublicRoom,
+  } from '../lib/api'
+  import { dailyScores } from '../lib/daily'
   import { expiresIn, finishedTime } from '../lib/dates'
   import { heroFor, speakerFor } from '../lib/hero'
   import { petOf } from '../lib/pets'
@@ -83,6 +92,15 @@
   const pastPages = $derived(Math.ceil(past.length / PAST_PAGE))
   const pastShown = $derived(past.slice(pastPage * PAST_PAGE, (pastPage + 1) * PAST_PAGE))
   const suggesting = maySuggest()
+  const scores = dailyScores()
+  /** Null until the server answers, and left so if it never does. */
+  let daily = $state<DailyToday | null>(null)
+  const showDaily = $derived(daily !== null || scores.length > 0)
+  /**
+   * How many rows tall Past party games is at its fullest, its paging counted. Not the page
+   * on screen, or turning to a short last page would move the daily across.
+   */
+  const pastRows = $derived(Math.min(past.length, PAST_PAGE) + (pastPages > 1 ? 1 : 0))
   const adminToken = storedAdminToken()
   /** Pending suggestions, unknown until the server answers, and left so if it refuses the token. */
   let pending = $state<number | null>(null)
@@ -197,25 +215,31 @@
     full = await atRoomLimit()
   }
 
+  /** A failed fetch keeps what the panel shows: the daily is never worth an error here. */
+  async function refreshDaily(): Promise<void> {
+    try {
+      daily = await getDaily()
+    } catch {
+      return
+    }
+  }
+
   onMount(() => {
     void refreshOpen()
     void refreshFull()
-    const timer = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        now = Date.now()
-        void refreshOpen()
-      }
-    }, PUBLIC_REFRESH_MS)
-    const onVisible = (): void => {
-      if (document.visibilityState === 'visible') {
-        now = Date.now()
-        void refreshOpen()
-      }
+    void refreshDaily()
+    const catchUp = (): void => {
+      if (document.visibilityState !== 'visible') return
+      now = Date.now()
+      void refreshOpen()
+      // A Home left open past the rollover moves on to the new daily.
+      if (daily !== null && now >= Date.parse(daily.next_at)) void refreshDaily()
     }
-    document.addEventListener('visibilitychange', onVisible)
+    const timer = setInterval(catchUp, PUBLIC_REFRESH_MS)
+    document.addEventListener('visibilitychange', catchUp)
     return () => {
       clearInterval(timer)
-      document.removeEventListener('visibilitychange', onVisible)
+      document.removeEventListener('visibilitychange', catchUp)
     }
   })
 
@@ -365,7 +389,7 @@
     <div class="entry">
       <form class="join" onsubmit={join}>
         <div class="field">
-          <label for="code">Room code</label>
+          <label for="code">Join an existing room</label>
           <input
             id="code"
             type="text"
@@ -431,10 +455,14 @@
     </section>
   {/if}
 
-  {#if hosted.length > 0 || past.length > 0}
-    <div class="yours">
+  {#if hosted.length > 0 || past.length > 0 || showDaily}
+    <div
+      class="yours"
+      class:three={hosted.length > 0 && past.length > 0 && showDaily}
+      class:under-past={hosted.length >= pastRows}
+    >
       {#if hosted.length > 0}
-        <section class="panel">
+        <section class="panel created">
           <h2>Rooms you created here</h2>
           {#if notice !== null}
             <div class="banner" class:bad={notice.bad}>
@@ -468,8 +496,8 @@
       {/if}
 
       {#if past.length > 0}
-        <section class="panel">
-          <h2>Past games</h2>
+        <section class="panel past">
+          <h2>Past party games</h2>
           <ul class="players">
             {#each pastShown as game (historyPath(game))}
               {@const place = winnerIn(game) ?? placeIn(game)}
@@ -493,7 +521,7 @@
                   <button
                     type="button"
                     class="small"
-                    aria-label={`Remove ${game.code} from past games`}
+                    aria-label={`Remove ${game.code} from past party games`}
                     onclick={() => (confirmingPast = game)}
                   >
                     <Icon name="trash" />
@@ -503,7 +531,7 @@
             {/each}
           </ul>
           {#if pastPages > 1}
-            <nav class="paging" aria-label="Past games pages">
+            <nav class="paging" aria-label="Past party games pages">
               <button
                 type="button"
                 class="small"
@@ -524,6 +552,10 @@
             </nav>
           {/if}
         </section>
+      {/if}
+
+      {#if showDaily}
+        <DailyPanel today={daily} {scores} {now} onplay={() => navigate('/daily')} />
       {/if}
     </div>
   {/if}
@@ -571,7 +603,7 @@
 {#if confirmingPast !== null}
   {@const game = confirmingPast}
   <ConfirmDialog
-    message={`Remove ${game.code} from your past games? Its hi-scores are not kept anywhere else, and this cannot be undone.`}
+    message={`Remove ${game.code} from your past party games? Its hi-scores are not kept anywhere else, and this cannot be undone.`}
     confirmLabel="Remove"
     onConfirm={() => removePast(game)}
     onCancel={() => (confirmingPast = null)}
@@ -710,12 +742,51 @@
     border-top: 1px dashed currentColor;
   }
 
-  /* Side by side when both have rows and there is room for two; one alone takes the width. */
+  /* Two columns where they fit, and one panel alone takes the width. */
   .yours {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    /* The second row takes what a spanning panel adds, so the first stays its panel's height. */
+    grid-template-rows: auto 1fr;
     gap: 0 1.25rem;
     align-items: start;
+  }
+
+  .yours > :global(.panel:only-child) {
+    grid-column: 1 / -1;
+  }
+
+  /* All three: the taller party panel spans both rows and the daily sits under the other. */
+  .yours.three > :global(.created) {
+    grid-area: 1 / 1;
+  }
+
+  .yours.three > :global(.past) {
+    grid-area: 1 / 2 / span 2;
+  }
+
+  .yours.three > :global(.daily) {
+    grid-area: 2 / 1;
+  }
+
+  .yours.three.under-past > :global(.created) {
+    grid-area: 1 / 1 / span 2;
+  }
+
+  .yours.three.under-past > :global(.past) {
+    grid-area: 1 / 2;
+  }
+
+  .yours.three.under-past > :global(.daily) {
+    grid-area: 2 / 2;
+  }
+
+  @media (max-width: 47.98rem) {
+    .yours,
+    .yours.three,
+    .yours.three.under-past {
+      display: block;
+    }
   }
 
   .reldo .row {

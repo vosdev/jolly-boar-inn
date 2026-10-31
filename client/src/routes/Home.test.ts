@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as admin from '../lib/admin'
 import * as api from '../lib/api'
+import { noteDaily, saveScore } from '../lib/daily'
 import { pastGames, savePastGame } from '../lib/history'
 import { NIGHT_STOPS, loadModes, slugOf } from '../lib/howToPlay'
 import { DISCORD_URL } from '../lib/links'
@@ -21,6 +22,7 @@ vi.mock('../lib/api', async (importOriginal) => {
   return {
     ...real,
     deleteRoom: vi.fn(),
+    getDaily: vi.fn(),
     getModes: vi.fn(),
     getPublicRooms: vi.fn(),
     getRoom: vi.fn(),
@@ -50,6 +52,7 @@ beforeEach(() => {
   history.replaceState(null, '', '/')
   vi.mocked(loadModes).mockResolvedValue(PACING)
   vi.mocked(api.deleteRoom).mockResolvedValue(undefined)
+  vi.mocked(api.getDaily).mockRejectedValue(new Error('offline'))
   vi.mocked(api.getPublicRooms).mockResolvedValue([])
   vi.mocked(api.getModes).mockResolvedValue([])
   vi.mocked(api.getRoom).mockResolvedValue({ status: 'lobby', players: 1 })
@@ -69,7 +72,7 @@ const LOBBY: api.PublicRoom = {
 }
 
 async function typeCode(typed: string): Promise<void> {
-  await fireEvent.input(screen.getByLabelText('Room code'), {
+  await fireEvent.input(screen.getByLabelText('Join an existing room'), {
     target: { value: typed },
   })
   await fireEvent.click(screen.getByRole('button', { name: 'Join' }))
@@ -105,7 +108,7 @@ describe('How to play on Home', () => {
   it('draws the page in place of the sheet, the dialogue box still on top', () => {
     openPage()
     expect(screen.getByRole('heading', { level: 1, name: 'How to play' })).toBeTruthy()
-    expect(screen.queryByLabelText('Room code')).toBeNull()
+    expect(screen.queryByLabelText('Join an existing room')).toBeNull()
     expect(document.querySelector('.scroll .trail')).toBeTruthy()
     expect(speaker()).toBe('Reldo')
     expect(said()).toContain('a new face')
@@ -118,7 +121,7 @@ describe('How to play on Home', () => {
     await screen.findByRole('heading', { level: 1, name: 'How to play' })
     expect(document.querySelector('.bubble')).toBe(box)
     await rerender({ howTo: null })
-    await waitFor(() => expect(screen.getByLabelText('Room code')).toBeTruthy())
+    await waitFor(() => expect(screen.getByLabelText('Join an existing room')).toBeTruthy())
   })
 
   it('walks a night along the trail, ending on every way of answering', async () => {
@@ -227,7 +230,8 @@ describe('Home', () => {
     try {
       const { unmount } = render(Home, { navigate })
       const sheet = () =>
-        (screen.getByLabelText('Room code').closest('.scroll') as HTMLElement).dataset.sheet
+        (screen.getByLabelText('Join an existing room').closest('.scroll') as HTMLElement).dataset
+          .sheet
       expect(sheet()).toBe('scroll')
       expect(screen.getByRole('button', { name: 'Create a room' }).closest('.scroll')).toBeTruthy()
       unmount()
@@ -241,7 +245,7 @@ describe('Home', () => {
 
   it('shows the game modes on the same sheet as Join and Create', () => {
     render(Home, { navigate })
-    const sheet = screen.getByLabelText('Room code').closest('.scroll')
+    const sheet = screen.getByLabelText('Join an existing room').closest('.scroll')
     expect(screen.getByRole('region', { name: 'Game modes' }).closest('.scroll')).toBe(sheet)
   })
 
@@ -254,14 +258,14 @@ describe('Home', () => {
 
   it('suggests a code the way codes look', () => {
     render(Home, { navigate })
-    const field = screen.getByLabelText('Room code') as HTMLInputElement
+    const field = screen.getByLabelText('Join an existing room') as HTMLInputElement
     expect(field.placeholder).toBe('ThermonuclearSmokeDevil')
     expect(field.getAttribute('autocapitalize')).toBeNull()
   })
 
   it('joins with Enter as with Join', async () => {
     render(Home, { navigate })
-    const field = screen.getByLabelText('Room code') as HTMLInputElement
+    const field = screen.getByLabelText('Join an existing room') as HTMLInputElement
     await fireEvent.input(field, { target: { value: 'FireCape' } })
     await fireEvent.submit(field.form!)
     expect(navigate).toHaveBeenCalledWith('/r/FIRECAPE', { via: 'code' })
@@ -278,7 +282,7 @@ describe('Home', () => {
     await typeCode('- -')
     expect(screen.getByText('That is not a room code.')).toBeTruthy()
     expect(navigate).not.toHaveBeenCalled()
-    await fireEvent.input(screen.getByLabelText('Room code'), {
+    await fireEvent.input(screen.getByLabelText('Join an existing room'), {
       target: { value: 'dragon' },
     })
     expect(screen.queryByText('That is not a room code.')).toBeNull()
@@ -487,8 +491,13 @@ describe('Layout', () => {
     render(Home, { navigate })
     await screen.findByRole('heading', { name: 'Public rooms' })
     const order = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)
-    expect(order).toEqual(['Public rooms', 'Rooms you created here', 'Past games', 'Talk to Reldo'])
-    const field = screen.getByLabelText('Room code')
+    expect(order).toEqual([
+      'Public rooms',
+      'Rooms you created here',
+      'Past party games',
+      'Talk to Reldo',
+    ])
+    const field = screen.getByLabelText('Join an existing room')
     const first = screen.getByRole('heading', { name: 'Public rooms' })
     expect(field.compareDocumentPosition(first) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
@@ -499,13 +508,13 @@ describe('Layout', () => {
     const pair = (heading: string) =>
       screen.getByRole('heading', { name: heading }).closest('section')!.parentElement
     expect(pair('Rooms you created here')?.classList.contains('yours')).toBe(true)
-    expect(pair('Past games')).toBe(pair('Rooms you created here'))
+    expect(pair('Past party games')).toBe(pair('Rooms you created here'))
   })
 
   it('has neither list, nor anything in their place, on a first visit', () => {
     render(Home, { navigate })
     expect(screen.queryByRole('heading', { name: 'Rooms you created here' })).toBeNull()
-    expect(screen.queryByRole('heading', { name: 'Past games' })).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Past party games' })).toBeNull()
     expect(document.querySelector('.yours')).toBeNull()
   })
 
@@ -513,14 +522,14 @@ describe('Layout', () => {
     rememberCreated('MINE', '2099-01-01T00:00:00Z')
     render(Home, { navigate })
     expect(screen.getByRole('heading', { name: 'Rooms you created here' })).toBeTruthy()
-    expect(screen.queryByRole('heading', { name: 'Past games' })).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Past party games' })).toBeNull()
     cleanup()
     localStorage.clear()
 
     played()
     localStorage.removeItem('jbi:created')
     render(Home, { navigate })
-    expect(screen.getByRole('heading', { name: 'Past games' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Past party games' })).toBeTruthy()
     expect(screen.queryByRole('heading', { name: 'Rooms you created here' })).toBeNull()
   })
 
@@ -530,7 +539,102 @@ describe('Layout', () => {
   })
 })
 
-describe('Past games', () => {
+describe('the daily', () => {
+  const TODAY = { day: '2026-10-31', number: 12, next_at: '2099-01-01T08:00:00+00:00' }
+  const RESULT = {
+    day: '2026-10-31',
+    number: 12,
+    points: 7420,
+    correct: 7,
+    results: Array<'right'>(10).fill('right'),
+  }
+
+  it("offers today's daily to a new browser, and links to it", async () => {
+    vi.mocked(api.getDaily).mockResolvedValue(TODAY)
+    render(Home, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: 'Play Daily #12' }))
+    expect(navigate).toHaveBeenCalledWith('/daily')
+    expect(screen.queryByRole('heading', { name: 'Your dailies' })).toBeNull()
+  })
+
+  it("shows today's score once played, and it leads to the result", async () => {
+    vi.mocked(api.getDaily).mockResolvedValue(TODAY)
+    saveScore(RESULT)
+    render(Home, { navigate })
+    expect(await screen.findByText('Daily #12: 7,420 points')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /Play Daily/ })).toBeNull()
+    await fireEvent.click(screen.getByRole('button', { name: 'Your result' }))
+    expect(navigate).toHaveBeenCalledWith('/daily')
+  })
+
+  it('offers to finish an unfinished attempt, by its own number', async () => {
+    vi.mocked(api.getDaily).mockResolvedValue(TODAY)
+    noteDaily({ day: '2026-10-30', finished: false })
+    render(Home, { navigate })
+    expect(await screen.findByRole('button', { name: 'Finish Daily #11' })).toBeTruthy()
+  })
+
+  it('sits under the party panels and above Reldo', async () => {
+    vi.mocked(api.getDaily).mockResolvedValue(TODAY)
+    rememberCreated('MINE', '2099-01-01T00:00:00Z')
+    render(Home, { navigate })
+    await screen.findByRole('heading', { name: 'Daily challenge' })
+    const order = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)
+    expect(order).toEqual(['Rooms you created here', 'Daily challenge', 'Talk to Reldo'])
+  })
+
+  it('sits under the shorter of your rooms and your past games', async () => {
+    vi.mocked(api.getDaily).mockResolvedValue(TODAY)
+    const game = (code: string) =>
+      savePastGame({ code, finishedAt: '2026-10-01T20:00:00Z', standings: [], youId: null })
+    rememberCreated('MINE', '2099-01-01T00:00:00Z')
+    game('ROOM01')
+    game('ROOM02')
+    render(Home, { navigate })
+    await screen.findByRole('heading', { name: 'Daily challenge' })
+    const yours = document.querySelector('.yours')!
+    expect(yours.classList.contains('three')).toBe(true)
+    expect(yours.classList.contains('under-past')).toBe(false)
+    cleanup()
+
+    rememberCreated('OURS', '2099-01-01T00:00:00Z')
+    render(Home, { navigate })
+    await screen.findByRole('heading', { name: 'Daily challenge' })
+    expect(document.querySelector('.yours')!.classList.contains('under-past')).toBe(true)
+  })
+
+  it('keeps the daily on its side when a page of past games is short', async () => {
+    vi.mocked(api.getDaily).mockResolvedValue(TODAY)
+    for (const room of ['A', 'B', 'C']) rememberCreated(`ROOM${room}`, '2099-01-01T00:00:00Z')
+    for (let game = 0; game < 6; game++) {
+      savePastGame({
+        code: `GAME0${game}`,
+        finishedAt: `2026-10-0${game + 1}T20:00:00Z`,
+        standings: [],
+        youId: null,
+      })
+    }
+    render(Home, { navigate })
+    await screen.findByRole('heading', { name: 'Daily challenge' })
+    await fireEvent.click(screen.getByRole('button', { name: 'Older' }))
+    expect(document.querySelector('.yours')!.classList.contains('under-past')).toBe(false)
+  })
+
+  it('keeps the scores when the server does not answer', async () => {
+    saveScore(RESULT)
+    render(Home, { navigate })
+    expect(await screen.findByRole('heading', { name: 'Your dailies' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /Daily #/ })).toBeNull()
+  })
+
+  it('has no panel with no answer and no scores', async () => {
+    render(Home, { navigate })
+    await waitFor(() => expect(api.getDaily).toHaveBeenCalled())
+    expect(screen.queryByRole('heading', { name: 'Daily challenge' })).toBeNull()
+  })
+})
+
+describe('Past party games', () => {
   it('draws Hi-scores and Remove as icons, and puts the date under the room', () => {
     savePastGame({
       code: 'ABYSSAL',
@@ -550,7 +654,7 @@ describe('Past games', () => {
     })
     render(Home, { navigate })
     const row = screen.getByText('ABYSSAL').closest('li')!
-    for (const name of ['Hi-scores for ABYSSAL', 'Remove ABYSSAL from past games']) {
+    for (const name of ['Hi-scores for ABYSSAL', 'Remove ABYSSAL from past party games']) {
       const button = within(row).getByRole('button', { name })
       expect(button.textContent?.trim()).toBe('')
       expect(button.querySelector('svg')).not.toBeNull()
@@ -589,7 +693,7 @@ describe('Past games', () => {
       youId: 'b',
     })
     render(Home, { navigate })
-    const section = screen.getByRole('heading', { name: 'Past games' }).closest('section')!
+    const section = screen.getByRole('heading', { name: 'Past party games' }).closest('section')!
     const row = within(section).getByText('ABYSSAL').closest('li')!
     expect(row.textContent).toContain('2nd of 2')
     expect(row.textContent).toContain('2026')
@@ -633,11 +737,11 @@ describe('Past games', () => {
     })
 
     const section = (): HTMLElement =>
-      screen.getByRole('heading', { name: 'Past games' }).closest('section')!
+      screen.getByRole('heading', { name: 'Past party games' }).closest('section')!
 
     async function askToRemove(code: string): Promise<void> {
       await fireEvent.click(
-        within(section()).getByRole('button', { name: `Remove ${code} from past games` }),
+        within(section()).getByRole('button', { name: `Remove ${code} from past party games` }),
       )
     }
 
@@ -671,13 +775,13 @@ describe('Past games', () => {
           within(screen.getByRole('dialog')).getByRole('button', { name: 'Remove' }),
         )
       }
-      expect(screen.queryByRole('heading', { name: 'Past games' })).toBeNull()
+      expect(screen.queryByRole('heading', { name: 'Past party games' })).toBeNull()
     })
   })
 
   it('is not there before a game has finished here', () => {
     render(Home, { navigate })
-    expect(screen.queryByRole('heading', { name: 'Past games' })).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Past party games' })).toBeNull()
   })
 
   describe('paging', () => {
@@ -693,7 +797,7 @@ describe('Past games', () => {
     }
 
     const section = (): HTMLElement =>
-      screen.getByRole('heading', { name: 'Past games' }).closest('section')!
+      screen.getByRole('heading', { name: 'Past party games' }).closest('section')!
     const shown = (): string[] =>
       within(section())
         .getAllByText(/^ROOM\d+$/)
@@ -712,7 +816,7 @@ describe('Past games', () => {
       await fireEvent.click(within(section()).getByRole('button', { name: 'Older' }))
       expect(shown()).toEqual(['ROOM01'])
       await fireEvent.click(
-        within(section()).getByRole('button', { name: 'Remove ROOM01 from past games' }),
+        within(section()).getByRole('button', { name: 'Remove ROOM01 from past party games' }),
       )
       await fireEvent.click(
         within(screen.getByRole('dialog')).getByRole('button', { name: 'Remove' }),
