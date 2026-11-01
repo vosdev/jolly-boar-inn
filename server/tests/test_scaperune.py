@@ -38,10 +38,10 @@ def test_anything_but_four_options_is_refused(options: list[str]) -> None:
     assert mode_errors({**question, "payload": payload})
 
 
-def test_the_pack_holds_forty_answers_and_some_are_ordered() -> None:
+def test_the_pack_holds_sixty_answers_and_some_are_ordered() -> None:
     pack = questions()
-    assert len(pack) == 40
-    assert len({q["payload"]["prompt"] for q in pack}) == 40
+    assert len(pack) == 60
+    assert len({q["payload"]["prompt"] for q in pack}) == 60
     assert sum("\n" in q["payload"]["prompt"] for q in pack) >= 10
 
 
@@ -52,6 +52,13 @@ def test_every_question_fits_a_button_and_keeps_the_answer_to_itself() -> None:
         for option in payload["options"]:
             assert len(option) <= 120
             assert payload["prompt"].lower() not in option.lower()
+
+
+def test_a_reversal_no_wiki_can_confirm_says_so_in_its_explanation() -> None:
+    reversals = [q for q in questions() if "scaperune-logic" in q["tags"]]
+    assert len(reversals) == 10
+    for question in reversals:
+        assert question["payload"]["explanation"].startswith("ScapeRune logic:")
 
 
 def test_an_ordered_answer_types_one_line_per_entry() -> None:

@@ -92,6 +92,11 @@ describe('hosts', () => {
     }
   })
 
+  it('has ScapeRune say what to do in every ask line, with no splash in the Daily', () => {
+    for (const line of MODES.scaperune!.ask)
+      expect(line).toMatch(/answer.*question|question.*answer/i)
+  })
+
   it('has the hosts whose sheet lost its instruction say it in every ask line', () => {
     expect(MODES.guess_examine!.ask).toContain('What is this the examine of?')
     for (const line of MODES.guess_examine!.ask) expect(line).toMatch(/examine/)
