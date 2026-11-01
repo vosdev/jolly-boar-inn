@@ -10,7 +10,8 @@ and pick all that apply). So a question carries both: ``type`` for how it is ans
 
 How many questions a round holds is the one thing both have an opinion on, so
 ``questions_bounds`` reads the mode, then its types, then the fallback below. How long a
-question lasts is its type's alone (``questions/types/timing.py``), whatever round it is in.
+question lasts is its type's (``questions/types/timing.py``), plus any ``extra_answer`` of
+its mode.
 
 ``custom`` and ``random_event`` are not rounds: each of their questions is a random event,
 dropped into a round it does not belong to (``rooms/selection.py``). ``custom`` is the
@@ -108,6 +109,10 @@ MODES: dict[str, Mode] = {
     "forgetful_bard": Mode(
         id="forgetful_bard", types=frozenset({"pick_from_list"}), picture_at_reveal=True
     ),
+    # The answer on the stage, four questions on the buttons, which take 30 s to read.
+    "scaperune": Mode(
+        id="scaperune", types=frozenset({"multiple_choice"}), options=(4, 4), extra_answer=12
+    ),
     # The NPCs' questions as a round, to test them in a row. Off unless the instance says so.
     "random_events_only": Mode(
         id="random_events_only",
@@ -168,6 +173,12 @@ def steps_of(mode: str) -> Steps | None:
     mode this build no longer has."""
     entry = MODES.get(mode)
     return None if entry is None else entry.steps
+
+
+def extra_answer_seconds(mode: str) -> int:
+    """The seconds ``mode`` adds to its questions' answer time; 0 for a mode this build lacks."""
+    entry = MODES.get(mode)
+    return 0 if entry is None else entry.extra_answer
 
 
 def type_questions(type_id: str) -> Bounds:

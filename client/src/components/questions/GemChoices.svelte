@@ -22,6 +22,9 @@
    *
    * Given `results` on the reveal, every option says how many picked it, and with `named`
    * in the desktop room who (`lib/pickers.svelte.ts`).
+   *
+   * `stacked` is for options that run to whole sentences, which two abreast would stretch
+   * past the phone's height: one a row on a phone, reveal included. A wide stage is as above.
    */
   import type { Snippet } from 'svelte'
 
@@ -39,6 +42,7 @@
     label,
     results = null,
     named = false,
+    stacked = false,
   }: {
     options: Option[]
     /** What we answered: empty until it is sent. */
@@ -53,6 +57,8 @@
     results?: Record<string, PlayerResult> | null
     /** Name each option's pickers on it: a pick of one, never pick-all's several. */
     named?: boolean
+    /** One option a row on a phone. */
+    stacked?: boolean
   } = $props()
 
   const room = revealPickers()
@@ -79,6 +85,7 @@
 <div
   class="gems"
   class:settled
+  class:stacked
   class:pairs={options.length === 2 || options.length === 4}
   class:five={options.length === 5}
   class:odd={options.length % 2 === 1}
@@ -113,6 +120,10 @@
   }
 
   .odd:not(.settled) > :global(:last-child) {
+    grid-column: 1 / -1;
+  }
+
+  .stacked:not(.settled) > :global(*) {
     grid-column: 1 / -1;
   }
 
@@ -151,5 +162,15 @@
   .settled > :global(.correct) {
     grid-column: 1 / -1;
     order: -1;
+  }
+
+  .stacked.settled {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  @container (min-width: 40rem) {
+    .stacked.settled {
+      grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
+    }
   }
 </style>

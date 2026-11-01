@@ -40,6 +40,7 @@
     canAnswer,
     onAnswer,
     results = null,
+    stacked = false,
   }: TypeViewProps<Index> = $props()
 
   const q = $derived(data as unknown as Data)
@@ -49,6 +50,16 @@
   )
 </script>
 
-<GemChoices options={q.options} {picked} {answer} {revealed} {canAnswer} {results} {onAnswer} named>
+<GemChoices
+  options={q.options}
+  {picked}
+  {answer}
+  {revealed}
+  {canAnswer}
+  {results}
+  {onAnswer}
+  named
+  {stacked}
+>
   {#snippet label(option: string)}{option}{/snippet}
 </GemChoices>

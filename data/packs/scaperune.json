@@ -1,0 +1,897 @@
+{
+  "pack": "scaperune",
+  "questions": [
+    {
+      "id": "q_8c988ed44fc60234",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "npcs"
+      ],
+      "payload": {
+        "prompt": "Zaff",
+        "options": [
+          "Who sells battlestaves in Varrock?",
+          "Who runs the rune shop in Varrock?",
+          "Who runs the archery shop in Varrock?",
+          "Who sells armour in Varrock?"
+        ],
+        "answer_index": 0,
+        "explanation": "Zaff sells battlestaves. Aubury has the runes, Lowe the bows and Horvik the armour."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Zaff",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_88cef78eced01fe2",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "npcs"
+      ],
+      "payload": {
+        "prompt": "Duke Horacio",
+        "options": [
+          "Who gives you an anti-dragon shield in Lumbridge Castle?",
+          "Who starts The Restless Ghost in Lumbridge?",
+          "Who repairs your armour in Lumbridge for a fee?",
+          "Who sends you for an egg, milk and flour in Lumbridge?"
+        ],
+        "answer_index": 0,
+        "explanation": "The Duke hands them out. Father Aereck, Bob and the Cook have the others."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Duke_Horacio",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_7db27f169b1df9f0",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "locations"
+      ],
+      "payload": {
+        "prompt": "Burthorpe",
+        "options": [
+          "Which town is home to the Warriors' Guild?",
+          "Which village lies just south of the Crafting Guild?",
+          "Which village lies just west of the Ranging Guild?",
+          "Which city's north-west corner holds the Cooks' Guild?"
+        ],
+        "answer_index": 0,
+        "explanation": "The Warriors' Guild stands in Burthorpe. The others are Rimmington, Hemenster and Varrock."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Warriors'_Guild",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_34b386f5a93b5120",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "locations"
+      ],
+      "payload": {
+        "prompt": "Entrana",
+        "options": [
+          "Which island turns away most weapons and armour?",
+          "Which island is Tai Bwo Wannai on?",
+          "Which island does Lunar Diplomacy open up?",
+          "Which island is home to the pirates of the Eastern Ocean?"
+        ],
+        "answer_index": 0,
+        "explanation": "Monks search you on the way to Entrana. The others are Karamja, Lunar Isle and Mos Le'Harmless."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Entrana",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_4816633f62dda612",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "payload": {
+        "prompt": "Wizard Mizgog",
+        "options": [
+          "Who wants his beads back from the imps?",
+          "Who needs a potion made in Witch's Potion?",
+          "Who asks you to find her fiancé in Ernest the Chicken?",
+          "Who asks you to deal with Count Draynor?"
+        ],
+        "answer_index": 0,
+        "explanation": "Imp Catcher is his. Hetty, Veronica and Morgan start the others."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Imp_Catcher",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_0cd21e224dcc3774",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "items"
+      ],
+      "payload": {
+        "prompt": "Ghostspeak amulet",
+        "options": [
+          "What must you wear to talk to ghosts?",
+          "What must you wear to breathe in the Smoke Dungeon's dust?",
+          "What must you wear against a banshee's scream?",
+          "What must you wear when a wall beast grabs at you?"
+        ],
+        "answer_index": 0,
+        "explanation": "The others are a facemask, earmuffs and a spiny helmet."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Ghostspeak_amulet",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_9eba15520dc33999",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "payload": {
+        "prompt": "Mirror shield",
+        "options": [
+          "Which item do you need to fight a cockatrice?",
+          "Which item finishes off a gargoyle?",
+          "Which item finishes off a rockslug?",
+          "Which item finishes off a desert lizard?"
+        ],
+        "answer_index": 0,
+        "explanation": "The others are a rock hammer, a bag of salt and an ice cooler."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Mirror_shield",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_9f204e4af43238ba",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "items"
+      ],
+      "payload": {
+        "prompt": "Games necklace",
+        "options": [
+          "Which jewellery teleports you to Burthorpe?",
+          "Which jewellery teleports you to Edgeville and Karamja?",
+          "Which jewellery teleports you to Castle Wars?",
+          "Which jewellery teleports you to the Digsite?"
+        ],
+        "answer_index": 0,
+        "explanation": "The others are an amulet of glory, a ring of dueling and a digsite pendant."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Games_necklace",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_09ac63afbfba6568",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "28",
+        "options": [
+          "How many items fit in your inventory?",
+          "How many skills are there?",
+          "How many Barrows brothers are there?",
+          "How many worn equipment slots do you have?"
+        ],
+        "answer_index": 0,
+        "explanation": "Twenty-eight slots. There are 24 skills, six brothers and 11 equipment slots."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Inventory",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_5ce536767741e6d1",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "pets"
+      ],
+      "payload": {
+        "prompt": "1 in 3,000",
+        "options": [
+          "What are your odds of a Hellpuppy from Cerberus?",
+          "What are your odds of a Chompy chick from a chompy bird?",
+          "What are your odds of a Callisto cub from Callisto?",
+          "What are your odds of a Huberte from The Hueycoatl?"
+        ],
+        "answer_index": 0,
+        "explanation": "Cerberus gives 1 in 3,000. The chick is 1 in 500, the cub 1 in 1,500 and Huberte 1 in 400."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Pet",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_5fca08d88ff62695",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "lore"
+      ],
+      "payload": {
+        "prompt": "Zamorak",
+        "options": [
+          "Which god betrayed Zaros and took his power?",
+          "Which god do goblins worship?",
+          "Which god do the aviansie follow?",
+          "Which god do the elves of Prifddinas worship?"
+        ],
+        "answer_index": 0,
+        "explanation": "Zamorak stabbed Zaros with the Staff of Armadyl. The others are Bandos, Armadyl and Seren."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Zamorak",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_544e169e337ee8e3",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "npcs"
+      ],
+      "payload": {
+        "prompt": "Katrine",
+        "options": [
+          "Who leads the Black Arm Gang?",
+          "Who leads the Phoenix Gang?",
+          "Who leads the White Knights?",
+          "Who leads the Myreque?"
+        ],
+        "answer_index": 0,
+        "explanation": "The others are Straven, Sir Amik Varze and Veliaf Hurtz."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Katrine",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_cd22e60e0e19e2c0",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "lore"
+      ],
+      "payload": {
+        "prompt": "Misthalin",
+        "options": [
+          "Which kingdom does King Roald rule?",
+          "Which kingdom does King Vallance rule?",
+          "Which kingdom does King Lathas rule?",
+          "Which land does Lord Drakan rule?"
+        ],
+        "answer_index": 0,
+        "explanation": "The others are Asgarnia, Kandarin and Morytania."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/King_Roald",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_ed3a670b2b38d1d2",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "minigames"
+      ],
+      "payload": {
+        "prompt": "Thieving",
+        "options": [
+          "Which skill do you train at Pyramid Plunder?",
+          "Which skill do you train at Mahogany Homes?",
+          "Which skill do you train at the Tithe Farm?",
+          "Which skill do you train at Wintertodt?"
+        ],
+        "answer_index": 0,
+        "explanation": "The others are Construction, Farming and Firemaking."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Pyramid_Plunder",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_5cec57f9c5dc7803",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "herblore"
+      ],
+      "payload": {
+        "prompt": "Limpwurt root",
+        "options": [
+          "Which secondary turns a tarromin potion (unf) into a Strength potion?",
+          "Which secondary turns a dwarf weed potion (unf) into a Ranging potion?",
+          "Which secondary turns a harralander potion (unf) into a Restore potion?",
+          "Which secondary turns a marrentill potion (unf) into an Antipoison?"
+        ],
+        "answer_index": 0,
+        "explanation": "The others are wine of Zamorak, red spiders' eggs and unicorn horn dust."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Strength_potion",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_1fb790332d93be59",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "fishing"
+      ],
+      "payload": {
+        "prompt": "Sandworms",
+        "options": [
+          "Which bait do you need to catch anglerfish?",
+          "Which bait do you need to catch karambwans?",
+          "Which bait do you need to catch infernal eels?",
+          "Which bait do you use to fly fish for trout?"
+        ],
+        "answer_index": 0,
+        "explanation": "The others are raw karambwanji, fishing bait and feathers."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Raw_anglerfish",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_e70fe74bb1f278ae",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "pets"
+      ],
+      "payload": {
+        "prompt": "Olmlet",
+        "options": [
+          "Which pet comes from the Chambers of Xeric?",
+          "Which pet comes from the Theatre of Blood?",
+          "Which pet comes from the Inferno?",
+          "Which pet comes from the Tombs of Amascut?"
+        ],
+        "answer_index": 0,
+        "explanation": "The others are Lil' Zik, Jal-nib-rek and Tumeken's guardian."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Olmlet",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_b5e58d494ca090d9",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "payload": {
+        "prompt": "Lost City",
+        "options": [
+          "Which quest lets you wield a dragon longsword?",
+          "Which quest lets you wield a dragon scimitar?",
+          "Which quest lets you wear a rune platebody?",
+          "Which quest lets you wield a dragon mace?"
+        ],
+        "answer_index": 0,
+        "explanation": "The others are Monkey Madness I, Dragon Slayer I and Heroes' Quest."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Dragon_longsword",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_c2caa792ffd17586",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "bosses"
+      ],
+      "payload": {
+        "prompt": "Karil",
+        "options": [
+          "Which Barrows brother fights with Ranged?",
+          "Which Barrows brother fights with hammers?",
+          "Which Barrows brother can heal himself with his hits?",
+          "Which Barrows brother hits harder the lower his health?"
+        ],
+        "answer_index": 0,
+        "explanation": "The others are Torag, Guthan and Dharok."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Karil_the_Tainted",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_71743c289ce500a0",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "bosses"
+      ],
+      "payload": {
+        "prompt": "Forthos Dungeon",
+        "options": [
+          "Where do you fight Sarachnis?",
+          "Where do you fight the Kraken?",
+          "Which dungeon's depths lead down to Cerberus?",
+          "Where do you fight the Abyssal Sire?"
+        ],
+        "answer_index": 0,
+        "explanation": "The others are Kraken Cove, Taverley Dungeon and the Abyssal Nexus."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Sarachnis",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_e22c249f61e2a6bb",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "minigames"
+      ],
+      "payload": {
+        "prompt": "Fishing Trawler",
+        "options": [
+          "Which minigame has you plug leaks in a boat from Port Khazard?",
+          "Which minigame has you defend a Void Knight?",
+          "Which minigame sends waves of Penance at a team of five?",
+          "Which minigame has you work a dwarven furnace in Keldagrim?"
+        ],
+        "answer_index": 0,
+        "explanation": "The others are Pest Control, Barbarian Assault and the Blast Furnace."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Fishing_Trawler",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_3f50f63f27758f23",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "npcs"
+      ],
+      "payload": {
+        "prompt": "Aggie",
+        "options": [
+          "Who mixes dyes for you in Draynor Village?",
+          "Who tans your hides in Al Kharid?",
+          "Who sells fine clothes in Varrock?",
+          "Who sells dwarf multicannon parts on Ice Mountain?"
+        ],
+        "answer_index": 0,
+        "explanation": "The others are Ellis, Thessalia and Nulodion."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Aggie",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_573235217ce18bc8",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "payload": {
+        "prompt": "He dropped it down a drain.",
+        "options": [
+          "How did Sir Prysin lose his key to Silverlight?",
+          "How did the Lumbridge ghost lose his skull?",
+          "How did Elena end up in West Ardougne's plague zone?",
+          "How did Prince Ali end up needing a rescue?"
+        ],
+        "answer_index": 0,
+        "explanation": "The key is in the drain outside the palace kitchen. A warlock took the skull, Elena went in to help, and Lady Keli kidnapped Ali."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Demon_Slayer",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_aa3040dd14d16b93",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "30 coins",
+        "options": [
+          "What does the boat from Port Sarim to Karamja cost?",
+          "What does the toll gate into Al Kharid cost?",
+          "What does a Shantay pass cost?",
+          "What does one trip into the Brimhaven Agility Arena cost?"
+        ],
+        "answer_index": 0,
+        "explanation": "The others are 10 coins, 5 coins and 200 coins."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Captain_Tobias",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_655d157748fa7850",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "npcs"
+      ],
+      "payload": {
+        "prompt": "Bert",
+        "options": [
+          "Who delivers buckets of sand to your bank each day?",
+          "Who exchanges your banknotes for items in Rimmington?",
+          "Who teleports you to the essence mine from East Ardougne?",
+          "Who swaps your harvest for bank notes at a farming patch?"
+        ],
+        "answer_index": 0,
+        "explanation": "Bert's daily sand comes after The Hand in the Sand. The others are Phials, Wizard Cromperty and a Tool Leprechaun."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Bert",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_2a7658d874a8b916",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "minigames"
+      ],
+      "payload": {
+        "prompt": "Prospector Percy",
+        "options": [
+          "Who keeps the Motherlode Mine running?",
+          "Who hands out the work at the Tithe Farm?",
+          "Who is in command at Barbarian Assault?",
+          "Who takes you out on the Fishing Trawler?"
+        ],
+        "answer_index": 0,
+        "explanation": "The others are Farmer Gricoller, Commander Connad and Murphy."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Prospector_Percy",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_5064628cdd081f9b",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "random-events"
+      ],
+      "payload": {
+        "prompt": "Mr. Mordaut",
+        "options": [
+          "Who sets the papers in the Surprise Exam random event?",
+          "Who has you hunting pheasants in a forest clearing?",
+          "Who has you popping balloon animals to get out of prison?",
+          "Who has you playing Odd One Out for a prize?"
+        ],
+        "answer_index": 0,
+        "explanation": "That's me. The others are the Freaky Forester, Prison Pete and the Quiz Master."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Mr._Mordaut",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_3c28fdb6734f1a41",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "payload": {
+        "prompt": "Merlin",
+        "options": [
+          "Who is trapped in a crystal at Camelot?",
+          "Who does Lady Keli hold captive near Draynor?",
+          "Who goes missing behind the wall in West Ardougne?",
+          "Who is locked in a cell in Paterdomus, the Saradomin temple?"
+        ],
+        "answer_index": 0,
+        "explanation": "Merlin's Crystal frees him. The others are Prince Ali, Elena and Drezel."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Merlin",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_b35d9dd4d724575f",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "quests",
+        "order"
+      ],
+      "payload": {
+        "prompt": "Duke Horacio\nArchmage Sedridor\nAubury\nArchmage Sedridor",
+        "options": [
+          "The people you speak to, in order, in Rune Mysteries.",
+          "The people you speak to, in order, in The Restless Ghost.",
+          "The people you speak to, in order, in Dragon Slayer I.",
+          "The people you speak to, in order, in Cook's Assistant."
+        ],
+        "answer_index": 0,
+        "explanation": "The Duke's talisman goes to Sedridor, who sends a package to Aubury and back."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Rune_Mysteries",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_01296bd8f3bad47d",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "magic",
+        "order"
+      ],
+      "payload": {
+        "prompt": "Rush\nBurst\nBlitz\nBarrage",
+        "options": [
+          "The four tiers of an Ancient Magicks spell, weakest first.",
+          "The four tiers of an Ancient Magicks spell, strongest first.",
+          "The four tiers of an Ancient Magicks spell, by most targets hit, fewest first.",
+          "The four tiers of an Ancient Magicks spell, in alphabetical order."
+        ],
+        "answer_index": 0,
+        "explanation": "Burst and Barrage hit an area, so the targets go single, area, single, area."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Ancient_Magicks",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_64d0d49b2628dcda",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "locations",
+        "order"
+      ],
+      "payload": {
+        "prompt": "Vault of War\nCatacomb of Famine\nPit of Pestilence\nSepulchre of Death",
+        "options": [
+          "The floors of the Stronghold of Security, from the top down.",
+          "The floors of the Stronghold of Security, from the bottom up.",
+          "The floors of the Stronghold of Player Safety, from the top down.",
+          "The floors of the Stronghold of Security, in alphabetical order."
+        ],
+        "answer_index": 0,
+        "explanation": "War, Famine, Pestilence and Death: the deeper, the worse."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Stronghold_of_Security",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_cbd9e08b9cbc6fdb",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "cooking",
+        "order"
+      ],
+      "payload": {
+        "prompt": "Salmon\nLobster\nSwordfish\nMonkfish\nCooked karambwan\nShark",
+        "options": [
+          "These foods by Hitpoints healed, lowest first.",
+          "These foods by Hitpoints healed, highest first.",
+          "These foods by the Cooking level they need, lowest first.",
+          "These foods in alphabetical order."
+        ],
+        "answer_index": 0,
+        "explanation": "They heal 9, 12, 14, 16, 18 and 20. A karambwan cooks at level 30, well before a monkfish."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Monkfish",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_3911837064f3f6fc",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "slayer",
+        "order"
+      ],
+      "payload": {
+        "prompt": "Aberrant spectre\nGargoyle\nNechryael\nAbyssal demon\nDark beast\nSmoke devil",
+        "options": [
+          "These monsters by the Slayer level they need, lowest first.",
+          "These monsters by the Slayer level they need, highest first.",
+          "These monsters by combat level, lowest first.",
+          "These monsters by the Slayer experience one kill gives, lowest first."
+        ],
+        "answer_index": 0,
+        "explanation": "60, 75, 80, 85, 90 and 93. A dark beast outranks a smoke devil on combat and experience."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Slayer",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_0e10ba2b348f346f",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "magic",
+        "order"
+      ],
+      "payload": {
+        "prompt": "Standard\nAncient\nLunar\nArceuus",
+        "options": [
+          "The four spellbooks by when they came out, oldest first.",
+          "The four spellbooks by when they came out, newest first.",
+          "The four spellbooks in alphabetical order.",
+          "The four spellbooks by the Magic level of their first spell, lowest first."
+        ],
+        "answer_index": 0,
+        "explanation": "Ancient came with Desert Treasure in 2005, Lunar with Lunar Diplomacy in 2006, Arceuus with Zeah in 2016."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Spellbook",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_4b666bb99ad08139",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "quests",
+        "order"
+      ],
+      "payload": {
+        "prompt": "Goblin Diplomacy\nThe Lost Tribe\nDeath to the Dorgeshuun\nAnother Slice of H.A.M.\nLand of the Goblins",
+        "options": [
+          "The quests of the Dorgeshuun story, first to last.",
+          "The quests of the Dorgeshuun story, last to first.",
+          "The quests of the Dorgeshuun story, in alphabetical order.",
+          "The quests of the Fremennik story, first to last."
+        ],
+        "answer_index": 0,
+        "explanation": "Each needs the one before it."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Land_of_the_Goblins",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_605f054a22ff2853",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "magic",
+        "order"
+      ],
+      "payload": {
+        "prompt": "Cut a sapphire\nSmelt a gold bar\nCraft a ring at a furnace\nCast Lvl-1 Enchant on it",
+        "options": [
+          "How do you make a ring of recoil?",
+          "How do you make a ring of dueling?",
+          "How do you make a ring of forging?",
+          "How do you make a ring of life?"
+        ],
+        "answer_index": 0,
+        "explanation": "Sapphire makes recoil. Dueling is emerald, forging ruby and life diamond."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Ring_of_recoil",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_910a4a846cfd67f8",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "magic",
+        "order"
+      ],
+      "payload": {
+        "prompt": "Cut an emerald\nSmelt a gold bar\nCraft a necklace at a furnace\nCast Lvl-2 Enchant on it",
+        "options": [
+          "How do you make a binding necklace?",
+          "How do you make a games necklace?",
+          "How do you make a digsite pendant?",
+          "How do you make a phoenix necklace?"
+        ],
+        "answer_index": 0,
+        "explanation": "Emerald makes binding. Games is sapphire, digsite ruby and phoenix diamond."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Binding_necklace",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_86c74146b6e4d9af",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "trivia",
+        "order"
+      ],
+      "payload": {
+        "prompt": "Beginner\nEasy\nMedium\nHard\nElite\nMaster",
+        "options": [
+          "The tiers of clue scroll, easiest first.",
+          "The tiers of Combat Achievement, easiest first.",
+          "The tiers of Achievement Diary, easiest first.",
+          "The tiers of clue scroll, in alphabetical order."
+        ],
+        "answer_index": 0,
+        "explanation": "Combat Achievements start at Easy and end at Grandmaster, and diaries stop at Elite."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_733f0156ec651b3c",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "herblore",
+        "order"
+      ],
+      "payload": {
+        "prompt": "Attack potion\nStrength potion\nPrayer potion\nSuper energy\nSaradomin brew",
+        "options": [
+          "These potions by the Herblore level they need, lowest first.",
+          "These potions by the Herblore level they need, highest first.",
+          "These potions by the level needed to clean their herb, lowest first.",
+          "These potions in alphabetical order."
+        ],
+        "answer_index": 0,
+        "explanation": "3, 12, 38, 52 and 81. A brew's toadflax cleans at 30, before a super energy's avantoe at 48."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Herblore",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_9366c449a10eb945",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "smithing",
+        "order"
+      ],
+      "payload": {
+        "prompt": "Iron\nSilver\nSteel\nGold\nMithril\nAdamantite",
+        "options": [
+          "These bars by the Smithing level they need, lowest first.",
+          "These bars by the Smithing level they need, highest first.",
+          "These bars by the coal each one needs, fewest first.",
+          "These bars in alphabetical order."
+        ],
+        "answer_index": 0,
+        "explanation": "15, 20, 30, 40, 50 and 70. Gold takes no coal, though steel before it does."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Smithing",
+      "difficulty": "medium"
+    }
+  ]
+}

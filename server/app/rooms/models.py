@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 from typing import Any
 from uuid import UUID
 
-from app.modes import steps_of
+from app.modes import extra_answer_seconds, steps_of
 from app.questions.types import (
     TYPES,
     answer_seconds,
@@ -415,8 +415,9 @@ class Room:
         return [] if current is None else [s.mode for s in self.segments[: current.index]]
 
     def question_seconds(self, question: RoomQuestion) -> int:
-        """How long ``question`` stays open: its type's time at the room's pace."""
-        return answer_seconds(question.type, question.payload, self.settings.pace)
+        """How long ``question`` stays open: its type's and mode's time at the room's pace."""
+        extra = extra_answer_seconds(question.mode)
+        return answer_seconds(question.type, question.payload, self.settings.pace, extra)
 
     def question_reveal_seconds(self, question: RoomQuestion) -> int:
         """How long ``question``'s reveal holds: its type's time at the room's pace, plus names."""
@@ -428,7 +429,7 @@ class Room:
         if self.plan is not None:
             return self.plan.seconds
         return duration.game_seconds(
-            [(q.type, q.payload) for q in self.questions],
+            [(q.type, q.payload, q.mode) for q in self.questions],
             len(self.segments),
             self.settings.pace,
             self.settings.standings_seconds,

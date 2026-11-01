@@ -37,7 +37,8 @@ def stem_lines(type_id: str, mode: str, view: dict[str, Any]) -> list[int]:
     """The letters of each line a question's stem types, in order.
 
     A quote's prompt and Who's That NPC?'s are the mode's standing question, which the host's
-    ask line says, so the sheet does not type them.
+    ask line says, so the sheet does not type them. ScapeRune's answer may be a list, a line
+    per entry.
     """
     prompt = _text(view, "prompt")
     if type_id == "more_less":
@@ -51,6 +52,8 @@ def stem_lines(type_id: str, mode: str, view: dict[str, Any]) -> list[int]:
         return [len(quote)]
     if mode == "whos_that_npc":
         return []
+    if mode == "scaperune":
+        return [len(line) for line in prompt.split("\n")]
     return [len(prompt)] if prompt else []
 
 

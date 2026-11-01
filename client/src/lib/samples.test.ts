@@ -69,6 +69,7 @@ describe('samples', () => {
   it('stay open as long as the room leaves their type open', () => {
     expect(sampleSeconds(SAMPLES.more_less!)).toBe(10)
     expect(sampleSeconds(SAMPLES.bestiary!)).toBe(18)
+    expect(sampleSeconds(SAMPLES.scaperune!)).toBe(30)
     expect(sampleSeconds(SAMPLES.price_is_right!)).toBe(15)
     expect(sampleSeconds(SAMPLES.sort_it_out!)).toBe(35)
     expect(sampleSeconds(SAMPLES.whos_that_npc!)).toBe(25)

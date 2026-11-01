@@ -5,9 +5,10 @@ and ``types/__init__.py`` imports every type module.
 
 A type states two timings, ``ANSWER`` and ``REVEAL``, each a base plus seconds per item:
 six entries to put in order take longer to place, and to watch fall into place, than four.
-What an item is (an option, an entry) is the type's ``items(payload)``. The room's pace
-scales both, and nothing else does: a host picks how quick the game is, never how long
-one kind of question takes.
+What an item is (an option, an entry) is the type's ``items(payload)``. A mode may add
+seconds to the answer (``Mode.extra_answer``), when its questions take longer to read than
+its type's. The room's pace then scales the lot: a host picks how quick the game is, never
+how long one kind of question takes.
 """
 
 import math
@@ -28,7 +29,8 @@ class Timing:
     base: float
     per_item: float = 0.0
 
-    def seconds(self, items: int, pace: str, minimum: int) -> int:
-        """Whole seconds at ``pace``, never under ``minimum``; a half rounds up."""
-        exact = (self.base + self.per_item * items) * PACE_FACTOR[pace]
+    def seconds(self, items: int, pace: str, minimum: int, extra: int = 0) -> int:
+        """Whole seconds at ``pace`` with ``extra`` added, never under ``minimum``; a half rounds
+        up."""
+        exact = (self.base + self.per_item * items + extra) * PACE_FACTOR[pace]
         return max(minimum, math.floor(exact + 0.5))

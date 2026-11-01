@@ -34,7 +34,8 @@ class Mode:
     ``questions`` is how many questions a round holds, when it disagrees with its types.
     ``None`` means "whatever the types say", which is what ``questions_bounds`` falls back
     to; a round whose types disagree must state it, which ``modes.problems`` checks. How
-    long a question lasts is never the round's: its type says (``types/timing.py``).
+    long a question lasts is its type's (``types/timing.py``); ``extra_answer`` adds seconds to
+    the answer, before the pace, for a round whose questions take longer to read.
 
     ``options`` bounds how many options its ``multiple_choice`` questions offer, when the
     schema's two to six would make the round a guess.
@@ -55,6 +56,7 @@ class Mode:
     steps: Steps | None = None
     pictured: bool = False
     picture_at_reveal: bool = False
+    extra_answer: int = 0
 
     def __post_init__(self) -> None:
         # A bare string would be read as a set of its letters.

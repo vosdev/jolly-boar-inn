@@ -206,6 +206,8 @@ export interface Mode extends HostLines {
    * Left out, as it is.
    */
   picture?: 'shadow' | 'build' | 'reveal'
+  /** Its options run to whole sentences: one button a row on a phone, on the reveal too. */
+  stacked?: boolean
 }
 
 /**
@@ -214,7 +216,7 @@ export interface Mode extends HostLines {
  * item, Who Said That? a line in a chatbox. Each id is one component under
  * `components/questions/stems/`, and a new one lands with the first mode that needs it.
  */
-export type StemId = 'text' | 'asset' | 'examine' | 'quote' | 'more_less' | 'price'
+export type StemId = 'text' | 'asset' | 'examine' | 'quote' | 'more_less' | 'price' | 'board'
 
 /** The inn's own: the host's questions, and any round this build has no host for. */
 export const HOUSE: Host = { id: 'house', name: 'The House' }
@@ -1298,6 +1300,84 @@ export const MODES: Record<string, Mode> = {
     stem: 'text',
     // The verse is the question; the picture would be its answer.
     picture: 'reveal',
+  },
+  scaperune: {
+    id: 'scaperune',
+    label: 'ScapeRune',
+    hint: 'The answer is on the board. Pick the question it belongs to.',
+    host: { id: 'mr_mordaut', name: 'Mr. Mordaut' },
+    greeting: 'Sit down, class. Today I give the answers.',
+    blurb:
+      'I write the answer on the board. You tell me which of the four questions it belongs to.',
+    ask: [
+      'Here is the answer. What was the question?',
+      'The answer is on the board. Find its question.',
+      'Class, which question gives this answer?',
+      'Eyes on the board. What was I asking?',
+    ],
+    waiting: [
+      'Quiet, please. Still reading.',
+      'No copying while we wait.',
+      'Exams are my whole life.',
+      'Pens down when you are done.',
+    ],
+    pace: {
+      quick: [
+        'Finished already? Hand it in.',
+        'Quick! Did you read all four?',
+        'Top of the class for speed.',
+      ],
+      middling: [
+        'Handed in on time. Now we wait.',
+        'A steady hand. Marked and filed.',
+        'Neither early nor late. Acceptable.',
+      ],
+      late: [
+        'Just in time! The bell nearly rang.',
+        'Just in time! Pens were going down.',
+        'Just in time! I was collecting papers.',
+      ],
+      early: [
+        'Already? I had barely put the chalk down.',
+        'Before the chalk dried? Impressive.',
+        'So early! Have you seen this paper before?',
+      ],
+      later: [
+        'Read every word. A model student.',
+        'Took your time. Exams reward patience.',
+        'Read it twice? A good habit.',
+      ],
+    },
+    reveal: [
+      'Time. Let us mark these.',
+      'Papers down, please.',
+      'And the question was this.',
+      'Let us see the mark scheme.',
+    ],
+    verdict: {
+      right: [
+        'Correct! Full marks.',
+        'Right! A gold star for you.',
+        'Correct! You paid attention.',
+      ],
+      partial: [
+        'Half marks. Show your working.',
+        'Partly right. See me after class.',
+        'Close, but this is an exam.',
+      ],
+      wrong: [
+        'Incorrect. See me after class.',
+        'Wrong question! Read them again.',
+        'No. That belongs on another paper.',
+      ],
+      missed: [
+        'No answer? I cannot mark a blank page.',
+        'A blank paper? Most disappointing.',
+        'Nothing handed in? Detention.',
+      ],
+    },
+    stem: 'board',
+    stacked: true,
   },
   // Only on a server that switched it on, for testing the NPCs' questions in a row.
   random_events_only: {

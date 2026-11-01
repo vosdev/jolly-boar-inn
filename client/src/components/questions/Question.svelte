@@ -171,6 +171,7 @@
       {result}
       {results}
       {timing}
+      stacked={MODES[question.mode]?.stacked}
       {onAnswer}
     />
     {#if !question.you_can_answer && !revealed}

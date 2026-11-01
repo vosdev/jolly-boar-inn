@@ -416,6 +416,11 @@ def test_api_modes_serves_the_create_form_what_it_may_offer(client: TestClient) 
             "questions": {"default": 5, "min": 1, "max": 30},
         },
         {
+            "id": "scaperune",
+            "types": ["multiple_choice"],
+            "questions": {"default": 5, "min": 1, "max": 30},
+        },
+        {
             # Never a round, so no round length; its questions are events.
             "id": "custom",
             "types": [],

@@ -68,9 +68,9 @@ def _items(type_id: str, payload: dict[str, Any]) -> int:
     return 0 if hook is None else hook(payload)
 
 
-def answer_seconds(type_id: str, payload: dict[str, Any], pace: str) -> int:
-    """How long this question stays open at ``pace``."""
-    return TYPES[type_id].ANSWER.seconds(_items(type_id, payload), pace, MIN_ANSWER)
+def answer_seconds(type_id: str, payload: dict[str, Any], pace: str, extra: int = 0) -> int:
+    """How long this question stays open at ``pace``, with its mode's ``extra`` seconds."""
+    return TYPES[type_id].ANSWER.seconds(_items(type_id, payload), pace, MIN_ANSWER, extra)
 
 
 def reveal_seconds(type_id: str, payload: dict[str, Any], pace: str) -> int:
