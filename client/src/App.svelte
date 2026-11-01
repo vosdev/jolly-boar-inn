@@ -121,12 +121,13 @@
       route.name === 'create' ||
       (route.name === 'daily' && $roomShown !== null),
   )
-  // A past game is drawn as the room's final, which has none either.
+  // A past game is drawn as the room's final, which has none either. A stacked room shows
+  // no frame, so a phone's daily needs the room itself to say it is being played.
   const footer = $derived(
     route.name === 'history'
       ? false
       : route.name === 'daily'
-        ? $roomShown === null
+        ? $roomShown === null && !($room?.daily != null && $room.status === 'playing')
         : route.name !== 'room' || (!tv && $room?.status === 'lobby'),
   )
   $effect(() => wearTeam(team))

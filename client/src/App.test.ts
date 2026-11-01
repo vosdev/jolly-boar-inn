@@ -236,6 +236,42 @@ describe('App', () => {
     expect(bar().querySelector('.where')?.textContent?.trim()).toBe('Round 1 of 1: More or Less')
   })
 
+  it('has no footer under a live daily on a phone, and has it under the result', async () => {
+    Object.defineProperty(document.documentElement, 'clientWidth', {
+      configurable: true,
+      value: 800,
+    })
+    at('/daily')
+    await screen.findByRole('heading', { level: 1 })
+    const you = {
+      id: 'a',
+      display_name: 'Zezima',
+      role: 'player' as const,
+      connected: true,
+      avatar: null,
+      ready: false,
+      editing: false,
+      team: null,
+    }
+    const daily = { ...LIVE, daily: { day: '2026-11-01', number: 2 } }
+    const message = {
+      t: 'welcome' as const,
+      room: daily,
+      you,
+      players: [you],
+      question: null,
+      your_answer: null,
+      standings: [],
+      team_standings: null,
+      server_time: new Date().toISOString(),
+      server_version: __APP_VERSION__,
+    }
+    applyServerMessage(message)
+    await waitFor(() => expect(document.querySelector('footer')).toBeNull())
+    applyServerMessage({ ...message, room: { ...daily, status: 'finished' } })
+    await waitFor(() => expect(document.querySelector('footer')).not.toBeNull())
+  })
+
   it('says nothing in the bar of a room stacked for a phone', async () => {
     await inRoom(LIVE, 800)
     applyServerMessage({ t: 'question_open', question: QUESTION })
