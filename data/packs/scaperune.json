@@ -892,6 +892,448 @@
       },
       "wiki": "https://oldschool.runescape.wiki/w/Smithing",
       "difficulty": "medium"
+    },
+    {
+      "id": "q_9a67f34da166c5e6",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "scaperune"
+      ],
+      "payload": {
+        "prompt": "Catch a cooked fish, then uncook it",
+        "options": [
+          "How do you make raw fish in ScapeRune?",
+          "How do you train Thieving in ScapeRune?",
+          "How do you train Prayer in ScapeRune?",
+          "How do you train Mining in ScapeRune?"
+        ],
+        "answer_index": 0,
+        "explanation": "Fish come cooked there, so you use the uncooking pot on them."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/ScapeRune",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_2d819d0ba3421ce3",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "scaperune"
+      ],
+      "payload": {
+        "prompt": "It takes you out of ScapeRune",
+        "options": [
+          "What does a Scaperune teleport do?",
+          "What does an uncooking pot do?",
+          "What does an amulet of humanspeak do?",
+          "What does the big lever in ScapeRune's prison do?"
+        ],
+        "answer_index": 0,
+        "explanation": "It is the reverse of what it says. The pot makes food raw, the amulet lets a cat talk to you and the lever shows which balloon animal holds the key."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Scaperune_teleport",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_2ea60eafd43f1126",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "scaperune"
+      ],
+      "payload": {
+        "prompt": "An amulet of humanspeak",
+        "options": [
+          "What lets Evil Bob talk to you?",
+          "What do you use to make a fishlike thing raw?",
+          "What gets you off the island once Evil Bob sleeps?",
+          "What holds the keys in ScapeRune's prison?"
+        ],
+        "answer_index": 0,
+        "explanation": "The mirror of a catspeak amulet. The others are the uncooking pot, the portal and balloon animals."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Evil_Bob",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_38f0a9fe5ba92fd2",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "scaperune"
+      ],
+      "payload": {
+        "prompt": "Bridgelum",
+        "options": [
+          "Which scrapped ScapeRune place had you reassembling dead cows?",
+          "Which ScapeRune place looks just like the Falador Party Room?",
+          "Which ScapeRune place has a class pet rat?",
+          "Which ScapeRune place has an uncooking pot?"
+        ],
+        "answer_index": 0,
+        "explanation": "An alternative Lumbridge, dropped for being too grotesque. The others are the prison, the classroom and the island."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/ScapeRune",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_a51716b21632a3dc",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "scaperune"
+      ],
+      "payload": {
+        "prompt": "You're told your Uncooking level is too low, then that the skill doesn't exist",
+        "options": [
+          "What happens if you use outside food on the uncooking pot?",
+          "What happens if you feed Evil Bob a fish from the wrong spot?",
+          "What happens if you pop a balloon animal before pulling the lever?",
+          "What happens as you leave Evil Bob's island?"
+        ],
+        "answer_index": 0,
+        "explanation": "Bob then needs one more fish, Prison Pete tells you to pull the lever, and you blow a raspberry at the servant."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Uncooking_pot",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_26f807a9207d4c73",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "scaperune"
+      ],
+      "payload": {
+        "prompt": "Feed him fish until he falls asleep",
+        "options": [
+          "How do you get past Evil Bob on his island?",
+          "How do you get out of ScapeRune's prison?",
+          "How do you get out of Mr. Mordaut's classroom?",
+          "How do you get a fishlike thing?"
+        ],
+        "answer_index": 0,
+        "explanation": "The right fish, from the right spot. The prison takes balloon keys, the classroom any door, and a fishlike thing a net."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Evil_Bob",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_f1e7b7b36cb01774",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "scaperune",
+        "order"
+      ],
+      "payload": {
+        "prompt": "Net a fishlike thing\nUncook it\nFeed it to Evil Bob\nLeave by the portal",
+        "options": [
+          "How do you escape Evil Bob's island?",
+          "How do you escape ScapeRune's prison?",
+          "How do you leave Mr. Mordaut's classroom?",
+          "How do you catch and eat a fish in Gielinor?"
+        ],
+        "answer_index": 0,
+        "explanation": "In Gielinor you would cook it. Here that is already done."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/ScapeRune",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_1f2f4795ea2de41b",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "scaperune"
+      ],
+      "payload": {
+        "prompt": "A human servant with your name",
+        "options": [
+          "What does Evil Bob say must exist somewhere in ScapeRune?",
+          "What does Evil Bob demand from you on his island?",
+          "What does Evil Bob call Prison Pete?",
+          "What does Evil Bob's amulet let him do?"
+        ],
+        "answer_index": 0,
+        "explanation": "He is the mirror of Bob the cat, so somewhere there is a mirror of you. The others are fish, his pet and talking to you."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Evil_Bob",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_fb189e585ca7d681",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "scaperune"
+      ],
+      "payload": {
+        "prompt": "The Dunce",
+        "options": [
+          "Who takes you to Mr. Mordaut's classroom?",
+          "Who takes you to ScapeRune's prison?",
+          "Who do you break out of ScapeRune's prison with?",
+          "Who marks your exam in ScapeRune?"
+        ],
+        "answer_index": 0,
+        "explanation": "The others are Evil Bob, Prison Pete and Mr. Mordaut."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Surprise_Exam",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_c0deda9564de30b2",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "scaperune"
+      ],
+      "payload": {
+        "prompt": "A Book of Knowledge",
+        "options": [
+          "What do you get for passing the Surprise Exam?",
+          "What do you get for putting Evil Bob to sleep?",
+          "What do you get for popping a balloon animal?",
+          "What do you get from a ScapeRune fishing spot?"
+        ],
+        "answer_index": 0,
+        "explanation": "The others are 650 experience, a prison key and a fishlike thing."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Surprise_Exam",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_e886293c4ce40a84",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "scaperune-logic"
+      ],
+      "payload": {
+        "prompt": "Slip coins into a guard's pocket",
+        "options": [
+          "How do you train Thieving in ScapeRune?",
+          "How do you train Crafting in ScapeRune?",
+          "How do you train Mining in ScapeRune?",
+          "How do you train Cooking in ScapeRune?"
+        ],
+        "answer_index": 0,
+        "explanation": "ScapeRune logic: Thieving takes from pockets in Gielinor, so here it fills them."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/ScapeRune",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_3fe5549e64df5fb6",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "scaperune-logic"
+      ],
+      "payload": {
+        "prompt": "Hit a platebody with a hammer until the bars fall off",
+        "options": [
+          "How do you train Smithing in ScapeRune?",
+          "How do you train Fletching in ScapeRune?",
+          "How do you train Crafting in ScapeRune?",
+          "How do you train Mining in ScapeRune?"
+        ],
+        "answer_index": 0,
+        "explanation": "ScapeRune logic: Smithing hammers bars into armour in Gielinor, so here armour goes back to bars."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/ScapeRune",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_4d20e1f16a0fdafd",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "scaperune-logic",
+        "order"
+      ],
+      "payload": {
+        "prompt": "Find a fire\nPut it out\nTake the logs",
+        "options": [
+          "How do you train Firemaking in ScapeRune?",
+          "How do you train Woodcutting in ScapeRune?",
+          "How do you train Farming in ScapeRune?",
+          "How do you train Fletching in ScapeRune?"
+        ],
+        "answer_index": 0,
+        "explanation": "ScapeRune logic: Firemaking burns logs in Gielinor, so here it gets them back."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/ScapeRune",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_4d470c87392e7639",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "scaperune-logic"
+      ],
+      "payload": {
+        "prompt": "Dig up the bones",
+        "options": [
+          "How do you train Prayer in ScapeRune?",
+          "How do you train Farming in ScapeRune?",
+          "How do you train Slayer in ScapeRune?",
+          "How do you train Herblore in ScapeRune?"
+        ],
+        "answer_index": 0,
+        "explanation": "ScapeRune logic: Prayer buries bones in Gielinor, so here it digs them up."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/ScapeRune",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_f874c9a7cdac6e08",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "scaperune-logic"
+      ],
+      "payload": {
+        "prompt": "Cast High Alchemy on your coins",
+        "options": [
+          "How do you turn gold into goods in ScapeRune?",
+          "How do you train Thieving in ScapeRune?",
+          "How do you train Prayer in ScapeRune?",
+          "How do you train Herblore in ScapeRune?"
+        ],
+        "answer_index": 0,
+        "explanation": "ScapeRune logic: High Alchemy turns goods into gold in Gielinor, so here it works the other way."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/ScapeRune",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_52fd4126969c98a9",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "scaperune-logic"
+      ],
+      "payload": {
+        "prompt": "Heal a monster until it stands back up",
+        "options": [
+          "How do you train Slayer in ScapeRune?",
+          "How do you train Prayer in ScapeRune?",
+          "How do you train Farming in ScapeRune?",
+          "How do you train Runecraft in ScapeRune?"
+        ],
+        "answer_index": 0,
+        "explanation": "ScapeRune logic: Slayer kills monsters in Gielinor, so here it brings them back."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/ScapeRune",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_1aec5ab0a68be75d",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "scaperune-logic"
+      ],
+      "payload": {
+        "prompt": "Pull the seed back out of a grown tree",
+        "options": [
+          "How do you train Farming in ScapeRune?",
+          "How do you train Woodcutting in ScapeRune?",
+          "How do you train Herblore in ScapeRune?",
+          "How do you train Firemaking in ScapeRune?"
+        ],
+        "answer_index": 0,
+        "explanation": "ScapeRune logic: Farming grows seeds into trees in Gielinor, so here it takes them apart."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/ScapeRune",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_5be732e3b3a71878",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "scaperune-logic"
+      ],
+      "payload": {
+        "prompt": "Hand in your runes at the altar and take the essence",
+        "options": [
+          "How do you train Runecraft in ScapeRune?",
+          "How do you train Magic in ScapeRune?",
+          "How do you train Mining in ScapeRune?",
+          "How do you train Smithing in ScapeRune?"
+        ],
+        "answer_index": 0,
+        "explanation": "ScapeRune logic: Runecraft turns essence into runes in Gielinor, so here it turns them back."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/ScapeRune",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_1d4c77423623447c",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "scaperune-logic"
+      ],
+      "payload": {
+        "prompt": "Pour a potion out until the herb comes back",
+        "options": [
+          "How do you train Herblore in ScapeRune?",
+          "How do you train Cooking in ScapeRune?",
+          "How do you train Farming in ScapeRune?",
+          "How do you train Crafting in ScapeRune?"
+        ],
+        "answer_index": 0,
+        "explanation": "ScapeRune logic: Herblore brews herbs into potions in Gielinor, so here it unbrews them."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/ScapeRune",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_8015d2d23ec8b24b",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [
+        "scaperune-logic"
+      ],
+      "payload": {
+        "prompt": "Unstring the bow and glue it back into a log",
+        "options": [
+          "How do you train Fletching in ScapeRune?",
+          "How do you train Crafting in ScapeRune?",
+          "How do you train Woodcutting in ScapeRune?",
+          "How do you train Firemaking in ScapeRune?"
+        ],
+        "answer_index": 0,
+        "explanation": "ScapeRune logic: Fletching cuts logs into bows in Gielinor, so here bows go back to logs."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/ScapeRune",
+      "difficulty": "medium"
     }
   ]
 }
