@@ -283,7 +283,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_79e306e4d459492e",
+      "id": "q_0bb8555bed69bb69",
       "type": "matching",
       "mode": "tales_of_gielinor",
       "source": "pack",
@@ -309,26 +309,26 @@
         ],
         "options": [
           {
-            "text": "King Black Dragon"
-          },
-          {
-            "text": "K'ril Tsutsaroth"
-          },
-          {
             "text": "Kree'arra"
+          },
+          {
+            "text": "General Graardor"
           },
           {
             "text": "Commander Zilyana"
           },
           {
-            "text": "General Graardor"
+            "text": "K'ril Tsutsaroth"
+          },
+          {
+            "text": "King Black Dragon"
           }
         ],
         "answer": [
+          0,
+          1,
           2,
-          4,
-          3,
-          1
+          3
         ],
         "explanation": "They're still fighting the God Wars down there. Nobody told them it ended."
       },
@@ -581,7 +581,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_23824a8c516d599e",
+      "id": "q_3c217f805621abe2",
       "type": "matching",
       "mode": "tales_of_gielinor",
       "source": "pack",
@@ -607,29 +607,29 @@
         ],
         "options": [
           {
-            "text": "King Lathas"
-          },
-          {
-            "text": "Duke Horacio"
-          },
-          {
             "text": "King Roald"
           },
           {
             "text": "King Vallance"
           },
           {
-            "text": "King Arthur"
+            "text": "King Lathas"
           },
           {
             "text": "Lord Drakan"
+          },
+          {
+            "text": "Duke Horacio"
+          },
+          {
+            "text": "King Arthur"
           }
         ],
         "answer": [
-          2,
-          3,
           0,
-          5
+          1,
+          2,
+          3
         ],
         "explanation": "Vallance hasn't been seen for years, so that crown is more of a rumour. Duke Horacio only has Lumbridge."
       },
@@ -720,7 +720,7 @@
       "difficulty": "hard"
     },
     {
-      "id": "q_08448f7fc1342894",
+      "id": "q_72dc4a10b5de57cf",
       "type": "ordering",
       "mode": "tales_of_gielinor",
       "source": "pack",
@@ -736,11 +736,6 @@
         ],
         "entries": [
           {
-            "text": "Making Friends with My Arm",
-            "rank": 5,
-            "detail": "Part 5"
-          },
-          {
             "text": "Death Plateau",
             "rank": 1,
             "detail": "Part 1"
@@ -751,22 +746,27 @@
             "detail": "Part 2"
           },
           {
+            "text": "Eadgar's Ruse",
+            "rank": 3,
+            "detail": "Part 3"
+          },
+          {
             "text": "My Arm's Big Adventure",
             "rank": 4,
             "detail": "Part 4"
           },
           {
-            "text": "Eadgar's Ruse",
-            "rank": 3,
-            "detail": "Part 3"
+            "text": "Making Friends with My Arm",
+            "rank": 5,
+            "detail": "Part 5"
           }
         ],
         "answer": [
+          0,
           1,
           2,
-          4,
           3,
-          0
+          4
         ],
         "explanation": "From raiding a troll camp to a wedding in Weiss: My Arm has come a long way."
       },
@@ -811,7 +811,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_1e7f530e84151294",
+      "id": "q_4503465049406f46",
       "type": "ordering",
       "mode": "tales_of_gielinor",
       "source": "pack",
@@ -827,11 +827,6 @@
         ],
         "entries": [
           {
-            "text": "Dragon Slayer II",
-            "rank": 4,
-            "detail": "200 QP"
-          },
-          {
             "text": "Black Knights' Fortress",
             "rank": 1,
             "detail": "12 QP"
@@ -845,20 +840,25 @@
             "text": "Legends' Quest",
             "rank": 3,
             "detail": "107 QP"
+          },
+          {
+            "text": "Dragon Slayer II",
+            "rank": 4,
+            "detail": "200 QP"
           }
         ],
         "answer": [
+          0,
           1,
           2,
-          3,
-          0
+          3
         ],
         "explanation": "12, 55, 107 and 200. Dragon Slayer II wants more than the other three put together."
       },
       "difficulty": "medium"
     },
     {
-      "id": "q_8332aa22065b82fa",
+      "id": "q_261c7efc2b61280e",
       "type": "ordering",
       "mode": "tales_of_gielinor",
       "source": "pack",
@@ -874,19 +874,19 @@
         ],
         "entries": [
           {
-            "text": "Lunar Diplomacy",
-            "rank": 3,
-            "detail": "Experienced"
-          },
-          {
-            "text": "Dragon Slayer II",
-            "rank": 5,
-            "detail": "Grandmaster"
-          },
-          {
             "text": "Cook's Assistant",
             "rank": 1,
             "detail": "Novice"
+          },
+          {
+            "text": "Cold War",
+            "rank": 2,
+            "detail": "Intermediate"
+          },
+          {
+            "text": "Lunar Diplomacy",
+            "rank": 3,
+            "detail": "Experienced"
           },
           {
             "text": "Legends' Quest",
@@ -894,17 +894,17 @@
             "detail": "Master"
           },
           {
-            "text": "Cold War",
-            "rank": 2,
-            "detail": "Intermediate"
+            "text": "Dragon Slayer II",
+            "rank": 5,
+            "detail": "Grandmaster"
           }
         ],
         "answer": [
-          2,
-          4,
           0,
+          1,
+          2,
           3,
-          1
+          4
         ],
         "explanation": "Novice, Intermediate, Experienced, Master, Grandmaster. The cook's cake is about as safe as questing gets."
       },
@@ -939,7 +939,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_81302672c498e4e8",
+      "id": "q_37ed64dee7979a76",
       "type": "matching",
       "mode": "tales_of_gielinor",
       "source": "pack",
@@ -965,26 +965,26 @@
         ],
         "options": [
           {
-            "text": "Fighter torso"
-          },
-          {
-            "text": "Lunar spellbook"
+            "text": "Ava's devices"
           },
           {
             "text": "Ancient Magicks"
           },
           {
-            "text": "Ava's devices"
+            "text": "Lunar spellbook"
           },
           {
             "text": "Barrows gloves"
+          },
+          {
+            "text": "Fighter torso"
           }
         ],
         "answer": [
-          3,
-          2,
+          0,
           1,
-          4
+          2,
+          3
         ],
         "explanation": "The fighter torso is the odd one out: it comes from Barbarian Assault, not a quest."
       },
