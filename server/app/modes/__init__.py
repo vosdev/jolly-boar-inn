@@ -127,6 +127,21 @@ MODES: dict[str, Mode] = {
             }
         ),
     ),
+    "uris_unravelling": Mode(
+        id="uris_unravelling",
+        types=frozenset(
+            {
+                "multiple_choice",
+                "closest_number",
+                "number_slider",
+                "free_text",
+                "ordering",
+                "pick_all_that_apply",
+                "matching",
+            }
+        ),
+        extra_answer=5,
+    ),
     # The NPCs' questions as a round, to test them in a row. Off unless the instance says so.
     "random_events_only": Mode(
         id="random_events_only",

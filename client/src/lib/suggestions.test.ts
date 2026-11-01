@@ -98,6 +98,7 @@ describe('the choices', () => {
       'know_your_content_creator',
       'scaperune',
       'tales_of_gielinor',
+      'uris_unravelling',
       'whos_that_npc',
       'forgetful_bard',
       'sort_it_out',
@@ -174,7 +175,7 @@ describe('the choices', () => {
       'minigame_madness',
     ])
     const quoting = CHOICES.filter((c) => c.quote).map((c) => c.id)
-    expect(quoting).toEqual(['who_said_that', 'know_your_content_creator'])
+    expect(quoting).toEqual(['who_said_that', 'know_your_content_creator', 'uris_unravelling'])
     const silent = CHOICES.filter((c) => c.explanation === false).map((c) => c.id)
     expect(silent).toEqual(['guess_examine', 'whos_that_npc', 'forgetful_bard'])
     const release = CHOICES.find((c) => c.id === 'release_order')
@@ -395,12 +396,14 @@ describe('a question’s round', () => {
       'drop_table',
       'minigame_madness',
       'tales_of_gielinor',
+      'uris_unravelling',
     ])
     expect(roundsFor('ordering').map((c) => c.id)).toEqual([
       'random_event',
       'bestiary',
       'minigame_madness',
       'tales_of_gielinor',
+      'uris_unravelling',
       'sort_it_out',
       'release_order',
     ])

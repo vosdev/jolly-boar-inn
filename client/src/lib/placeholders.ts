@@ -42,6 +42,10 @@ const HINTS: Record<string, FieldHints> = {
     prompt: 'Who gives you the Lost City quest?',
     explanation: 'A warrior camped in the Lumbridge Swamp, who is looking for Zanaris.',
   },
+  uris_unravelling: {
+    prompt: 'Which NPC does this anagram name?',
+    explanation: 'Ranael, who runs the skirt shop in Al Kharid.',
+  },
   who_said_that: {
     prompt: 'Who said this?',
     explanation:

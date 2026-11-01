@@ -118,6 +118,7 @@ describe('hosts', () => {
     expect(hostOf('odd_one_out').host).toEqual({ id: 'dunce', name: 'Dunce' })
     expect(hostOf('minigame_madness').host).toEqual({ id: 'lanthus', name: 'Lanthus' })
     expect(hostOf('tales_of_gielinor').host).toEqual({ id: 'wise_old_man', name: 'Wise Old Man' })
+    expect(hostOf('uris_unravelling').host).toEqual({ id: 'uri', name: 'Uri' })
   })
 
   it('has Lanthus greet Minigame Madness in his own lines', () => {

@@ -184,6 +184,17 @@ export const SAMPLES: Record<string, Sample> = {
     },
     answer: 1,
   },
+  uris_unravelling: {
+    mode: 'uris_unravelling',
+    type: 'multiple_choice',
+    view: {
+      prompt: 'Which NPC does this anagram name?',
+      quote: 'AN EARL',
+      options: ['Aretha', 'Ranael', 'Baraek', 'Kaylee'],
+    },
+    answer: 1,
+    extra: 5,
+  },
   whos_that_npc: {
     mode: 'whos_that_npc',
     type: 'pick_from_list',
