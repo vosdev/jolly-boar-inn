@@ -33,6 +33,7 @@
   import { barWhere } from '../lib/barWhere'
   import type { HostQuestion } from '../lib/customQuestions'
   import { heroFor, speakerFor } from '../lib/hero'
+  import { rerollModeSeed } from '../lib/modeOrder'
   import { profile, returningVisitor, saveProfile } from '../lib/profile'
   import type { PlayerView } from '../lib/protocol'
   import { atRoomLimit } from '../lib/roomLimit'
@@ -84,6 +85,8 @@
 
   let { navigate }: { navigate: (to: string) => void } = $props()
 
+  // The lobby this opens keeps the order, so a new one starts with the next unsaved draft.
+  if (readStored(DRAFT_KEY) === null) rerollModeSeed()
   const draft = storedDraft()
   let tonight = $state(draft.tonight)
   let customQuestions = $state<HostQuestion[]>([])

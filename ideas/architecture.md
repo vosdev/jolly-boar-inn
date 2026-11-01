@@ -447,6 +447,7 @@ finished ─▶ deleted: FINISHED_ROOM_GRACE_MINUTES (60) after finished_at (cle
 - A room is born with its host; there is no state before `lobby`. Only `lobby` is joinable. `/create`
   is a lobby with its doors shut, held in the host's browser (`jbi:draft`) because a room's code is
   its address: Open the doors is the POST, so an unopened room costs the server nothing.
+  The mode picker's order is a seed in `jbi:mode-seed`, redrawn with each new draft, so the lobby matches.
 - `start_game` needs an admin, a round and a connected player who is not the TV. It selects the
   questions, and a selection that fails leaves the room in the lobby. It resets `expires_at`. A team
   game also needs every player, connected or not, in a team and players in two teams or more.

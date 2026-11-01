@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.228.0',
+    date: '2026-11-01',
+    text: 'The game modes on Create come in a new order for every room, so none always sits first.',
+  },
+  {
     version: '0.227.0',
     date: '2026-11-01',
     text: 'The daily challenge has the whole room to itself, with Next under your answers and a count of the ten questions.',
