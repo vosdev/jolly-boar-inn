@@ -63,9 +63,16 @@ export function roomFit(view: { width: number; height: number }, bar: number): R
   return { scale, width, height, left: (view.width - width * scale) / 2, compact }
 }
 
-/** The stage's edges in the window, in px, for what hangs at them from outside the room. */
-export function stageEdges(fit: RoomFit): { left: number; width: number } {
+/**
+ * The stage's edges in the window, in px, for what hangs at them from outside the room.
+ * `centred` is a room with no table column, its stage in the middle.
+ */
+export function stageEdges(fit: RoomFit, centred = false): { left: number; width: number } {
   const side = (fit.compact ? PADDING.compact : PADDING.full).side
+  if (centred) {
+    const width = Math.min(fit.width - 2 * side, PLAY.stageWide)
+    return { left: fit.left + ((fit.width - width) / 2) * fit.scale, width: width * fit.scale }
+  }
   return {
     left: fit.left + side * fit.scale,
     width: (fit.width - 2 * side - PLAY.gap - PLAY.tableReveal) * fit.scale,
@@ -73,7 +80,7 @@ export function stageEdges(fit: RoomFit): { left: number; width: number } {
 }
 
 /** The room as it is drawn now; null outside a room or stacked. */
-export const roomShown = writable<{ fit: RoomFit } | null>(null)
+export const roomShown = writable<{ fit: RoomFit; centred?: boolean } | null>(null)
 
 /** The frame for the window as it is now; the bar's height is the shell's, from app.css. */
 export function measureRoom(): RoomFit | null {

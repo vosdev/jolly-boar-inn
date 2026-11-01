@@ -106,7 +106,8 @@
     route.name === 'home' ||
       route.name === 'how-to' ||
       route.name === 'admin' ||
-      route.name === 'suggest',
+      route.name === 'suggest' ||
+      route.name === 'daily',
   )
 
   // The frame is the room's: a stale `you` outlives Room until the next one resets it, so

@@ -469,7 +469,7 @@ one question a round, with one `player` and settings `run`, early close, no name
   🟨 partial, 🟥 none, and `location.origin/daily`.
 - Join, requests and `GET /api/rooms/{code}` answer 404 for it, and Home never lists it. The first
   question opens on the player's first `hello`; no splash, no standings, no Past party games entry.
-- The reveal has no countdown: Next is the player's `skip`, and the server moves on after 300 s.
+- The reveal has no countdown: Next, in the answer panel, is the player's `skip`, and the server moves on after 300 s. No table column or timer `n/m` tab; the bar counts questions.
 
 One task per room runs `_run_questions(room, index, resume_at)`:
 

@@ -32,6 +32,7 @@
     totalSeconds,
     label,
     progress,
+    stage = false,
     next,
     quiet = false,
     team = null,
@@ -41,6 +42,8 @@
     totalSeconds: number
     label: string
     progress?: string
+    /** Hang the tabs at the stage's edges with no number to say so. */
+    stage?: boolean
     /** What follows a reveal, counted down to: the tab says "Next in 6s", the fill is quiet. */
     next?: string
     /** The quiet fill with a plain tab: the standings, whose panel says what comes next. */
@@ -61,7 +64,9 @@
   const seconds = $derived(Math.ceil(Math.min(remainingMs, totalSeconds * 1000) / 1000))
   const fraction = $derived(totalSeconds > 0 ? Math.min(1, remainingMs / (totalSeconds * 1000)) : 0)
   const urgent = $derived(next === undefined && !quiet && remainingMs > 0 && seconds <= URGENT_S)
-  const edges = $derived($roomShown === null ? null : stageEdges($roomShown.fit))
+  const edges = $derived(
+    $roomShown === null ? null : stageEdges($roomShown.fit, $roomShown.centred),
+  )
   const scale = $derived($tvFit?.scale ?? $roomShown?.fit.scale ?? null)
 </script>
 
@@ -80,7 +85,7 @@
        edges. The question's number is the heading's to say to a screen reader. -->
   <div
     class="column"
-    class:stage={progress !== undefined}
+    class:stage={stage || progress !== undefined}
     class:tv={$tvFit !== null}
     class:room={$tvFit === null && edges !== null}
     style:--tv-width={$tvFit === null ? null : `${$tvFit.width}px`}

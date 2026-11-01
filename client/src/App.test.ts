@@ -146,6 +146,7 @@ describe('App', () => {
 
   it.each([
     ['/', true],
+    ['/daily', true],
     ['/r/ABYSSAL', false],
   ])('gives %s the wide page: %s', async (path, wide) => {
     at(path)

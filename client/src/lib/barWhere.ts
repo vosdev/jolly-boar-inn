@@ -12,18 +12,20 @@ export interface BarWhere {
 /** Set by the room, drawn by the top bar; null says nothing. */
 export const barWhere = writable<BarWhere | null>(null)
 
-/** Where a room in `status` and `phase`, in round `segment`, is in its night. */
+/** Where a room in `status` and `phase`, in round `segment`, is in its night; `daily` counts questions, its rounds being one each. */
 export function whereOf(
   status: RoomStatus,
   phase: string | null,
   segment: Segment | null,
+  daily = false,
 ): BarWhere | null {
   if (status === 'lobby') return { lead: 'Lobby', mode: null }
   if (status === 'finished') return { lead: 'Final hiscores', mode: null }
   if (segment === null) return null
   const round = `round ${segment.index + 1} of ${segment.total}`
   if (phase === 'standings') return { lead: `Hiscores after ${round}`, mode: null }
-  return { lead: `Round ${segment.index + 1} of ${segment.total}:`, mode: modeLabel(segment.mode) }
+  const lead = `${daily ? 'Question' : 'Round'} ${segment.index + 1} of ${segment.total}:`
+  return { lead, mode: modeLabel(segment.mode) }
 }
 
 /** A past game, for the bar's middle: its code, and when it ended if this browser kept it. */
