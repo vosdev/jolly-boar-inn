@@ -218,6 +218,7 @@ const CHOICE_ROUNDS = [
   'know_your_content_creator',
   'scaperune',
   'tales_of_gielinor',
+  'uris_unravelling',
 ]
 
 function choiceRound(
@@ -265,6 +266,15 @@ const ROUND_TYPES: Record<string, readonly SuggestedType[]> = {
     'ordering',
     'matching',
   ],
+  uris_unravelling: [
+    'multiple_choice',
+    'free_text',
+    'closest_number',
+    'number_slider',
+    'pick_all_that_apply',
+    'ordering',
+    'matching',
+  ],
   know_your_content_creator: [
     'multiple_choice',
     'closest_number',
@@ -294,7 +304,7 @@ const WIKI_ROUNDS = ['guess_examine', 'whos_that_npc']
 const PICTURE_ITEM_ROUNDS = ['drop_table', 'minigame_madness']
 
 /** Rounds that show a quotation under the prompt. */
-const QUOTE_ROUNDS = ['who_said_that', 'know_your_content_creator']
+const QUOTE_ROUNDS = ['who_said_that', 'know_your_content_creator', 'uris_unravelling']
 
 /** Rounds whose questions carry no explanation: `NO_EXPLANATION_MODES` on the server. */
 export const NO_EXPLANATION_ROUNDS = ['guess_examine', 'whos_that_npc', 'forgetful_bard']

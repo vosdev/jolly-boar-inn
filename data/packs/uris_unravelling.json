@@ -1,0 +1,1251 @@
+{
+  "pack": "uris_unravelling",
+  "questions": [
+    {
+      "id": "q_f0f13a08d9e46168",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "anagram"
+      ],
+      "payload": {
+        "prompt": "Which NPC does this anagram name?",
+        "quote": "AN EARL",
+        "options": [
+          "Ranael",
+          "Aretha",
+          "Baraek",
+          "Kaylee"
+        ],
+        "answer_index": 0,
+        "explanation": "Ranael, who runs the skirt shop in Al Kharid."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide/Anagrams",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_bccfd0c05dee6898",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "anagram"
+      ],
+      "payload": {
+        "prompt": "Which NPC does this anagram name?",
+        "quote": "I CORD",
+        "options": [
+          "Doric",
+          "Brian",
+          "Karim",
+          "Nieve"
+        ],
+        "answer_index": 0,
+        "explanation": "Doric, the dwarf north of Falador."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide/Anagrams",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_8db0f41faedb8c9c",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "anagram"
+      ],
+      "payload": {
+        "prompt": "Which NPC does this anagram name?",
+        "quote": "ARE COL",
+        "options": [
+          "Oracle",
+          "Edmond",
+          "Gallow",
+          "Baraek"
+        ],
+        "answer_index": 0,
+        "explanation": "The Oracle, on Ice Mountain."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide/Anagrams",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_10b4b85f30993c69",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "anagram"
+      ],
+      "payload": {
+        "prompt": "Which NPC does this anagram name?",
+        "quote": "LARK IN DOG",
+        "options": [
+          "King Roald",
+          "Sir Prysin",
+          "Party Pete",
+          "Zoo keeper"
+        ],
+        "answer_index": 0,
+        "explanation": "King Roald, on his throne in Varrock Palace."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide/Anagrams",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_0cf268a515e418a4",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "anagram"
+      ],
+      "payload": {
+        "prompt": "Which NPC does this anagram name?",
+        "quote": "SLIDE WOMAN",
+        "options": [
+          "Wise Old Man",
+          "Weird Old Man",
+          "Old Man Ral",
+          "King Bolren"
+        ],
+        "answer_index": 0,
+        "explanation": "The Wise Old Man, retired to Draynor Village."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide/Anagrams",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_102b4e876da05e5b",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "anagram"
+      ],
+      "payload": {
+        "prompt": "Which NPC does this anagram name?",
+        "quote": "CARPET AHOY",
+        "options": [
+          "Apothecary",
+          "Hairdresser",
+          "Dockmaster",
+          "Fortunato"
+        ],
+        "answer_index": 0,
+        "explanation": "The Apothecary, in south-west Varrock."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide/Anagrams",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_6749e62bf349112c",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "anagram"
+      ],
+      "payload": {
+        "prompt": "Which NPC does this anagram name?",
+        "quote": "MOTHERBOARD",
+        "options": [
+          "Brother Omad",
+          "Abbot Langley",
+          "Brother Kojo",
+          "Father Aereck"
+        ],
+        "answer_index": 0,
+        "explanation": "Brother Omad, at the monastery south of Ardougne."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide/Anagrams",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_4337271f8b033c42",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "anagram"
+      ],
+      "payload": {
+        "prompt": "Which NPC does this anagram name?",
+        "quote": "MACHETE CLAM",
+        "options": [
+          "Cam the Camel",
+          "Al the Camel",
+          "Elly the Camel",
+          "Ollie the Camel"
+        ],
+        "answer_index": 0,
+        "explanation": "Cam the Camel, just outside the gates of the Emir’s Arena. No Camulet needed."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide/Anagrams",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_cdb1313974cb01aa",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "anagram"
+      ],
+      "payload": {
+        "prompt": "Which NPC does this anagram name?",
+        "quote": "WOO AN EGG KIWI",
+        "options": [
+          "King Awowogei",
+          "King Percival",
+          "King Narnode",
+          "King Bolren"
+        ],
+        "answer_index": 0,
+        "explanation": "King Awowogei, on Ape Atoll. Bring a greegree."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide/Anagrams",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_0d47ff321757a2a5",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "anagram"
+      ],
+      "payload": {
+        "prompt": "Which NPC does this anagram name?",
+        "quote": "CAREER IN MOON",
+        "options": [
+          "Oneiromancer",
+          "King Percival",
+          "Captain Ginea",
+          "Father Aereck"
+        ],
+        "answer_index": 0,
+        "explanation": "The Oneiromancer, at the Astral Altar on Lunar Isle."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide/Anagrams",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_b5e9301f1ed37293",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "cipher"
+      ],
+      "payload": {
+        "prompt": "Which NPC does this cipher name?",
+        "quote": "BMJ UIF LFCBC TFMMFS",
+        "options": [
+          "Ali the Kebab seller",
+          "Ali the Leaflet Dropper",
+          "Charlie the Tramp",
+          "Brundt the Chieftain"
+        ],
+        "answer_index": 0,
+        "explanation": "Each letter is one place on: Ali the Kebab seller, in Pollnivneach."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide/Ciphers",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_8e2fba6c7f567667",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "cipher"
+      ],
+      "payload": {
+        "prompt": "Which NPC does this cipher name?",
+        "quote": "XJABSE USBJCPSO",
+        "options": [
+          "Wizard Traiborn",
+          "Wizard Mizgog",
+          "Wizard Frumscone",
+          "Wizard Grayzag"
+        ],
+        "answer_index": 0,
+        "explanation": "Each letter is one place on: Wizard Traiborn, in the Wizards’ Tower."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide/Ciphers",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_66720a53ae1a6f0b",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "cipher"
+      ],
+      "payload": {
+        "prompt": "Which NPC does this cipher name?",
+        "quote": "GUHCHO",
+        "options": [
+          "Drezel",
+          "Eluned",
+          "Regath",
+          "Brundt"
+        ],
+        "answer_index": 0,
+        "explanation": "Each letter is three places on: Drezel, by the Paterdomus Temple."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide/Ciphers",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_9f5b1406ecf7a683",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "cipher"
+      ],
+      "payload": {
+        "prompt": "Which NPC does this cipher name?",
+        "quote": "QSPGFTTPS HSBDLMFCPOF",
+        "options": [
+          "Professor Gracklebone",
+          "Professor Oddenstein",
+          "Professor Imblewyn",
+          "Professor Onglewip"
+        ],
+        "answer_index": 0,
+        "explanation": "Each letter is one place on: Professor Gracklebone, in the Arceuus Library."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide/Ciphers",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_03728f141dbfa524",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "cipher"
+      ],
+      "payload": {
+        "prompt": "Which NPC does this cipher name?",
+        "quote": "ZHLUG ROG PDQ",
+        "options": [
+          "Weird Old Man",
+          "Wise Old Man",
+          "Strange Old Man",
+          "Old Man Ral"
+        ],
+        "answer_index": 0,
+        "explanation": "Each letter is three places on: the Weird Old Man, at the Kalphite Lair entrance."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide/Ciphers",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_babd3ded29a8296a",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "cipher"
+      ],
+      "payload": {
+        "prompt": "Which NPC does this cipher name?",
+        "quote": "VTYR APCNTGLW",
+        "options": [
+          "King Percival",
+          "King Awowogei",
+          "King Narnode",
+          "King Bolren"
+        ],
+        "answer_index": 0,
+        "explanation": "Each letter is eleven places on: King Percival, in the Fisher Realm."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide/Ciphers",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_8a03aa964ddc0ac3",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "cipher"
+      ],
+      "payload": {
+        "prompt": "Which NPC does this cipher name?",
+        "quote": "OVEXON",
+        "options": [
+          "Eluned",
+          "Islwyn",
+          "Regath",
+          "Drezel"
+        ],
+        "answer_index": 0,
+        "explanation": "Each letter is ten places on: Eluned, outside Lletya."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide/Ciphers",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_b51eb3f78d6dd589",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "cryptic"
+      ],
+      "payload": {
+        "prompt": "Which NPC does this cryptic clue lead to?",
+        "quote": "Always walking around the castle grounds and somehow knows everyone’s age.",
+        "options": [
+          "Hans",
+          "Duke Horacio",
+          "Father Aereck",
+          "Lumbridge Guide"
+        ],
+        "answer_index": 0,
+        "explanation": "Hans, forever circling Lumbridge Castle."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide/Cryptic_clues",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_047af699e4ff80cb",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "cryptic"
+      ],
+      "payload": {
+        "prompt": "Which NPC does this cryptic clue lead to?",
+        "quote": "Near the open desert I reside, to get past me you must abide. Go forward if you dare, for when you pass me, you’ll be sweating by your hair.",
+        "options": [
+          "Shantay",
+          "Ali Morrisane",
+          "Ellis",
+          "Zeke"
+        ],
+        "answer_index": 0,
+        "explanation": "Shantay, at the Shantay Pass south of Al Kharid."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide/Cryptic_clues",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_8136ec8a1d5e467a",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "cryptic"
+      ],
+      "payload": {
+        "prompt": "Which NPC does this cryptic clue lead to?",
+        "quote": "Surprising? I bet he is...",
+        "options": [
+          "Sir Prysin",
+          "Sir Amik Varze",
+          "Sir Vyvin",
+          "Sir Tiffy Cashien"
+        ],
+        "answer_index": 0,
+        "explanation": "Sir Prysin, in Varrock Palace. Say it out loud."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide/Cryptic_clues",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_4f72930047b2bf98",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "cryptic"
+      ],
+      "payload": {
+        "prompt": "Which NPC does this cryptic clue lead to?",
+        "quote": "Talk to the mother of a basement dwelling son.",
+        "options": [
+          "Doris",
+          "Gertrude",
+          "Aggie",
+          "Sarah"
+        ],
+        "answer_index": 0,
+        "explanation": "Doris, Evil Dave’s mother, west of Edgeville bank."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide/Cryptic_clues",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_a7ad037062f6cb8d",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "cryptic"
+      ],
+      "payload": {
+        "prompt": "Which NPC does this cryptic clue lead to?",
+        "quote": "‘A bag belt only?’, he asked his balding brothers.",
+        "options": [
+          "Abbot Langley",
+          "Brother Omad",
+          "Brother Jered",
+          "Drezel"
+        ],
+        "answer_index": 0,
+        "explanation": "An anagram in a cryptic: Abbot Langley, at the monastery near Edgeville."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide/Cryptic_clues",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_c5cad192516da5b9",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "cryptic"
+      ],
+      "payload": {
+        "prompt": "Which NPC does this cryptic clue lead to?",
+        "quote": "Leader of the Yak City.",
+        "options": [
+          "Mawnis Burowgar",
+          "King Gjuki Sorvott IV",
+          "Brundt the Chieftain",
+          "Sigmund the Merchant"
+        ],
+        "answer_index": 0,
+        "explanation": "Mawnis Burowgar, of Neitiznot."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide/Cryptic_clues",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_0952a78e0c0e1c93",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "cryptic"
+      ],
+      "payload": {
+        "prompt": "Which NPC does this cryptic clue lead to?",
+        "quote": "The mother of the reptilian sacrifice.",
+        "options": [
+          "Zul-Cheray",
+          "Zul-Areth",
+          "Priestess Zul-Gwenwynig",
+          "High Priestess Zul-Harcinqa"
+        ],
+        "answer_index": 0,
+        "explanation": "Zul-Cheray, in a house near the sacrificial boat at Zul-Andra."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide/Cryptic_clues",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_75bcc76d1d69b16b",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "cryptic"
+      ],
+      "payload": {
+        "prompt": "Which NPC does this cryptic clue lead to?",
+        "quote": "One of several rhyming brothers, in business attire with an obsession for paper work.",
+        "options": [
+          "Piles",
+          "Giles",
+          "Miles",
+          "Niles"
+        ],
+        "answer_index": 0,
+        "explanation": "Piles, in the Wilderness Resource Area."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide/Cryptic_clues",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_4f58f0c836e64e50",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "cryptic"
+      ],
+      "payload": {
+        "prompt": "Which NPC does this cryptic clue lead to?",
+        "quote": "Shhhh!",
+        "options": [
+          "Logosia",
+          "Biblia",
+          "Horphis",
+          "Villia"
+        ],
+        "answer_index": 0,
+        "explanation": "Logosia, on the ground floor of the Arceuus Library."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide/Cryptic_clues",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_f87b9c870d0b259f",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "emote"
+      ],
+      "payload": {
+        "prompt": "Who hands you the next step once you finish an emote clue?",
+        "options": [
+          "Uri",
+          "Watson",
+          "Sherlock",
+          "Falo the Bard"
+        ],
+        "answer_index": 0,
+        "explanation": "Uri, summoned by the right emote in the right place and the right clothes."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Uri",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_efa4167c5fc003b6",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "emote"
+      ],
+      "payload": {
+        "prompt": "What is Uri’s surname?",
+        "options": [
+          "Molotov",
+          "Geller",
+          "Bond",
+          "Romanov"
+        ],
+        "answer_index": 0,
+        "explanation": "Uri Molotov. His examine reads “shaken, not stirred”."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Uri",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_4602f0638047abdb",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "emote"
+      ],
+      "payload": {
+        "prompt": "Who calls this out on a clue step?",
+        "quote": "I expect you to die!",
+        "options": [
+          "Double agent",
+          "Saradomin wizard",
+          "Zamorak wizard",
+          "Ancient wizard"
+        ],
+        "answer_index": 0,
+        "explanation": "The double agent, who looks just like Uri and turns up on hard and master emote clues."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Double_agent",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_ddf6ce6187aae034",
+      "type": "ordering",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "emote"
+      ],
+      "payload": {
+        "prompt": "Put a hard emote clue in order.",
+        "ends": [
+          "First",
+          "Last"
+        ],
+        "entries": [
+          {
+            "text": "Put on the listed items",
+            "rank": 1
+          },
+          {
+            "text": "Perform the emote",
+            "rank": 2
+          },
+          {
+            "text": "Kill the double agent",
+            "rank": 3
+          },
+          {
+            "text": "Speak to Uri",
+            "rank": 4
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Uri only shows up once the double agent is dead, and he still wants you in the listed items."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Double_agent",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_ba5963bde697f435",
+      "type": "pick_all_that_apply",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "gear"
+      ],
+      "payload": {
+        "prompt": "Which three items did coordinate clues once demand?",
+        "options": [
+          "Sextant",
+          "Watch",
+          "Chart",
+          "Spyglass",
+          "Strange device"
+        ],
+        "answer_indices": [
+          0,
+          1,
+          2
+        ],
+        "explanation": "A sextant, a watch and a chart. You no longer need to own any of them."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_da31d0d3e9128644",
+      "type": "pick_all_that_apply",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "tiers"
+      ],
+      "payload": {
+        "prompt": "Which tiers can send a double agent after you?",
+        "options": [
+          "Beginner",
+          "Easy",
+          "Medium",
+          "Hard",
+          "Elite",
+          "Master"
+        ],
+        "answer_indices": [
+          3,
+          5
+        ],
+        "explanation": "Hard and master emote clues only."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Double_agent",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_b7e073280b34754d",
+      "type": "pick_all_that_apply",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "tiers"
+      ],
+      "payload": {
+        "prompt": "Which tiers of reward casket can turn out to be the Mimic?",
+        "options": [
+          "Beginner",
+          "Easy",
+          "Medium",
+          "Hard",
+          "Elite",
+          "Master"
+        ],
+        "answer_indices": [
+          4,
+          5
+        ],
+        "explanation": "Elite and master, once you have enabled it at the strange casket in Watson’s house."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Mimic",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_bc0b755829c05287",
+      "type": "pick_all_that_apply",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "tiers"
+      ],
+      "payload": {
+        "prompt": "Which tiers have Hot Cold clues?",
+        "options": [
+          "Beginner",
+          "Easy",
+          "Medium",
+          "Hard",
+          "Elite",
+          "Master"
+        ],
+        "answer_indices": [
+          0,
+          5
+        ],
+        "explanation": "Beginner, with Reldo’s strange device, and master, with Jorral’s."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Strange_device",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_b076a73f57b0dac4",
+      "type": "pick_all_that_apply",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "tiers"
+      ],
+      "payload": {
+        "prompt": "Which tiers can hand you a challenge scroll?",
+        "options": [
+          "Beginner",
+          "Easy",
+          "Medium",
+          "Hard",
+          "Elite",
+          "Master"
+        ],
+        "answer_indices": [
+          2,
+          3,
+          4
+        ],
+        "explanation": "Medium, hard and elite."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide/Challenge_scrolls",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_ba106340d20b01bb",
+      "type": "closest_number",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "steps"
+      ],
+      "payload": {
+        "prompt": "What is the most steps a master clue can have?",
+        "answer": 8,
+        "unit": "steps",
+        "explanation": "Eight. Master clues run from six to eight steps."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_0ba5e75422a7bf67",
+      "type": "number_slider",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "steps"
+      ],
+      "payload": {
+        "prompt": "What is the most steps an elite clue can have?",
+        "answer": 7,
+        "min": 1,
+        "max": 10,
+        "scale": "linear",
+        "unit": "steps",
+        "explanation": "Seven. Elite clues run from five to seven steps."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_32821923b62e8792",
+      "type": "number_slider",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "rewards"
+      ],
+      "payload": {
+        "prompt": "With the Mimic enabled, 1 in how many master reward caskets holds it?",
+        "answer": 15,
+        "min": 5,
+        "max": 50,
+        "scale": "linear",
+        "unit": "caskets",
+        "explanation": "One in 15. Elite caskets are rarer still, at one in 35."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Reward_casket_(master)",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_a35f215c2a5bff08",
+      "type": "free_text",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "npcs"
+      ],
+      "payload": {
+        "prompt": "Who trades one clue each of easy, medium, hard and elite for a master clue?",
+        "accepted": [
+          "Watson"
+        ],
+        "explanation": "Watson, in his house in Hosidius."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Watson",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_a1cacc178932d77c",
+      "type": "free_text",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "npcs"
+      ],
+      "payload": {
+        "prompt": "Who in the Varrock Palace library gives you the strange device for beginner Hot Cold clues?",
+        "accepted": [
+          "Reldo"
+        ],
+        "explanation": "Reldo. Master Hot Cold clues need Jorral’s instead."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Strange_device",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_29b06a3fec3ab3d5",
+      "type": "free_text",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "npcs"
+      ],
+      "payload": {
+        "prompt": "Who is the Treasure Trails master, wandering the woods south of the Sorcerers’ Tower?",
+        "accepted": [
+          "Sherlock"
+        ],
+        "explanation": "Sherlock, who sets skill challenges on elite and master clues."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Sherlock",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_a88f55e8953255e8",
+      "type": "free_text",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "npcs"
+      ],
+      "payload": {
+        "prompt": "Which Fremennik bard sings of an item that a master clue makes you bring him?",
+        "accepted": [
+          "Falo the Bard",
+          "Falo"
+        ],
+        "explanation": "Falo the Bard, who wants the item from his ballad used on him."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Falo_the_Bard",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_5b4618ba160c6e24",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "rewards"
+      ],
+      "payload": {
+        "prompt": "Which tier’s reward casket can hold the 3rd Age pickaxe without a Mimic?",
+        "options": [
+          "Master",
+          "Medium",
+          "Hard",
+          "Elite"
+        ],
+        "answer_index": 0,
+        "explanation": "Master. An elite casket can only give one through the Mimic."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/3rd_Age_pickaxe",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_0413c960f0aa7dae",
+      "type": "multiple_choice",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "rewards"
+      ],
+      "payload": {
+        "prompt": "Which tier’s reward casket holds Ranger boots?",
+        "options": [
+          "Medium",
+          "Hard",
+          "Elite",
+          "Master"
+        ],
+        "answer_index": 0,
+        "explanation": "Medium, and they are still worth a fortune."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Reward_casket_(medium)",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_5371278e89a2713e",
+      "type": "ordering",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "rewards"
+      ],
+      "payload": {
+        "prompt": "Sort these rewards by the tier of casket that holds them.",
+        "ends": [
+          "Beginner",
+          "Master"
+        ],
+        "entries": [
+          {
+            "text": "Mole slippers",
+            "rank": 1,
+            "detail": "Beginner"
+          },
+          {
+            "text": "Black beret",
+            "rank": 2,
+            "detail": "Easy"
+          },
+          {
+            "text": "Ranger boots",
+            "rank": 3,
+            "detail": "Medium"
+          },
+          {
+            "text": "Robin Hood hat",
+            "rank": 4,
+            "detail": "Hard"
+          },
+          {
+            "text": "Ranger gloves",
+            "rank": 5,
+            "detail": "Elite"
+          },
+          {
+            "text": "Bloodhound",
+            "rank": 6,
+            "detail": "Master"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "One reward from each tier of casket, from the mole slippers to the Bloodhound pet."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Reward_casket",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_8dd4ae20c034e8e8",
+      "type": "matching",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "anagram"
+      ],
+      "payload": {
+        "prompt": "Match each anagram to its NPC.",
+        "fields": [
+          {
+            "text": "R SLICER"
+          },
+          {
+            "text": "HALT US"
+          },
+          {
+            "text": "NOD MED"
+          },
+          {
+            "text": "THICKNO"
+          }
+        ],
+        "options": [
+          {
+            "text": "Clerris"
+          },
+          {
+            "text": "Luthas"
+          },
+          {
+            "text": "Edmond"
+          },
+          {
+            "text": "Hickton"
+          },
+          {
+            "text": "Dunstan"
+          },
+          {
+            "text": "Regath"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Each name uses every letter of its anagram. Dunstan is SAND NUT, and Regath is AT HERG."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide/Anagrams",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_0c78b0335e5d7479",
+      "type": "matching",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "cipher"
+      ],
+      "payload": {
+        "prompt": "Match each cipher to its NPC.",
+        "fields": [
+          {
+            "text": "IWPPLQTP"
+          },
+          {
+            "text": "YAROYGR"
+          },
+          {
+            "text": "ZSBKDO ZODO"
+          },
+          {
+            "text": "HCKTA IQFHCVJGT"
+          }
+        ],
+        "options": [
+          {
+            "text": "Gunnjorn",
+            "detail": "Shifted by 2"
+          },
+          {
+            "text": "Sulisal",
+            "detail": "Shifted by 6"
+          },
+          {
+            "text": "Pirate Pete",
+            "detail": "Shifted by 10"
+          },
+          {
+            "text": "Fairy Godfather",
+            "detail": "Shifted by 2"
+          },
+          {
+            "text": "Otto Godblessed"
+          },
+          {
+            "text": "Fairy Queen"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "The word lengths give most of it away, before you shift a single letter."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails/Guide/Ciphers",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_526f5b68f0ba6477",
+      "type": "matching",
+      "mode": "uris_unravelling",
+      "source": "pack",
+      "tags": [
+        "npcs"
+      ],
+      "payload": {
+        "prompt": "Match each clue NPC to where to find them.",
+        "fields": [
+          {
+            "text": "Watson"
+          },
+          {
+            "text": "Reldo"
+          },
+          {
+            "text": "Jorral"
+          },
+          {
+            "text": "Ali the Kebab seller"
+          }
+        ],
+        "options": [
+          {
+            "text": "Hosidius"
+          },
+          {
+            "text": "Varrock Palace"
+          },
+          {
+            "text": "The Outpost"
+          },
+          {
+            "text": "Pollnivneach"
+          },
+          {
+            "text": "Rellekka"
+          },
+          {
+            "text": "Zanaris"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Watson lives in Hosidius, Reldo in the palace library, Jorral at the Outpost north-west of West Ardougne, and Ali in Pollnivneach."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Treasure_Trails",
+      "difficulty": "hard"
+    }
+  ]
+}

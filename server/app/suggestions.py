@@ -114,6 +114,17 @@ QUESTION_MODES: dict[str, frozenset[str]] = {
         }
     ),
     "forgetful_bard": frozenset({"pick_from_list"}),
+    "uris_unravelling": frozenset(
+        {
+            "multiple_choice",
+            "free_text",
+            "closest_number",
+            "number_slider",
+            "pick_all_that_apply",
+            "ordering",
+            "matching",
+        }
+    ),
     "sort_it_out": frozenset({"ordering"}),
     "release_order": frozenset({"ordering"}),
     "whos_that_npc": frozenset({"pick_from_list", "multiple_choice"}),
@@ -123,7 +134,7 @@ QUESTION_MODES: dict[str, frozenset[str]] = {
 LINED_MODES = frozenset({"scaperune"})
 
 # The rounds that show a quotation under the prompt (``multiple_choice.quote``).
-QUOTE_MODES = frozenset({"who_said_that", "know_your_content_creator"})
+QUOTE_MODES = frozenset({"who_said_that", "know_your_content_creator", "uris_unravelling"})
 
 # Rounds whose questions all ask the same thing: the pack's tests hold them to it.
 FIXED_PROMPTS = {"odd_one_out": "Which one doesn't belong?", "whos_that_npc": "Who's that NPC?"}

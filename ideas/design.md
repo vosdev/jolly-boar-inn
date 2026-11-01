@@ -676,6 +676,7 @@ dependencies, on the [project board](https://github.com/users/vosdev/projects/3)
 | `forgetful_bard` | Falo the Bard
 | `scaperune` | Mr. Mordaut
 | `tales_of_gielinor` | The Wise Old Man, so he left the random-event roster
+| `uris_unravelling` | Uri, who turns up at the end of an emote clue
 | `guess_examine` | The Examiner, from the Dig Site 
 | `whos_that_npc` | Postie Pete
 | `random_events_only` | The crowned frog from Kiss the Frog

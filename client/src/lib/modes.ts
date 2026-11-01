@@ -1450,6 +1450,82 @@ export const MODES: Record<string, Mode> = {
     },
     stem: 'text',
   },
+  uris_unravelling: {
+    id: 'uris_unravelling',
+    label: 'Uri’s Unravelling',
+    hint: 'Solve the clue without the help of a blinking yellow arrow.',
+    host: { id: 'uri', name: 'Uri' },
+    greeting: 'Comrade. The goose flies south at noon. Do not ask which goose.',
+    blurb: 'No yellow arrow here, comrade. Only the clue, your wits and a man who was never here.',
+    ask: [
+      'Comrade. Unravel this.',
+      'The goose has landed. Unravel this.',
+      'Read it once, then unravel it.',
+      'Quietly now. Unravel this one.',
+    ],
+    waiting: [
+      'The walrus sleeps. We wait.',
+      'I have stood in worse places, in stranger hats.',
+      'Patience. Even a spoon bends slowly.',
+      'My briefcase grows heavy. Do hurry.',
+    ],
+    pace: {
+      quick: [
+        'Quick! The arrow blinked for nobody.',
+        'Fast, comrade. Were you followed?',
+        'Quick! Even the agent is impressed.',
+      ],
+      middling: [
+        'A measured pace. Nobody saw a thing.',
+        'Steady. That is how one crosses a bridge at dusk.',
+        'Neither early nor late, like the eels.',
+      ],
+      late: [
+        'Just in time! The message was burning.',
+        'Just in time, comrade. The bag was closing.',
+        'Just in time. I saw nothing.',
+      ],
+      early: [
+        'Early! You did not wait for the emote.',
+        'So early! The briefcase is still shut.',
+        'Answered early! Someone has done their reading.',
+      ],
+      later: [
+        'You took your time. Nobody was watching.',
+        'You waited it out. Wise, comrade.',
+        'Slowly, as the milk drifts north.',
+      ],
+    },
+    reveal: [
+      'The briefcase opens.',
+      'Now the clue unravels.',
+      'Read it, then eat it.',
+      'Here is what the scroll meant.',
+    ],
+    verdict: {
+      right: [
+        'Correct, comrade. You were never here.',
+        'Right! The walrus approves.',
+        'Solved, and no arrow in sight.',
+      ],
+      partial: [
+        'Half a clue. The other half is in the well.',
+        'Partly. You stopped one step short.',
+        'Close, comrade. Keep digging.',
+      ],
+      wrong: [
+        'No. You have dug in the wrong place.',
+        'Wrong! Even a blinking arrow would be ashamed.',
+        'No, comrade. Burn that answer.',
+      ],
+      missed: [
+        'Nothing? The double agent got to you.',
+        'No answer. Very discreet.',
+        'Silence. Well trained, but no answer.',
+      ],
+    },
+    stem: 'quote',
+  },
   random_events_only: {
     id: 'random_events_only',
     label: 'Random Events Only',
