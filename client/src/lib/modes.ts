@@ -1373,6 +1373,83 @@ export const MODES: Record<string, Mode> = {
     stacked: true,
   },
   // Only on a server that switched it on, for testing the NPCs' questions in a row.
+  tales_of_gielinor: {
+    id: 'tales_of_gielinor',
+    label: 'Tales of Gielinor',
+    hint: 'Quests, lore and the tales of Gielinor.',
+    host: { id: 'wise_old_man', name: 'Wise Old Man' },
+    greeting: 'Sit down, sit down. I have stories older than this inn.',
+    blurb:
+      "I have walked every road in Gielinor, and most of them twice. Let's see what you remember.",
+    ask: [
+      'Sit still and tell me this.',
+      'Now, where was I? Ah, yes.',
+      'Here is one from my travels.',
+      'An old tale. Do you know how it goes?',
+    ],
+    waiting: [
+      'I have waited out whole ages. I can wait for this.',
+      'Let me find my glasses while we wait.',
+      'This is slower than robbing Draynor Bank.',
+      'I may have dozed off. Has everyone answered?',
+    ],
+    pace: {
+      quick: [
+        'Quick! Not even I robbed that bank so fast.',
+        'Fast! You have read your quest journal.',
+        'Quick! You must have lived through it yourself.',
+      ],
+      middling: [
+        'At a fair walking pace. No need to run.',
+        'Steady. A sensible adventurer, this one.',
+        'Neither hasty nor late. I approve.',
+      ],
+      late: [
+        'Just in time! The tale was nearly over.',
+        'Just in time, before I forgot the question.',
+        'Just in time, like any good hero.',
+      ],
+      early: [
+        'Early! You barely let me finish the tale.',
+        'Answered early! Youth, always in a hurry.',
+        'So early! Did you skip the dialogue?',
+      ],
+      later: [
+        'You took your time. A wise choice.',
+        'Waited for more of the tale. Smart.',
+        'Patient. You will live to my age yet.',
+      ],
+    },
+    reveal: [
+      'Here is how it really goes.',
+      'Check your quest journal.',
+      'I was there, you know.',
+      'It is all in the old books.',
+    ],
+    verdict: {
+      right: [
+        'Well remembered. There is hope for you yet.',
+        'Right! You have earned a quest point.',
+        'Correct! I could not have told it better.',
+      ],
+      partial: [
+        'Close. You only skipped some of the dialogue.',
+        'Part of the tale, but not all of it.',
+        'Nearly. You missed a chapter or two.',
+      ],
+      wrong: [
+        'Hmm. Perhaps read your quest journal next time.',
+        'No, no. That is not how the tale goes.',
+        'Wrong! In my day, we read the dialogue.',
+      ],
+      missed: [
+        'No answer? Have you nodded off?',
+        'Nothing? I thought I was the old one here.',
+        'You missed it. The tale went on without you.',
+      ],
+    },
+    stem: 'text',
+  },
   random_events_only: {
     id: 'random_events_only',
     label: 'Random Events Only',

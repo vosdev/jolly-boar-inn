@@ -175,6 +175,15 @@ export const SAMPLES: Record<string, Sample> = {
     },
     answer: 1,
   },
+  tales_of_gielinor: {
+    mode: 'tales_of_gielinor',
+    type: 'multiple_choice',
+    view: {
+      prompt: 'Whose Edicts keep the gods from walking Gielinor?',
+      options: ['Saradomin', 'Guthix', 'Zamorak', 'Armadyl'],
+    },
+    answer: 1,
+  },
   whos_that_npc: {
     mode: 'whos_that_npc',
     type: 'pick_from_list',

@@ -1,18 +1,16 @@
 {
-  "pack": "random_events",
-  "random_event": "wise_old_man",
+  "pack": "tales_of_gielinor",
   "questions": [
     {
-      "id": "q_bfd88352aa873f19",
+      "id": "q_9bee289d8ba8612d",
       "type": "number_slider",
-      "mode": "random_event",
+      "mode": "tales_of_gielinor",
       "source": "pack",
       "tags": [
         "quests"
       ],
       "wiki": "https://oldschool.runescape.wiki/w/Champions'_Guild",
       "payload": {
-        "intro": "The Champions' Guild was a fine place in my day. They still keep the riff-raff out.",
         "prompt": "How many quest points do you need to enter the Champions' Guild?",
         "answer": 32,
         "min": 0,
@@ -20,53 +18,53 @@
         "scale": "linear",
         "unit": "quest points",
         "explanation": "The Champions' Guild south of Varrock needs 32 quest points. Dragon Slayer I starts there."
-      }
+      },
+      "difficulty": "medium"
     },
     {
-      "id": "q_f41807f8d817b684",
+      "id": "q_eb1f8324a327cfd3",
       "type": "free_text",
-      "mode": "random_event",
+      "mode": "tales_of_gielinor",
       "source": "pack",
       "tags": [
         "quests"
       ],
       "wiki": "https://oldschool.runescape.wiki/w/Elvarg",
       "payload": {
-        "intro": "I have slain my share of dragons, but an adventurer always remembers the first.",
         "prompt": "Which dragon do you slay in Dragon Slayer I?",
         "accepted": [
           "Elvarg"
         ],
         "explanation": "Elvarg lives on Crandor. Ned sails you there on the Lady Lumbridge."
-      }
+      },
+      "difficulty": "easy"
     },
     {
-      "id": "q_3f5978528417cacc",
+      "id": "q_193dd364522d9bb4",
       "type": "closest_number",
-      "mode": "random_event",
+      "mode": "tales_of_gielinor",
       "source": "pack",
       "tags": [
         "lore"
       ],
       "wiki": "https://oldschool.runescape.wiki/w/Fifth_Age",
       "payload": {
-        "intro": "I have lived through a great many years of this age. Do you know how many?",
         "prompt": "In which year of the Fifth Age is the game set?",
         "answer": 169,
         "explanation": "The present is year 169 of the Fifth Age, the Age of Man."
-      }
+      },
+      "difficulty": "hard"
     },
     {
-      "id": "q_00e9fc2b77ce7010",
+      "id": "q_df778971322a6478",
       "type": "multiple_choice",
-      "mode": "random_event",
+      "mode": "tales_of_gielinor",
       "source": "pack",
       "tags": [
         "lore"
       ],
       "wiki": "https://oldschool.runescape.wiki/w/Edicts_of_Guthix",
       "payload": {
-        "intro": "The gods once walked Gielinor and nearly tore it apart. Then one of them made rules.",
         "prompt": "Whose Edicts keep the gods from walking Gielinor?",
         "options": [
           "Saradomin",
@@ -78,19 +76,19 @@
         ],
         "answer_index": 1,
         "explanation": "Guthix laid down his Edicts after the God Wars, to keep the other gods out of Gielinor."
-      }
+      },
+      "difficulty": "easy"
     },
     {
-      "id": "q_58e9bf11d2e72da5",
+      "id": "q_c4e6c34f5ea4eafe",
       "type": "multiple_choice",
-      "mode": "random_event",
+      "mode": "tales_of_gielinor",
       "source": "pack",
       "tags": [
         "lore"
       ],
       "wiki": "https://oldschool.runescape.wiki/w/God_Wars",
       "payload": {
-        "intro": "The God Wars lasted four thousand years. I am old, but not that old.",
         "prompt": "In which age were the God Wars fought?",
         "options": [
           "First Age",
@@ -101,19 +99,21 @@
         ],
         "answer_index": 2,
         "explanation": "The God Wars spanned the whole Third Age, about 4,000 years, until Guthix woke and ended them."
-      }
+      },
+      "difficulty": "medium"
     },
     {
-      "id": "q_a9c75d5b2b4b6832",
+      "id": "q_0fb94c0fb6767742",
       "type": "multiple_choice",
-      "mode": "random_event",
+      "mode": "tales_of_gielinor",
       "source": "pack",
-      "tags": [],
+      "tags": [
+        "quests"
+      ],
       "wiki": "https://oldschool.runescape.wiki/w/One_Small_Favour",
       "credit": "TwintigApril",
       "payload": {
-        "intro": "Everybody's favourite quest is One Small Favour",
-        "prompt": "How many favours do you complete during this quest?",
+        "prompt": "How many favours do you complete during One Small Favour?",
         "options": [
           "16",
           "19",
@@ -124,7 +124,8 @@
         ],
         "explanation": "You complete a total of 19 favours during the One Small Favour quest.",
         "answer_index": 1
-      }
+      },
+      "difficulty": "hard"
     }
   ]
 }

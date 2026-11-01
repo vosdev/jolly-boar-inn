@@ -128,6 +128,7 @@ WHAT_PLAYERS_READ = {
     "random_event": _prompt,
     "forgetful_bard": _prompt,
     "scaperune": _prompt,
+    "tales_of_gielinor": _prompt,
     "odd_one_out": lambda q: ", ".join(q["payload"]["options"]),
     "pixel_hunt": lambda q: q["payload"]["subject"]["name"],
     "whos_that_npc": lambda q: (

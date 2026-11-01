@@ -111,14 +111,6 @@ export const RANDOM_EVENTS: readonly RandomEventNpc[] = [
     asset: 'npc:sergeant_damien',
   },
   {
-    id: 'wise_old_man',
-    name: 'Wise Old Man',
-    theme: 'Quests and lore',
-    right: 'Well remembered. There is hope for you yet.',
-    wrong: 'Hmm. Perhaps read your quest journal next time.',
-    asset: 'npc:wise_old_man',
-  },
-  {
     id: 'krystilia',
     name: 'Krystilia',
     theme: 'Slayer and the Wilderness',

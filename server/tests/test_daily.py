@@ -193,30 +193,6 @@ def test_the_sample_pack_is_never_a_candidate() -> None:
     assert ids(candidates(packs, Settings(_env_file=None), ())) == {"kept"}
 
 
-def test_an_npc_with_a_round_plays_under_that_round_with_its_face() -> None:
-    forced = [
-        question("wise1", "bestiary", "multiple_choice", random_event="wise_old_man"),
-        question("wise2", "bestiary", "free_text", random_event="wise_old_man"),
-        question("bob1", EVENT_MODE, "multiple_choice", random_event="bob"),
-        question("bob2", EVENT_MODE, "free_text", random_event="bob"),
-        question("a1", "drop_table", "multiple_choice"),
-        question("a2", "drop_table", "ordering"),
-        question("b1", "who_said_that", "ordering"),
-        question("b2", "who_said_that", "matching"),
-        question("c1", "sort_it_out", "matching"),
-        question("c2", "sort_it_out", "closest_number"),
-    ]
-    packs = [pack(*forced)]
-    pool = candidates(packs, Settings(_env_file=None), ())
-    assert pool == forced
-    drawn = picked(pool)
-    # Four faces in one set: only the NPCs' own pool is held to two.
-    assert ids(drawn) == ids(forced)
-    faces = Counter(q["random_event"] for q in drawn if "random_event" in q)
-    assert faces == {"wise_old_man": 2, "bob": 2}
-    assert {q["mode"] for q in drawn if q.get("random_event") == "wise_old_man"} == {"bestiary"}
-
-
 def test_a_set_comes_in_a_random_order() -> None:
     orders = {tuple(q["id"] for q in picked(varied(10), seed=seed)) for seed in range(5)}
     assert len(orders) > 1

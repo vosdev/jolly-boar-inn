@@ -99,6 +99,17 @@ QUESTION_MODES: dict[str, frozenset[str]] = {
             "matching",
         }
     ),
+    "tales_of_gielinor": frozenset(
+        {
+            "multiple_choice",
+            "free_text",
+            "closest_number",
+            "number_slider",
+            "pick_all_that_apply",
+            "ordering",
+            "matching",
+        }
+    ),
     "sort_it_out": frozenset({"ordering"}),
     "release_order": frozenset({"ordering"}),
     "whos_that_npc": frozenset({"pick_from_list", "multiple_choice"}),

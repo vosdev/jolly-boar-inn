@@ -44,6 +44,16 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.232.1',
+    date: '2026-11-01',
+    text: 'The Daily stays closed until its first day.',
+  },
+  {
+    version: '0.232.0',
+    date: '2026-11-01',
+    text: 'New round, Tales of Gielinor: the Wise Old Man asks about quests and lore, and stops turning up as a random event.',
+  },
+  {
     version: '0.231.0',
     date: '2026-11-01',
     text: 'You can now suggest ScapeRune questions: one answer, four questions to choose from.',

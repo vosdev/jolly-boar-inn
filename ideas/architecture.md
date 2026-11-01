@@ -145,6 +145,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 | `pixel_hunt` | Pixel Hunt | `pick_from_list` over `popular-items.json`, a detail picture built up | generated from the roster | done: Zoom out, Pixelate, Tiles, Slide puzzle, Lantern, Sketch |
 | `forgetful_bard` | The Forgetful Bard | `pick_from_list` over `popular-items.json`, a verse; its picture at the reveal | hand-written | done |
 | `scaperune` | ScapeRune | `multiple_choice`, four options, `extra_answer` 12 | hand-written | done: `prompt` is the answer, a line per entry if ordered, and `options` are questions, at most 120 characters; `/suggest` relabels its form to say so |
+| `tales_of_gielinor` | Tales of Gielinor | Bestiary's seven types | hand-written | done, hosted by the Wise Old Man, who is therefore off the roster |
 | `minimap_guesser`, `name_that_spell` | Minimap Guesser, Name that spell | undecided | | Images (minimap), Sound (spell) |
 
 Create lists the unbuilt ones from `UPCOMING_MODES` in `lib/modes.ts`.
@@ -299,16 +300,15 @@ it interrupts. Deriving rounds fails silently: settings break on a short round, 
 event.
 
 The daily set (`app/daily.py`) is ten questions for everyone. A day runs from 08:00 UTC to the next
-08:00 UTC and carries the date it opens on; `DAILY_FIRST_DAY` is #1. The day's first request draws
+08:00 UTC and carries the date it opens on; `DAILY_FIRST_DAY` is #1, and before it `/api/daily` is 404 `daily_not_open`. The day's first request draws
 and stores it (section 11), with no cron, never seeded from the date, since the packs are public.
 
 - The pool is the offered rounds' own pools and the NPCs': never a mode with a `pool`, so never
   `random_events_only`, a host's question, an undrawable one, or `sample.json`'s stale prices.
 - Each place draws a random mode, then a question in it: by question, the largest pools would take
   their places every day.
-- At most 2 per `mode`, so the NPCs' pool counts as one and a round's own NPC question counts under
-  that round, keeping its face. At most 3 `multiple_choice` and 2 of any other type, which makes
-  at least 5 types.
+- At most 2 per `mode`, so the NPCs' pool counts as one. At most 3 `multiple_choice` and 2 of any
+  other type, which makes at least 5 types.
 - A question rests 60 days, tracked by id, but `price_is_right` by item and `more_less` by metric and
   pair, whose ids change with the prices. A short pool brings back the oldest-used; a pool the
   caps cannot fill raises and stores nothing. The play order is a shuffle. Section 7 plays it.

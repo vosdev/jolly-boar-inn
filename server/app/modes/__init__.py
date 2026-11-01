@@ -113,6 +113,20 @@ MODES: dict[str, Mode] = {
     "scaperune": Mode(
         id="scaperune", types=frozenset({"multiple_choice"}), options=(4, 4), extra_answer=12
     ),
+    "tales_of_gielinor": Mode(
+        id="tales_of_gielinor",
+        types=frozenset(
+            {
+                "multiple_choice",
+                "closest_number",
+                "number_slider",
+                "free_text",
+                "ordering",
+                "pick_all_that_apply",
+                "matching",
+            }
+        ),
+    ),
     # The NPCs' questions as a round, to test them in a row. Off unless the instance says so.
     "random_events_only": Mode(
         id="random_events_only",
