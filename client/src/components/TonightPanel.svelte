@@ -32,6 +32,7 @@
   import { eventSlots, overCap, type HostQuestion } from '../lib/customQuestions'
   import { minutes, plannedSeconds } from '../lib/duration'
   import { MODES, UPCOMING_MODES, modeLabel } from '../lib/modes'
+  import { modeSeed, orderModes } from '../lib/modeOrder'
   import { npcArt } from '../lib/npcs'
   import {
     EVENT_EVERY,
@@ -105,7 +106,9 @@
   let pacing = $state<ModePacing[] | null>(null)
   let pacingFailure = $state<string | null>(null)
 
-  const roundModes = $derived(pacing?.filter((mode) => mode.questions !== null) ?? [])
+  const roundModes = $derived(
+    orderModes(pacing?.filter((mode) => mode.questions !== null) ?? [], modeSeed()),
+  )
   const bounds = $derived(
     Object.fromEntries(roundModes.map((mode) => [mode.id, mode.questions])) as Record<
       string,
