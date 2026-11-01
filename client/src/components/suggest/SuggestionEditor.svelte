@@ -562,6 +562,7 @@
     explanation={choice.explanation ?? true}
     promptFixed={roundPrompt?.fixed ?? false}
     optionRange={choice.options}
+    wording={choice.wording}
     intro={INTRO_ROUNDS.includes(choice.id)}
     {picker}
     {saveLabel}

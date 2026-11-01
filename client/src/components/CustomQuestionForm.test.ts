@@ -112,6 +112,21 @@ describe('CustomQuestionForm', () => {
     expect(onsave).toHaveBeenCalledWith(expect.objectContaining({ random_event: 'death' }))
   })
 
+  it('names its fields as ScapeRune plays them, and fixes the count at four', () => {
+    render(CustomQuestionForm, {
+      asker: 'none',
+      optionRange: [4, 4],
+      wording: { prompt: 'The answer on the board', option: 'question' },
+      onsave: () => {},
+      oncancel: () => {},
+    })
+    expect(screen.getByLabelText('The answer on the board').tagName).toBe('TEXTAREA')
+    expect(screen.getByLabelText('Question 4')).toBeTruthy()
+    expect(screen.queryByLabelText('Question 5')).toBeNull()
+    expect(screen.getByText('Exactly 4 questions.')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Add an answer' })).toBeNull()
+  })
+
   it('offers an explanation unless the round shows none', () => {
     const label = 'Explanation shown after the question finished.'
     render(CustomQuestionForm, { onsave: () => {}, oncancel: () => {} })

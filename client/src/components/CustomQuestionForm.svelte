@@ -33,6 +33,7 @@
     type CustomQuestion,
     type CustomType,
   } from '../lib/customQuestions'
+  import type { FormWording } from '../lib/customQuestions'
   import { codePoints, field, limit, type Problem } from '../lib/questionSchema'
   import type { Scale } from '../lib/slider'
   import NpcPicker from './NpcPicker.svelte'
@@ -51,6 +52,7 @@
     explanation = true,
     promptFixed = false,
     optionRange = undefined,
+    wording = { prompt: 'Question', option: 'answer' },
     pack = false,
     intro = false,
     picker = undefined,
@@ -91,6 +93,8 @@
     promptFixed?: boolean
     /** How many options a multiple-choice question offers, when the round is stricter than the schema. */
     optionRange?: readonly [number, number]
+    /** What a multiple-choice question's prompt and options are called. */
+    wording?: FormWording
     /** Whether the intro and the picture show, which only pack questions carry. */
     pack?: boolean
     /** Whether the intro shows without the picture. */
@@ -169,6 +173,7 @@
   const id = $props.id()
 
   const hints = $derived(fieldHints(mode))
+  const optionName = $derived(wording.option.charAt(0).toUpperCase() + wording.option.slice(1))
   const promptMax = $derived(limit(field(draft.type, 'prompt'), 'maxLength'))
   const quoteMax = limit(field('multiple_choice', 'quote'), 'maxLength')
   const introMax = $derived(limit(field(draft.type, 'intro'), 'maxLength'))
@@ -320,7 +325,7 @@
   {/if}
 
   <div class="field">
-    <label for="{id}-prompt">Question</label>
+    <label for="{id}-prompt">{wording.prompt}</label>
     <textarea
       id="{id}-prompt"
       rows="3"
@@ -342,25 +347,29 @@
 
   {#if draft.type === 'multiple_choice'}
     <fieldset class="field">
-      <legend>Answers · tick the right one</legend>
+      <legend>{optionName}s · tick the right one</legend>
       {#each draft.options as _, index (index)}
         {@const right = draft.answerIndex === index}
         <div class="option answer" class:right style={gem(index)}>
           <input
             type="radio"
             name="{id}-correct"
-            aria-label="Answer {index + 1} is right"
+            aria-label="{optionName} {index + 1} is right"
             checked={right}
             onchange={() => (draft.answerIndex = index)}
           />
-          <input type="text" aria-label="Answer {index + 1}" bind:value={draft.options[index]} />
+          <input
+            type="text"
+            aria-label="{optionName} {index + 1}"
+            bind:value={draft.options[index]}
+          />
           {#if right}
             <span class="mark">Right</span>
           {:else}
             <button
               type="button"
               class="remove"
-              aria-label="Remove answer {index + 1}"
+              aria-label="Remove {wording.option} {index + 1}"
               disabled={draft.options.length <= optionsMin}
               onclick={() => removeOption(index)}>✕</button
             >
@@ -368,13 +377,17 @@
         </div>
         {@render errors(`payload.options[${index}]`)}
       {/each}
-      <button
-        type="button"
-        class="small"
-        disabled={draft.options.length >= optionsMax}
-        onclick={addOption}>Add an answer</button
-      >
-      <p class="note">{optionsMin} to {optionsMax} answers.</p>
+      {#if optionsMin === optionsMax}
+        <p class="note">Exactly {optionsMin} {wording.option}s.</p>
+      {:else}
+        <button
+          type="button"
+          class="small"
+          disabled={draft.options.length >= optionsMax}
+          onclick={addOption}>Add an answer</button
+        >
+        <p class="note">{optionsMin} to {optionsMax} {wording.option}s.</p>
+      {/if}
       {@render errors('payload.options')}
       {@render errors('payload.answer_index')}
     </fieldset>

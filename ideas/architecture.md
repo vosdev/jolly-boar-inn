@@ -144,7 +144,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 | `whos_that_npc` | Who's That NPC? | `pick_from_list` over `popular-npcs.json`, a shadow; `multiple_choice`, a render | hand-written | done |
 | `pixel_hunt` | Pixel Hunt | `pick_from_list` over `popular-items.json`, a detail picture built up | generated from the roster | done: Zoom out, Pixelate, Tiles, Slide puzzle, Lantern, Sketch |
 | `forgetful_bard` | The Forgetful Bard | `pick_from_list` over `popular-items.json`, a verse; its picture at the reveal | hand-written | done |
-| `scaperune` | ScapeRune | `multiple_choice`, four options, `extra_answer` 12 | hand-written | done: `prompt` is the answer, a line per entry if ordered, and `options` are questions, at most 120 characters |
+| `scaperune` | ScapeRune | `multiple_choice`, four options, `extra_answer` 12 | hand-written | done: `prompt` is the answer, a line per entry if ordered, and `options` are questions, at most 120 characters; `/suggest` relabels its form to say so |
 | `minimap_guesser`, `name_that_spell` | Minimap Guesser, Name that spell | undecided | | Images (minimap), Sound (spell) |
 
 Create lists the unbuilt ones from `UPCOMING_MODES` in `lib/modes.ts`.

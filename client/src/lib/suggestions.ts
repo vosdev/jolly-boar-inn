@@ -13,7 +13,7 @@
  * the backstop.
  */
 
-import type { CustomQuestion, CustomType } from './customQuestions'
+import type { CustomQuestion, CustomType, FormWording } from './customQuestions'
 import { CUSTOM_TYPES, TYPE_LABELS, previewOf } from './customQuestions'
 import { pastGames } from './history'
 import { HOUSE, MODES, UPCOMING_MODES } from './modes'
@@ -176,6 +176,8 @@ export interface Choice {
   prompt?: RoundPrompt
   /** How many options a multiple-choice question offers, when the round says: `Mode.options` on the server. */
   options?: readonly [number, number]
+  /** What the form calls the prompt and the options, where the round turns them round. */
+  wording?: FormWording
   /** Whether only a wiki page proves it: `WIKI_MODES` on the server. */
   wikiOnly?: boolean
   /** Whether it may name an item to picture: `PICTURE_ITEM_MODES` on the server. */
@@ -211,6 +213,7 @@ const CHOICE_ROUNDS = [
   'minigame_madness',
   'who_said_that',
   'know_your_content_creator',
+  'scaperune',
 ]
 
 function choiceRound(
@@ -258,7 +261,18 @@ const ROUND_TYPES: Record<string, readonly SuggestedType[]> = {
 }
 
 /** Rounds that hold their options to a range: `Mode.options` on the server. */
-const ROUND_OPTIONS: Record<string, readonly [number, number]> = { guess_examine: [4, 6] }
+const ROUND_OPTIONS: Record<string, readonly [number, number]> = {
+  guess_examine: [4, 6],
+  scaperune: [4, 4],
+}
+
+/** Rounds whose form names its fields otherwise: on the buttons, ScapeRune plays questions. */
+const ROUND_WORDING: Record<string, FormWording> = {
+  scaperune: {
+    prompt: 'The answer on the board, one entry per line if it is an order',
+    option: 'question',
+  },
+}
 
 /** Rounds whose pack holds every question to its wiki page: `WIKI_MODES` on the server. */
 const WIKI_ROUNDS = ['guess_examine', 'whos_that_npc']
@@ -322,6 +336,7 @@ export const CHOICES: readonly Choice[] = [
       explanation: !NO_EXPLANATION_ROUNDS.includes(mode.id),
       prompt: ROUND_PROMPTS[mode.id],
       options: ROUND_OPTIONS[mode.id],
+      wording: ROUND_WORDING[mode.id],
       wikiOnly: WIKI_ROUNDS.includes(mode.id),
       pictureItem: PICTURE_ITEM_ROUNDS.includes(mode.id),
     })),
