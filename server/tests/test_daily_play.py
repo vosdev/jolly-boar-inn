@@ -355,6 +355,25 @@ def test_the_day_and_its_number(quick: FastAPI, client: TestClient) -> None:
     }
 
 
+def test_no_daily_before_the_first_day(
+    quick: FastAPI, client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    tomorrow = day_of(datetime.now(UTC)) + timedelta(days=1)
+    monkeypatch.setattr(client.app.state.settings, "daily_first_day", tomorrow)  # type: ignore[attr-defined]
+    for response in (client.get("/api/daily"), start(client)):
+        assert response.status_code == 404
+        assert response.json()["code"] == "daily_not_open"
+
+
+def test_the_first_day_is_daily_one(
+    quick: FastAPI, client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    today = day_of(datetime.now(UTC))
+    monkeypatch.setattr(client.app.state.settings, "daily_first_day", today)  # type: ignore[attr-defined]
+    assert client.get("/api/daily").json()["number"] == 1
+    started(client)
+
+
 def test_the_next_daily_opens_at_the_rollover(quick: FastAPI, client: TestClient) -> None:
     next_at = datetime.fromisoformat(client.get("/api/daily").json()["next_at"])
     assert timedelta(0) < next_at - datetime.now(UTC) <= timedelta(days=1)

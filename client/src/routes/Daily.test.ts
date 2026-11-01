@@ -73,6 +73,15 @@ describe('/daily', () => {
     expect(lastDaily()).toEqual({ day: TODAY.day, finished: false })
   })
 
+  it('offers no Start before the first day', async () => {
+    vi.mocked(api.getDaily).mockRejectedValue(
+      new api.ApiFailure(404, 'daily_not_open', 'the daily has not opened yet'),
+    )
+    render(Daily, { navigate })
+    await screen.findByText('The daily is not available right now.')
+    expect(screen.queryByRole('button', { name: 'Start' })).toBeNull()
+  })
+
   it('starts under a made-up name without a profile', async () => {
     render(Daily, { navigate })
     await fireEvent.click(await screen.findByRole('button', { name: 'Start' }))

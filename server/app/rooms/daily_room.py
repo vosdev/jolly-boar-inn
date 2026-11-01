@@ -57,6 +57,10 @@ class DailyUnavailable(ApiError):
     status, code = 503, "daily_unavailable"
 
 
+class DailyNotOpen(ApiError):
+    status, code = 404, "daily_not_open"
+
+
 @dataclass(frozen=True, slots=True)
 class DailyResult:
     """A finished attempt: its day, points and one result per question, in play order."""
@@ -118,12 +122,15 @@ class DailyRooms:
         """The room code and a fresh session for this token's attempt, started if need be.
 
         An unfinished attempt resumes, whatever its day; ``charge`` runs only before a new one.
-        A finished one for today raises ``DailyPlayed``.
+        A finished one for today raises ``DailyPlayed``, and a day before the first
+        ``DailyNotOpen``.
         """
+        day = day_of(now)
+        if day < self.settings.daily_first_day:
+            raise DailyNotOpen("the daily has not opened yet")
         name = normalize_name(display_name)
         self.check_avatar(avatar)
         token_hash = hash_token(token)
-        day = day_of(now)
         resumed = await self._resume_daily(token_hash, day, now)
         if resumed is not None:
             return resumed

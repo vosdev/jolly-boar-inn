@@ -12,7 +12,7 @@ from app.daily import day_of, next_opens, number_of
 from app.errors import ApiError
 from app.http.ratelimit import client_key
 from app.http.rooms import client_host, manager
-from app.rooms.daily_room import DailyPlayed, DailyResult
+from app.rooms.daily_room import DailyNotOpen, DailyPlayed, DailyResult
 
 router = APIRouter(prefix="/api/daily")
 
@@ -54,9 +54,12 @@ def result_view(result: DailyResult) -> dict[str, Any]:
 async def today(request: Request) -> dict[str, Any]:
     """Today's day and number, and when the next opens, before anything is started."""
     day = day_of(datetime.now(UTC))
+    first_day = request.app.state.settings.daily_first_day
+    if day < first_day:
+        raise DailyNotOpen("the daily has not opened yet")
     return {
         "day": day,
-        "number": number_of(day, request.app.state.settings.daily_first_day),
+        "number": number_of(day, first_day),
         "next_at": next_opens(day).isoformat(),
     }
 
