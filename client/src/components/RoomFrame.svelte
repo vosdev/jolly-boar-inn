@@ -3,7 +3,7 @@
    * A room's frame (section 8 of ideas/design.md, `lib/roomFit.ts`): the stage on the left
    * and the table column on the right, laid out at one size and scaled to the window by
    * `fit`, or stacked when it is null. `final` drops the column and centres the stage, as
-   * the final standings and a past game do. What a screen puts at the table lands in
+   * the final standings, a past game and a daily room do. What a screen puts at the table lands in
    * `table`, through `AtTable`.
    */
   import type { Snippet } from 'svelte'
@@ -25,7 +25,7 @@
   } = $props()
 
   $effect(() => {
-    roomShown.set(fit === null ? null : { fit })
+    roomShown.set(fit === null ? null : { fit, centred: final })
   })
 
   $effect(() => () => roomShown.set(null))

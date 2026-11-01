@@ -1772,6 +1772,97 @@ describe('a daily room', () => {
     expect(screen.getByRole('button', { name: 'See your score' })).toBeTruthy()
   })
 
+  function dailyQuestion(index: number): OpenQuestion {
+    return {
+      question_id: `q${index}`,
+      index,
+      total: 10,
+      type: 'more_less',
+      mode: 'more_less',
+      segment: { mode: 'more_less', index, total: 10, start: index, count: 1 },
+      view: {
+        metric: 'ge_price',
+        direction: 'more',
+        options: [{ subject: { name: 'Abyssal whip' } }, { subject: { name: 'Dragon bones' } }],
+        as_of: '2026-09-01',
+      },
+      opened_at: new Date().toISOString(),
+      ends_at: inSeconds(10),
+      you_can_answer: true,
+      picture: null,
+      random_event: null,
+      answerable_at: new Date().toISOString(),
+      answered: 0,
+      of: 1,
+      waiting: [],
+    }
+  }
+
+  async function dailyOpen(index: number): Promise<OpenQuestion> {
+    const open = dailyQuestion(index)
+    await arrive(
+      welcome(roomView({ phase: 'idle', current_index: index, total: 10, daily: DAILY })),
+    )
+    applyServerMessage({ t: 'question_open', question: open })
+    await tick()
+    return open
+  }
+
+  function closeDaily(open: OpenQuestion, suggestedBy?: string): void {
+    applyServerMessage({
+      t: 'question_closed',
+      unanswered: [],
+      question_id: open.question_id,
+      reveal: { ...open.view, answer_index: 0, values: [1, 2] },
+      results: {},
+      standings: STANDINGS,
+      team_standings: null,
+      next_at: inSeconds(300),
+      reveal_seconds: null,
+      picture: null,
+      suggested_by: suggestedBy,
+    })
+  }
+
+  it('has the stage alone in the room, with no table to sit at', async () => {
+    const open = await dailyOpen(2)
+    await screen.findByText('Dragon bones')
+    expect(document.querySelector('.play')!.classList.contains('final')).toBe(true)
+    expect(document.querySelector('.table')!.childElementCount).toBe(0)
+    closeDaily(open)
+    await screen.findByRole('button', { name: 'Next' })
+    expect(document.querySelector('.table')!.childElementCount).toBe(0)
+  })
+
+  it('counts questions rather than one-question rounds', async () => {
+    await dailyOpen(2)
+    const bar = get(timerBar)
+    expect(bar?.progress).toBeUndefined()
+    expect(bar?.stage).toBe(true)
+    expect(get(barWhere)?.lead).toBe('Question 3 of 10:')
+    expect(document.title).toContain('Question 3 of 10')
+    expect(screen.getByRole('heading', { level: 1 }).textContent?.trim()).toBe('Question 3 of 10')
+  })
+
+  it('puts Next in the answer panel, with the question’s credit above it', async () => {
+    const open = await dailyOpen(2)
+    closeDaily(open, 'RunecraftRuth45')
+    const next = await screen.findByRole('button', { name: 'Next' })
+    const panel = next.closest('.answers')!
+    expect(panel).not.toBeNull()
+    const credit = within(panel as HTMLElement).getByText('Question by RunecraftRuth45')
+    expect(credit.compareDocumentPosition(next) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    await fireEvent.click(next)
+    expect(sent).toEqual([{ t: 'skip', phase: 'reveal', index: 2 }])
+  })
+
+  it('names nobody when the question has no credit', async () => {
+    const open = await dailyOpen(2)
+    closeDaily(open)
+    await screen.findByRole('button', { name: 'Next' })
+    expect(screen.queryByText(/Question by/)).toBeNull()
+  })
+
   it('keeps the daily’s address', async () => {
     history.replaceState(null, '', '/daily')
     await arrive(welcome(dailyReveal(0)))

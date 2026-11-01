@@ -21,6 +21,12 @@ describe('TimerBar', () => {
     expect(tabs()).toEqual(['10s'])
   })
 
+  it('can keep to the stage’s width with no number on the bar', () => {
+    render(TimerBar, { endsAt: endsAt(), totalSeconds: 10, label: 'to answer', stage: true })
+    expect(tabs()).toEqual(['10s'])
+    expect(document.querySelector('.column')!.classList.contains('stage')).toBe(true)
+  })
+
   it('names what follows a reveal in its countdown, never turning urgent', () => {
     render(TimerBar, {
       endsAt: new Date(Date.now() + 4_000).toISOString(),
@@ -60,6 +66,15 @@ describe('TimerBar', () => {
       expect(column.style.getPropertyValue('--stage-left')).toBe('180px')
       expect(column.style.getPropertyValue('--stage-width')).toBe(`${(1600 - 80 - 28 - 380) * 2}px`)
       expect(column.style.getPropertyValue('--tab-scale')).toBe('2')
+    })
+
+    it('hangs them at a centred stage’s edges in a room with no table column', () => {
+      const fit = { scale: 1, width: 1448, height: 920, left: 0, compact: false }
+      roomShown.set({ fit, centred: true })
+      render(TimerBar, { endsAt: endsAt(), totalSeconds: 10, label: 'to answer', stage: true })
+      const column = document.querySelector<HTMLElement>('.column')!
+      expect(column.style.getPropertyValue('--stage-left')).toBe('244px')
+      expect(column.style.getPropertyValue('--stage-width')).toBe('960px')
     })
   })
 })

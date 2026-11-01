@@ -100,6 +100,20 @@ describe('stageEdges', () => {
     expect(edges.width).toBe(PLAY.stageWide * 2)
   })
 
+  it('stands the stage in the middle of a room with no table column', () => {
+    const fit = { scale: 2, width: 1448, height: 920, left: 100, compact: false }
+    const edges = stageEdges(fit, true)
+    expect(edges.width).toBe(PLAY.stageWide * 2)
+    expect(edges.left * 2 + edges.width).toBe(100 * 2 + 1448 * 2)
+  })
+
+  it('keeps a centred stage inside a narrow room’s padding', () => {
+    const fit = { scale: 1, width: 1000, height: 800, left: 12, compact: true }
+    const edges = stageEdges(fit, true)
+    expect(edges.left).toBe(12 + PADDING.compact.side)
+    expect(edges.width).toBe(1000 - 2 * PADDING.compact.side)
+  })
+
   it('measures from the compact padding on a compact room', () => {
     const fit = { scale: 1, width: 1280, height: 800, left: 0, compact: true }
     const edges = stageEdges(fit)

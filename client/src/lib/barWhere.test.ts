@@ -14,6 +14,16 @@ describe('whereOf', () => {
     }
   })
 
+  it('counts questions in a daily, whose rounds are one each', () => {
+    const third = { mode: 'more_less', index: 2, total: 10, start: 2, count: 1 }
+    for (const phase of ['open', 'reveal']) {
+      expect(whereOf('playing', phase, third, true)).toEqual({
+        lead: 'Question 3 of 10:',
+        mode: 'More or Less',
+      })
+    }
+  })
+
   it('says Lobby in the lobby', () => {
     expect(whereOf('lobby', 'idle', null)).toEqual({ lead: 'Lobby', mode: null })
   })

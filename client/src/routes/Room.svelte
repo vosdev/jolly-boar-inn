@@ -41,7 +41,8 @@
    * the right, laid out at one size and scaled to the window, or stacked on a phone. What a
    * screen puts at the table it hands over with `AtTable`. The top bar says where the night
    * is (`lib/barWhere.ts`), and an admin's Host menu there holds what the phase lets
-   * them do (`lib/hostMenu.ts`). The TV keeps its own view and has no frame.
+   * them do (`lib/hostMenu.ts`). The TV keeps its own view and has no frame. A daily room is
+   * alone at its table, so it has no column: the stage stands in the middle, as on a final.
    *
    * A screen reader hears the changes through one polite live region that stays mounted
    * for the whole visit, because a region inserted already filled is often never read: a
@@ -182,9 +183,15 @@
       ? ($room.segment ?? null)
       : ($question?.segment ?? $room?.segment ?? null),
   )
-  /** 1-based within the round, for people, with the whole game as the fallback. */
-  const number = $derived(segment === null ? position + 1 : position - segment.start + 1)
-  const total = $derived(segment?.count ?? $question?.total ?? $room?.total ?? 0)
+  /** 1-based within the round, for people; a daily's rounds are one question, so its whole set. */
+  const number = $derived(
+    segment === null || daily !== null ? position + 1 : position - segment.start + 1,
+  )
+  const total = $derived(
+    daily !== null
+      ? ($room?.total ?? 0)
+      : (segment?.count ?? $question?.total ?? $room?.total ?? 0),
+  )
   /**
    * How long this question is open for: only the frame knows, since its type and the
    * room's pace decide. The clock starts at `answerable_at`, after the scroll has typed
@@ -226,7 +233,7 @@
         endsAt: open.ends_at,
         totalSeconds: questionSeconds,
         label: 'to answer',
-        progress: `${number}/${total}`,
+        ...(daily === null ? { progress: `${number}/${total}` } : { stage: true }),
       })
     } else if (
       (current.phase === 'reveal' || current.phase === 'standings') &&
@@ -397,7 +404,7 @@
   const revealing = $derived($room?.status === 'playing' && $room.phase === 'reveal')
   /** The question the table panel is about: the open one, or the one being revealed. */
   const tableFor = $derived.by(() => {
-    if (isTv || $room?.status !== 'playing') return null
+    if (isTv || daily !== null || $room?.status !== 'playing') return null
     if ($room.phase === 'open') return $question
     if ($room.phase === 'reveal') return $lastClosed?.was ?? null
     return null
@@ -417,7 +424,7 @@
     barWhere.set(
       isTv || departure !== null || current === null
         ? null
-        : whereOf(current.status, current.phase, segment),
+        : whereOf(current.status, current.phase, segment, daily !== null),
     )
   })
 
@@ -472,7 +479,22 @@
   {@render tally(true)}
 {/snippet}
 
-<RoomFrame fit={framed} {revealing} final={$room?.status === 'finished'} bind:table={table.target}>
+{#snippet next()}
+  <div class="row next">
+    <button type="button" class="primary" onclick={skip}>
+      {$room?.current_index != null && $room.current_index + 1 >= $room.total
+        ? 'See your score'
+        : 'Next'}
+    </button>
+  </div>
+{/snippet}
+
+<RoomFrame
+  fit={framed}
+  {revealing}
+  final={$room?.status === 'finished' || daily !== null}
+  bind:table={table.target}
+>
   {#if departure !== null}
     <!-- The room's code is in the top bar (section 4). These headings say which screen
              you are on, which is what the code used to be crowding out. -->
@@ -543,7 +565,7 @@
           <!-- The splash said which round this is, and the timer bar's tab says which
                  question: the heading is only for a screen reader and for focus. -->
           <h1 class="sr" bind:this={heading} tabindex="-1">
-            {#if segment !== null && segment.total > 1}
+            {#if segment !== null && segment.total > 1 && daily === null}
               <span class="round">Round {segment.index + 1} of {segment.total}</span>
             {/if}
             {questionTitle}
@@ -604,6 +626,12 @@
             {#if $you?.role === 'tv'}
               {@render tally(false)}
             {/if}
+            {#if daily !== null && $room.phase === 'reveal'}
+              {#if $lastClosed.suggested_by != null}
+                <p class="credit">Question by {$lastClosed.suggested_by}</p>
+              {/if}
+              {@render next()}
+            {/if}
           </QuestionStage>
         {:else if $lastClosed !== null}
           <section class="panel">
@@ -622,17 +650,10 @@
                   : 'Between questions — the next one opens shortly.'
                 : 'Waiting for the next question…'}
             </p>
+            {#if daily !== null && $room.phase === 'reveal'}
+              {@render next()}
+            {/if}
           </section>
-        {/if}
-
-        {#if daily !== null && $room.phase === 'reveal'}
-          <div class="row next">
-            <button type="button" class="primary" onclick={skip}>
-              {$room.current_index !== null && $room.current_index + 1 >= $room.total
-                ? 'See your score'
-                : 'Next'}
-            </button>
-          </div>
         {/if}
       </div>
     {/if}
@@ -678,6 +699,14 @@
   .next {
     justify-content: center;
     margin-top: 1rem;
+  }
+
+  .credit {
+    margin: 0.75rem 0 0;
+    color: var(--muted);
+    font-style: italic;
+    text-align: center;
+    overflow-wrap: anywhere;
   }
 
   .round {
