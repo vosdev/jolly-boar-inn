@@ -1,6 +1,16 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { dailyToken, lastDaily, noteDaily, resumes, shareText, type DailyResult } from './daily'
+import {
+  dailyScores,
+  dailyToken,
+  lastDaily,
+  noteDaily,
+  numberOn,
+  resumes,
+  saveScore,
+  shareText,
+  type DailyResult,
+} from './daily'
 
 beforeEach(() => localStorage.clear())
 
@@ -56,7 +66,7 @@ describe('the share text', () => {
 
   it('holds the day, the score, the row and the link', () => {
     expect(shareText(RESULT, 'https://jollyboar.example')).toBe(
-      'Daily #12: 7/10 · 7,420\n🟩🟩🟨🟩🟥🟩🟩🟥🟨🟩\nhttps://jollyboar.example/daily',
+      'I scored 7,420 on daily challenge #12 at The Jolly Boar Inn. Think you can do better?\n🟩🟩🟨🟩🟥🟩🟩🟥🟨🟩\nhttps://jollyboar.example/daily',
     )
   })
 
@@ -69,5 +79,66 @@ describe('the share text', () => {
     const text = shareText(RESULT, 'https://jollyboar.example')
     expect(text.split('\n')).toHaveLength(3)
     expect(text).not.toMatch(/answer|whip|price/i)
+  })
+})
+
+describe('the scores kept here', () => {
+  const RESULT: DailyResult = {
+    day: '2026-10-31',
+    number: 12,
+    points: 7420,
+    correct: 7,
+    results: Array<'right'>(10).fill('right'),
+  }
+  const on = (day: string, number: number): DailyResult => ({ ...RESULT, day, number })
+
+  it('lists every day newest first, however they were saved', () => {
+    saveScore(on('2026-10-29', 10))
+    saveScore(on('2026-10-31', 12))
+    saveScore(on('2026-10-30', 11))
+    expect(dailyScores().map((score) => score.number)).toEqual([12, 11, 10])
+  })
+
+  it('keeps a day once, however often the result is shown', () => {
+    saveScore(on('2026-10-31', 12))
+    saveScore(on('2026-10-31', 12))
+    expect(dailyScores()).toHaveLength(1)
+  })
+
+  it('keeps the score and the number of questions', () => {
+    saveScore(RESULT)
+    expect(dailyScores()[0]).toEqual({
+      day: RESULT.day,
+      number: RESULT.number,
+      points: RESULT.points,
+      correct: RESULT.correct,
+      total: RESULT.results.length,
+    })
+  })
+
+  it('has nothing to show from broken storage', () => {
+    for (const bad of ['not json', '{"day":"2026-10-31"}', 'null', '12']) {
+      localStorage.setItem('jbi:daily:scores', bad)
+      expect(dailyScores()).toEqual([])
+    }
+  })
+
+  it('leaves out a row that makes no sense and keeps the others', () => {
+    saveScore(RESULT)
+    const good = JSON.parse(localStorage.getItem('jbi:daily:scores')!) as unknown[]
+    const broken = [null, 'x', { day: 'never', number: 1, points: 1, correct: 1, total: 1 }]
+    localStorage.setItem(
+      'jbi:daily:scores',
+      JSON.stringify([...broken, ...good, { day: RESULT.day }]),
+    )
+    expect(dailyScores()).toHaveLength(1)
+  })
+})
+
+describe('numberOn', () => {
+  it('counts back from today', () => {
+    const today = { day: '2026-10-31', number: 12 }
+    expect(numberOn('2026-10-31', today)).toBe(12)
+    expect(numberOn('2026-10-30', today)).toBe(11)
   })
 })

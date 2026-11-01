@@ -14,7 +14,7 @@ import random
 from collections import Counter
 from collections.abc import Collection, Iterable, Mapping, Sequence
 from dataclasses import dataclass
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 
 import asyncpg
@@ -49,6 +49,11 @@ class DailySet:
 def day_of(now: datetime) -> date:
     """The date the daily window holding ``now`` opened on."""
     return (now.astimezone(UTC) - DAY_OPENS).date()
+
+
+def next_opens(day: date) -> datetime:
+    """When the day after ``day`` opens."""
+    return datetime.combine(day + timedelta(days=1), time(), UTC) + DAY_OPENS
 
 
 def number_of(day: date, first_day: date) -> int:

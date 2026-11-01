@@ -15,7 +15,14 @@
 
   import DailyResultScreen from '../components/DailyResult.svelte'
   import { ApiFailure, getDaily, getDailyResult, startDaily, type DailyToday } from '../lib/api'
-  import { dailyToken, lastDaily, noteDaily, resumes, type DailyResult } from '../lib/daily'
+  import {
+    dailyToken,
+    lastDaily,
+    noteDaily,
+    resumes,
+    saveScore,
+    type DailyResult,
+  } from '../lib/daily'
   import { generateName } from '../lib/names'
   import { profile } from '../lib/profile'
   import { setSession } from '../lib/session'
@@ -73,7 +80,9 @@
 
   async function showResult(day: string): Promise<void> {
     try {
-      view = { name: 'result', result: await getDailyResult(dailyToken(), day) }
+      const result = await getDailyResult(dailyToken(), day)
+      saveScore(result)
+      view = { name: 'result', result }
     } catch (error) {
       view = { name: 'error', message: error instanceof Error ? error.message : String(error) }
     }

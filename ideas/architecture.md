@@ -441,7 +441,7 @@ finished ─▶ deleted: FINISHED_ROOM_GRACE_MINUTES (60) after finished_at (cle
 - Each browser saves the final standings in `jbi:history` (newest 20) on `game_finished`, or on a
   `welcome` into a finished room: the grace is for the phone that slept through the end. The TV's
   browser saves one too, though standings never list the TV. Home
-  lists them under Past games, five to a page, where each can be removed. `/r/:code` for a gone room (4004, 404, 410) opens the newest entry
+  lists them under Past party games, five to a page, where each can be removed. `/r/:code` for a gone room (4004, 404, 410) opens the newest entry
   for that code, if any.
 
 - A room is born with its host; there is no state before `lobby`. Only `lobby` is joinable. `/create`
@@ -460,12 +460,15 @@ one question a round, with one `player` and settings `run`, early close, no name
   (`jbi:daily:token`), stored as sha256 in `daily_attempts` under the attempt's day, once per day.
   An unfinished attempt resumes, whatever its day, with a new session; a finished one today is
   409 `daily_played` with its `result` `{day, number, points, correct, results}`. A gone room ends
-  its attempt there. `GET /api/daily` → `{day, number}`. `POST /api/daily/result {token, day}`
+  its attempt there. `GET /api/daily` → `{day, number, next_at}`, `next_at` when the next day opens. `POST /api/daily/result {token, day}`
   returns a finished attempt's `result`, or 404, and starts nothing.
+- Home's Daily challenge panel offers the day's daily, or its score and `next_at`, and lists earlier
+  days from `jbi:daily:scores`: every result `/daily` showed, in this browser only, never trimmed.
 - The end screen, and `/daily` after playing, shows the result and copies a share text without
-  answers: `Daily #12: 7/10 · 7,420`, a row of 🟩 full, 🟨 partial, 🟥 none, and `location.origin/daily`.
+  answers: `I scored 7,420 on daily challenge #12 at <site>. Think you can do better?`, a row of 🟩 full,
+  🟨 partial, 🟥 none, and `location.origin/daily`.
 - Join, requests and `GET /api/rooms/{code}` answer 404 for it, and Home never lists it. The first
-  question opens on the player's first `hello`; no splash, no standings, no Past games entry.
+  question opens on the player's first `hello`; no splash, no standings, no Past party games entry.
 - The reveal has no countdown: Next is the player's `skip`, and the server moves on after 300 s.
 
 One task per room runs `_run_questions(room, index, resume_at)`:
@@ -747,7 +750,7 @@ key into them, so cleanup leaves it.
   question whole with its totals, zeros if never counted; a row for an id the packs lost is
   left out. Bands and suggestions are the client's (`lib/questionStats.ts`), advice only.
 - Only the browser knows which join failures its player saw (it retries a taken name, and a
-  missing room may be a Past games link), so it reports each to `POST /api/stats/join-failure
+  missing room may be a Past party games link), so it reports each to `POST /api/stats/join-failure
   {reason}`, 30 an hour per address, and the server counts no failure itself.
 
 - `daily_sets (day, questions, created_at)` holds each day's set whole, in play order, under the

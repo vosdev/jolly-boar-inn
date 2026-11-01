@@ -17,6 +17,19 @@ export function asOfDate(date: string): string {
       })
 }
 
+/** A daily's day as Your dailies lists it, that day everywhere: "Sat 31 Oct". */
+export function dailyDate(day: string): string {
+  const parsed = new Date(`${day}T00:00:00Z`)
+  return Number.isNaN(parsed.getTime())
+    ? day
+    : parsed.toLocaleDateString('en-GB', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        timeZone: 'UTC',
+      })
+}
+
 /** When a game ended, in the reader's own zone and locale: "1 Oct 2026, 21:05". */
 export function finishedTime(iso: string): string {
   const parsed = new Date(iso)

@@ -2,7 +2,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { expiresIn, finishedAt, finishedDay } from './dates'
+import { dailyDate, expiresIn, finishedAt, finishedDay } from './dates'
 
 const NOW = Date.parse('2026-10-04T12:00:00Z')
 const hours = (count: number): number => NOW + count * 3_600_000
@@ -39,5 +39,15 @@ describe('finishedAt', () => {
   it('gives back what it cannot read', () => {
     expect(finishedAt('soon')).toBe('soon')
     expect(finishedDay('soon')).toBe('soon')
+  })
+})
+
+describe('dailyDate', () => {
+  it('names the day itself, whatever the zone', () => {
+    expect(dailyDate('2026-10-31')).toBe('Sat 31 Oct')
+  })
+
+  it('hands back what it cannot read', () => {
+    expect(dailyDate('soon')).toBe('soon')
   })
 })

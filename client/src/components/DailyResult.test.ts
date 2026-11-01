@@ -46,7 +46,7 @@ describe('the daily’s end screen', () => {
     render(DailyResultScreen, { result: RESULT, onHome: () => {} })
     await fireEvent.click(screen.getByRole('button', { name: 'Copy your result' }))
     expect(writeText).toHaveBeenCalledWith(
-      `Daily #12: 7/10 · 7,420\n🟩🟩🟨🟩🟥🟩🟩🟥🟨🟩\n${location.origin}/daily`,
+      `I scored 7,420 on daily challenge #12 at The Jolly Boar Inn. Think you can do better?\n🟩🟩🟨🟩🟥🟩🟩🟥🟨🟩\n${location.origin}/daily`,
     )
     await screen.findByRole('button', { name: 'Copied' })
   })
@@ -57,6 +57,6 @@ describe('the daily’s end screen', () => {
     render(DailyResultScreen, { result: RESULT, onHome: () => {} })
     await fireEvent.click(screen.getByRole('button', { name: 'Copy your result' }))
     const field = await screen.findByRole<HTMLTextAreaElement>('textbox', { name: 'Your result' })
-    expect(field.value).toContain('Daily #12: 7/10 · 7,420')
+    expect(field.value).toContain('I scored 7,420 on daily challenge #12')
   })
 })
