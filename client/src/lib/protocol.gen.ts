@@ -570,7 +570,7 @@ export interface QuestionClosed {
     [k: string]: unknown
   }
   /**
-   * The same name `OpenQuestion.picture` carried, so a reveal can show it too.
+   * The question's picture, so a reveal can show it: a round may hold it back until now.
    */
   picture: string | null
   results: {

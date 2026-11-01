@@ -104,6 +104,10 @@ MODES: dict[str, Mode] = {
         steps=Steps(build=17, of=25),
         pictured=True,
     ),
+    # Falo sings a verse about an item; its picture would be the answer, so it waits.
+    "forgetful_bard": Mode(
+        id="forgetful_bard", types=frozenset({"pick_from_list"}), picture_at_reveal=True
+    ),
     # The NPCs' questions as a round, to test them in a row. Off unless the instance says so.
     "random_events_only": Mode(
         id="random_events_only",

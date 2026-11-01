@@ -673,6 +673,7 @@ dependencies, on the [project board](https://github.com/users/vosdev/projects/3)
 | `know_your_content_creator` | Gnome Child
 | `more_less` | Ali Morrisane
 | `pixel_hunt` | Sherlock
+| `forgetful_bard` | Falo the Bard
 | `guess_examine` | The Examiner, from the Dig Site 
 | `whos_that_npc` | Postie Pete
 | `random_events_only` | The crowned frog from Kiss the Frog

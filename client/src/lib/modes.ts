@@ -202,9 +202,10 @@ export interface Mode extends HostLines {
   /**
    * How the question's picture shows: large with the name under it on the reveal, and while
    * a question picked from the list is open, `shadow` fills its outline with the theme's
-   * `--silhouette` and `build` builds it up (`lib/pixelHunt.ts`). Left out, as it is.
+   * `--silhouette`, `build` builds it up (`lib/pixelHunt.ts`) and `reveal` keeps it back.
+   * Left out, as it is.
    */
-  picture?: 'shadow' | 'build'
+  picture?: 'shadow' | 'build' | 'reveal'
 }
 
 /**
@@ -1218,6 +1219,85 @@ export const MODES: Record<string, Mode> = {
     // alone is the question.
     stem: null,
     picture: 'build',
+  },
+  forgetful_bard: {
+    id: 'forgetful_bard',
+    label: 'The Forgetful Bard',
+    hint: "He's forgotten what this one was about. Help him out.",
+    host: { id: 'falo', name: 'Falo the Bard' },
+    greeting: 'Ah, a crowd! I know the song, but not what it is about.',
+    blurb:
+      "I'll sing you a verse about an item, if only I could recall which. Find it on the list for me.",
+    ask: [
+      'Listen well. What was this song about?',
+      'Hum along. Which item is this verse about?',
+      'It was on the tip of my tongue. Which item?',
+      'A new verse! What was it about again?',
+    ],
+    waiting: [
+      'Still humming, the rest of them.',
+      'Hold that note. Others are still thinking.',
+      "I'd sing something, but I've forgotten the words.",
+      'Let me tune my lyre while they think.',
+    ],
+    pace: {
+      quick: [
+        'Quick! Before the last note faded.',
+        'Fast! You knew it by the first line.',
+        'Swift! A better memory than mine.',
+      ],
+      middling: [
+        'In on the beat. Now we wait.',
+        'A steady tempo. I like it.',
+        'Neither rushed nor late. Nicely sung.',
+      ],
+      late: [
+        'Just in time! On the very last note.',
+        'Just in time! The song was nearly done.',
+        'Just in time! I was losing the tune.',
+      ],
+      early: [
+        'Before the chorus? Impressive!',
+        'Named it on the first note!',
+        'So early! Do you know this song?',
+      ],
+      later: [
+        'Waited for the chorus? Fair enough.',
+        'Listened to the end. Very polite.',
+        'Took your time. Good songs deserve it.',
+      ],
+    },
+    reveal: [
+      'Ah yes, now I remember!',
+      'It all comes back to me now.',
+      'Of course! How could I forget?',
+      'Now the song makes sense.',
+    ],
+    verdict: {
+      right: [
+        'Yes! That was it! What a memory.',
+        'Right! I shall write that down.',
+        'That is the one! My thanks, friend.',
+      ],
+      partial: [
+        'Close! Almost the right song.',
+        'Nearly! Same tune, wrong verse.',
+        'Half right. I remember half, too.',
+      ],
+      wrong: [
+        'No, that rhymes with nothing!',
+        'Wrong verse! Even I know that.',
+        'Not that one. Now I am confused.',
+      ],
+      missed: [
+        'No answer? Now we have both forgotten.',
+        'Silence? Nobody likes that in a song.',
+        'Not a word? Even I can do better.',
+      ],
+    },
+    stem: 'text',
+    // The verse is the question; the picture would be its answer.
+    picture: 'reveal',
   },
   // Only on a server that switched it on, for testing the NPCs' questions in a row.
   random_events_only: {

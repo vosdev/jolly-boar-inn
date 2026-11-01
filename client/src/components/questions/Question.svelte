@@ -93,6 +93,7 @@
   )
   const picture = $derived(MODES[question.mode]?.picture)
   const pictured = $derived(picture !== undefined)
+  const withheld = $derived(picture === 'reveal' && !revealed)
   const listed = $derived(question.type === 'pick_from_list')
   const shadowed = $derived(picture === 'shadow' && listed)
   const build: Build | null = $derived(
@@ -135,9 +136,9 @@
       <Stem {data} {revealed} {timing} {shown} />
     {/if}
     <QuestionPicture
-      name={question.picture}
-      url={pictureUrl}
-      large={pictured}
+      name={withheld ? null : question.picture}
+      url={withheld ? null : pictureUrl}
+      large={pictured && !withheld}
       shadow={shadowed}
       {build}
       lifted={revealed}

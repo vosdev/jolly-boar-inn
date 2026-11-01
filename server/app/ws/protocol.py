@@ -503,7 +503,7 @@ class QuestionClosed(_Message):
     question_id: str
     reveal: dict[str, Any]
     picture: str | None = None
-    """The same name ``OpenQuestion.picture`` carried, so a reveal can show it too."""
+    """The question's picture, so a reveal can show it: a round may hold it back until now."""
     results: dict[UUID, PlayerResult]
     unanswered: list[UUID]
     """Connected players who could have answered and did not, for the reveal's "No answer"."""

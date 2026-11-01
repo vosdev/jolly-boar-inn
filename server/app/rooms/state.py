@@ -44,6 +44,7 @@ from starlette.websockets import WebSocket
 from app import metrics
 from app.config import APP_VERSION, Settings
 from app.daily import number_of
+from app.modes import MODES
 from app.questions.packs import Pack
 from app.questions.types import TYPES
 from app.questions.types.scoring import Scoring
@@ -235,6 +236,11 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
         """
         image = question.payload.get("image")
         return self._pictures(question).get(image) if isinstance(image, str) else None
+
+    def _open_picture(self, question: RoomQuestion) -> str | None:
+        """``_picture`` for an open question: none yet in a round that shows it at the reveal."""
+        mode = MODES.get(question.mode)
+        return None if mode is not None and mode.picture_at_reveal else self._picture(question)
 
     def _pictures(self, question: RoomQuestion) -> Mapping[str, str]:
         """The pictures ``question`` may show, by asset id: a pack question's, as ``_picture``."""
@@ -680,7 +686,7 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
                     room.can_answer(question, player.id),
                     segment,
                     _answer_count(room, question),
-                    self._picture(question),
+                    self._open_picture(question),
                     self._pictures(question),
                     _waiting(room, question),
                 )

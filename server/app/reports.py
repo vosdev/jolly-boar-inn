@@ -73,7 +73,9 @@ def label(question: dict[str, Any]) -> str:
         return ", ".join(payload["options"])
     if question["mode"] == NPC_MODE and question["type"] == "multiple_choice":
         return payload["options"][payload["answer_index"]]
-    if question["type"] == "pick_from_list" and "image" in payload:
+    mode = MODES.get(question["mode"])
+    named = mode is None or not mode.picture_at_reveal
+    if question["type"] == "pick_from_list" and "image" in payload and named:
         names = vocab.get(payload["vocab"])
         name = names.name_of(payload["answer_id"]) if names else None
         if name is not None:

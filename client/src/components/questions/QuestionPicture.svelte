@@ -6,7 +6,7 @@
 
 <script lang="ts">
   /**
-   * A pack question's picture, under its stem on the scroll, open and on the reveal alike.
+   * A pack question's picture, under its stem on the scroll, open and on the reveal.
    *
    * The box has its full height before the file arrives, so nothing on the sheet moves when
    * it loads. A render smaller than the box stays its own size: scaled up it would blur.

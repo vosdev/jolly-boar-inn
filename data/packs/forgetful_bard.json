@@ -1,0 +1,1025 @@
+{
+  "pack": "forgetful_bard",
+  "questions": [
+    {
+      "id": "q_27d56e419ce9dc50",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Through sixty-three waves of TzHaar I came, and Jad's reward is a cloak of flame.",
+        "vocab": "items",
+        "answer_id": 6570,
+        "image": "item:6570",
+        "subject": {
+          "name": "Fire cape"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_5c28904311fe43b2",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Two must pull, but one will win: a paper hat is tucked within. Old as the game and rich as kings, the rarest of all seasonal things.",
+        "vocab": "items",
+        "answer_id": 962,
+        "image": "item:962",
+        "subject": {
+          "name": "Christmas cracker"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_57fe63bff69f21b1",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Egg and flour, milk and tin; bake it well, then dig right in. Ardougne thieves lift it, plain and sweet, from a baker's stall in the market street.",
+        "vocab": "items",
+        "answer_id": 1891,
+        "image": "item:1891",
+        "subject": {
+          "name": "Cake"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_c9182dbf504a83ca",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Every treasure hunter's friend: it's how most maps and clues must end. Slightly muddy, plain to see, it gets used more than any key.",
+        "vocab": "items",
+        "answer_id": 952,
+        "image": "item:952",
+        "subject": {
+          "name": "Spade"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_86daab7340aa9869",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Seventy Attack, and hear it crack: an Abyss-born lash on a demon's back.",
+        "vocab": "items",
+        "answer_id": 4151,
+        "image": "item:4151",
+        "subject": {
+          "name": "Abyssal whip"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_d0595c0c37aba404",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "One small net at level one; \"I should try cooking this\", it's not yet done.",
+        "vocab": "items",
+        "answer_id": 317,
+        "image": "item:317",
+        "subject": {
+          "name": "Raw shrimps"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_1d3000b590d60d5d",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Give a beggar bread and pass the test; the Lady hands you Arthur's best.",
+        "vocab": "items",
+        "answer_id": 35,
+        "image": "item:35",
+        "subject": {
+          "name": "Excalibur"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_78d49e6d8bcba8ed",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Three keys for Prysin, then go and strike: Delrith has never met its like.",
+        "vocab": "items",
+        "answer_id": 2402,
+        "image": "item:2402",
+        "subject": {
+          "name": "Silverlight"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_d9db9f7581f33a53",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "A swamp-bound priest will hang it on you, and the dead of Lumbridge chat with you too.",
+        "vocab": "items",
+        "answer_id": 552,
+        "image": "item:552",
+        "subject": {
+          "name": "Ghostspeak amulet"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_5aaf7dcbe0da182b",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "My brother sells it by the sea, ninety-nine thousand is his fee. Hear every tune the world can play, and wear your ears' reward all day.",
+        "vocab": "items",
+        "answer_id": 13221,
+        "image": "item:13221",
+        "subject": {
+          "name": "Music cape"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_5bc7b16fb5858d4b",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Small and red, two stabs in one: \"Puncture\" is how the job gets done.",
+        "vocab": "items",
+        "answer_id": 1215,
+        "image": "item:1215",
+        "subject": {
+          "name": "Dragon dagger"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_c6a8103c5bdf2e42",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "A block of stone on a stick, no more, dropped where gargoyles guard the tower floor. Simple, heavy, slow to swing, till the special's instant sting.",
+        "vocab": "items",
+        "answer_id": 4153,
+        "image": "item:4153",
+        "subject": {
+          "name": "Granite maul"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_fd87ef0303e81dae",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Drawn from the dark, a beast's rare drop: two arrows fly where one would stop.",
+        "vocab": "items",
+        "answer_id": 11235,
+        "image": "item:11235",
+        "subject": {
+          "name": "Dark bow"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_0c8bdfe120ed8c70",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Beneath the Pass, an evil mage falls; take what he cast in those dark halls.",
+        "vocab": "items",
+        "answer_id": 1409,
+        "image": "item:1409",
+        "subject": {
+          "name": "Iban's staff"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_0cb3c65238e5dc7c",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "A spirit guards the island tree, where monks let no blade cross the sea. Carve a branch and hold it well, and fairy rings will work their spell.",
+        "vocab": "items",
+        "answer_id": 772,
+        "image": "item:772",
+        "subject": {
+          "name": "Dramen staff"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_f9c4f6471cc7f570",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Askeladden's gift from Trial days, it never barks and never strays. No food, no walks, it just sits there: the easiest friend beyond compare.",
+        "vocab": "items",
+        "answer_id": 3695,
+        "image": "item:3695",
+        "subject": {
+          "name": "Pet rock"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_4d200a3d851304e8",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Enchant a sapphire, wear it tight: what strikes you feels a bit of its bite. Forty damage back it deals, then it shatters at your heels.",
+        "vocab": "items",
+        "answer_id": 2550,
+        "image": "item:2550",
+        "subject": {
+          "name": "Ring of recoil"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_2f3e7251eaa73701",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Out of the Haunted Mine it came; around your neck, the undead grow tame.",
+        "vocab": "items",
+        "answer_id": 4081,
+        "image": "item:4081",
+        "subject": {
+          "name": "Salve amulet"
+        }
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_49a58dc851801b07",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Beneath Waterbirth the melee king's hoard holds a band of blind fury, a fighter's reward.",
+        "vocab": "items",
+        "answer_id": 6737,
+        "image": "item:6737",
+        "subject": {
+          "name": "Berserker ring"
+        }
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_2e721c923364d49a",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "When the cold Isles' quarrel is at rest, a Burgher's gift rewards your quest. With fifty-five Defence, wear it well: the finest hat no shop will sell.",
+        "vocab": "items",
+        "answer_id": 10828,
+        "image": "item:10828",
+        "subject": {
+          "name": "Helm of Neitiznot"
+        }
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_cea3d4eb232092f3",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Picked from fields for one hitpoint's gain, and every bite brings equal pain. Its own examine says it true: \"Yuck\", and I agree with you.",
+        "vocab": "items",
+        "answer_id": 1965,
+        "image": "item:1965",
+        "subject": {
+          "name": "Cabbage"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_6aa121adbb9b99be",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "A clawed sea catch, one lapse of care, and now it's black beyond repair. No use at all, not worth a groat; \"Oops!\" is all the game will note.",
+        "vocab": "items",
+        "answer_id": 381,
+        "image": "item:381",
+        "subject": {
+          "name": "Burnt lobster"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_f7740e97f8d055e7",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Bring a log and strike a spark, and chase away the cave's deep dark. Any general store will do; candles want me, lanterns too.",
+        "vocab": "items",
+        "answer_id": 590,
+        "image": "item:590",
+        "subject": {
+          "name": "Tinderbox"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_f4680a611084dc1a",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Good for hitting things, it's true: anvils, planks and nails will do. Cheap in any general store, no smith ever needs one more.",
+        "vocab": "items",
+        "answer_id": 2347,
+        "image": "item:2347",
+        "subject": {
+          "name": "Hammer"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_d4d31ae8f7ad5219",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Lovely stuff, the game agrees; count in K's and mils with ease. Every shop and every fee: none of them goes without me.",
+        "vocab": "items",
+        "answer_id": 995,
+        "image": "item:995",
+        "subject": {
+          "name": "Coins"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_0c752994e97eecba",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Alchemists get through stacks of me: High or Low, the gold flows free. Forty-four Runecraft at my stone, and Snare and Bind both call me their own.",
+        "vocab": "items",
+        "answer_id": 561,
+        "image": "item:561",
+        "subject": {
+          "name": "Nature rune"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_361dc515f48f0f0f",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Every goblin leaves me there; bury me for a bit of Prayer. Four and a half is all you earn: the smallest lesson you will learn.",
+        "vocab": "items",
+        "answer_id": 526,
+        "image": "item:526",
+        "subject": {
+          "name": "Bones"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_d81a433155a16fcc",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Ninety-nine in every skill, and still old Mac will write the bill: two million and some for a cloak to show you've nothing left to grow.",
+        "vocab": "items",
+        "answer_id": 13280,
+        "image": "item:13280",
+        "subject": {
+          "name": "Max cape"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_57a8b4dcfd2a4f91",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Every quest from first to last, every story done and past. The Wise Old Man in Draynor's town takes ninety-nine thousand for this gown.",
+        "vocab": "items",
+        "answer_id": 9813,
+        "image": "item:9813",
+        "subject": {
+          "name": "Quest point cape"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_f6dd5c566ac7fe7f",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "From Xeric's chambers, paired and curved, four quick slashes well deserved.",
+        "vocab": "items",
+        "answer_id": 13652,
+        "image": "item:13652",
+        "subject": {
+          "name": "Dragon claws"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_d956c8cd7a1a7ea0",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Carved from Olm, the Great and dead; the stronger the mage, the more they bled.",
+        "vocab": "items",
+        "answer_id": 20997,
+        "image": "item:20997",
+        "subject": {
+          "name": "Twisted bow"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_3ecc5146131b8132",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Graardor's drop, sixty-five Defence to wear; the War God's strength across your ribs to bear.",
+        "vocab": "items",
+        "answer_id": 11832,
+        "image": "item:11832",
+        "subject": {
+          "name": "Bandos chestplate"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_1a8e7ec79c0cf328",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Zilyana's own, an Icyene's steel: two hands to hold, yet swift to deal.",
+        "vocab": "items",
+        "answer_id": 11838,
+        "image": "item:11838",
+        "subject": {
+          "name": "Saradomin sword"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_32a6bc207ab0fab2",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Two hundred and fifty points I pay, for plain torso mail from the Pest Control fray.",
+        "vocab": "items",
+        "answer_id": 8839,
+        "image": "item:8839",
+        "subject": {
+          "name": "Void knight top"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_1e606491dcd07ab4",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Twenty-eight stacks my sack will hold, but fill it where the pkers are bold.",
+        "vocab": "items",
+        "answer_id": 11941,
+        "image": "item:11941",
+        "subject": {
+          "name": "Looting bag"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_07423b3221b86771",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "The Duke at Lumbridge gives it free, for breath you'd never wish to see. Four parts in five it turns away; bring it on your dragon day.",
+        "vocab": "items",
+        "answer_id": 1540,
+        "image": "item:1540",
+        "subject": {
+          "name": "Anti-dragon shield"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_3ac528702888a0d4",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Through prayer and plate it still gets in: the Defiled's two-handed sin.",
+        "vocab": "items",
+        "answer_id": 4755,
+        "image": "item:4755",
+        "subject": {
+          "name": "Verac's flail"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_ead8000ff6528ff2",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "The Wretched's two-hand blade: no tree will fall, but near to death it ends it all.",
+        "vocab": "items",
+        "answer_id": 4718,
+        "image": "item:4718",
+        "subject": {
+          "name": "Dharok's greataxe"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_f29fcbc7c7377aee",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "One blow in four, a sip of health: the Infested's reach, a healer's wealth.",
+        "vocab": "items",
+        "answer_id": 4726,
+        "image": "item:4726",
+        "subject": {
+          "name": "Guthan's warspear"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_64074a8a3fb67bd0",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "From Wintertodt's cart, a burning bough: no tinderbox needed now. Light the braziers, warm your hand, from a tree of magic in frozen land.",
+        "vocab": "items",
+        "answer_id": 20720,
+        "image": "item:20720",
+        "subject": {
+          "name": "Bruma torch"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_67c5f2bcaefcc2fc",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Forty nuggets bought this hat: two lights on top, and that is that. For neither lamp will light your way: they're just for show, the wiki'll say.",
+        "vocab": "items",
+        "answer_id": 12013,
+        "image": "item:12013",
+        "subject": {
+          "name": "Prospector helmet"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_f32f1dfd0c801358",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Two bites, ten health, a crust of red; Thurgo the dwarf just wants to be fed.",
+        "vocab": "items",
+        "answer_id": 2325,
+        "image": "item:2325",
+        "subject": {
+          "name": "Redberry pie"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_de83c336462191b3",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "A diamond band, with one last trick: ten percent, and home you flick. Then to dust it crumbles, so wear another, if you must.",
+        "vocab": "items",
+        "answer_id": 2570,
+        "image": "item:2570",
+        "subject": {
+          "name": "Ring of life"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_82a28bf19eb63762",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "The Sphinx's gift, it softly purrs; now ask your kitten what it prefers.",
+        "vocab": "items",
+        "answer_id": 4677,
+        "image": "item:4677",
+        "subject": {
+          "name": "Catspeak amulet"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_1812be2f7938375e",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "A bright green gem from a quiet tomb; wear it, or the falls will spell your doom.",
+        "vocab": "items",
+        "answer_id": 295,
+        "image": "item:295",
+        "subject": {
+          "name": "Glarial's amulet"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_4b99427f94c07030",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "It tastes no better than it looks, yet lifts your health past all the books.",
+        "vocab": "items",
+        "answer_id": 13441,
+        "image": "item:13441",
+        "subject": {
+          "name": "Anglerfish"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_c01be87903a2c21f",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "\"Cooked octopus\", the examine boasts; Tai Bwo Wannai's gift to hosts. Tinsay shows you how it's done; eat it last, two meals in one.",
+        "vocab": "items",
+        "answer_id": 3144,
+        "image": "item:3144",
+        "subject": {
+          "name": "Cooked karambwan"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_b31e218d55044da4",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Sharp spoils from beneath Falador's park; Wyson pays in nests, for a lark.",
+        "vocab": "items",
+        "answer_id": 7416,
+        "image": "item:7416",
+        "subject": {
+          "name": "Mole claw"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_5d6a575dca877dcb",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Bones and a talisman, Zooknock's art: play the great ape and look the part.",
+        "vocab": "items",
+        "answer_id": 4026,
+        "image": "item:4026",
+        "subject": {
+          "name": "Gorilla greegree"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_56e7094d1a5b53c3",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "A bagged chicken, magnet in claw: your arrows come back, like never before.",
+        "vocab": "items",
+        "answer_id": 10499,
+        "image": "item:10499",
+        "subject": {
+          "name": "Ava's accumulator"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_3243e4e342e7cf70",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "A shaman's rarest lizard prize; one good spec cuts Defence to size.",
+        "vocab": "items",
+        "answer_id": 13576,
+        "image": "item:13576",
+        "subject": {
+          "name": "Dragon warhammer"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_50d91de2d6102ede",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Bonemeal to the green font tossed; Port Phasmatys gates are crossed.",
+        "vocab": "items",
+        "answer_id": 4278,
+        "image": "item:4278",
+        "subject": {
+          "name": "Ecto-token"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_7728253d9e9e056e",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Forged where monks let no blade land; no teleport works without me in hand.",
+        "vocab": "items",
+        "answer_id": 563,
+        "image": "item:563",
+        "subject": {
+          "name": "Law rune"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_06c4383295c94361",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Hespori's gift, a name that lies: ten thousand loads, then it denies.",
+        "vocab": "items",
+        "answer_id": 22994,
+        "image": "item:22994",
+        "subject": {
+          "name": "Bottomless compost bucket"
+        }
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_10f1a53c5c9b698f",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Contact!'s scarab leaves this blade; kalphites everywhere afraid.",
+        "vocab": "items",
+        "answer_id": 10581,
+        "image": "item:10581",
+        "subject": {
+          "name": "Keris"
+        }
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_fd3a8ab028988373",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Strangely uncomfortable, a mogre's drop; below Fossil Island they never stop.",
+        "vocab": "items",
+        "answer_id": 6666,
+        "image": "item:6666",
+        "subject": {
+          "name": "Flippers"
+        }
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_feea0e18199b34f9",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "A shining paragon of virtue's art, from Rum Deal; sip, and Prayer's restored in part.",
+        "vocab": "items",
+        "answer_id": 6714,
+        "image": "item:6714",
+        "subject": {
+          "name": "Holy wrench"
+        }
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_cbdfcc4601f33db1",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "One in twenty thousand, by cormorant caught: the henchest swimmer ever brought.",
+        "vocab": "items",
+        "answer_id": 22840,
+        "image": "item:22840",
+        "subject": {
+          "name": "Golden tench"
+        }
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_4dd2f0e0d65fa319",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "The silver sword Sir Prysin gave, in Agrith-Naar's blood made brave.",
+        "vocab": "items",
+        "answer_id": 6746,
+        "image": "item:6746",
+        "subject": {
+          "name": "Darklight"
+        }
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_25ef79f1e5afc124",
+      "type": "pick_from_list",
+      "mode": "forgetful_bard",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "No talisman, no Abyss road; Lunar Isle's my sole abode.",
+        "vocab": "items",
+        "answer_id": 9075,
+        "image": "item:9075",
+        "subject": {
+          "name": "Astral rune"
+        }
+      },
+      "difficulty": "hard"
+    }
+  ]
+}
