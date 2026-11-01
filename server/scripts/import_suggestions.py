@@ -20,6 +20,9 @@ as its ``image`` and the picture's entry, and the list stays as it is. One query
 ``infobox_monster`` bucket asks for every NPC in the file, and one to ``infobox_npc`` for those
 it did not find. A shadow's NPC the list already has is skipped.
 
+A Forgetful Bard question is a verse and its item's name. An item not on the roster joins it as
+an ``items`` entry below does, and the question gets the item's id, its ``image`` and ``subject``.
+
 A Drop Table or Minigame Madness question's ``picture_item`` is found the same way and becomes
 its payload's ``image``, ``item:<id>``. ``data/assets.json`` gains the item's detail image and
 inventory icon when it lacks either, for ``make fetch-assets``.
@@ -268,6 +271,8 @@ def wiki_page(url: str) -> str:
 
 def npc_named(content: dict[str, Any]) -> str | None:
     """The NPC a Who's That NPC? question shows, as a shadow or a render; ``None`` for others."""
+    if content.get("mode") in suggestions.VERSE_MODES:
+        return None
     return suggestions.named(content) or suggestions.rendered(content)
 
 
@@ -386,6 +391,42 @@ def rendered_npc(
     return {**content, "payload": {**content["payload"], "image": f"npc:{number}"}}
 
 
+def named_item(
+    content: dict[str, Any],
+    where: str,
+    lookup: Callable[[str], list[dict[str, Any]]],
+    plan: Plan,
+) -> dict[str, Any] | None:
+    """A verse made whole, its item added to the roster if new; ``None`` if refused.
+
+    Only an item the roster lacks is asked of the wiki. Its detail image is found with the
+    other new items', once every entry has passed.
+    """
+    name = str(suggestions.named(content))
+    item = next((i for i in plan.items if fold(i["name"]) == fold(name)), None)
+    if item is None:
+        known = find_item(name, lookup)
+        if isinstance(known, str):
+            plan.refused.append(f"{where}: {name!r} {known}")
+            return None
+        number, spelled, icon = known
+        item = next((i for i in plan.items if i["id"] == number), None)
+        if item is None:
+            item = {"id": number, "name": spelled}
+            plan.items.append(item)
+            plan.added.append(f"{where}: {spelled!r} as id {number}")
+        if not has_target(plan.assets, f"items/{number}"):
+            plan.assets[f"items/{number}.png"] = icon
+    payload = {
+        "prompt": content["payload"]["prompt"],
+        "vocab": suggestions.NAMED_MODES[content["mode"]],
+        "answer_id": item["id"],
+        "image": f"item:{item['id']}",
+        "subject": {"name": item["name"]},
+    }
+    return {**content, "payload": payload}
+
+
 def plan_questions(
     entries: list[Any],
     packs_dir: Path,
@@ -413,7 +454,9 @@ def plan_questions(
         if credit is None:
             continue
         content = pictured(content, where, lookup, plan)
-        if content is not None and suggestions.named(content) is not None:
+        if content is not None and content["mode"] in suggestions.VERSE_MODES:
+            content = named_item(content, where, lookup, plan)
+        elif content is not None and suggestions.named(content) is not None:
             content = named_npc(content, where, npc_rows, plan)
         elif content is not None and suggestions.rendered(content) is not None:
             content = rendered_npc(content, where, npc_rows, plan)

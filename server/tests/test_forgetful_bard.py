@@ -21,11 +21,10 @@ def test_a_round_is_answered_from_the_list_and_scored_on_speed() -> None:
     assert questions_bounds("forgetful_bard").default == 5
 
 
-def test_the_pack_holds_sixty_verses_about_sixty_items() -> None:
+def test_the_pack_holds_at_least_sixty_different_verses() -> None:
     questions = verses()
-    assert len(questions) == 60
-    assert len({q["payload"]["prompt"] for q in questions}) == 60
-    assert len({q["payload"]["answer_id"] for q in questions}) == 60
+    assert len(questions) >= 60
+    assert len({q["payload"]["prompt"] for q in questions}) == len(questions)
 
 
 def test_every_verse_answers_to_a_plain_item_it_never_names() -> None:

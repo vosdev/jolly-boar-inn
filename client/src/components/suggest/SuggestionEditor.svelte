@@ -10,7 +10,9 @@
    * item to picture, and a Who's That NPC? shadow is only the NPC's name, its render four
    * buttons whose right one names the NPC: the preview shows no picture for any of them,
    * since it exists only once imported. A shadow of an NPC the game already asks about is
-   * refused before it is sent, given the list beside the editor. An item is only a name, since the import script finds its id; nothing
+   * refused before it is sent, given the list beside the editor. A Forgetful Bard question is a
+   * verse and its item, from the list or typed if the list lacks it; the item fills in its wiki
+   * page, and the preview's reveal has no picture, which a room alone may name. An item is only a name, since the import script finds its id; nothing
    * on the wiki is needed to check one. Beside it the roster, searchable, so nobody writes
    * up an item the game already has; its credit is kept but cannot be shown.
    *
@@ -22,16 +24,21 @@
   import { get } from 'svelte/store'
 
   import type { CustomQuestion, CustomType } from '../../lib/customQuestions'
+  import { fieldHints } from '../../lib/placeholders'
   import { NAME_MAX } from '../../lib/names'
   import type { MatchingQuestion } from '../../lib/matching'
   import type { OrderingQuestion } from '../../lib/ordering'
   import { profile } from '../../lib/profile'
   import type { OpenQuestion } from '../../lib/protocol'
+  import { codePoints } from '../../lib/questionSchema'
   import type { Snippet } from 'svelte'
   import {
     creditProblem,
     hasExtras,
     INTRO_ROUNDS,
+    itemPage,
+    onList,
+    plainItems,
     QUESTION_DIFFICULTIES,
     takesDifficulty,
     itemProblem,
@@ -43,6 +50,9 @@
     stageMode,
     stepsFor,
     SUGGESTED_TYPE_LABELS,
+    VERSE_MAX,
+    verseItemProblem,
+    verseProblem,
     wikiProblem,
     type Choice,
     type ItemContent,
@@ -54,6 +64,7 @@
   } from '../../lib/suggestions'
   import { loadVocab, search, type VocabEntry } from '../../lib/vocab'
   import CustomQuestionForm from '../CustomQuestionForm.svelte'
+  import ItemPicker from './ItemPicker.svelte'
   import MatchingForm from '../MatchingForm.svelte'
   import OrderingForm from '../OrderingForm.svelte'
   import Segmented from '../Segmented.svelte'
@@ -111,12 +122,14 @@
       ? ((start.payload?.subject as { name?: string })?.name ?? '')
       : '',
   )
+  // svelte-ignore state_referenced_locally
+  let verse = $state(choice.verse ? ((start?.payload?.prompt as string | undefined) ?? '') : '')
   let attempted = $state(false)
   let roster = $state<readonly VocabEntry[] | 'loading' | 'failed'>('loading')
   let rosterQuery = $state('')
 
   onMount(() => {
-    if (choice.kind !== 'item') return
+    if (choice.kind !== 'item' && !choice.verse) return
     loadVocab('items').then(
       (list) => (roster = list.entries),
       () => (roster = 'failed'),
@@ -203,17 +216,32 @@
   const creditError = $derived(creditProblem(credit))
   const wikiError = $derived(wikiProblem(wiki))
   const pictureItemError = $derived(pictureItemProblem(pictureItem))
-  const npcError = $derived(npcNameProblem(npcName, asked))
+  const verseError = $derived(verseProblem(verse, npcName))
+  const verseItemError = $derived(verseItemProblem(npcName))
+  const npcError = $derived(
+    choice.verse ? (verseError ?? verseItemError) : npcNameProblem(npcName, asked),
+  )
   const npcQuestion = $derived<QuestionContent>({
     type: 'pick_from_list',
-    payload: { prompt: roundPrompt?.text ?? '', subject: { name: npcName.trim() } },
+    payload: {
+      prompt: choice.verse ? verse.trim() : (roundPrompt?.text ?? ''),
+      subject: { name: npcName.trim() },
+    },
     mode: choice.id,
+  })
+  const verseItems = $derived(typeof roster === 'string' ? [] : plainItems(roster))
+  const listed = $derived(choice.verse === true && onList(npcName, verseItems))
+  const namedPreview = $derived.by(() => {
+    const open = questionPreview(npcQuestion)
+    return listed ? { ...open, view: { ...open.view, vocab: 'items' } } : open
   })
   const sourceErrors = $derived(sourceProblems(wiki, sourceUrl))
   // svelte-ignore state_referenced_locally
   const checksSimilar = initial === undefined
   let drafted = $state<CustomQuestion | OrderingQuestion | MatchingQuestion | undefined>(undefined)
-  const naming = $derived(choice.named === true && current === 'pick_from_list')
+  const naming = $derived(
+    (choice.named === true || choice.verse === true) && current === 'pick_from_list',
+  )
   const similarTo = $derived<QuestionContent | undefined>(
     naming
       ? npcError === null
@@ -229,7 +257,7 @@
   const difficultyError = $derived(
     tiered && difficulty === undefined ? 'Pick how hard it is.' : null,
   )
-  const sourceDone = $derived(
+  const sourcePasses = $derived(
     choice.wikiOnly ? wikiError === null : Object.values(sourceErrors).every((e) => e === null),
   )
   const creditDone = $derived(creditError === null)
@@ -247,7 +275,7 @@
       extrasFilled:
         formProgress.extrasFilled || (Boolean(choice.pictureItem) && pictureItem.trim() !== ''),
       extrasValid: formProgress.extrasValid && (!choice.pictureItem || pictureItemError === null),
-      sourceDone,
+      sourceDone: sourcePasses,
       creditDone,
     }),
   )
@@ -265,16 +293,17 @@
   /** The fields beside a question: whether they pass, asked on the editor's Save. */
   function questionFieldsPass(): boolean {
     attempted = true
-    const checked = choice.wikiOnly
-      ? wikiError === null
-      : Object.values(sourceErrors).every((e) => e === null)
     const tieredPass = !tiered || difficulty !== undefined
-    return creditError === null && pictureItemError === null && checked && tieredPass
+    return creditError === null && pictureItemError === null && sourcePasses && tieredPass
+  }
+
+  function givenLinks(): { wiki?: string; source_url?: string } {
+    const links = { wiki: wiki.trim(), source_url: sourceUrl.trim() }
+    return Object.fromEntries(Object.entries(links).filter(([, url]) => url !== ''))
   }
 
   function saveQuestion(built: CustomQuestion | OrderingQuestion | MatchingQuestion): void {
-    const links = { wiki: wiki.trim(), source_url: sourceUrl.trim() }
-    const given = Object.fromEntries(Object.entries(links).filter(([, url]) => url !== ''))
+    const given = givenLinks()
     const pictured = choice.pictureItem && pictureItem.trim() !== ''
     send({
       ...built,
@@ -289,13 +318,19 @@
     attempted = true
     if (
       creditError !== null ||
-      wikiError !== null ||
+      !sourcePasses ||
       npcError !== null ||
       (tiered && difficulty === undefined)
     ) {
       return
     }
-    send({ ...npcQuestion, wiki: wiki.trim(), ...(difficulty !== undefined ? { difficulty } : {}) })
+    send({ ...npcQuestion, ...givenLinks(), ...(difficulty !== undefined ? { difficulty } : {}) })
+  }
+
+  // The item's page fills in until the player writes one of their own.
+  function pickItem(next: string): void {
+    if (wiki.trim() === '' || wiki === itemPage(npcName)) wiki = itemPage(next)
+    npcName = next
   }
 
   function saveItem(): void {
@@ -471,11 +506,34 @@
               />
             </div>
           {/if}
-          <div class="field">
-            <label for="{id}-npc">Monster or NPC, as the wiki spells it</label>
-            <input id="{id}-npc" type="text" bind:value={npcName} />
-            {@render problem(npcError, attempted)}
-          </div>
+          {#if choice.verse}
+            <div class="field">
+              <label for="{id}-verse">The verse Falo sings</label>
+              <textarea
+                id="{id}-verse"
+                rows="3"
+                placeholder={fieldHints(choice.id).prompt}
+                bind:value={verse}></textarea>
+              <p class="note hint counter">{codePoints(verse.trim())}/{VERSE_MAX}</p>
+              {@render problem(verseError, attempted)}
+            </div>
+            <ItemPicker
+              entries={verseItems}
+              name={npcName}
+              label="The item it describes"
+              problem={attempted ? verseItemError : null}
+              onname={pickItem}
+            />
+            {#if npcName.trim() !== '' && !listed && verseItemError === null && typeof roster !== 'string'}
+              <p class="note hint">Not on the list yet: Reldo adds it if your verse is approved.</p>
+            {/if}
+          {:else}
+            <div class="field">
+              <label for="{id}-npc">Monster or NPC, as the wiki spells it</label>
+              <input id="{id}-npc" type="text" bind:value={npcName} />
+              {@render problem(npcError, attempted)}
+            </div>
+          {/if}
         </StepCard>
         {#if tiered}
           <StepCard number={difficultyStepIndex + 1} step={steps[difficultyStepIndex]!}>
@@ -483,7 +541,11 @@
           </StepCard>
         {/if}
         <StepCard number={sourceStepIndex + 1} step={steps[sourceStepIndex]!}>
-          {@render wikiField(attempted)}
+          {#if choice.verse}
+            {@render sourceFields(attempted)}
+          {:else}
+            {@render wikiField(attempted)}
+          {/if}
         </StepCard>
         <StepCard number={creditStepIndex + 1} step={steps[creditStepIndex]!}>
           {@render creditFields(attempted)}
@@ -493,11 +555,7 @@
       </div>
       <section class="preview" aria-label="Preview">
         <p class="note">What players will see</p>
-        <TryPreview
-          content={similarTo}
-          question={questionPreview(npcQuestion)}
-          answerable={false}
-        />
+        <TryPreview content={similarTo} question={namedPreview} answerable={listed} {hero} />
       </section>
     </div>
   </div>
@@ -631,6 +689,26 @@
 {/if}
 
 <style>
+  textarea {
+    width: 100%;
+    font: inherit;
+    padding: calc(0.55rem - var(--border-give)) calc(0.7rem - var(--border-give));
+    color: var(--ink);
+    background: var(--panel);
+    border: var(--border-width) solid var(--line);
+    border-radius: min(var(--radius), 8px);
+    resize: vertical;
+  }
+
+  textarea:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .counter {
+    text-align: right;
+  }
+
   .editor {
     padding: 1rem;
     border: var(--border-width) solid var(--line);

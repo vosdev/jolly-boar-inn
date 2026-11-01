@@ -18,6 +18,7 @@ from app.suggestions import QUESTION_MODES
 sys.path.insert(0, str(REPO_ROOT / "server" / "scripts"))
 
 import import_suggestions  # noqa: E402
+import validate_packs  # noqa: E402
 
 from tests.packs import PACKS_DIR
 
@@ -761,3 +762,89 @@ def test_a_render_of_an_npc_the_shadows_ask_about_is_still_added(repo: dict[str,
     assert run(repo, {"questions": [vorkath]}) == 0
     pack = json.loads((repo["packs"] / "whos_that_npc.json").read_text())["questions"]
     assert pack[-1]["payload"]["image"] == "npc:8058"
+
+
+VERSE = {
+    "type": "pick_from_list",
+    "payload": {"prompt": "Seventy to hold, it cracks.", "subject": {"name": "Abyssal whip"}},
+    "mode": "forgetful_bard",
+    "wiki": "https://oldschool.runescape.wiki/w/Abyssal_whip",
+    "difficulty": "easy",
+    "credit": "AFKFisher",
+    "credit_shown": True,
+}
+NEW_VERSE = {
+    **VERSE,
+    "payload": {"prompt": "A rusty thing for a dusty door.", "subject": {"name": "dusty key"}},
+}
+
+
+def verses(repo: dict[str, Path]) -> list[dict[str, Any]]:
+    return json.loads((repo["packs"] / "forgetful_bard.json").read_text())["questions"]
+
+
+def test_a_verse_lands_in_the_pack_with_its_picture_and_asks_the_wiki_nothing(
+    repo: dict[str, Path],
+) -> None:
+    roster = repo["roster"].read_text()
+    repo["items"].write_text("[]")
+    assert run(repo, {"questions": [VERSE]}) == 0
+    added = verses(repo)[-1]
+    assert added["payload"] == {
+        "prompt": "Seventy to hold, it cracks.",
+        "vocab": "items",
+        "answer_id": 4151,
+        "image": "item:4151",
+        "subject": {"name": "Abyssal whip"},
+    }
+    assert (added["difficulty"], added["credit"], added["credit_shown"]) == (
+        "easy",
+        "AFKFisher",
+        True,
+    )
+    assert repo["roster"].read_text() == roster
+    assert loads(repo)
+    assert validate_packs.main(["validate_packs.py", str(repo["packs"])]) == 0
+
+
+def test_a_verse_about_a_new_item_adds_it_to_the_roster_and_pixel_hunt(
+    repo: dict[str, Path],
+) -> None:
+    repo["details"].write_text(json.dumps(["Dusty key detail.png"]))
+    assert run(repo, {"questions": [NEW_VERSE]}) == 0
+    payload = verses(repo)[-1]["payload"]
+    assert payload["answer_id"] == 1590
+    assert payload["image"] == "item:1590"
+    assert payload["subject"] == {"name": "Dusty key"}
+    roster = json.loads(repo["roster"].read_text())["items"]
+    assert {"id": 1590, "name": "Dusty key"} in roster
+    assets = json.loads(repo["assets"].read_text())
+    assert assets["items/1590.png"] == "Dusty key.png"
+    assert assets["pictures/item/1590.png"] == "Dusty key detail.png"
+    hunted = json.loads((repo["packs"] / "pixel_hunt.json").read_text())["questions"]
+    assert 1590 in {q["payload"]["answer_id"] for q in hunted}
+    assert loads(repo)
+
+
+def test_a_verse_about_an_item_the_wiki_lacks_writes_nothing(
+    repo: dict[str, Path], capsys: pytest.CaptureFixture[str]
+) -> None:
+    before = snapshot(repo)
+    missing = {**VERSE, "payload": {"prompt": "No such song.", "subject": {"name": "Nothing"}}}
+    assert run(repo, {"questions": [missing]}) == 1
+    assert "is not an item on the wiki" in capsys.readouterr().err
+    assert snapshot(repo) == before
+
+
+def test_importing_a_verse_twice_changes_nothing_the_second_time(repo: dict[str, Path]) -> None:
+    assert run(repo, {"questions": [NEW_VERSE]}) == 0
+    before = snapshot(repo)
+    assert run(repo, {"questions": [NEW_VERSE]}) == 0
+    assert snapshot(repo) == before
+
+
+def test_two_verses_may_share_an_item(repo: dict[str, Path]) -> None:
+    other = {**VERSE, "payload": {**VERSE["payload"], "prompt": "A second song of the lash."}}
+    assert run(repo, {"questions": [VERSE, other]}) == 0
+    assert [q["payload"]["answer_id"] for q in verses(repo)[-2:]] == [4151, 4151]
+    assert loads(repo)

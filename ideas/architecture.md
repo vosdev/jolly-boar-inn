@@ -143,7 +143,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 | `know_your_content_creator` | Know Your Content Creator | `multiple_choice`, `closest_number`, `number_slider`, `pick_all_that_apply` | hand-written | done |
 | `whos_that_npc` | Who's That NPC? | `pick_from_list` over `popular-npcs.json`, a shadow; `multiple_choice`, a render | hand-written | done |
 | `pixel_hunt` | Pixel Hunt | `pick_from_list` over `popular-items.json`, a detail picture built up | generated from the roster | done: Zoom out, Pixelate, Tiles, Slide puzzle, Lantern, Sketch |
-| `forgetful_bard` | The Forgetful Bard | `pick_from_list` over `popular-items.json`, a verse; its picture at the reveal | hand-written | done |
+| `forgetful_bard` | The Forgetful Bard | `pick_from_list` over `popular-items.json`, a verse; its picture at the reveal | hand-written | done: one item may have several verses |
 | `scaperune` | ScapeRune | `multiple_choice`, four options, `extra_answer` 12 | hand-written | done: `prompt` is the answer, a line per entry if ordered, and `options` are questions, at most 120 characters; `/suggest` relabels its form to say so |
 | `tales_of_gielinor` | Tales of Gielinor | Bestiary's seven types | hand-written | done, hosted by the Wise Old Man, who is therefore off the roster |
 | `minimap_guesser`, `name_that_spell` | Minimap Guesser, Name that spell | undecided | | Images (minimap), Sound (spell) |
@@ -782,7 +782,8 @@ key into them, so cleanup leaves it.
   or none, held to its type alone (`UNPLACED_TYPES`) until the operator picks its round;
   or an `item` (a name not on the roster).
   A Who's That NPC? shadow's payload is its fixed prompt and `subject.name`, an NPC not on its
-  list (`NAMED_MODES`); a render's right option names its NPC, and it has no `image` (`RENDER_MODES`). A question but an NPC's (`NO_DIFFICULTY_MODES`) may carry a `difficulty`;
+  list (`NAMED_MODES`); a render's right option names its NPC, and it has no `image` (`RENDER_MODES`).
+  A Forgetful Bard payload is a verse and `subject.name`, a plain item on the list or not, which the verse may not name (`VERSE_MODES`). A question but an NPC's (`NO_DIFFICULTY_MODES`) may carry a `difficulty`;
   `/suggest` requires picking one, loading with the toggle unselected. Each has a `credit`
   held to the name rules and `credit_shown`, never true for an item. Pending, approved,
   rejected or imported. A round not built yet takes questions; they wait in approved. The client offers the form after a finished game; 10 an hour
@@ -790,14 +791,14 @@ key into them, so cleanup leaves it.
 - `app/similar.py` scores a question against another, 0–100: 0.7 × the trigram Dice of the
   normalised prompts (with quote) + 0.3 × the answers' (1 when equal; any accepted free-text
   spelling); prompts alone across types; Odd One Out by option-set overlap; Who's That NPC? 100
-  for the same NPC, shadow or render, else 0. `POST /api/suggestions/similar` takes a question as `POST
+  for the same NPC, shadow or render, else 0; The Forgetful Bard 100 for the same item, else as usual. `POST /api/suggestions/similar` takes a question as `POST
   /api/suggestions` does, minus the link, and returns up to 3 pack questions (every pack mode but
   the price ones) at 60 or more as `{mode, label, score}`, never a suggestion; 120 an hour per
   address (`SIMILAR_PER_HOUR`). `/suggest` asks 800 ms after the prompt or answer changes.
 - `POST /api/suggestions/try {content, value?}` takes the same question and returns `{view,
   reveal, result}`: the open view in the room's shuffle, the reveal, and with `value` its
   `PlayerResult`, speed not counting (`round(1000 × credit)`); stores nothing; 600 an hour per
-  address (`TRIES_PER_HOUR`). A shadow reveals the name and takes no value. The previews
+  address (`TRIES_PER_HOUR`). A shadow, or a verse whose item is not on the list, reveals the name and takes no value; a trial gives no picture, whose file name would tie it to the item. The previews
   on `/suggest` and in the queue toggle Question/Reveal and answer through it.
 - `/api/admin/suggestions` lists, edits and moves them, each question with its top 3 matches at 60
   or more among the packs and the other pending and approved suggestions, whole; a question with no
@@ -843,7 +844,7 @@ Right until it does (More/Less keeps `sample.json`'s five, which `live_packs` dr
   comes from the wiki's `infobox_item` bucket, untradeables included, as does a `picture_item`'s,
   which becomes `image`. A named NPC takes the first infobox row's id on its page (one
   `infobox_monster` query for the file, one `infobox_npc` for the rest), joins `popular-npcs.json`
-  and gets its question filled in; a render's becomes its `image` and joins no list. Missing `assets.json` entries are added: the NPC's picture, the
+  and gets its question filled in; a render's becomes its `image` and joins no list. A verse's item takes its roster id, or joins the roster as a suggested item does, and becomes `image`. Missing `assets.json` entries are added: the NPC's picture, the
   item's detail image and icon. One refused entry, or packs that would not load, writes nothing.
 - `make edit-packs FILE=…` applies an export of question changes: an edit replaces its question
   in place, keeping the file's key order, and recomputes its id; a delete removes it. A change to
