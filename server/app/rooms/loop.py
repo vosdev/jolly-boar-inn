@@ -570,7 +570,7 @@ class Loop:
                         room.can_answer(question, pid),
                         segment,
                         count,
-                        self._picture(question),
+                        self._open_picture(question),
                         self._pictures(question),
                         waiting,
                     )

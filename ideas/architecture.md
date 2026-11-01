@@ -81,7 +81,7 @@ A **type** is an answer shape: what a player sends, how it is checked, how it ea
 planned modes share `multiple_choice`; as five types they would be five copies of `grade`.
 
 `Mode(id, types, is_round=True, questions=None, pool=None, setting=None, options=None,
-steps=None, pictured=False)` in `modes/`, registered in `MODES` in the create form's order.
+steps=None, pictured=False, picture_at_reveal=False)` in `modes/`, registered in `MODES` in the create form's order.
 
 - `id` is `questions.mode` and the settings key. It is never renamed once shipped.
 - A round may mix types. The game loop reads only `question.type`, which also times the question. A
@@ -93,7 +93,7 @@ steps=None, pictured=False)` in `modes/`, registered in `MODES` in the create fo
   the `Settings` flag that offers the mode; off, or with an empty pool, `/api/modes` omits it and
   `POST /api/rooms` is a 403 `mode_not_offered`. A stored room keeps playing it. `options` holds a
   round's `multiple_choice` questions to fewer options than the schema's two to six; `mode_errors`
-  refuses the rest. `steps` and `pictured` are Pixel Hunt's (sections 8 and 12).
+  refuses the rest. `steps` and `pictured` are Pixel Hunt's (sections 8 and 12). `picture_at_reveal` keeps a question's `picture` off the open view.
 
 Each module in `questions/types/` exports:
 
@@ -143,6 +143,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 | `know_your_content_creator` | Know Your Content Creator | `multiple_choice`, `closest_number`, `number_slider`, `pick_all_that_apply` | hand-written | done |
 | `whos_that_npc` | Who's That NPC? | `pick_from_list` over `popular-npcs.json`, a shadow; `multiple_choice`, a render | hand-written | done |
 | `pixel_hunt` | Pixel Hunt | `pick_from_list` over `popular-items.json`, a detail picture built up | generated from the roster | done: Zoom out, Pixelate, Tiles, Slide puzzle, Lantern, Sketch |
+| `forgetful_bard` | The Forgetful Bard | `pick_from_list` over `popular-items.json`, a verse; its picture at the reveal | hand-written | done |
 | `minimap_guesser`, `name_that_spell` | Minimap Guesser, Name that spell | undecided | | Images (minimap), Sound (spell) |
 
 Create lists the unbuilt ones from `UPCOMING_MODES` in `lib/modes.ts`.
@@ -377,8 +378,9 @@ PlayerResult { value, correct, credit, points }
 - `view` is `client_view(payload)`. `random_event` is the NPC id; an unknown id gets a generic card.
 - `picture` is a pack question's file in `/pictures/` under a random name, from `data/pictures.json`
   (section 12), or null: no image, a host's question, or a file the client lacks: `client/dist`,
-  or `client/public` under `make dev`. Served immutable, and drawn under the stem in every mode,
-  open and revealed. Devtools still show the whole picture before it builds up or loses its shadow.
+  or `client/public` under `make dev`. Served immutable, and drawn under the stem, open and revealed,
+  but for a `picture_at_reveal` round's, which only `question_closed` names. Devtools still show the
+  whole picture before it builds up or loses its shadow.
 - `answerable_at` is `opened_at` plus the hold the question types in (`rooms/hold.py`): 0.4 s (0.9 s
   for an event), each line, a round's host's ask line counted as 50 letters, at 50 letters a second
   with a 0.5–1 s pause after it, then 0.2 s. Answers before it are `not_open`, and `ends_at` and timing count from it, so the typing

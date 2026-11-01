@@ -188,6 +188,16 @@ export const SAMPLES: Record<string, Sample> = {
     subject: { name: 'Abyssal whip' },
     steps: { build: 17, of: 25 },
   },
+  forgetful_bard: {
+    mode: 'forgetful_bard',
+    type: 'pick_from_list',
+    view: {
+      prompt: "Seventy Attack, and hear it crack: an Abyss-born lash on a demon's back.",
+      vocab: 'items',
+    },
+    answer: 4151,
+    subject: { name: 'Abyssal whip' },
+  },
 }
 
 /** How long a sample stays open, in seconds: its type's `ANSWER` at the room's usual pace. */

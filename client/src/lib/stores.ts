@@ -286,7 +286,10 @@ export function applyServerMessage(message: ServerMessage): void {
         teamStandings.set(message.team_standings)
         lastClosed.set({
           ...message,
-          was: open?.question_id === message.question_id ? open : null,
+          was:
+            open?.question_id === message.question_id
+              ? { ...open, picture: message.picture }
+              : null,
         })
       }
       patchRoom({

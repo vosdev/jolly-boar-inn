@@ -41,7 +41,8 @@ class Mode:
 
     ``steps`` is how a round's picture builds up, for its ``STEP`` questions; without it they
     score on speed. ``pictured`` keeps a question whose picture this install lacks out of the
-    round: the picture is the whole question.
+    round: the picture is the whole question. ``picture_at_reveal`` holds a question's picture
+    back until it closes, for a round where the picture would give the answer away.
     """
 
     id: str
@@ -53,6 +54,7 @@ class Mode:
     options: tuple[int, int] | None = None
     steps: Steps | None = None
     pictured: bool = False
+    picture_at_reveal: bool = False
 
     def __post_init__(self) -> None:
         # A bare string would be read as a set of its letters.

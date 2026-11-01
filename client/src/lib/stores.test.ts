@@ -18,6 +18,7 @@ import {
   answerCount,
   applyServerMessage,
   endedLive,
+  lastClosed,
   lastError,
   players,
   question,
@@ -214,6 +215,24 @@ describe('applyServerMessage', () => {
     })
     applyServerMessage({ t: 'error', code: 'not_open', message: 'no question is open' })
     expect(errorText(get(lastError)!)).toBe('Too late, that question had closed.')
+  })
+
+  it('hands the reveal the picture a round held back while its question was open', () => {
+    applyServerMessage(welcome({ room: { ...lobby, status: 'playing' } }))
+    applyServerMessage({ t: 'question_open', question: open('q1') })
+    applyServerMessage({
+      t: 'question_closed',
+      unanswered: [],
+      question_id: 'q1',
+      reveal: {},
+      results: {},
+      standings: [],
+      team_standings: null,
+      next_at: null,
+      reveal_seconds: 6,
+      picture: 'feedc0de.png',
+    })
+    expect(get(lastClosed)?.was?.picture).toBe('feedc0de.png')
   })
 
   it('keeps how long the reveal lasts from its close until the next question opens', () => {

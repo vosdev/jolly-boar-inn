@@ -809,11 +809,13 @@ def test_the_form_offers_a_picture_item_only_to_the_rounds_that_take_one() -> No
 
 
 # Rounds suggested for on another card: the price rounds and Pixel Hunt play the items players
-# suggest, and Random Events Only plays the NPCs' questions.
+# suggest, The Forgetful Bard's verses are written about them, and Random Events Only plays the
+# NPCs' questions.
 COVERED_ELSEWHERE = {
     "more_less": "item",
     "price_is_right": "item",
     "pixel_hunt": "item",
+    "forgetful_bard": "item",
     "random_events_only": "random_event",
 }
 

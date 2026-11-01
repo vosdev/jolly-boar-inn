@@ -689,6 +689,42 @@ describe('Who’s That NPC?’s shadow', () => {
   })
 })
 
+describe('The Forgetful Bard’s picture', () => {
+  const VIEW_VERSE = { prompt: 'A verse about an item.', vocab: 'items' }
+  const paper = () => document.querySelector('.paper') as HTMLElement
+
+  it('leaves no room for a picture while the verse is open', () => {
+    const question = open('pick_from_list', 'forgetful_bard', VIEW_VERSE)
+    render(QuestionStage, { question, yourValue: null, onAnswer })
+    expect(paper().textContent).toContain('A verse about an item.')
+    expect(paper().querySelector('.picture')).toBeNull()
+    expect(paper().querySelector('.reserve')).toBeNull()
+  })
+
+  it('shows no sample’s picture until the reveal', () => {
+    const question = open('pick_from_list', 'forgetful_bard', VIEW_VERSE)
+    render(Question, { question, pictureUrl: '/sample.png', yourValue: null, onAnswer })
+    expect(document.querySelector('img[src="/sample.png"]')).toBeNull()
+  })
+
+  it('shows the item large, named under the verse, on the reveal', () => {
+    render(QuestionStage, {
+      question: {
+        ...open('pick_from_list', 'forgetful_bard', VIEW_VERSE),
+        picture: 'feedc0de.png',
+      },
+      reveal: { ...VIEW_VERSE, answer_id: 4151, subject: { name: 'Abyssal whip' } },
+      yourValue: null,
+      onAnswer,
+    })
+    expect(paper().textContent).toContain('A verse about an item.')
+    expect(paper().querySelector('.picture.large img')!.getAttribute('src')).toBe(
+      '/pictures/feedc0de.png',
+    )
+    expect(paper().querySelector('.caption')!.textContent).toBe('Abyssal whip')
+  })
+})
+
 describe('Pixel Hunt’s picture', () => {
   const VIEW_ITEM = { prompt: 'Which item is this?', vocab: 'items' }
   const question = { ...open('pick_from_list', 'pixel_hunt', VIEW_ITEM), picture: 'feedc0de.png' }

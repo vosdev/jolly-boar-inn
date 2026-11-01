@@ -796,7 +796,7 @@
             }
           ],
           "default": null,
-          "description": "The same name ``OpenQuestion.picture`` carried, so a reveal can show it too."
+          "description": "The question's picture, so a reveal can show it: a round may hold it back until now."
         },
         "results": {
           "additionalProperties": {

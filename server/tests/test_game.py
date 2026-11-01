@@ -2002,6 +2002,29 @@ def test_pixel_hunt_pays_the_step_the_answer_arrived_on(table, pictures) -> None
     assert points_by_name(game, closed) == {"Zezima": 1000, "Woox": 435, "Lynx": 400}
 
 
+def test_the_forgetful_bard_shows_its_picture_only_at_the_close(table, pictures) -> None:
+    """The picture names the answer, so ``question_open`` must not carry it."""
+    game = table("Zezima", "Woox", modes=["forgetful_bard"], seconds=25)
+    game.start()
+    for opened in game.opened(0):
+        assert opened["question"]["picture"] is None
+        assert "image" not in opened["question"]["view"]
+    game.skip()
+    closed = game.admin.take("question_closed")
+    question = game.question(0)
+    assert closed["picture"] == pictures[question.payload["image"]]
+
+
+def test_a_rejoin_mid_verse_is_not_handed_the_picture(table, client, pictures) -> None:
+    game = table("Zezima", modes=["forgetful_bard"], seconds=25)
+    late = join(client, game.code, "Lynx").json()
+    game.start()
+    game.opened(0)
+    with client.websocket_connect(f"/ws/{game.code}") as ws:
+        lynx = reseat(Seat("Lynx", late["session"], late["player"], ws), ws)
+        assert lynx.take("welcome")["question"]["picture"] is None
+
+
 def test_partial_credit_scores_without_being_correct(table, db, monkeypatch) -> None:
     """The road a future ``ordering`` type will drive on, driven early.
 
