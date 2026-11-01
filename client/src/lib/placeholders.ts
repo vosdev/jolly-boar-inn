@@ -34,6 +34,10 @@ const HINTS: Record<string, FieldHints> = {
     prompt: 'Which minigame gives the Ash covered tome?',
     explanation: 'Volcanic Mine: Petrified Pete sells it for 40,000 points.',
   },
+  tales_of_gielinor: {
+    prompt: 'Who gives you the Lost City quest?',
+    explanation: 'A warrior camped in the Lumbridge Swamp, who is looking for Zanaris.',
+  },
   who_said_that: {
     prompt: 'Who said this?',
     explanation:

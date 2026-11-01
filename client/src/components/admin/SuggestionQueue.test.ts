@@ -267,6 +267,7 @@ describe('SuggestionQueue', () => {
         'Who Said That?',
         'Know Your Content Creator',
         'ScapeRune',
+        'Tales of Gielinor',
         'Who is That NPC?',
       ])
       expect(screen.queryByText('Who asks it')).toBeNull()
@@ -324,6 +325,7 @@ describe('SuggestionQueue', () => {
         'A random event question',
         'Bestiary',
         'Minigame Madness',
+        'Tales of Gielinor',
         'Sort It Out',
         'Release Order',
       ])

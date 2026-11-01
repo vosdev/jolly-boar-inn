@@ -92,6 +92,7 @@ describe('the choices', () => {
       'who_said_that',
       'know_your_content_creator',
       'scaperune',
+      'tales_of_gielinor',
       'whos_that_npc',
       'sort_it_out',
       'release_order',
@@ -360,11 +361,13 @@ describe('a question’s round', () => {
       'bestiary',
       'drop_table',
       'minigame_madness',
+      'tales_of_gielinor',
     ])
     expect(roundsFor('ordering').map((c) => c.id)).toEqual([
       'random_event',
       'bestiary',
       'minigame_madness',
+      'tales_of_gielinor',
       'sort_it_out',
       'release_order',
     ])

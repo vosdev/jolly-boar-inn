@@ -214,6 +214,7 @@ const CHOICE_ROUNDS = [
   'who_said_that',
   'know_your_content_creator',
   'scaperune',
+  'tales_of_gielinor',
 ]
 
 function choiceRound(
@@ -244,6 +245,15 @@ const ROUND_TYPES: Record<string, readonly SuggestedType[]> = {
     'matching',
   ],
   minigame_madness: [
+    'multiple_choice',
+    'free_text',
+    'closest_number',
+    'number_slider',
+    'pick_all_that_apply',
+    'ordering',
+    'matching',
+  ],
+  tales_of_gielinor: [
     'multiple_choice',
     'free_text',
     'closest_number',

@@ -203,8 +203,8 @@ def test_an_unknown_mode_is_reported() -> None:
         "$.mode: 'zoom_quiz' is not a mode this build plays"
         " (it plays more_less, price_is_right, guess_examine, sort_it_out, who_said_that,"
         " know_your_content_creator, bestiary, drop_table, odd_one_out, minigame_madness,"
-        " whos_that_npc, pixel_hunt, forgetful_bard, scaperune, random_events_only, custom,"
-        " random_event)"
+        " whos_that_npc, pixel_hunt, forgetful_bard, scaperune, tales_of_gielinor,"
+        " random_events_only, custom, random_event)"
     ]
 
 
