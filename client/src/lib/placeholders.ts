@@ -14,6 +14,10 @@ const HINTS: Record<string, FieldHints> = {
     prompt: 'It wasn’t a rock... it was a rock lobster!',
     explanation: '',
   },
+  scaperune: {
+    prompt: 'Zaff, or for an order, one entry per line',
+    explanation: 'Zaff sells battlestaves. Aubury has the runes and Lowe the bows.',
+  },
   odd_one_out: {
     prompt: '',
     explanation: 'The others are catalytic runes. Fire is an elemental rune.',

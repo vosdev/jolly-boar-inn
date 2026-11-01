@@ -81,7 +81,7 @@ A **type** is an answer shape: what a player sends, how it is checked, how it ea
 planned modes share `multiple_choice`; as five types they would be five copies of `grade`.
 
 `Mode(id, types, is_round=True, questions=None, pool=None, setting=None, options=None,
-steps=None, pictured=False, picture_at_reveal=False)` in `modes/`, registered in `MODES` in the create form's order.
+steps=None, pictured=False, picture_at_reveal=False, extra_answer=0)` in `modes/`, registered in `MODES` in the create form's order.
 
 - `id` is `questions.mode` and the settings key. It is never renamed once shipped.
 - A round may mix types. The game loop reads only `question.type`, which also times the question. A
@@ -93,7 +93,7 @@ steps=None, pictured=False, picture_at_reveal=False)` in `modes/`, registered in
   the `Settings` flag that offers the mode; off, or with an empty pool, `/api/modes` omits it and
   `POST /api/rooms` is a 403 `mode_not_offered`. A stored room keeps playing it. `options` holds a
   round's `multiple_choice` questions to fewer options than the schema's two to six; `mode_errors`
-  refuses the rest. `steps` and `pictured` are Pixel Hunt's (sections 8 and 12). `picture_at_reveal` keeps a question's `picture` off the open view.
+  refuses the rest. `steps` and `pictured` are Pixel Hunt's (sections 8 and 12). `picture_at_reveal` keeps a question's `picture` off the open view. `extra_answer` adds seconds to a question's answer time, before the pace, for a round that takes longer to read.
 
 Each module in `questions/types/` exports:
 
@@ -114,7 +114,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
   credit to 1e-9 and clamps it to 0..1, logging a bad value rather than failing.
 - `Bounds(default, minimum, maximum)` is the question count Create offers and `NewRoomSettings`
   enforces. It falls back from mode to types to registry. Rounds default to 5 questions.
-- A question's time to answer and its reveal are its type's alone, at the room's `pace`: ×1.25
+- A question's time to answer, with its mode's `extra_answer`, and its reveal are its type's, at the room's `pace`: ×1.25
   `walk`, ×1 `run`, ×0.75 `teleport`, a half rounded up, at least 5 s to answer and 4 s to reveal.
   At `run`: `multiple_choice` 10 + 2/option and 4 + 0.5/option, `pick_all_that_apply` 10 + 3 and
   4 + 1, `ordering` and `matching` 10 + 5 and 4 + 2 per entry or field, `price_is_right` 15 and 6,
@@ -144,6 +144,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 | `whos_that_npc` | Who's That NPC? | `pick_from_list` over `popular-npcs.json`, a shadow; `multiple_choice`, a render | hand-written | done |
 | `pixel_hunt` | Pixel Hunt | `pick_from_list` over `popular-items.json`, a detail picture built up | generated from the roster | done: Zoom out, Pixelate, Tiles, Slide puzzle, Lantern, Sketch |
 | `forgetful_bard` | The Forgetful Bard | `pick_from_list` over `popular-items.json`, a verse; its picture at the reveal | hand-written | done |
+| `scaperune` | ScapeRune | `multiple_choice`, four options, `extra_answer` 12 | hand-written | done: `prompt` is the answer, a line per entry if ordered, and `options` are questions, at most 120 characters; `/suggest` relabels its form to say so |
 | `minimap_guesser`, `name_that_spell` | Minimap Guesser, Name that spell | undecided | | Images (minimap), Sound (spell) |
 
 Create lists the unbuilt ones from `UPCOMING_MODES` in `lib/modes.ts`.

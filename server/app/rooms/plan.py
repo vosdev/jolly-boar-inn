@@ -41,7 +41,7 @@ def plan(
         total=len(questions),
         events=sum(question.get("random_event") is not None for question in questions),
         seconds=duration.game_seconds(
-            [(question["type"], question["payload"]) for question in questions],
+            [(question["type"], question["payload"], question["mode"]) for question in questions],
             len(rounds),
             settings.pace,
             settings.standings_seconds,

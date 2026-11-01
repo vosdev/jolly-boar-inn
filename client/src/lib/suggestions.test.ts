@@ -91,12 +91,19 @@ describe('the choices', () => {
       'minigame_madness',
       'who_said_that',
       'know_your_content_creator',
+      'scaperune',
       'whos_that_npc',
       'sort_it_out',
       'release_order',
       'no_round',
     ])
     expect(CHOICES.find((c) => c.id === 'odd_one_out')?.types).toEqual(['multiple_choice'])
+    const scaperune = CHOICES.find((c) => c.id === 'scaperune')
+    expect([scaperune?.types, scaperune?.options, scaperune?.wording?.option]).toEqual([
+      ['multiple_choice'],
+      [4, 4],
+      'question',
+    ])
     const examine = CHOICES.find((c) => c.id === 'guess_examine')
     expect([examine?.kind, examine?.types, examine?.options]).toEqual([
       'question',
@@ -117,6 +124,7 @@ describe('the choices', () => {
     ])
     expect(CHOICES.filter((c) => c.options !== undefined).map((c) => c.id)).toEqual([
       'guess_examine',
+      'scaperune',
     ])
     expect(CHOICES.find((c) => c.id === 'bestiary')?.types).toEqual([
       'multiple_choice',

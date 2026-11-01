@@ -826,6 +826,32 @@ def test_every_round_on_create_is_suggestable_or_covered_elsewhere() -> None:
     assert set(COVERED_ELSEWHERE.values()) <= {"item", *QUESTION_MODES}
 
 
+SCAPERUNE = {
+    "prompt": "Zaff",
+    "options": ["Who sells staves?", "Who sells runes?", "Who sells bows?", "Who sells armour?"],
+    "answer_index": 0,
+}
+
+
+def test_scaperune_takes_four_questions_and_no_other_count(client: TestClient) -> None:
+    assert client.post(
+        "/api/suggestions", json=_with(QUOTE, mode="scaperune", payload=SCAPERUNE)
+    ).is_success
+    for options in (SCAPERUNE["options"][:3], [*SCAPERUNE["options"], "Who sells swords?"]):
+        payload = {**SCAPERUNE, "options": options}
+        response = client.post(
+            "/api/suggestions", json=_with(QUOTE, mode="scaperune", payload=payload)
+        )
+        assert response.status_code == 422
+
+
+def test_an_ordered_scaperune_answer_keeps_one_entry_per_line(client: TestClient) -> None:
+    typed = {**SCAPERUNE, "prompt": " Rush \n\n Burst\r\nBlitz\n"}
+    approve(client, suggest(client, _with(QUOTE, mode="scaperune", payload=typed)))
+    (question,) = export(client)["questions"]
+    assert question["payload"]["prompt"] == "Rush\nBurst\nBlitz"
+
+
 def test_know_your_content_creator_takes_a_number(client: TestClient) -> None:
     number = _with(
         DROP_RATE,

@@ -20,6 +20,12 @@ def test_a_question_is_its_full_time_to_answer_and_its_reveal() -> None:
     assert question_seconds("more_less", {}, "walk") == 13 + 6
 
 
+def test_a_mode_adds_its_extra_answer_time_before_the_pace() -> None:
+    assert question_seconds("multiple_choice", OPTIONS, "run", "scaperune") == 30 + 6
+    assert question_seconds("multiple_choice", OPTIONS, "walk", "scaperune") == 38 + 8
+    assert question_seconds("multiple_choice", OPTIONS, "run", "who_said_that") == 18 + 6
+
+
 def test_typical_seconds_averages_a_pool_per_pace() -> None:
     pool = [{"type": "more_less", "payload": {}}, {"type": "multiple_choice", "payload": OPTIONS}]
     assert typical_seconds(pool) == {"walk": 25.0, "run": 19.5, "teleport": 15.5}
@@ -27,13 +33,13 @@ def test_typical_seconds_averages_a_pool_per_pace() -> None:
 
 
 def test_a_game_adds_a_splash_per_round_and_standings_between_rounds() -> None:
-    questions = [("more_less", {})] * 3 + [("multiple_choice", OPTIONS)]
+    questions = [("more_less", {}, "more_less")] * 3 + [("multiple_choice", OPTIONS, "bestiary")]
     assert game_seconds(questions, 2, "run", 10) == 3 * 15 + 24 + 2 * SPLASH_SECONDS + 10
     assert game_seconds(questions[:1], 1, "run", 30) == 15 + SPLASH_SECONDS
 
 
 def test_naming_wrong_answers_adds_its_second_to_every_question() -> None:
-    questions = [("more_less", {})] * 3
+    questions = [("more_less", {}, "more_less")] * 3
     named = game_seconds(questions, 1, "run", 10, names=True)
     assert named == game_seconds(questions, 1, "run", 10) + 3 * NAMES_SECONDS
 

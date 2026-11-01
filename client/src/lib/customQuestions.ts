@@ -59,6 +59,12 @@ function isCustomType(value: unknown): value is CustomType {
   return (CUSTOM_TYPES as readonly unknown[]).includes(value)
 }
 
+/** What the form calls a multiple-choice question's prompt and each of its options. */
+export interface FormWording {
+  prompt: string
+  option: string
+}
+
 /** `normalize.normalize` on the server: the form two free-text answers are compared in. */
 export function normalize(text: string): string {
   const folded = text.normalize('NFKC').toLowerCase()

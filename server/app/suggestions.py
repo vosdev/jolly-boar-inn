@@ -84,6 +84,7 @@ QUESTION_MODES: dict[str, frozenset[str]] = {
     "guess_examine": _CHOICE,
     "odd_one_out": _CHOICE,
     "who_said_that": _CHOICE,
+    "scaperune": _CHOICE,
     "know_your_content_creator": frozenset(
         {"multiple_choice", "closest_number", "number_slider", "pick_all_that_apply"}
     ),
@@ -102,6 +103,9 @@ QUESTION_MODES: dict[str, frozenset[str]] = {
     "release_order": frozenset({"ordering"}),
     "whos_that_npc": frozenset({"pick_from_list", "multiple_choice"}),
 }
+
+# Rounds whose prompt may be a list, one entry a line.
+LINED_MODES = frozenset({"scaperune"})
 
 # The rounds that show a quotation under the prompt (``multiple_choice.quote``).
 QUOTE_MODES = frozenset({"who_said_that", "know_your_content_creator"})
@@ -362,6 +366,10 @@ def tidy(kind: str, content: dict[str, Any]) -> dict[str, Any]:
     name = named(content)
     if name is not None:
         return {**content, "payload": {**content["payload"], "subject": {"name": name.strip()}}}
+    if content.get("mode") in LINED_MODES:
+        typed = [line.strip() for line in content["payload"]["prompt"].splitlines()]
+        prompt = "\n".join(line for line in typed if line)
+        return {**content, "payload": {**content["payload"], "prompt": prompt}}
     return content
 
 

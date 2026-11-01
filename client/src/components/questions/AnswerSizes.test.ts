@@ -148,3 +148,52 @@ describe('Sort It Out', () => {
     expect(rule(wide, '.ask')).toContain('grid-column: 2')
   })
 })
+
+describe('ScapeRune', () => {
+  const VIEW = {
+    prompt: 'Rush\nBurst\nBlitz\nBarrage',
+    options: ['First question?', 'Second question?', 'Third question?', 'Fourth question?'],
+  }
+
+  it('stacks its questions on a phone, and stands them two abreast on a desktop', () => {
+    render(Question, {
+      question: question('multiple_choice', 'scaperune', VIEW),
+      yourValue: null,
+      onAnswer: () => {},
+    })
+    const gems = document.querySelector('.gems')!
+    expect(gems.classList.contains('stacked')).toBe(true)
+    expect(gems.classList.contains('pairs')).toBe(true)
+    expect(rule(styles(gemChoices).base, '.stacked:not(.settled) > :global(*)')).toContain(
+      'grid-column: 1 / -1',
+    )
+    expect(abreast(rule(styles(gemChoices).wide, '.pairs:not(.settled) > :global(*)'))).toBe(2)
+  })
+
+  it('keeps its reveal to one column on a phone, and only its own', () => {
+    const css = gemChoices.slice(gemChoices.indexOf('<style>'))
+    expect(rule(css, '.stacked.settled')).toContain('minmax(0, 1fr)')
+    render(Question, {
+      question: question('multiple_choice', 'who_said_that', VIEW),
+      yourValue: null,
+      onAnswer: () => {},
+    })
+    expect(document.querySelectorAll('.gems.stacked')).toHaveLength(0)
+  })
+
+  it('numbers an ordered answer, one entry a line, and leaves a single answer plain', () => {
+    render(Question, {
+      question: question('multiple_choice', 'scaperune', VIEW),
+      yourValue: null,
+      onAnswer: () => {},
+    })
+    const entries = [...document.querySelectorAll('ol.board li')].map((li) => li.textContent)
+    expect(entries).toEqual(['Rush', 'Burst', 'Blitz', 'Barrage'])
+    render(Question, {
+      question: question('multiple_choice', 'scaperune', { ...VIEW, prompt: 'Zaff' }),
+      yourValue: null,
+      onAnswer: () => {},
+    })
+    expect(document.querySelector('p.board')?.textContent).toBe('Zaff')
+  })
+})

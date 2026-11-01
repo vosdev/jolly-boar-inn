@@ -8,6 +8,7 @@ sooner. A splash has no clock until the room is ready, so it counts as ``SPLASH_
 from collections.abc import Iterable, Mapping, Sequence
 from typing import Any, get_args
 
+from app.modes import extra_answer_seconds
 from app.questions.types import answer_seconds, reveal_seconds
 from app.questions.types.timing import Pace
 
@@ -19,9 +20,10 @@ NAMES_SECONDS = 1
 PACES: tuple[str, ...] = get_args(Pace)
 
 
-def question_seconds(type_id: str, payload: dict[str, Any], pace: str) -> int:
-    """One question open and revealed at ``pace``."""
-    return answer_seconds(type_id, payload, pace) + reveal_seconds(type_id, payload, pace)
+def question_seconds(type_id: str, payload: dict[str, Any], pace: str, mode: str = "") -> int:
+    """One question of ``mode`` open and revealed at ``pace``."""
+    extra = extra_answer_seconds(mode)
+    return answer_seconds(type_id, payload, pace, extra) + reveal_seconds(type_id, payload, pace)
 
 
 def typical_seconds(questions: Iterable[Mapping[str, Any]]) -> dict[str, float] | None:
@@ -31,22 +33,25 @@ def typical_seconds(questions: Iterable[Mapping[str, Any]]) -> dict[str, float] 
         return None
     return {
         pace: round(
-            sum(question_seconds(q["type"], q["payload"], pace) for q in pool) / len(pool), 1
+            sum(question_seconds(q["type"], q["payload"], pace, q.get("mode", "")) for q in pool)
+            / len(pool),
+            1,
         )
         for pace in PACES
     }
 
 
 def game_seconds(
-    questions: Sequence[tuple[str, dict[str, Any]]],
+    questions: Sequence[tuple[str, dict[str, Any], str]],
     rounds: int,
     pace: str,
     standings: int,
     names: bool = False,
 ) -> int:
-    """``questions`` as ``(type, payload)``, plus a splash per round and standings between them."""
+    """``questions`` as ``(type, payload, mode)``, plus a splash per round and standings between
+    them."""
     played = sum(
-        question_seconds(type_id, payload, pace) + (NAMES_SECONDS if names else 0)
-        for type_id, payload in questions
+        question_seconds(type_id, payload, pace, mode) + (NAMES_SECONDS if names else 0)
+        for type_id, payload, mode in questions
     )
     return played + SPLASH_SECONDS * rounds + standings * max(0, rounds - 1)

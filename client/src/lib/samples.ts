@@ -35,6 +35,8 @@ export interface OneAnswerSample extends SampleBase {
   answer: number
   /** More or Less's reveal: each option's value, in the shown order. */
   values?: number[]
+  /** The seconds its mode adds to the answer. */
+  extra?: number
 }
 
 interface PriceSample extends SampleBase {
@@ -198,6 +200,21 @@ export const SAMPLES: Record<string, Sample> = {
     answer: 4151,
     subject: { name: 'Abyssal whip' },
   },
+  scaperune: {
+    mode: 'scaperune',
+    type: 'multiple_choice',
+    view: {
+      prompt: 'Lumbridge',
+      options: [
+        'Where do new players arrive after leaving Tutorial Island?',
+        'Which city is home to the Grand Exchange?',
+        'Which town is the Champions’ Guild just south of?',
+        'Where in Asgarnia do the White Knights keep their castle?',
+      ],
+    },
+    answer: 0,
+    extra: 12,
+  },
 }
 
 /** How long a sample stays open, in seconds: its type's `ANSWER` at the room's usual pace. */
@@ -206,7 +223,7 @@ export function sampleSeconds(sample: Sample): number {
     case 'more_less':
       return 10
     case 'multiple_choice':
-      return 10 + 2 * (sample.view.options as unknown[]).length
+      return 10 + 2 * (sample.view.options as unknown[]).length + (sample.extra ?? 0)
     case 'price_is_right':
       return 15
     case 'ordering':

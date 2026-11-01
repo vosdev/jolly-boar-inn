@@ -59,6 +59,8 @@ export interface TypeViewProps<Value = unknown> extends Drawn {
   results?: Record<string, PlayerResult> | null
   /** The question's schedule, for a view that sends what it has before time runs out. */
   timing?: StemTiming
+  /** The mode's options are long: one a row on a phone. Only `multiple_choice` reads it. */
+  stacked?: boolean
   /**
    * Send this answer. `Value` is the component's own answer type — an option index, a
    * string, a number — and defaults to `unknown` so the registry in `index.ts` can hold

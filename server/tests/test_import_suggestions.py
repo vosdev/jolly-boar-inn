@@ -171,6 +171,26 @@ def test_a_quote_and_its_source_url_reach_the_pack_as_they_are(repo: dict[str, P
     assert loads(repo)
 
 
+def test_an_ordered_scaperune_answer_reaches_the_pack_with_its_lines(repo: dict[str, Path]) -> None:
+    payload = {
+        "prompt": "Rush\nBurst\nBlitz\nBarrage",
+        "options": ["Which tiers?", "Which ranks?", "Which levels?", "Which names?"],
+        "answer_index": 0,
+    }
+    question = {
+        "type": "multiple_choice",
+        "payload": payload,
+        "mode": "scaperune",
+        "wiki": "https://oldschool.runescape.wiki/w/Ancient_Magicks",
+        "credit": "AFKFisher",
+        "credit_shown": False,
+    }
+    assert run(repo, {"questions": [question]}) == 0
+    pack = json.loads((repo["packs"] / "scaperune.json").read_text())
+    assert pack["questions"][-1]["payload"]["prompt"] == payload["prompt"]
+    assert loads(repo)
+
+
 def test_a_choice_question_is_stored_shuffled_and_its_id_follows() -> None:
     envelope = suggestions.question_envelope(
         {k: v for k, v in QUESTION.items() if "credit" not in k}

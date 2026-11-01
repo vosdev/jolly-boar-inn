@@ -206,6 +206,8 @@ export interface Mode extends HostLines {
    * Left out, as it is.
    */
   picture?: 'shadow' | 'build' | 'reveal'
+  /** Its options run to whole sentences: one button a row on a phone, on the reveal too. */
+  stacked?: boolean
 }
 
 /**
@@ -214,7 +216,7 @@ export interface Mode extends HostLines {
  * item, Who Said That? a line in a chatbox. Each id is one component under
  * `components/questions/stems/`, and a new one lands with the first mode that needs it.
  */
-export type StemId = 'text' | 'asset' | 'examine' | 'quote' | 'more_less' | 'price'
+export type StemId = 'text' | 'asset' | 'examine' | 'quote' | 'more_less' | 'price' | 'board'
 
 /** The inn's own: the host's questions, and any round this build has no host for. */
 export const HOUSE: Host = { id: 'house', name: 'The House' }
@@ -1298,6 +1300,77 @@ export const MODES: Record<string, Mode> = {
     stem: 'text',
     // The verse is the question; the picture would be its answer.
     picture: 'reveal',
+  },
+  scaperune: {
+    id: 'scaperune',
+    label: 'ScapeRune',
+    hint: 'Welcome to the opposite of Gielinor.',
+    host: { id: 'mr_mordaut', name: 'Mr. Mordaut' },
+    greeting: 'Welcome to ScapeRune.',
+    blurb:
+      'Fish come cooked and go in the uncooking pot, and exams start with the answer. Find the question. Sit down.',
+    // No splash in the Daily, so each of these has to say what to do on its own.
+    ask: [
+      'Here is the answer. What is the question?',
+      'Which question goes with this answer?',
+      'The answer comes first. Find its question.',
+      'Here is the answer. Find the question.',
+    ],
+    waiting: [
+      'Eyes on your own paper.',
+      'The rat finished ages ago.',
+      'Do not eat your classmates.',
+      'Quiet, please. Still reading.',
+    ],
+    pace: {
+      quick: [
+        'Done already? Hand it in.',
+        'Quick. Did you read all four?',
+        'Early. The rat would approve.',
+      ],
+      middling: ['On time. As expected.', 'Handed in. Now we wait.', 'Neither early nor late.'],
+      late: [
+        'Just in time! The bell nearly rang.',
+        'Just in time! Pens were going down.',
+        'Just in time! I was collecting papers.',
+      ],
+      early: [
+        'Before the chalk dried? Well.',
+        'Already? Sit down, then.',
+        'So early! Did you see this paper?',
+      ],
+      later: [
+        'Read every word. Good.',
+        'Took your time. Exams are long.',
+        'Read it twice? Sensible.',
+      ],
+    },
+    reveal: [
+      'Time. Papers down.',
+      'Let us mark these.',
+      'The question was this one.',
+      'Here is the mark scheme.',
+    ],
+    verdict: {
+      right: [
+        'Correct. Next answer.',
+        'Wonderful! Next answer.',
+        'A pupil using their brains, finally.',
+      ],
+      partial: [
+        'Half marks. Show your working.',
+        'Partly right. See me after class.',
+        'Half a mark. Hit the books.',
+      ],
+      wrong: ["That's WRONG.", 'No, no, no. Next answer.', 'Is that how they do it in Gielinor?'],
+      missed: [
+        'A blank paper. Hit the books.',
+        'Nothing? Even the dunce wrote something.',
+        'No answer? You failed, naturally.',
+      ],
+    },
+    stem: 'board',
+    stacked: true,
   },
   // Only on a server that switched it on, for testing the NPCs' questions in a row.
   random_events_only: {
