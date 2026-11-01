@@ -126,6 +126,939 @@
         "answer_index": 1
       },
       "difficulty": "hard"
+    },
+    {
+      "id": "q_1f370dd2e7992553",
+      "type": "free_text",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Black_Knights'_Fortress",
+      "payload": {
+        "prompt": "Which humble vegetable ruins the Black Knights' secret potion?",
+        "accepted": [
+          "cabbage",
+          "a cabbage",
+          "cabbages"
+        ],
+        "explanation": "One cabbage down into the cauldron spoils the brew. Try one from Draynor Manor and it's the wrong sort of cabbage!"
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_07266b00395bec87",
+      "type": "free_text",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Witch's_House",
+      "payload": {
+        "prompt": "In Witch's House, what has the young boy lost in the scary old lady's garden?",
+        "accepted": [
+          "ball",
+          "his ball",
+          "a ball",
+          "football"
+        ],
+        "explanation": "He kicked his ball over. Getting it back involves a mouse, a magnet and a shapeshifting experiment."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_769a296ba7ea39d6",
+      "type": "pick_all_that_apply",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Cook's_Assistant",
+      "payload": {
+        "prompt": "Which of these does the Lumbridge cook need for the Duke's birthday cake?",
+        "options": [
+          "Egg",
+          "Chocolate bar",
+          "Redberries",
+          "Pot of flour",
+          "Bucket of milk",
+          "Cake tin"
+        ],
+        "answer_indices": [
+          0,
+          3,
+          4
+        ],
+        "explanation": "An egg, a bucket of milk and a pot of flour, and he has somehow left it until the day itself."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_b84a8b27fe6fb332",
+      "type": "multiple_choice",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Goblin_Diplomacy",
+      "payload": {
+        "prompt": "What has the goblin race on the brink of civil war in Goblin Diplomacy?",
+        "options": [
+          "The colour of their armour",
+          "Who gets the last kebab",
+          "Which general is taller",
+          "Whether Bandos likes hats"
+        ],
+        "answer_index": 0,
+        "explanation": "Orange? Rejected. Blue? Rejected. They settle on brown, the colour they were already wearing."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_b6145a12a33747ab",
+      "type": "multiple_choice",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Ernest_the_Chicken",
+      "payload": {
+        "prompt": "Who is Ernest, before the chicken part?",
+        "options": [
+          "Professor Oddenstein's butler",
+          "The Duke of Lumbridge's nephew",
+          "Veronica's fiancé",
+          "A very confused wizard"
+        ],
+        "answer_index": 2,
+        "explanation": "He only popped into Draynor Manor to ask for directions. Never ask for directions."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_fc28fa1929349f3d",
+      "type": "number_slider",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Sheep_Shearer",
+      "payload": {
+        "prompt": "How many balls of wool does Fred the Farmer want in Sheep Shearer?",
+        "answer": 20,
+        "min": 1,
+        "max": 50,
+        "scale": "linear",
+        "unit": "balls",
+        "explanation": "Twenty balls of wool. His sheep were getting mighty woolly."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_dbc27d38c5c04d2e",
+      "type": "multiple_choice",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Cold_War",
+      "payload": {
+        "prompt": "Which animals are secretly up to something in Cold War?",
+        "options": [
+          "Penguins",
+          "Ducks",
+          "Seagulls",
+          "Polar bears"
+        ],
+        "answer_index": 0,
+        "explanation": "You go undercover as a penguin spy on an iceberg, and it is exactly as dignified as it sounds."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_79e306e4d459492e",
+      "type": "matching",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "lore"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/God_Wars_Dungeon",
+      "payload": {
+        "prompt": "Match each god to their general in the God Wars Dungeon.",
+        "fields": [
+          {
+            "text": "Armadyl"
+          },
+          {
+            "text": "Bandos"
+          },
+          {
+            "text": "Saradomin"
+          },
+          {
+            "text": "Zamorak"
+          }
+        ],
+        "options": [
+          {
+            "text": "King Black Dragon"
+          },
+          {
+            "text": "K'ril Tsutsaroth"
+          },
+          {
+            "text": "Kree'arra"
+          },
+          {
+            "text": "Commander Zilyana"
+          },
+          {
+            "text": "General Graardor"
+          }
+        ],
+        "answer": [
+          2,
+          4,
+          3,
+          1
+        ],
+        "explanation": "They're still fighting the God Wars down there. Nobody told them it ended."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_74868d81291641a3",
+      "type": "multiple_choice",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "lore"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Evil_Dave",
+      "payload": {
+        "prompt": "Where does Evil Dave plot his evil?",
+        "options": [
+          "The Chaos Temple",
+          "The Ardougne sewers",
+          "His mum's basement in Edgeville",
+          "A tower in the Wilderness"
+        ],
+        "answer_index": 2,
+        "explanation": "Doris lets him. Every aspiring supervillain needs a mum with a basement."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_45241f1ebd9ef142",
+      "type": "multiple_choice",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "lore"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Humans_Against_Monsters",
+      "payload": {
+        "prompt": "What does H.A.M. stand for?",
+        "options": [
+          "Holy Army of Misthalin",
+          "Hopelessly Angry Men",
+          "Humans Against Monsters",
+          "Humans And Mahjarrat"
+        ],
+        "answer_index": 2,
+        "explanation": "A human-supremacist cult, and nothing to do with the ham joint in your clue reward."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_1cc1a6043d9b2702",
+      "type": "closest_number",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Wizard_Traiborn",
+      "payload": {
+        "prompt": "How many bones does Wizard Traiborn ask for in Demon Slayer?",
+        "answer": 25,
+        "within": 5,
+        "unit": "bones",
+        "explanation": "25 bones, in instalments if you like. He also calls people thingummywuts, so maybe count them twice."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_682b587ff894d0a6",
+      "type": "multiple_choice",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Romeo_%26_Juliet",
+      "payload": {
+        "prompt": "In Romeo & Juliet, what does Juliet take to appear dead?",
+        "options": [
+          "A jug of bad wine",
+          "A cadava potion",
+          "Karamjan rum",
+          "A poison chalice"
+        ],
+        "answer_index": 1,
+        "explanation": "Father Lawrence's plan, brewed by the Apothecary from cadava berries. What could go wrong?"
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_ebcab9890c3bd75e",
+      "type": "multiple_choice",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Pirate's_Treasure",
+      "payload": {
+        "prompt": "In Pirate's Treasure, how do you get the rum off Karamja?",
+        "options": [
+          "Inside a hollowed-out coconut",
+          "Down your trousers",
+          "In a barrel marked 'not rum'",
+          "Hidden under bananas in a crate"
+        ],
+        "answer_index": 3,
+        "explanation": "Hide it in Luthas's crate and fill the crate with 10 bananas. The customs officer never checks the fruit."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_504c225a447f7b73",
+      "type": "multiple_choice",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Priest_in_Peril",
+      "payload": {
+        "prompt": "In Priest in Peril, what does the voice behind the temple door ask you to get rid of?",
+        "options": [
+          "An unpaid bill",
+          "A big dog-like thing",
+          "A nest of rats",
+          "A noisy ghost"
+        ],
+        "answer_index": 1,
+        "explanation": "'A horrible big dog-like thing', in the mausoleum. Whether that was a good idea is another matter."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_dc2177ce4670791b",
+      "type": "free_text",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Fishing_Contest",
+      "payload": {
+        "prompt": "In Fishing Contest, what do you stuff in a pipe to drive the Sinister Stranger from the best spot?",
+        "accepted": [
+          "garlic"
+        ],
+        "explanation": "He complains about a horrible smell and swaps places with you. Such a mysterious, pale fellow."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_057ad07af82a72f2",
+      "type": "pick_all_that_apply",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Druidic_Ritual",
+      "payload": {
+        "prompt": "Which raw meats do you enchant in Druidic Ritual?",
+        "options": [
+          "Raw beef",
+          "Raw chicken",
+          "Raw ugthanki meat",
+          "Raw lobster",
+          "Raw bear meat",
+          "Raw rat meat"
+        ],
+        "answer_indices": [
+          0,
+          1,
+          4,
+          5
+        ],
+        "explanation": "All four go into the Cauldron of Thunder and turn blue. Don't eat them."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_be2d2c9c31905385",
+      "type": "pick_all_that_apply",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Imp_Catcher",
+      "payload": {
+        "prompt": "Which colours of bead do the imps steal from Wizard Mizgog?",
+        "options": [
+          "Blue",
+          "Yellow",
+          "Green",
+          "Red",
+          "White",
+          "Black"
+        ],
+        "answer_indices": [
+          1,
+          3,
+          4,
+          5
+        ],
+        "explanation": "Wizard Grayzag summoned hundreds of imps, and now you hunt them for jewellery."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_415d9e3968f641bb",
+      "type": "number_slider",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/The_Fremennik_Trials",
+      "payload": {
+        "prompt": "How many of the twelve Fremennik elders must vote for you in The Fremennik Trials?",
+        "answer": 7,
+        "min": 0,
+        "max": 12,
+        "scale": "linear",
+        "unit": "votes",
+        "explanation": "Seven of the twelve. The other five votes can't be won, so don't bother them."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_4fd2651ebcd10fff",
+      "type": "free_text",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Lost_City",
+      "payload": {
+        "prompt": "The fairy city of Zanaris is reached through the door of what?",
+        "accepted": [
+          "shed",
+          "a shed",
+          "the shed",
+          "tool shed",
+          "garden shed"
+        ],
+        "explanation": "A tool shed in Lumbridge Swamp. Ask Shamus how a city fits in a shed: the doorway is a portal."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_23824a8c516d599e",
+      "type": "matching",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "lore"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Misthalin",
+      "payload": {
+        "prompt": "Match each realm to who rules it.",
+        "fields": [
+          {
+            "text": "Misthalin"
+          },
+          {
+            "text": "Asgarnia"
+          },
+          {
+            "text": "East Ardougne"
+          },
+          {
+            "text": "Morytania"
+          }
+        ],
+        "options": [
+          {
+            "text": "King Lathas"
+          },
+          {
+            "text": "Duke Horacio"
+          },
+          {
+            "text": "King Roald"
+          },
+          {
+            "text": "King Vallance"
+          },
+          {
+            "text": "King Arthur"
+          },
+          {
+            "text": "Lord Drakan"
+          }
+        ],
+        "answer": [
+          2,
+          3,
+          0,
+          5
+        ],
+        "explanation": "Vallance hasn't been seen for years, so that crown is more of a rumour. Duke Horacio only has Lumbridge."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_f98f22773b671515",
+      "type": "multiple_choice",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "lore"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Troll",
+      "payload": {
+        "prompt": "How do trolls get their names?",
+        "options": [
+          "After where they were born",
+          "A rock is thrown at a list",
+          "After the first thing they try to eat",
+          "After their father's weapon"
+        ],
+        "answer_index": 2,
+        "explanation": "My Arm went for his father's arm. His late cousin was called My Other Arm."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_5ae595ea3904a4f5",
+      "type": "multiple_choice",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "lore"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Staff_of_Armadyl",
+      "payload": {
+        "prompt": "Which artefact did Zamorak plunge into Zaros's back?",
+        "options": [
+          "Zamorakian spear",
+          "Silverlight",
+          "Staff of Armadyl",
+          "Armadyl godsword"
+        ],
+        "answer_index": 2,
+        "explanation": "It ended the Second Age. Zaros fought on, and Zamorak got impaled on it too."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_2f9aa694f3cb4f06",
+      "type": "closest_number",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/The_Lady_of_the_Lake",
+      "payload": {
+        "prompt": "You've lost Excalibur. How many coins does the Lady of the Lake charge for another?",
+        "answer": 500,
+        "within": 100,
+        "unit": "coins",
+        "explanation": "500 coins. You'd think a legendary sword would cost more."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_544fb9d63e1a02a2",
+      "type": "multiple_choice",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Nature_Spirit",
+      "payload": {
+        "prompt": "In Nature Spirit, what convinces Filliman Tarlock that he is dead?",
+        "options": [
+          "A stern letter",
+          "A mirror",
+          "His own gravestone",
+          "A cold cup of tea"
+        ],
+        "answer_index": 1,
+        "explanation": "It's under the washing bowl. He had not noticed being a ghost, which takes some doing."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_08448f7fc1342894",
+      "type": "ordering",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Quests/Series",
+      "payload": {
+        "prompt": "Put the Troll quests in story order, first to last.",
+        "ends": [
+          "First",
+          "Last"
+        ],
+        "entries": [
+          {
+            "text": "Making Friends with My Arm",
+            "rank": 5,
+            "detail": "Part 5"
+          },
+          {
+            "text": "Death Plateau",
+            "rank": 1,
+            "detail": "Part 1"
+          },
+          {
+            "text": "Troll Stronghold",
+            "rank": 2,
+            "detail": "Part 2"
+          },
+          {
+            "text": "My Arm's Big Adventure",
+            "rank": 4,
+            "detail": "Part 4"
+          },
+          {
+            "text": "Eadgar's Ruse",
+            "rank": 3,
+            "detail": "Part 3"
+          }
+        ],
+        "answer": [
+          1,
+          2,
+          4,
+          3,
+          0
+        ],
+        "explanation": "From raiding a troll camp to a wedding in Weiss: My Arm has come a long way."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_8f6f8d3ae4becd54",
+      "type": "free_text",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/The_Restless_Ghost",
+      "payload": {
+        "prompt": "In which town do you start The Restless Ghost?",
+        "accepted": [
+          "Lumbridge"
+        ],
+        "explanation": "Father Aereck runs the chapel there, and the ghost haunts its graveyard."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_3f6004311d992feb",
+      "type": "number_slider",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Quest_points",
+      "payload": {
+        "prompt": "Most quests pay 1 to 6 quest points. How many does Recipe for Disaster pay in total?",
+        "answer": 10,
+        "min": 1,
+        "max": 20,
+        "scale": "linear",
+        "unit": "quest points",
+        "explanation": "Ten, one for each of its sub-quests."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_1e7f530e84151294",
+      "type": "ordering",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Quest_points",
+      "payload": {
+        "prompt": "Sort these by the quest points needed to start them, fewest first.",
+        "ends": [
+          "Fewest",
+          "Most"
+        ],
+        "entries": [
+          {
+            "text": "Dragon Slayer II",
+            "rank": 4,
+            "detail": "200 QP"
+          },
+          {
+            "text": "Black Knights' Fortress",
+            "rank": 1,
+            "detail": "12 QP"
+          },
+          {
+            "text": "Heroes' Quest",
+            "rank": 2,
+            "detail": "55 QP"
+          },
+          {
+            "text": "Legends' Quest",
+            "rank": 3,
+            "detail": "107 QP"
+          }
+        ],
+        "answer": [
+          1,
+          2,
+          3,
+          0
+        ],
+        "explanation": "12, 55, 107 and 200. Dragon Slayer II wants more than the other three put together."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_8332aa22065b82fa",
+      "type": "ordering",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Quests",
+      "payload": {
+        "prompt": "Sort these quests by official difficulty, easiest first.",
+        "ends": [
+          "Easiest",
+          "Hardest"
+        ],
+        "entries": [
+          {
+            "text": "Lunar Diplomacy",
+            "rank": 3,
+            "detail": "Experienced"
+          },
+          {
+            "text": "Dragon Slayer II",
+            "rank": 5,
+            "detail": "Grandmaster"
+          },
+          {
+            "text": "Cook's Assistant",
+            "rank": 1,
+            "detail": "Novice"
+          },
+          {
+            "text": "Legends' Quest",
+            "rank": 4,
+            "detail": "Master"
+          },
+          {
+            "text": "Cold War",
+            "rank": 2,
+            "detail": "Intermediate"
+          }
+        ],
+        "answer": [
+          2,
+          4,
+          0,
+          3,
+          1
+        ],
+        "explanation": "Novice, Intermediate, Experienced, Master, Grandmaster. The cook's cake is about as safe as questing gets."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_57c8357a16fb52c9",
+      "type": "pick_all_that_apply",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Quests/Free-to-play",
+      "payload": {
+        "prompt": "Which of these quests can you do on a free-to-play account?",
+        "options": [
+          "Lost City",
+          "Pirate's Treasure",
+          "Goblin Diplomacy",
+          "Imp Catcher",
+          "Druidic Ritual",
+          "Witch's House"
+        ],
+        "answer_indices": [
+          1,
+          2,
+          3
+        ],
+        "explanation": "The rum runs free. Witch's House is members only, unlike its namesake Witch's Potion."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_81302672c498e4e8",
+      "type": "matching",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Quests",
+      "payload": {
+        "prompt": "Match each quest to what it is best known for unlocking.",
+        "fields": [
+          {
+            "text": "Animal Magnetism"
+          },
+          {
+            "text": "Desert Treasure I"
+          },
+          {
+            "text": "Lunar Diplomacy"
+          },
+          {
+            "text": "Recipe for Disaster"
+          }
+        ],
+        "options": [
+          {
+            "text": "Fighter torso"
+          },
+          {
+            "text": "Lunar spellbook"
+          },
+          {
+            "text": "Ancient Magicks"
+          },
+          {
+            "text": "Ava's devices"
+          },
+          {
+            "text": "Barrows gloves"
+          }
+        ],
+        "answer": [
+          3,
+          2,
+          1,
+          4
+        ],
+        "explanation": "The fighter torso is the odd one out: it comes from Barbarian Assault, not a quest."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_50e8c7539459a7fe",
+      "type": "number_slider",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Lost_City",
+      "payload": {
+        "prompt": "What Woodcutting level do you need in Lost City?",
+        "answer": 36,
+        "min": 1,
+        "max": 99,
+        "scale": "linear",
+        "unit": "level",
+        "explanation": "36 Woodcutting for the Dramen tree, and 31 Crafting to make its branch a staff."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_99b96db03cbaa00c",
+      "type": "pick_all_that_apply",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Quests",
+      "payload": {
+        "prompt": "Which of these quests are rated Grandmaster?",
+        "options": [
+          "While Guthix Sleeps",
+          "Lunar Diplomacy",
+          "Desert Treasure I",
+          "Legends' Quest",
+          "Dragon Slayer II",
+          "Monkey Madness II"
+        ],
+        "answer_indices": [
+          0,
+          4,
+          5
+        ],
+        "explanation": "Desert Treasure I and Legends' Quest stop at Master, and Lunar Diplomacy at Experienced."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_c7f576455cd5274b",
+      "type": "multiple_choice",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Quests",
+      "payload": {
+        "prompt": "Which of these quests is officially Very Long?",
+        "options": [
+          "Lunar Diplomacy",
+          "Desert Treasure I",
+          "Legends' Quest",
+          "Song of the Elves"
+        ],
+        "answer_index": 3,
+        "explanation": "Song of the Elves is Very Long. The other three are merely Long."
+      },
+      "difficulty": "hard"
     }
   ]
 }
