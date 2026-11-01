@@ -350,3 +350,25 @@ def test_items_have_no_matches(client: TestClient) -> None:
         },
     )
     assert queue(client)["suggestions"][0]["matches"] == []
+
+
+def test_a_verse_is_flagged_for_its_item_and_otherwise_read_as_any_question() -> None:
+    pack = {
+        "type": "pick_from_list",
+        "mode": "forgetful_bard",
+        "payload": {
+            "prompt": "Through sixty-three waves of TzHaar I came.",
+            "vocab": "items",
+            "answer_id": 6570,
+            "subject": {"name": "Fire cape"},
+        },
+    }
+    named = {
+        "type": "pick_from_list",
+        "mode": "forgetful_bard",
+        "payload": {"prompt": "A wholly other song.", "subject": {"name": "fire CAPE"}},
+    }
+    assert _score(pack, named) == 100
+    assert _score(pack, _with(named, subject={"name": "Abyssal whip"})) < 60
+    copied = {"prompt": pack["payload"]["prompt"], "subject": {"name": "Abyssal whip"}}
+    assert _score(pack, {**named, "payload": copied}) >= 60

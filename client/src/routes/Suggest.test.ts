@@ -635,7 +635,7 @@ describe('Suggest', () => {
       'The picture is added once imported.',
     )
     expect(within(preview).getByRole<HTMLInputElement>('combobox').disabled).toBe(true)
-    expect(within(preview).getByText('The NPC joins the list once imported.')).toBeTruthy()
+    expect(within(preview).getByText('The answer joins the list once imported.')).toBeTruthy()
     await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(api.sendSuggestion).toHaveBeenCalledWith({
       kind: 'question',
@@ -649,6 +649,84 @@ describe('Suggest', () => {
       credit: 'AFKFisher',
       credit_shown: false,
     })
+  })
+
+  async function verseForm(): Promise<void> {
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /The Forgetful Bard/ }))
+    await screen.findByLabelText('The verse Falo sings')
+    await waitFor(() => expect(api.getVocab).toHaveBeenCalledWith('items'))
+  }
+
+  it('writes a verse about an item picked from the list, filling in its wiki page', async () => {
+    await verseForm()
+    await type('The verse Falo sings', ' It cracks from the Abyss. ')
+    await type('The item it describes', 'abys')
+    await fireEvent.click(await screen.findByRole('option', { name: 'Abyssal whip' }))
+    expect(
+      screen.getByLabelText<HTMLInputElement>('Relevant Wiki page', { selector: FIELD }).value,
+    ).toBe('https://oldschool.runescape.wiki/w/Abyssal_whip')
+    expect(screen.queryByText(/Not on the list yet/)).toBeNull()
+    const preview = screen.getByRole('region', { name: 'Preview' })
+    expect(preview.querySelector('.picture')).toBeNull()
+    expect(within(preview).getByText(/It cracks from the Abyss/)).toBeTruthy()
+    expect(within(preview).getByRole<HTMLInputElement>('combobox').disabled).toBe(false)
+    expect(screen.queryByText(/Explanation/)).toBeNull()
+
+    await fireEvent.click(screen.getByRole('radio', { name: 'Easy' }))
+    await type('Your name', 'AFKFisher')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
+    expect(api.sendSuggestion).toHaveBeenCalledWith({
+      kind: 'question',
+      content: {
+        type: 'pick_from_list',
+        payload: { prompt: 'It cracks from the Abyss.', subject: { name: 'Abyssal whip' } },
+        mode: 'forgetful_bard',
+        wiki: 'https://oldschool.runescape.wiki/w/Abyssal_whip',
+        difficulty: 'easy',
+      },
+      credit: 'AFKFisher',
+      credit_shown: false,
+    })
+  })
+
+  it('keeps a typed item the list lacks, and a wiki page the player wrote', async () => {
+    await verseForm()
+    await type('The verse Falo sings', 'A rusty thing for a dusty door.')
+    await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Keys')
+    await type('The item it describes', 'Brass key')
+    expect(
+      screen.getByLabelText<HTMLInputElement>('Relevant Wiki page', { selector: FIELD }).value,
+    ).toBe('https://oldschool.runescape.wiki/w/Keys')
+    expect(screen.getByText(/Not on the list yet/)).toBeTruthy()
+    const preview = screen.getByRole('region', { name: 'Preview' })
+    expect(within(preview).getByRole<HTMLInputElement>('combobox').disabled).toBe(true)
+  })
+
+  it('refuses a verse that names its item, and a variant, before they are sent', async () => {
+    await verseForm()
+    await type('The verse Falo sings', 'My ABYSSAL whip goes crack.')
+    await type('The item it describes', 'Abyssal whip')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
+    expect(screen.getByText('The verse gives its answer away.')).toBeTruthy()
+
+    await type('The verse Falo sings', 'It goes crack.')
+    await type('The item it describes', 'Dragon scimitar (or)')
+    expect(screen.getByText('Name the plain item, with no variant or dose.')).toBeTruthy()
+    expect(api.sendSuggestion).not.toHaveBeenCalled()
+  })
+
+  it('does not offer the list’s variants for a verse', async () => {
+    vi.mocked(api.getVocab).mockResolvedValue({
+      vocab: 'items',
+      version: 'v',
+      entries: [...ROSTER, { id: 11335, name: 'Abyssal whip (or)' }],
+    })
+    await verseForm()
+    await type('The item it describes', 'abys')
+    expect(await screen.findByRole('option', { name: 'Abyssal whip' })).toBeTruthy()
+    expect(screen.queryByRole('option', { name: 'Abyssal whip (or)' })).toBeNull()
   })
 
   it('writes a Who’s That NPC? render on buttons, even of an NPC only a render asks about', async () => {

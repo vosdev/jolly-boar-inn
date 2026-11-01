@@ -8,10 +8,12 @@ form (any accepted spelling of a free-text answer will do) and fall back to the 
 otherwise. The prompt weighs more: two questions asking the same thing are a duplicate
 whatever their answers, and many different questions share an answer like "Yes" or "3".
 
-Two rounds need their own rule. Odd One Out always asks the same thing, so its options are
+Three rounds need their own rule. Odd One Out always asks the same thing, so its options are
 the question, compared as a set so a shuffle is no disguise. Who's That NPC? asks the same
-too, and its NPC is the whole question: the same NPC is 100, another 0. A pack question
-names it by ``answer_id``; a suggestion only by name until the import finds its id.
+too, and its NPC is the whole question: the same NPC is 100, another 0. The Forgetful Bard's
+verses differ, but an item with a verse is worth flagging, so the same item is 100 and two
+items compare as any question does. A pack question names its answer by ``answer_id``; a
+suggestion only by name until the import finds its id.
 
 Questions of different types share nothing but the prompt, so it alone decides.
 """
@@ -30,6 +32,7 @@ THRESHOLD = 60
 TOP = 3
 OPTIONS_MODES = frozenset({"odd_one_out"})
 NPC_MODE = "whos_that_npc"
+ITEM_MODES = frozenset({"forgetful_bard"})
 
 
 @dataclass(frozen=True)
@@ -42,7 +45,7 @@ class Features:
     answers: frozenset[Any]
     answer: frozenset[str]
     options: frozenset[str]
-    npc: Any
+    subject: Any
 
 
 def _trigrams(text: str) -> frozenset[str]:
@@ -81,12 +84,12 @@ def _answers(type_: str, payload: dict[str, Any]) -> tuple[frozenset[Any], str]:
     if type_ in ("closest_number", "number_slider"):
         return frozenset({float(payload["answer"])}), f"{payload['answer']:g}"
     if type_ == "pick_from_list":
-        name = vocab.fold(_npc_name(payload))
+        name = vocab.fold(_subject_name(payload))
         return frozenset({name}), name
     return frozenset(), ""
 
 
-def _npc_name(payload: dict[str, Any]) -> str:
+def _subject_name(payload: dict[str, Any]) -> str:
     subject = payload.get("subject")
     if subject is not None:
         return subject["name"]
@@ -100,13 +103,13 @@ def features(question: dict[str, Any]) -> Features:
     quote = payload.get("quote")
     prompt = payload["prompt"] if quote is None else f"{payload['prompt']} {quote}"
     answers, answer = _answers(type_, payload)
-    npc = None
+    subject = None
     if type_ == "pick_from_list":
-        npc = (payload.get("answer_id"), vocab.fold(_npc_name(payload)))
+        subject = (payload.get("answer_id"), vocab.fold(_subject_name(payload)))
     elif question.get("mode") == NPC_MODE and type_ == "multiple_choice":
         image = payload.get("image")
         right = vocab.fold(payload["options"][payload["answer_index"]])
-        npc = (int(image.removeprefix("npc:")) if image else None, right)
+        subject = (int(image.removeprefix("npc:")) if image else None, right)
     return Features(
         type=type_,
         mode=question.get("mode"),
@@ -117,11 +120,11 @@ def features(question: dict[str, Any]) -> Features:
         options=frozenset(
             normalize(option) for option in payload.get("options", ()) if isinstance(option, str)
         ),
-        npc=npc,
+        subject=subject,
     )
 
 
-def _same_npc(a: tuple[Any, str], b: tuple[Any, str]) -> bool:
+def _same_subject(a: tuple[Any, str], b: tuple[Any, str]) -> bool:
     if a[0] is not None and b[0] is not None:
         return a[0] == b[0]
     return a[1] == b[1]
@@ -130,7 +133,9 @@ def _same_npc(a: tuple[Any, str], b: tuple[Any, str]) -> bool:
 def score(a: Features, b: Features) -> int:
     """How alike two questions are, from 0 to 100."""
     if a.mode == b.mode == NPC_MODE:
-        return 100 if _same_npc(a.npc, b.npc) else 0
+        return 100 if _same_subject(a.subject, b.subject) else 0
+    if a.mode == b.mode and a.mode in ITEM_MODES and _same_subject(a.subject, b.subject):
+        return 100
     if a.mode == b.mode and a.mode in OPTIONS_MODES:
         union = a.options | b.options
         return round(100 * len(a.options & b.options) / len(union)) if union else 100

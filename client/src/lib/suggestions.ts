@@ -16,6 +16,7 @@
 import type { CustomQuestion, CustomType, FormWording } from './customQuestions'
 import { CUSTOM_TYPES, TYPE_LABELS, previewOf } from './customQuestions'
 import { pastGames } from './history'
+import { WIKI_URL } from './links'
 import { HOUSE, MODES, UPCOMING_MODES } from './modes'
 import { nameProblem } from './names'
 import {
@@ -25,10 +26,10 @@ import {
 } from './matching'
 import { answerLine, previewOf as orderingPreview, type OrderingQuestion } from './ordering'
 import type { OpenQuestion, PlayerResult } from './protocol'
-import { codePoints, envelopeProperty, limit } from './questionSchema'
+import { codePoints, envelopeProperty, field, limit } from './questionSchema'
 import { RANDOM_EVENTS } from './randomEvents'
 import type { ReportChoice } from './reports'
-import { fold, type VocabEntry } from './vocab'
+import { fold, words, type VocabEntry } from './vocab'
 
 /** How many finished games this browser needs before it is offered the form. */
 export const SUGGEST_AFTER_GAMES = 1
@@ -98,7 +99,7 @@ export function questionPreview(content: QuestionContent): OpenQuestion {
   if (content.type === 'ordering') return orderingPreview(content as OrderingQuestion, mode)
   if (content.type === 'matching') return matchingPreview(content as MatchingQuestion, mode)
   if (content.type === 'pick_from_list') {
-    // No picture or list: neither exists until the import finds the NPC's id.
+    // No picture or list: neither exists until the import finds the answer's id.
     const open = previewOf({ type: 'multiple_choice', payload: {} }, mode)
     return {
       ...open,
@@ -187,6 +188,8 @@ export interface Choice {
    * (`NAMED_MODES` on the server) or a render's right option (`RENDER_MODES`).
    */
   named?: boolean
+  /** Whether a question is a verse and the item it describes: `VERSE_MODES` on the server. */
+  verse?: boolean
   /** What the type picker calls a type, where the round's word says more than the type's. */
   typeLabels?: Partial<Record<SuggestedType, string>>
 }
@@ -294,13 +297,16 @@ const PICTURE_ITEM_ROUNDS = ['drop_table', 'minigame_madness']
 const QUOTE_ROUNDS = ['who_said_that', 'know_your_content_creator']
 
 /** Rounds whose questions carry no explanation: `NO_EXPLANATION_MODES` on the server. */
-export const NO_EXPLANATION_ROUNDS = ['guess_examine', 'whos_that_npc']
+export const NO_EXPLANATION_ROUNDS = ['guess_examine', 'whos_that_npc', 'forgetful_bard']
 
 /** Rounds whose questions may carry an intro, an NPC's line before the prompt: `INTRO_MODES` on the server. */
 export const INTRO_ROUNDS = ['random_event']
 
 /** Rounds whose answer is an NPC's name: `NAMED_MODES` and `RENDER_MODES` on the server. */
 const NAMED_ROUNDS = ['whos_that_npc']
+
+/** Rounds whose question is a verse about an item: `VERSE_MODES` on the server. */
+const VERSE_ROUNDS = ['forgetful_bard']
 
 /** Rounds that sort: `ordering` questions, the form with its tie boxes. */
 const ORDERING_ROUNDS = ['sort_it_out', 'release_order']
@@ -364,6 +370,18 @@ export const CHOICES: readonly Choice[] = [
       wikiOnly: WIKI_ROUNDS.includes(mode.id),
       named: true,
       typeLabels: { pick_from_list: 'Shadow', multiple_choice: 'Render' },
+    })),
+  ...VERSE_ROUNDS.map(choiceRound)
+    .filter((mode) => mode !== undefined)
+    .map((mode): Choice => ({
+      id: mode.id,
+      kind: 'question',
+      label: mode.label,
+      hint: 'A verse about an item, for Falo to sing.',
+      host: mode.host,
+      types: ['pick_from_list'],
+      explanation: !NO_EXPLANATION_ROUNDS.includes(mode.id),
+      verse: true,
     })),
   ...ORDERING_ROUNDS.map(choiceRound)
     .filter((mode) => mode !== undefined)
@@ -521,6 +539,44 @@ export function npcNameProblem(name: string, asked: readonly string[] = []): str
   const wanted = fold(name.trim())
   if (wanted !== '' && asked.some((known) => fold(known) === wanted)) return 'Already in the game.'
   return textProblem(name, NPC_NAME_MAX, 'the NPC’s name')
+}
+
+/** `VERSE_MODES`'s prompt limit: the schema's. */
+export const VERSE_MAX = limit(field('pick_from_list', 'prompt'), 'maxLength') ?? 0
+
+/** What the server's `normalize` keeps of a name, near enough to warn before a send. */
+function bareWords(text: string): string {
+  return words(text.replace(/\p{P}/gu, '')).join(' ')
+}
+
+/** A verse, which may not give away the item it is about. */
+export function verseProblem(verse: string, item: string): string | null {
+  const name = bareWords(item)
+  if (name !== '' && bareWords(verse).includes(name)) return 'The verse gives its answer away.'
+  return textProblem(verse, VERSE_MAX, 'a verse')
+}
+
+/** The item a verse is about, never a variant such as `Dragon scimitar (or)`. */
+export function verseItemProblem(name: string): string | null {
+  if (name.includes('(')) return 'Name the plain item, with no variant or dose.'
+  return textProblem(name, ITEM_NAME_MAX, 'the item')
+}
+
+/** What a verse may be about: the list without its variants and doses. */
+export function plainItems(entries: readonly VocabEntry[]): VocabEntry[] {
+  return entries.filter((entry) => !entry.name.includes('('))
+}
+
+/** Whether `name` is on `entries`, so the preview can be answered from the list. */
+export function onList(name: string, entries: readonly VocabEntry[]): boolean {
+  const wanted = fold(name.trim())
+  return entries.some((entry) => fold(entry.name) === wanted)
+}
+
+/** The wiki page an item's name spells, or nothing for no name. */
+export function itemPage(name: string): string {
+  const trimmed = name.trim()
+  return trimmed === '' ? '' : `${WIKI_URL}/w/${encodeURI(trimmed.replaceAll(' ', '_'))}`
 }
 
 /** The item a question pictures, which it need not name. */

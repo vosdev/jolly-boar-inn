@@ -30,6 +30,11 @@ import {
   summary,
   wikiProblem,
   type QuestionContent,
+  itemPage,
+  plainItems,
+  VERSE_MAX,
+  verseItemProblem,
+  verseProblem,
 } from './suggestions'
 
 const QUESTION = {
@@ -94,6 +99,7 @@ describe('the choices', () => {
       'scaperune',
       'tales_of_gielinor',
       'whos_that_npc',
+      'forgetful_bard',
       'sort_it_out',
       'release_order',
       'no_round',
@@ -170,7 +176,7 @@ describe('the choices', () => {
     const quoting = CHOICES.filter((c) => c.quote).map((c) => c.id)
     expect(quoting).toEqual(['who_said_that', 'know_your_content_creator'])
     const silent = CHOICES.filter((c) => c.explanation === false).map((c) => c.id)
-    expect(silent).toEqual(['guess_examine', 'whos_that_npc'])
+    expect(silent).toEqual(['guess_examine', 'whos_that_npc', 'forgetful_bard'])
     const release = CHOICES.find((c) => c.id === 'release_order')
     expect(release?.types).toEqual(['ordering'])
     expect(release?.host).toBe('aris')
@@ -283,6 +289,33 @@ describe('the checks', () => {
   })
 })
 
+describe('a verse', () => {
+  it('may not hold its item’s name, whatever the case or punctuation', () => {
+    expect(verseProblem('My ABYSSAL, whip cracks.', 'Abyssal whip')).toMatch(/gives its answer/)
+    expect(verseProblem('From Ahrims hood I sing.', "Ahrim's hood")).toMatch(/gives its answer/)
+    expect(verseProblem('A whip that cracks.', 'Abyssal whip')).toBeNull()
+    expect(verseProblem(' ', 'Abyssal whip')).toMatch(/Required/)
+    expect(verseProblem('la'.repeat(VERSE_MAX), 'Abyssal whip')).toMatch(/At most/)
+  })
+
+  it('is about a plain item', () => {
+    expect(verseItemProblem('Dragon scimitar (or)')).toMatch(/plain item/)
+    expect(verseItemProblem(' ')).toMatch(/Required/)
+    expect(verseItemProblem('Dragon scimitar')).toBeNull()
+    expect(
+      plainItems([
+        { id: 1, name: 'Prayer potion(4)' },
+        { id: 2, name: 'Coal' },
+      ]),
+    ).toEqual([{ id: 2, name: 'Coal' }])
+  })
+
+  it('links its item’s wiki page', () => {
+    expect(itemPage(" Ahrim's hood ")).toBe("https://oldschool.runescape.wiki/w/Ahrim's_hood")
+    expect(itemPage(' ')).toBe('')
+  })
+})
+
 describe('the queue', () => {
   it('says each kind in one line, with its answer', () => {
     expect(summary({ kind: 'question', content: QUESTION })).toBe('Dharok, Hazelmere')
@@ -371,7 +404,10 @@ describe('a question’s round', () => {
       'sort_it_out',
       'release_order',
     ])
-    expect(roundsFor('pick_from_list').map((c) => c.id)).toEqual(['whos_that_npc'])
+    expect(roundsFor('pick_from_list').map((c) => c.id)).toEqual([
+      'whos_that_npc',
+      'forgetful_bard',
+    ])
     expect(roundsFor('multiple_choice').map((c) => c.id)).not.toContain(NO_ROUND)
   })
 
@@ -445,7 +481,7 @@ describe('similar questions', () => {
 describe('steps in the suggestion form', () => {
   it('offers Extras only to question choices that have an intro, picture item, or explanation', () => {
     const withoutExtras = CHOICES.filter((c) => !hasExtras(c)).map((c) => c.id)
-    expect(withoutExtras).toEqual(['item', 'guess_examine', 'whos_that_npc'])
+    expect(withoutExtras).toEqual(['item', 'guess_examine', 'whos_that_npc', 'forgetful_bard'])
   })
 
   it('builds five steps for a round with extras, and marks missing steps on submit', () => {

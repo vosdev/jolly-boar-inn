@@ -8,7 +8,9 @@ A player who has finished a game may suggest one of two kinds of content:
   Drop Table or Minigame Madness question may name an item to picture, as ``picture_item``;
   the import script turns the name into the payload's ``image``. A Who's That NPC? question
   is only its fixed prompt and the NPC's name, an NPC not asked about yet: the import script
-  finds the rest. A round not built yet takes them too, so its pack is ready when it opens;
+  finds the rest. A Forgetful Bard question is a verse and the item's name, an item on the
+  list or one for the import script to add, which it may repeat, since an item may have several
+  verses. A round not built yet takes them too, so its pack is ready when it opens;
   such a suggestion waits in the queue until it is. A player who cannot place a question may
   send it with no mode: the operator picks its round before approving it.
 - ``item``: an item name for the roster (``data/popular-items.json``) that is not on it yet.
@@ -35,6 +37,7 @@ from app import reports, similar
 from app.errors import ApiError
 from app.modes import MODES, steps_of
 from app.questions import schema, text, vocab
+from app.questions.normalize import normalize
 from app.questions.packs import Pack, mode_questions
 from app.questions.submission import Submission
 from app.questions.types import TYPES, scoring_of
@@ -110,6 +113,7 @@ QUESTION_MODES: dict[str, frozenset[str]] = {
             "matching",
         }
     ),
+    "forgetful_bard": frozenset({"pick_from_list"}),
     "sort_it_out": frozenset({"ordering"}),
     "release_order": frozenset({"ordering"}),
     "whos_that_npc": frozenset({"pick_from_list", "multiple_choice"}),
@@ -126,7 +130,7 @@ FIXED_PROMPTS = {"odd_one_out": "Which one doesn't belong?", "whos_that_npc": "W
 
 # An examine line is its own joke, and an NPC's name is its own answer: a line after either
 # only repeats it.
-NO_EXPLANATION_MODES = frozenset({"guess_examine", "whos_that_npc"})
+NO_EXPLANATION_MODES = frozenset({"guess_examine", "whos_that_npc", "forgetful_bard"})
 
 # The intro is an NPC's line before the question, so only an NPC's question takes one.
 INTRO_MODES = frozenset({"random_event"})
@@ -142,7 +146,9 @@ WIKI_MODES = frozenset({"guess_examine", "whos_that_npc"})
 # Rounds whose answer a player names, knowing no id: a ``pick_from_list`` payload is the
 # prompt and ``subject.name``, and the import script finds the id, fills in the rest and adds
 # the name to the round's list.
-NAMED_MODES = {"whos_that_npc": "npcs"}
+NAMED_MODES = {"whos_that_npc": "npcs", "forgetful_bard": "items"}
+# Named rounds whose prompt is the player's own, about an item that may be on the list already.
+VERSE_MODES = frozenset({"forgetful_bard"})
 # Rounds whose ``multiple_choice`` right option is an NPC's name: the import script finds its
 # id and makes its render the ``image``. Not on the list, which holds what a shadow may be.
 RENDER_MODES = frozenset({"whos_that_npc"})
@@ -315,8 +321,24 @@ def _named_errors(mode: str, payload: dict[str, Any]) -> list[str]:
     name = subject["name"]
     if not isinstance(name, str) or not 1 <= len(name.strip()) <= NPC_NAME_MAX:
         return [f"$.payload.subject.name: a name of 1 to {NPC_NAME_MAX} characters"]
+    if mode in VERSE_MODES:
+        return _verse_errors(mode, payload, name)
     if payload["prompt"] != FIXED_PROMPTS[mode]:
         return [f"$.payload.prompt: {mode!r} always asks {FIXED_PROMPTS[mode]!r}"]
+    return []
+
+
+def _verse_errors(mode: str, payload: dict[str, Any], name: str) -> list[str]:
+    # The id is the import's to find, so any will do to hold the prompt to the schema.
+    found = schema.payload_errors(
+        "pick_from_list", {**payload, "vocab": NAMED_MODES[mode], "answer_id": 0}
+    )
+    if found:
+        return found
+    if "(" in name:
+        return [f"$.payload.subject.name: {name!r} is a variant; name the plain item"]
+    if normalize(name) in normalize(payload["prompt"]):
+        return [f"$.payload.prompt: the verse names its answer, {name!r}"]
     return []
 
 
@@ -376,7 +398,9 @@ def tidy(kind: str, content: dict[str, Any]) -> dict[str, Any]:
         return {**content, "picture_item": content["picture_item"].strip()}
     name = named(content)
     if name is not None:
-        return {**content, "payload": {**content["payload"], "subject": {"name": name.strip()}}}
+        prompt = content["payload"]["prompt"].strip()
+        payload = {"prompt": prompt, "subject": {"name": name.strip()}}
+        return {**content, "payload": payload}
     if content.get("mode") in LINED_MODES:
         typed = [line.strip() for line in content["payload"]["prompt"].splitlines()]
         prompt = "\n".join(line for line in typed if line)
@@ -388,7 +412,7 @@ def _submission_errors(kind: str, content: dict[str, Any], shown: bool) -> list[
     # Not part of ``errors``: the import script reads an item already on the roster, or an
     # NPC already asked about, as one to skip, not one to refuse.
     name = named(content) if kind == "question" else None
-    if name is not None:
+    if name is not None and content["mode"] not in VERSE_MODES:
         # Every name on a named round's list is asked about, so the list is the pack's answers.
         listed = vocab.get(NAMED_MODES[content["mode"]])
         names = {vocab.fold(entry.name) for entry in listed.entries} if listed else set()
@@ -426,21 +450,40 @@ def check(kind: str, content: Any, shown: bool) -> dict[str, Any]:
 _TRIER = UUID(int=0)
 
 
+def _listed_verse(content: dict[str, Any]) -> dict[str, Any] | None:
+    # A verse's payload as a room plays it, when the list has its item.
+    mode = content.get("mode")
+    if mode not in VERSE_MODES:
+        return None
+    name = vocab.fold(content["payload"]["subject"]["name"])
+    items = vocab.get(NAMED_MODES[mode])
+    entry = next((e for e in items.entries if vocab.fold(e.name) == name), None) if items else None
+    if entry is None:
+        return None
+    return {
+        "prompt": content["payload"]["prompt"],
+        "vocab": NAMED_MODES[mode],
+        "answer_id": entry.id,
+        "subject": {"name": entry.name},
+    }
+
+
 def trial(content: dict[str, Any], value: Any) -> dict[str, Any]:
     """A checked question's open view and reveal, and with ``value`` what that answer earns.
 
     The view is the server's, shuffled as a room shows it, because a value is a position in
     it. Speed never counts, as in a team game, so the points are ``credit`` of 1000. A named
-    round's NPC is not on its list yet, so nobody can pick it: its reveal is the name alone.
+    answer not on its list yet cannot be picked by anybody: its reveal is the name alone. Nor
+    does a trial give a picture, whose name in the client would tie it to the item named here.
     """
     type_ = content["type"]
     module = TYPES[type_]
-    payload = content["payload"]
+    payload = _listed_verse(content) or content["payload"]
     view = module.client_view(payload)
     name = named(content)
-    if name is not None:
+    if name is not None and "answer_id" not in payload:
         if value is not None:
-            raise BadTryValue("this NPC is not on the list yet, so it cannot be picked")
+            raise BadTryValue("this answer is not on the list yet, so it cannot be picked")
         return {"view": view, "reveal": {**view, "subject": {"name": name}}, "result": None}
     reveal = module.reveal(payload)
     if value is None:

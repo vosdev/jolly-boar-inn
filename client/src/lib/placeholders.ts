@@ -14,6 +14,10 @@ const HINTS: Record<string, FieldHints> = {
     prompt: 'It wasn’t a rock... it was a rock lobster!',
     explanation: '',
   },
+  forgetful_bard: {
+    prompt: 'Seventy Attack, and hear it crack: an Abyss-born lash on a demon’s back.',
+    explanation: '',
+  },
   scaperune: {
     prompt: 'Zaff, or for an order, one entry per line',
     explanation: 'Zaff sells battlestaves. Aubury has the runes and Lowe the bows.',

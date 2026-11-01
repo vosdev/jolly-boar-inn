@@ -246,7 +246,7 @@
       />
     </div>
     <button type="button" class="primary" disabled>Submit</button>
-    <p class="note">The NPC joins the list once imported.</p>
+    <p class="note">The answer joins the list once imported.</p>
   </div>
 {:else if failed}
   <p class="note">The list could not be loaded.</p>

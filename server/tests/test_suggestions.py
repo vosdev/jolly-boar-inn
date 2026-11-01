@@ -809,13 +809,11 @@ def test_the_form_offers_a_picture_item_only_to_the_rounds_that_take_one() -> No
 
 
 # Rounds suggested for on another card: the price rounds and Pixel Hunt play the items players
-# suggest, The Forgetful Bard's verses are written about them, and Random Events Only plays the
-# NPCs' questions.
+# suggest, and Random Events Only plays the NPCs' questions.
 COVERED_ELSEWHERE = {
     "more_less": "item",
     "price_is_right": "item",
     "pixel_hunt": "item",
-    "forgetful_bard": "item",
     "random_events_only": "random_event",
 }
 
@@ -870,7 +868,7 @@ def test_know_your_content_creator_takes_a_number(client: TestClient) -> None:
 def test_the_form_offers_the_modes_the_server_takes() -> None:
     source = client_source.read("lib/suggestions.ts")
     offered = {"random_event"}
-    for name in ("CHOICE_ROUNDS", "ORDERING_ROUNDS", "NAMED_ROUNDS"):
+    for name in ("CHOICE_ROUNDS", "ORDERING_ROUNDS", "NAMED_ROUNDS", "VERSE_ROUNDS"):
         rounds = re.search(rf"const {name} = \[([^\]]*)\]", source)
         assert rounds is not None
         offered |= set(re.findall(r"'([a-z_]+)'", rounds.group(1)))
@@ -1399,3 +1397,98 @@ def test_tries_over_the_hourly_limit_are_429s(app: FastAPI, client: TestClient) 
 def test_trying_stores_nothing(client: TestClient) -> None:
     tried(client, ODD, 0)
     assert queue(client)["suggestions"] == []
+
+
+VERSE = {
+    "kind": "question",
+    "content": {
+        "type": "pick_from_list",
+        "mode": "forgetful_bard",
+        "wiki": "https://oldschool.runescape.wiki/w/Abyssal_whip",
+        "difficulty": "easy",
+        "payload": {
+            "prompt": "It cracks from the Abyss, seventy to hold.",
+            "subject": {"name": "Abyssal whip"},
+        },
+    },
+    "credit": "AFKFisher",
+    "credit_shown": True,
+}
+
+
+def _verse(**payload: Any) -> dict[str, Any]:
+    return _with(VERSE, payload={**VERSE["content"]["payload"], **payload})
+
+
+def test_a_verse_and_its_item_are_suggested_and_exported(client: TestClient) -> None:
+    padded = _verse(
+        prompt="  It cracks from the Abyss, seventy to hold. ", subject={"name": " Abyssal whip "}
+    )
+    approve(client, suggest(client, padded))
+    (row,) = queue(client, "approved")["suggestions"]
+    assert row["content"] == VERSE["content"]
+    assert row["playable"] is True
+    (question,) = export(client)["questions"]
+    assert question == {**VERSE["content"], "credit": "AFKFisher", "credit_shown": True}
+
+
+def test_a_verse_may_name_an_item_not_on_the_list_or_one_that_has_a_verse(
+    client: TestClient,
+) -> None:
+    suggest(client, _verse(subject={"name": "Dusty key"}))
+    suggest(client, VERSE)
+    assert len(queue(client, "pending")["suggestions"]) == 2
+
+
+@pytest.mark.parametrize(
+    ("body", "problem"),
+    [
+        (_verse(prompt="My abyssal whip goes crack."), "the verse names its answer"),
+        (_verse(prompt="My ABYSSAL, WHIP goes crack."), "the verse names its answer"),
+        (_verse(subject={"name": "Dragon scimitar (or)"}), "is a variant"),
+        (_verse(prompt=""), "$.payload.prompt"),
+        (_verse(prompt="   "), "$.payload.prompt"),
+        (_verse(prompt="la " * 200), "$.payload.prompt"),
+        (_verse(explanation="It is a whip."), "only a prompt and subject.name"),
+        (_verse(answer_id=4151), "only a prompt and subject.name"),
+        (_verse(subject={"name": ""}), "a name of 1 to 80"),
+        (_without(VERSE, "wiki"), "$.wiki"),
+        (_with(VERSE, type="multiple_choice"), "not offered for 'forgetful_bard'"),
+    ],
+    ids=[
+        "names_item",
+        "names_item_folded",
+        "variant",
+        "empty",
+        "blank",
+        "long",
+        "explanation",
+        "answer_id",
+        "no_item",
+        "no_link",
+        "type",
+    ],
+)
+def test_a_verse_is_refused(client: TestClient, body: dict[str, Any], problem: str) -> None:
+    response = client.post("/api/suggestions", json=body)
+    assert response.status_code == 422, response.text
+    assert problem in response.text
+
+
+def test_a_verse_about_a_listed_item_is_answered_from_the_list(client: TestClient) -> None:
+    trial = tried(client, VERSE)
+    assert trial["view"] == {"prompt": VERSE["content"]["payload"]["prompt"], "vocab": "items"}
+    assert trial["reveal"]["answer_id"] == 4151
+    assert trial["reveal"]["subject"] == {"name": "Abyssal whip"}
+    assert "image" not in trial["view"] and "image" not in trial["reveal"]
+    assert tried(client, VERSE, 4151)["result"]["correct"] is True
+    assert tried(client, VERSE, 11802)["result"]["correct"] is False
+
+
+def test_a_verse_about_a_new_item_reveals_its_name_and_takes_no_answer(client: TestClient) -> None:
+    new = _verse(subject={"name": "Dusty key"})
+    trial = tried(client, new)
+    assert trial["reveal"] == {**trial["view"], "subject": {"name": "Dusty key"}}
+    response = client.post("/api/suggestions/try", json={"content": new["content"], "value": 1})
+    assert response.status_code == 422
+    assert response.json()["code"] == "bad_value"

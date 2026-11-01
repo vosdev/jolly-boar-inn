@@ -28,7 +28,7 @@
     content: QuestionContent | undefined
     /** The local view, shown until the server's arrives. */
     question: OpenQuestion
-    /** False for an NPC not on the list yet, which nobody can pick. */
+    /** False for an answer not on the list yet, which nobody can pick. */
     answerable?: boolean
     /** Stands in for the host, as on the card the question was picked from. */
     hero?: string | null
