@@ -66,6 +66,53 @@ beforeEach(() => {
 afterEach(cleanup)
 
 describe('SuggestionQueue', () => {
+  describe('a place on the map', () => {
+    const payload = {
+      prompt: 'Where is Falador?',
+      targets: [{ name: 'Falador', min_x: 2940, max_x: 3060, min_y: 3310, max_y: 3400 }],
+      reach: 150,
+    }
+    const place = row({
+      content: {
+        type: 'map_pin',
+        mode: 'mark_the_map',
+        wiki: 'https://oldschool.runescape.wiki/w/Falador',
+        difficulty: 'easy',
+        payload,
+      },
+    })
+
+    beforeEach(() => {
+      vi.mocked(admin.getQueue).mockResolvedValue({ suggestions: [place], counts: COUNTS })
+      vi.mocked(admin.editSuggestion).mockResolvedValue(place)
+    })
+
+    it('gives the reviewer its name, box and reach', async () => {
+      render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+      await fireEvent.click((await screen.findByText(/Where is Falador/)).closest('button')!)
+      expect(
+        screen.getByText('Falador (x 2940–3060, y 3310–3400, reach 150)', { selector: 'strong' }),
+      ).toBeTruthy()
+    })
+
+    it('edits it in the same form, box and reach as stored, and may reword what it asks', async () => {
+      render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+      await fireEvent.click((await screen.findByText(/Where is Falador/)).closest('button')!)
+      await fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+      expect((screen.getByLabelText(/^Place/) as HTMLInputElement).value).toBe('Falador')
+      await fireEvent.input(screen.getByLabelText('What the round asks'), {
+        target: { value: 'Where is the White Knights’ city?' },
+      })
+      await fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+      const [, id, body] = vi.mocked(admin.editSuggestion).mock.calls[0]!
+      expect(id).toBe('one')
+      expect((body.content as QuestionContent).payload).toEqual({
+        ...payload,
+        prompt: 'Where is the White Knights’ city?',
+      })
+    })
+  })
+
   it('draws markup a player typed as text', async () => {
     const { container } = render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
     const summary = await screen.findByText('<b>Which</b> is not a Barrows brother?')

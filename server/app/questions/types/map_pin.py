@@ -138,7 +138,7 @@ def check(payload: dict[str, Any]) -> list[str]:
     for target in targets:
         problems += _target_problems(target, bounds)
     for first, second in combinations(targets, 2):
-        if _overlap(first, second):
+        if overlap(first, second):
             problems.append(f"targets: {first['name']!r} overlaps {second['name']!r}")
     return problems
 
@@ -157,7 +157,8 @@ def _target_problems(target: dict[str, Any], bounds: dict[str, int] | None) -> l
     return [f"targets: {name!r} is outside the bounds"]
 
 
-def _overlap(first: dict[str, Any], second: dict[str, Any]) -> bool:
+def overlap(first: dict[str, Any], second: dict[str, Any]) -> bool:
+    """Whether two boxes share a tile."""
     return (
         first["min_x"] <= second["max_x"]
         and second["min_x"] <= first["max_x"]

@@ -372,3 +372,17 @@ def test_a_verse_is_flagged_for_its_item_and_otherwise_read_as_any_question() ->
     assert _score(pack, _with(named, subject={"name": "Abyssal whip"})) < 60
     copied = {"prompt": pack["payload"]["prompt"], "subject": {"name": "Abyssal whip"}}
     assert _score(pack, {**named, "payload": copied}) >= 60
+
+
+def test_a_place_is_flagged_by_its_name_or_its_box_and_only_in_its_round() -> None:
+    box = {"min_x": 2940, "max_x": 3060, "min_y": 3310, "max_y": 3400}
+    far = {"min_x": 3200, "max_x": 3300, "min_y": 3200, "max_y": 3300}
+
+    def place(name: str, tiles: dict[str, int], mode: str = "mark_the_map") -> dict[str, Any]:
+        payload = {"prompt": f"Where is {name}?", "targets": [{"name": name, **tiles}]}
+        return {"type": "map_pin", "mode": mode, "payload": payload}
+
+    assert _score(place("Falador", box), place("falador", far)) == 100
+    assert _score(place("Falador", box), place("White Knights' Castle", box)) == 100
+    assert _score(place("Falador", box), place("Lumbridge", far)) < 60
+    assert _score(place("Falador", box), place("White Knights' Castle", box, "other")) < 60

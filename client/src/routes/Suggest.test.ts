@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as api from '../lib/api'
 import { ApiFailure } from '../lib/api'
 import { savePastGame } from '../lib/history'
+import * as map from '../lib/map'
 import { FALLBACK_NPC, npcArt } from '../lib/npcs'
 import { CHOICES } from '../lib/suggestions'
 import { clearVocabCache } from '../lib/vocab'
@@ -22,6 +23,11 @@ vi.mock('../lib/api', async (importOriginal) => {
     getReportChoices: vi.fn(),
     findSimilar: vi.fn(),
   }
+})
+
+vi.mock('../lib/map', async (importOriginal) => {
+  const real = await importOriginal<typeof import('../lib/map')>()
+  return { ...real, tilesLoad: vi.fn(() => Promise.resolve(true)) }
 })
 
 const navigate = vi.fn()
@@ -950,6 +956,46 @@ describe('Suggest', () => {
     })
     expect(sent).not.toHaveProperty('mode')
     expect(sent).not.toHaveProperty('random_event')
+  })
+
+  describe('a place on the map', () => {
+    beforeEach(() => {
+      vi.mocked(api.sendSuggestion).mockResolvedValue({ id: 'x' })
+    })
+
+    it('is no card on a server without the map', async () => {
+      vi.mocked(map.tilesLoad).mockResolvedValueOnce(false)
+      played()
+      render(Suggest, { navigate })
+      await screen.findByRole('button', { name: /A popular item/ })
+      expect(screen.queryByRole('button', { name: /Mark the Map/ })).toBeNull()
+    })
+
+    it('needs a box, and fills in the place’s wiki page from its name', async () => {
+      played()
+      render(Suggest, { navigate })
+      await fireEvent.click(await screen.findByRole('button', { name: /Mark the Map/ }))
+      await type(/^Place/, 'Falador')
+      expect((screen.getByLabelText(/Relevant Wiki page/) as HTMLInputElement).value).toBe(
+        'https://oldschool.runescape.wiki/w/Falador',
+      )
+      await type('Your name', 'AFKFisher')
+      await fireEvent.click(screen.getByRole('radio', { name: 'Medium' }))
+      await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
+      expect(await screen.findByText('Tap the map to mark the place.')).toBeTruthy()
+      expect(api.sendSuggestion).not.toHaveBeenCalled()
+    })
+
+    it('says what a reach is worth as it moves', async () => {
+      played()
+      render(Suggest, { navigate })
+      await fireEvent.click(await screen.findByRole('button', { name: /Mark the Map/ }))
+      const reach = screen.getByLabelText(/Points run out/, { selector: 'input' })
+      expect(screen.getByRole('row', { name: /Tiles off/ }).textContent).toContain('50')
+      await fireEvent.input(reach, { target: { value: '200' } })
+      expect(screen.getByLabelText(/Points run out 200 tiles/)).toBeTruthy()
+      expect(screen.getByRole('row', { name: /Points/ }).textContent).toContain('750')
+    })
   })
 
   it('shows the limit when the server refuses the send for it', async () => {

@@ -74,4 +74,25 @@ describe('MapView', () => {
     unmount()
     expect(container.querySelector('img')).toBeNull()
   })
+
+  it('keeps a grip’s marker when the box moves, so a drag survives', async () => {
+    const at = { x: 2850, y: 3150 }
+    const grips = [{ id: 'sw', at, title: 'Drag to resize' }]
+    const { container, rerender } = render(MapView, { bounds: REGION, grips })
+    await waitFor(() => expect(container.querySelector('.grip')).not.toBeNull())
+    const grip = container.querySelector('.grip')
+    await rerender({ bounds: REGION, grips: [{ ...grips[0]!, at: { x: 2860, y: 3160 } }] })
+    expect(container.querySelector('.grip')).toBe(grip)
+    await rerender({ bounds: REGION, grips: [] })
+    expect(container.querySelector('.grip')).toBeNull()
+  })
+
+  it('draws the line a reach ends at round a box', async () => {
+    const box = { minX: 2840, maxX: 2860, minY: 3140, maxY: 3160 }
+    const { container } = render(MapView, {
+      bounds: REGION,
+      areas: [{ box, name: 'Here', reach: 30 }],
+    })
+    await waitFor(() => expect(container.querySelector('.map-reach')).not.toBeNull())
+  })
 })

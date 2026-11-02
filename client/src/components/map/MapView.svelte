@@ -5,7 +5,9 @@
    * outside is requested, the view cannot leave, and a tile that straddles the edge is masked.
    *
    * What stands on the map comes in as data: `markers`, `lines` and `areas`. Each change redraws
-   * its whole layer, since a reveal sets them once and a player moves one pin at a time. Marker
+   * its whole layer, since a reveal sets them once and a player moves one pin at a time. `grips`
+   * are the exception: they follow a box while one of them is dragged, and redrawing a marker
+   * would drop it from under the finger, so they keep their markers and only move. Marker
    * labels are found a place after every zoom (`lib/mapLabels.ts`), in `markers`' order. `frame`
    * moves the view to a rectangle, leaving `inset` pixels clear of what lies over the map.
    */
@@ -34,6 +36,7 @@
     type WorldPoint,
   } from '../../lib/map'
   import { reducedMotion } from '../../lib/interlude'
+  import { reachLine } from '../../lib/mapBox'
   import { placeLabels, type PinLabel } from '../../lib/mapLabels'
 
   export interface MapMarker {
@@ -59,6 +62,16 @@
     /** A box of tiles, both edges inside it. Too small to see, a ring marks it instead. */
     box: MapBounds
     name: string
+    /** Draws the line this many tiles out from the box. */
+    reach?: number
+  }
+
+  export interface MapGrip {
+    id: string
+    at: WorldPoint
+    /** The middle of what it moves, not a corner. */
+    middle?: boolean
+    title: string
   }
 
   const SMALLEST_RING = 13
@@ -68,16 +81,19 @@
     markers = [],
     lines = [],
     areas = [],
+    grips = [],
     frame = null,
     inset = { top: 24, right: 24, bottom: 24, left: 24 },
     onpick,
     onmove,
     ontap,
+    ongrip,
   }: {
     bounds?: MapBounds
     markers?: readonly MapMarker[]
     lines?: readonly MapLine[]
     areas?: readonly MapArea[]
+    grips?: readonly MapGrip[]
     /** Where the view should be; null leaves it to the player. */
     frame?: MapBounds | null
     inset?: { top: number; right: number; bottom: number; left: number }
@@ -86,6 +102,8 @@
     onmove?: (id: string, tile: WorldPoint) => void
     /** A tap on a marker. */
     ontap?: (id: string) => void
+    /** A grip dragged, as it goes. */
+    ongrip?: (id: string, tile: WorldPoint) => void
   } = $props()
 
   let host: HTMLDivElement
@@ -95,8 +113,11 @@
     map: LeafletMap
     pins: LayerGroup
     drawing: LayerGroup
+    handles: LayerGroup
   } | null>(null)
   let marks: { box: MapBounds; ring: CircleMarker; tag: HTMLElement }[] = []
+  const held = new Map<string, Marker>()
+  let dragged: string | null = null
   let framed = false
 
   function tagFor(marker: MapMarker): HTMLElement | null {
@@ -122,6 +143,18 @@
     const tag = tagFor(marker)
     if (tag !== null) pin.append(tag)
     return pin
+  }
+
+  function gripElement(grip: MapGrip): HTMLElement {
+    const shape = document.createElement('div')
+    shape.className = grip.middle === true ? 'grip middle' : 'grip'
+    return shape
+  }
+
+  /** Back on its place in the box, which a drag past an edge leaves behind. */
+  function settleGrip(id: string, marker: Marker): void {
+    const grip = grips.find((one) => one.id === id)
+    if (grip !== undefined) marker.setLatLng(toLatLng(grip.at))
   }
 
   /** The labels' sides for this zoom, and the rings' sizes, which a zoom changes. */
@@ -201,9 +234,14 @@
         interactive: false,
       }).addTo(drawing)
     }
-    marks = areas.map(({ box, name }) => {
-      const edges = corners({ ...box, maxX: box.maxX + 1, maxY: box.maxY + 1 })
+    marks = areas.map(({ box, name, reach }) => {
+      const whole = { ...box, maxX: box.maxX + 1, maxY: box.maxY + 1 }
+      const edges = corners(whole)
       const middle = L.latLngBounds(edges).getCenter()
+      if (reach !== undefined) {
+        const line = reachLine(whole, reach).map(({ x, y }): [number, number] => [y, x])
+        L.polygon(line, { className: 'map-reach', interactive: false }).addTo(drawing)
+      }
       L.rectangle(edges, { className: 'map-ring', interactive: false }).addTo(drawing)
       const ring = L.circleMarker(middle, {
         className: 'map-ring',
@@ -222,6 +260,39 @@
       return { box, ring, tag }
     })
     untrack(settle)
+  })
+
+  $effect(() => {
+    if (live === null) return
+    const { L, handles } = live
+    const wanted = new Set(grips.map((grip) => grip.id))
+    for (const [id, marker] of held) {
+      if (wanted.has(id)) continue
+      handles.removeLayer(marker)
+      held.delete(id)
+    }
+    for (const grip of grips) {
+      const standing = held.get(grip.id)
+      if (standing !== undefined) {
+        if (dragged !== grip.id) standing.setLatLng(toLatLng(grip.at))
+        continue
+      }
+      const marker = L.marker(toLatLng(grip.at), {
+        icon: L.divIcon({ className: 'pin-host', html: gripElement(grip), iconSize: [0, 0] }),
+        draggable: true,
+        keyboard: false,
+        title: grip.title,
+      })
+      marker.on('dragstart', () => (dragged = grip.id))
+      marker.on('drag', () => ongrip?.(grip.id, toWorld(marker.getLatLng())))
+      marker.on('dragend', () => {
+        dragged = null
+        ongrip?.(grip.id, toWorld(marker.getLatLng()))
+        settleGrip(grip.id, marker)
+      })
+      marker.addTo(handles)
+      held.set(grip.id, marker)
+    }
   })
 
   $effect(() => {
@@ -338,6 +409,7 @@
         map: shown,
         pins: L.layerGroup().addTo(shown),
         drawing: L.layerGroup().addTo(shown),
+        handles: L.layerGroup().addTo(shown),
       }
     })
 
@@ -494,6 +566,43 @@
 
   .map :global(.map-ring.gone) {
     display: none;
+  }
+
+  .map :global(.map-reach) {
+    fill: none;
+    stroke: var(--panel);
+    stroke-width: 2;
+    stroke-dasharray: 3 6;
+  }
+
+  /* Wider than it looks: Leaflet drags by the element, and a finger needs the room. */
+  .map :global(.grip) {
+    position: absolute;
+    left: -16px;
+    top: -16px;
+    width: 32px;
+    height: 32px;
+    cursor: nwse-resize;
+  }
+
+  .map :global(.grip::after) {
+    content: '';
+    position: absolute;
+    inset: 9px;
+    background: var(--panel);
+    border: 2px solid var(--ink);
+    box-sizing: border-box;
+  }
+
+  .map :global(.grip.middle) {
+    cursor: move;
+  }
+
+  .map :global(.grip.middle::after) {
+    inset: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    border-color: var(--accent-ink);
   }
 
   .map :global(.map-line) {

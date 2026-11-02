@@ -256,6 +256,7 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   the NPCs and a question with no round; a suggestion's fields are names only, and `/admin` adds icons.
 - Every round on Create takes suggestions, the price rounds and Pixel Hunt as items and Random Events Only as the
   NPCs' questions; a test fails on a new round that does neither. Not-yet-built image modes are not on Create.
+- `/suggest` offers `map_pin` for Mark the Map only, with its card shown once a tile loads: a place's name, one box and a `reach` of 50 to 200 on `MapView`, whose `grips` keep their markers through a drag. The prompt is `Where is <name>?`; the queue may reword it.
 
 `select(packs, custom, settings, rng)` fixes a room's questions at `start_game`, from the settings
 at that moment. Until then a lobby's `total`, `events`, `rounds` and `estimated_seconds` come from
@@ -797,7 +798,7 @@ key into them, so cleanup leaves it.
   or an `item` (a name not on the roster).
   A Who's That NPC? shadow's payload is its fixed prompt and `subject.name`, an NPC not on its
   list (`NAMED_MODES`); a render's right option names its NPC, and it has no `image` (`RENDER_MODES`).
-  A Forgetful Bard payload is a verse and `subject.name`, a plain item on the list or not, which the verse may not name (`VERSE_MODES`). A question but an NPC's (`NO_DIFFICULTY_MODES`) may carry a `difficulty`;
+  A Forgetful Bard payload is a verse and `subject.name`, a plain item on the list or not, which the verse may not name (`VERSE_MODES`). A place for Mark the Map is `prompt`, one target and a `reach`, nothing else (`_place_errors`), with a `wiki`. A question but an NPC's (`NO_DIFFICULTY_MODES`) may carry a `difficulty`;
   `/suggest` requires picking one, loading with the toggle unselected. Each has a `credit`
   held to the name rules and `credit_shown`, never true for an item. Pending, approved,
   rejected or imported. A round not built yet takes questions; they wait in approved. The client offers the form after a finished game; 10 an hour
@@ -805,7 +806,7 @@ key into them, so cleanup leaves it.
 - `app/similar.py` scores a question against another, 0–100: 0.7 × the trigram Dice of the
   normalised prompts (with quote) + 0.3 × the answers' (1 when equal; any accepted free-text
   spelling); prompts alone across types; Odd One Out by option-set overlap; Who's That NPC? 100
-  for the same NPC, shadow or render, else 0; The Forgetful Bard 100 for the same item, else as usual. `POST /api/suggestions/similar` takes a question as `POST
+  for the same NPC, shadow or render, else 0; The Forgetful Bard 100 for the same item, else as usual; a `map_pin` in the same round 100 for the same name or an overlapping box, else as usual. `POST /api/suggestions/similar` takes a question as `POST
   /api/suggestions` does, minus the link, and returns up to 3 pack questions (every pack mode but
   the price ones) at 60 or more as `{mode, label, score}`, never a suggestion; 120 an hour per
   address (`SIMILAR_PER_HOUR`). `/suggest` asks 800 ms after the prompt or answer changes.
@@ -860,7 +861,7 @@ Right until it does (More/Less keeps `sample.json`'s five, which `live_packs` dr
   which becomes `image`. A named NPC takes the first infobox row's id on its page (one
   `infobox_monster` query for the file, one `infobox_npc` for the rest), joins `popular-npcs.json`
   and gets its question filled in; a render's becomes its `image` and joins no list. A verse's item takes its roster id, or joins the roster as a suggested item does, and becomes `image`. Missing `assets.json` entries are added: the NPC's picture, the
-  item's detail image and icon. One refused entry, or packs that would not load, writes nothing.
+  item's detail image and icon. A generated pack never takes a suggestion: its mode's go in `<mode>_suggested.json`. One refused entry, or packs that would not load, writes nothing.
 - `make edit-packs FILE=…` applies an export of question changes: an edit replaces its question
   in place, keeping the file's key order, and recomputes its id; a delete removes it. A change to
   an id the packs no longer hold or in a generated pack, or packs that would not load, writes nothing.

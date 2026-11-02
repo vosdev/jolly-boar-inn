@@ -42,6 +42,20 @@ export function flipRow(row: number): number {
   return -row - 1
 }
 
+/** Lumbridge, on land, so its tile is on disk wherever the map is. */
+const LAND: WorldPoint = { x: 3222, y: 3218 }
+
+/** Whether this server has the map: a dev server answers a missing file with a page, so this loads it. */
+export function tilesLoad(): Promise<boolean> {
+  const { x, row } = tileAt(LAND, LOWEST_ZOOM)
+  return new Promise((done) => {
+    const tile = new Image()
+    tile.onload = () => done(true)
+    tile.onerror = () => done(false)
+    tile.src = tileUrl(LOWEST_ZOOM, x, row)
+  })
+}
+
 /** The tile holding a game tile, at a zoom. */
 export function tileAt(point: WorldPoint, zoom: number): { x: number; row: number } {
   const units = TILE_SIZE / 2 ** zoom
