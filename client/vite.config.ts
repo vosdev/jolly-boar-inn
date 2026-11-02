@@ -9,9 +9,9 @@ import { siteBranding } from './site-branding.ts'
 // Dev server proxies /api and /ws to the FastAPI server on :8000.
 //
 // `lib/names.ts` imports `data/player-names.json`, `lib/pets.ts` `data/pets.json` and
-// `data/assets.json`, and `lib/questionSchema.ts` the question schema from outside the
-// client, so the dev server is allowed those files as well as its own root. A build needs
-// nothing: Rollup reads them straight off the disk.
+// `data/assets.json`, `lib/map.ts` `data/map.json`, and `lib/questionSchema.ts` the question
+// schema from outside the client, so the dev server is allowed those files as well as its own
+// root. A build needs nothing: Rollup reads them straight off the disk.
 //
 // `pnpm test` runs the component tests in jsdom. `svelteTesting` resolves Svelte's
 // browser build rather than its server one, which is what `mount` needs, and unmounts
@@ -52,6 +52,7 @@ export default defineConfig({
         '../data/player-names.json',
         '../data/pets.json',
         '../data/assets.json',
+        '../data/map.json',
         '../schema/question.schema.json',
       ],
     },

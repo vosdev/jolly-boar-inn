@@ -44,6 +44,9 @@ client/src/assets/teams/*.png
 .pictures/
 client/public/pictures/
 data/pictures.json
+# The world map's tiles (make gen-map), and where they are built
+.map/
+client/public/map/
 
 # The price pack: each instance generates its own (make gen-price-questions)
 data/packs/prices.json

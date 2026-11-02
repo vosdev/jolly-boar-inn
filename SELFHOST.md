@@ -20,6 +20,8 @@ This can take up to 15 minutes. The `fetch-assets` script adheres to the OSRS Wi
 - 1 api call per second
 - A mandatory User Agent describing what you are using the api for + a way to contact you
 
+The world map is rendered from the game cache by `make gen-map`, which downloads 210 MB from [OpenRS2](https://archive.openrs2.org) and takes about 2 minutes.
+
 Besides assets, some questions are dynamically generated based on Grand Exchange prices. They will have to be refreshed every so often.
 
 ## Instructions
@@ -36,7 +38,7 @@ Besides assets, some questions are dynamically generated based on Grand Exchange
     - `WIKI_USER_AGENT`
     - `FORWARDED_ALLOW_IPS` if you use a reverse proxy
 
-5. `make all`: fetches the assets, generates the price questions and builds the images
+5. `make all`: fetches the assets, renders the map, generates the price questions and builds the images
 
 6. `docker compose up -d`
 

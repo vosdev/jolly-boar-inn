@@ -12,16 +12,16 @@ final. The licence is AGPL-3.0.
 | Database | Postgres 18 through `asyncpg`, hand-written SQL | Four tables; an ORM would add more code than it removes. |
 | Migrations | Numbered `.sql` files, applied at startup by `db.py` | Alembic needs SQLAlchemy models we do not want. |
 | Validation | Pydantic v2 for HTTP and websocket, `jsonschema` for questions | The question schema is shared with CI and the client. |
-| Client | Svelte 5 with runes, Vite SPA, TypeScript | No SSR is needed, so no SvelteKit. |
+| Client | Svelte 5 with runes, Vite SPA, TypeScript; Leaflet for the map, loaded with the first one | No SSR is needed, so no SvelteKit. |
 | Tooling | `uv`, `ruff`, `pytest` with `pytest-xdist`; `pnpm`, ESLint, Prettier, `svelte-check`, `vitest` in jsdom | Vitest compiles components exactly as the build does. |
-| Serving | FastAPI serves `client/dist`, SPA fallback to `index.html` (404 for a missing file under `/assets/` or `/pictures/`); `robots.txt`, `sitemap.xml` and `/.well-known/security.txt` built from `PUBLIC_BASE_URL` | One container, one origin, no CORS. |
+| Serving | FastAPI serves `client/dist`, SPA fallback to `index.html` (404 for a missing file under `/assets/`, `/pictures/` or `/map/`); `robots.txt`, `sitemap.xml` and `/.well-known/security.txt` built from `PUBLIC_BASE_URL` | One container, one origin, no CORS. |
 | Time | `datetime.now(UTC)` on the server, `timestamptz`, ISO 8601 on the wire | The client never sends a time. |
 | IDs | uuid rows, word room codes, content-hash question ids | Codes are for people; uuids go on the wire. |
 
 ## 1. Repo layout
 
 ```
-Dockerfile, docker-compose.yml     three-stage image + data; app + postgres:18 (+ .dev.yml, .data.yml)
+Dockerfile, docker-compose.yml     three-stage image + data, logo, map; app + postgres:18 (+ .dev.yml, .data.yml)
 Makefile, .github/workflows/ci.yml all, setup, dev, lint, test, gen-*, import-suggestions, edit-packs,
                                    edit-roster, rehash-questions, fetch-assets, logo, image; CI: audit, release
 schema/                            question.schema.json (section 4), protocol.schema.json (section 6)
@@ -38,7 +38,7 @@ server/app/modes/, questions/      Mode and MODES; schema, packs, vocab, normali
 server/app/ws/, http/              handler, protocol, schema, outbox; one module per route or middleware
 server/scripts/                    wiki, gen_price_questions, import_suggestions, edit_packs,
                                    edit_roster, rehash_questions, fetch_assets, build_pictures,
-                                   build_logo,
+                                   build_logo, gen_map, map_render/ (Java),
                                    validate_packs, check_contrast, smoke_ws, loadtest
 client/src/lib/                    api, ws, protocol, stores, session, history, profile, modes, …
 client/src/routes/, components/    Home, Create, Join, Room, Daily, History, Admin, Suggest, Report; TopBar, …
@@ -49,7 +49,7 @@ Routes: `/`, `/create`, `/r/:code` (the room with a session, Join without), `/r/
 `/history/:code/:stamp` (a finished game from this browser, `stamp` its `finished_at` as UTC
 `YYMMDDHHMM`), `/admin` and its tabs `/admin/suggestions`, `/reports`, `/questions` and `/roster` (the
 operator's view, section 10), linked from Reldo's box on Home once this
-browser holds the admin token, `/suggest` and `/report` (section 11), linked once it has finished a game, and `/daily` (section 7). The credits are a sheet from the footer.
+browser holds the admin token, `/suggest` and `/report` (section 11), linked once it has finished a game, and `/daily` (section 7). `/dev/map` shows the map under `pnpm dev` only. The credits are a sheet from the footer.
 `/how-to-play` and `/how-to-play/:view` (a mode's name as a slug, or `random-events`) are drawn by Home.
 The retired `/r/:code/admin` resolves like `/r/:code`, because whoever holds that link knows the code.
 
@@ -831,11 +831,12 @@ Right until it does (More/Less keeps `sample.json`'s five, which `live_packs` dr
 
 - The `make` targets for scripts that write into the checkout (`gen-*`, `fetch-assets`, `logo`) run
   them in `docker-compose.data.yml`, so a host needs only git, docker and make. Its `data` stage is
-  the builder's venv (no groups) plus git and the `data` group (Pillow); `logo`, on top, adds the
-  `logo` group for `make logo` alone. The runtime copies neither. The repo is mounted, run as the host user.
-- Every fetch goes through `scripts/wiki.py`: the operator's `WIKI_USER_AGENT` (environment or
+  the builder's venv (no groups) plus git and the `data` group (Pillow); on top, `logo` adds the
+  `logo` group for `make logo` and `map` a JRE for `make gen-map`. The runtime copies none. The repo is mounted, run as the host user.
+- Every wiki fetch goes through `scripts/wiki.py`: the operator's `WIKI_USER_AGENT` (environment or
   `.env`) or no request, and one request a second per process. Offline flags need neither. A test
-  fails any other script importing a network module, bar `smoke_ws` and `loadtest` (the app's).
+  fails any other script importing a network module, bar `smoke_ws` and `loadtest` (the app's) and
+  `gen_map` (OpenRS2).
 - `make gen-price-questions` (also in `make all`) fetches `/mapping` and `/latest` once each. It
   never runs at startup or in CI. Its pairs are 1.25x to 4x apart: closer is a coin flip, and the mode shows no values.
   A price's range spans three 1.15x–1.5x steps, its answer 10–45% or 55–90% along the log width.
@@ -876,6 +877,15 @@ Right until it does (More/Less keeps `sample.json`'s five, which `live_packs` dr
   Every item the roster or a pack question names has an `items/<id>.png`, its inventory icon:
   never a picture's file, whose bytes would match the icon bundled under the item's id.
   Questions from the wiki keep its CC BY-NC-SA notice, which the README (#98) carries.
+- `make gen-map` renders the surface into `client/public/map/<cache_id>/clean/{z}/0_{x}_{y}.png`,
+  git-ignored, the wiki's grid with rows counting north. `data/map.json` pins an OpenRS2 cache and
+  its `disk.zip`'s hash: OpenRS2 keeps every cache, while the wiki retires a tileset weeks after the
+  next. To update the map, take the newest `oldschool` cache from its `caches.json` and hash its zip.
+  RuneLite's `MapImageDumper` (`scripts/map_render/`) draws each map square at 4 px per game tile,
+  zoom 2, without icons or labels; Pillow halves them down to zoom −3 and drops all-black tiles.
+  It is built in `.map/` and moved in whole with its `manifest.json`, whose presence is
+  `app.map.has_tiles()`, so a stopped run serves nothing and a complete tileset sends no request.
+  `/map/` is immutable because a new cache is a new URL. The client enlarges zoom 2 up to zoom 5.
 - `make logo` is the owner's tool: it traces the fetched `logo/` sources into a boar per theme in
   `branding/boar/`, git-ignored like them. A selfhoster brings their own logo instead.
 

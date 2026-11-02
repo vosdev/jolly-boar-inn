@@ -35,6 +35,23 @@ def test_question_pictures_are_immutable(settings: Settings, dist: Path) -> None
     assert response.headers["cache-control"].startswith("public, max-age=31536000")
 
 
+def test_map_tiles_are_immutable(settings: Settings, dist: Path) -> None:
+    """A tile's folder names the game cache it came from, so a new map is a new URL."""
+    (dist / "map" / "2752" / "clean" / "2").mkdir(parents=True)
+    (dist / "map" / "2752" / "clean" / "2" / "0_46_52.png").write_bytes(b"\x89PNG")
+    with TestClient(create_app(settings, dist)) as client:
+        response = client.get("/map/2752/clean/2/0_46_52.png")
+    assert response.status_code == 200
+    assert response.headers["cache-control"].startswith("public, max-age=31536000")
+
+
+def test_a_missing_map_tile_is_404_not_index(settings: Settings, dist: Path) -> None:
+    with TestClient(create_app(settings, dist)) as client:
+        response = client.get("/map/2752/clean/2/0_0_0.png")
+    assert response.status_code == 404
+    assert "text/html" not in response.headers["content-type"]
+
+
 def test_missing_media_is_404_not_index(settings: Settings, dist: Path) -> None:
     """A broken image should fail as one, not succeed as the SPA page."""
     (dist / "pictures").mkdir()
