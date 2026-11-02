@@ -138,28 +138,6 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_697de7d11a474386",
-      "type": "multiple_choice",
-      "mode": "bestiary",
-      "source": "pack",
-      "tags": [
-        "weakness"
-      ],
-      "payload": {
-        "prompt": "Which weapons hit the Corporeal Beast for full damage when they stab?",
-        "options": [
-          "Daggers and rapiers",
-          "Spears and halberds",
-          "Maces and warhammers",
-          "Claws and scimitars"
-        ],
-        "answer_index": 1,
-        "explanation": "Spears and halberds, with Osmumten's fang and a few others. Every other melee weapon does half, per the OSRS Wiki's Corpbane weapons page."
-      },
-      "wiki": "https://oldschool.runescape.wiki/w/Corpbane_weapons",
-      "difficulty": "medium"
-    },
-    {
       "id": "q_bd2cf843cb8b93b3",
       "type": "multiple_choice",
       "mode": "bestiary",
@@ -198,26 +176,6 @@
         "explanation": "276, per his infobox on the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/King_Black_Dragon",
-      "difficulty": "medium"
-    },
-    {
-      "id": "q_c9050c2e4d4c2ffe",
-      "type": "free_text",
-      "mode": "bestiary",
-      "source": "pack",
-      "tags": [
-        "trivia"
-      ],
-      "payload": {
-        "prompt": "What spawns during the Corporeal Beast fight and leeches Hitpoints from players near it?",
-        "accepted": [
-          "Dark energy core",
-          "Dark core",
-          "Energy core"
-        ],
-        "explanation": "The dark energy core, per the OSRS Wiki's Corporeal Beast page."
-      },
-      "wiki": "https://oldschool.runescape.wiki/w/Corporeal_Beast",
       "difficulty": "medium"
     },
     {
@@ -277,25 +235,6 @@
       "difficulty": "hard"
     },
     {
-      "id": "q_86e9052465a63977",
-      "type": "number_slider",
-      "mode": "bestiary",
-      "source": "pack",
-      "tags": [
-        "slayer"
-      ],
-      "payload": {
-        "prompt": "What Slayer level do you need to fight the Alchemical Hydra?",
-        "answer": 95,
-        "min": 1,
-        "max": 99,
-        "scale": "linear",
-        "explanation": "95 Slayer, per the Alchemical Hydra's infobox on the OSRS Wiki."
-      },
-      "wiki": "https://oldschool.runescape.wiki/w/Alchemical_Hydra",
-      "difficulty": "medium"
-    },
-    {
       "id": "q_98bb0aaa41750d90",
       "type": "multiple_choice",
       "mode": "bestiary",
@@ -337,28 +276,6 @@
         "explanation": "Dragon Slayer II: Vorkath is fought after it, per the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Vorkath",
-      "difficulty": "medium"
-    },
-    {
-      "id": "q_7897b8d5b9a01755",
-      "type": "multiple_choice",
-      "mode": "bestiary",
-      "source": "pack",
-      "tags": [
-        "trivia"
-      ],
-      "payload": {
-        "prompt": "Which of these is not one of Zulrah's forms?",
-        "options": [
-          "Venom",
-          "Tanzanite",
-          "Serpentine",
-          "Magma"
-        ],
-        "answer_index": 0,
-        "explanation": "Venom. Zulrah switches between its serpentine, magma and tanzanite forms, per the OSRS Wiki."
-      },
-      "wiki": "https://oldschool.runescape.wiki/w/Zulrah",
       "difficulty": "medium"
     },
     {
@@ -613,33 +530,6 @@
         "explanation": "Greater demons, hellhounds and abyssal demons, all weak to demonbane; hellhounds were tagged demonic in 2021. Gargoyles are golems and kurasks are leafy."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Demon",
-      "difficulty": "medium"
-    },
-    {
-      "id": "q_3c7f6b47d51bf704",
-      "type": "pick_all_that_apply",
-      "mode": "bestiary",
-      "source": "pack",
-      "tags": [
-        "slayer"
-      ],
-      "payload": {
-        "prompt": "Which of these bosses can only be fought on a Slayer task?",
-        "options": [
-          "Cerberus",
-          "Alchemical Hydra",
-          "Vorkath",
-          "Abyssal Sire",
-          "Zulrah"
-        ],
-        "answer_indices": [
-          0,
-          1,
-          3
-        ],
-        "explanation": "Cerberus, the Alchemical Hydra and the Abyssal Sire are Slayer bosses: they or their monster must be your task. Zulrah and Vorkath need no task."
-      },
-      "wiki": "https://oldschool.runescape.wiki/w/Slayer_boss",
       "difficulty": "medium"
     },
     {

@@ -130,6 +130,7 @@ WHAT_PLAYERS_READ = {
     "scaperune": _prompt,
     "tales_of_gielinor": _prompt,
     "uris_unravelling": _prompt,
+    "slayer_master": _prompt,
     "odd_one_out": lambda q: ", ".join(q["payload"]["options"]),
     "pixel_hunt": lambda q: q["payload"]["subject"]["name"],
     "whos_that_npc": lambda q: (

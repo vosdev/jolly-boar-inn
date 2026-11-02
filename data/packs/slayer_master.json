@@ -1,0 +1,488 @@
+{
+  "pack": "slayer_master",
+  "questions": [
+    {
+      "id": "q_0d7f5c67ee51d231",
+      "type": "multiple_choice",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Banshee",
+      "payload": {
+        "prompt": "Which item protects you from a banshee's scream?",
+        "options": [
+          "Earmuffs",
+          "Nose peg",
+          "Facemask",
+          "Spiny helmet"
+        ],
+        "answer_index": 0,
+        "explanation": "Earmuffs, or a Slayer helmet, which has them built in."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_ca5dca609ffd84d4",
+      "type": "matching",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Slayer_equipment",
+      "payload": {
+        "prompt": "Match each monster to the item that protects you from it.",
+        "fields": [
+          {
+            "text": "Aberrant spectre"
+          },
+          {
+            "text": "Dust devil"
+          },
+          {
+            "text": "Basilisk"
+          },
+          {
+            "text": "Wall beast"
+          }
+        ],
+        "options": [
+          {
+            "text": "Nose peg"
+          },
+          {
+            "text": "Facemask"
+          },
+          {
+            "text": "Mirror shield"
+          },
+          {
+            "text": "Spiny helmet"
+          },
+          {
+            "text": "Earmuffs"
+          },
+          {
+            "text": "Insulated boots"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Earmuffs are for banshees and insulated boots for killerwatts."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_383e0cad2d654cde",
+      "type": "free_text",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Gargoyle",
+      "payload": {
+        "prompt": "Which tool do you use to finish off a gargoyle?",
+        "accepted": [
+          "Rock hammer",
+          "Rock thrownhammer",
+          "Granite hammer"
+        ],
+        "explanation": "A rock hammer, a rock thrownhammer or a granite hammer, once it is at 8 Hitpoints or lower."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_d187eae4ee6c5846",
+      "type": "multiple_choice",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Desert_Lizard",
+      "payload": {
+        "prompt": "Which item do you need to finish off a desert lizard?",
+        "options": [
+          "Bag of salt",
+          "Ice cooler",
+          "Fungicide spray",
+          "Rock hammer"
+        ],
+        "answer_index": 1,
+        "explanation": "An ice cooler, used when it has fewer than 5 Hitpoints. Ice spells do not count."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_7a44d79a2bf7e439",
+      "type": "pick_all_that_apply",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer",
+        "weakness"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Turoth",
+      "payload": {
+        "prompt": "Which of these can only be harmed by leaf-bladed weapons, broad ammunition or Magic Dart?",
+        "options": [
+          "Turoth",
+          "Kurask",
+          "Gargoyle",
+          "Cave horror",
+          "Dagannoth"
+        ],
+        "answer_indices": [
+          0,
+          1
+        ],
+        "explanation": "Turoth and kurask have hides too thick for anything else."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_03be890404e7eb62",
+      "type": "number_slider",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Abyssal_demon",
+      "payload": {
+        "prompt": "What Slayer level do you need to fight abyssal demons?",
+        "answer": 85,
+        "min": 1,
+        "max": 99,
+        "scale": "linear",
+        "explanation": "85 Slayer, per the abyssal demon's infobox on the OSRS Wiki."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_40db01cebff70d03",
+      "type": "ordering",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "combat"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Attack_speed",
+      "payload": {
+        "prompt": "Sort these weapons by attack speed, fastest to slowest.",
+        "ends": [
+          "Fastest",
+          "Slowest"
+        ],
+        "entries": [
+          {
+            "text": "Dragon dagger",
+            "rank": 1,
+            "detail": "4 ticks"
+          },
+          {
+            "text": "Dragon longsword",
+            "rank": 2,
+            "detail": "5 ticks"
+          },
+          {
+            "text": "Dragon battleaxe",
+            "rank": 3,
+            "detail": "6 ticks"
+          },
+          {
+            "text": "Dharok's greataxe",
+            "rank": 4,
+            "detail": "7 ticks"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "The dagger attacks every 4 ticks, the longsword 5, the battleaxe 6 and Dharok's greataxe 7."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_d7c21ce08d24be77",
+      "type": "multiple_choice",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "combat"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Game_tick",
+      "payload": {
+        "prompt": "How long is one game tick?",
+        "options": [
+          "0.3 seconds",
+          "0.6 seconds",
+          "1 second",
+          "1.2 seconds"
+        ],
+        "answer_index": 1,
+        "explanation": "0.6 seconds, which makes 100 ticks a minute."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_c1296d210b8cea3d",
+      "type": "multiple_choice",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "bosses"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/TzTok-Jad",
+      "payload": {
+        "prompt": "TzTok-Jad rears up, then slams his front legs into the ground. Which prayer do you need?",
+        "options": [
+          "Protect from Melee",
+          "Protect from Missiles",
+          "Protect from Magic",
+          "Redemption"
+        ],
+        "answer_index": 1,
+        "explanation": "That is his Ranged attack, which drops a boulder on you. For Magic he rears up and spits a fireball."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_45b478b339ae9aca",
+      "type": "free_text",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "bosses"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Zombified_Spawn",
+      "payload": {
+        "prompt": "Which spell instantly kills Vorkath's zombified spawn?",
+        "accepted": [
+          "Crumble Undead"
+        ],
+        "explanation": "Crumble Undead is guaranteed to kill it, which is why Vorkath players carry it."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_c8db06fc13da349d",
+      "type": "multiple_choice",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "bosses"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Zulrah/Strategies",
+      "payload": {
+        "prompt": "Which of Zulrah's forms attacks with Melee?",
+        "options": [
+          "Serpentine",
+          "Magma",
+          "Tanzanite",
+          "All of them"
+        ],
+        "answer_index": 1,
+        "explanation": "The red Magma form. Serpentine uses Ranged and Tanzanite Magic and Ranged."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_6ffa1e067d0f0318",
+      "type": "number_slider",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "combat"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Salve_amulet_(e)",
+      "payload": {
+        "prompt": "By what percentage does a salve amulet (e) raise your Melee accuracy and damage against the undead?",
+        "answer": 20,
+        "min": 1,
+        "max": 50,
+        "scale": "linear",
+        "explanation": "20%, where the plain salve amulet gives 16.67%."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_aff4e7a2ed408939",
+      "type": "closest_number",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "combat"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Venom",
+      "payload": {
+        "prompt": "Venom starts at 6 damage and grows with each hit. What is the most one hit of venom can deal?",
+        "answer": 20,
+        "unit": "damage",
+        "explanation": "20. It climbs by 2 a hit from 6, per the OSRS Wiki."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_f65bdc9a335271b6",
+      "type": "free_text",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Brimstone_key",
+      "payload": {
+        "prompt": "Which key can drop from monsters on a task from Konar quo Maten?",
+        "accepted": [
+          "Brimstone key",
+          "Brimstone"
+        ],
+        "explanation": "The brimstone key opens the brimstone chest in Mount Karuulm."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_19167d7beea93bfd",
+      "type": "multiple_choice",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Slayer_Rewards",
+      "payload": {
+        "prompt": "Which Slayer reward teaches you to assemble a Slayer helmet?",
+        "options": [
+          "Bigger and Badder",
+          "Ring Bling",
+          "Malevolent Masquerade",
+          "Broader Fletching"
+        ],
+        "answer_index": 2,
+        "explanation": "Malevolent Masquerade, for 400 Slayer points. It also needs level 55 Crafting."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_697de7d11a474386",
+      "type": "multiple_choice",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "weakness"
+      ],
+      "payload": {
+        "prompt": "Which weapons hit the Corporeal Beast for full damage when they stab?",
+        "options": [
+          "Daggers and rapiers",
+          "Spears and halberds",
+          "Maces and warhammers",
+          "Claws and scimitars"
+        ],
+        "answer_index": 1,
+        "explanation": "Spears and halberds, with Osmumten's fang and a few others. Every other melee weapon does half, per the OSRS Wiki's Corpbane weapons page."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Corpbane_weapons",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_c9050c2e4d4c2ffe",
+      "type": "free_text",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "bosses"
+      ],
+      "payload": {
+        "prompt": "What spawns during the Corporeal Beast fight and leeches Hitpoints from players near it?",
+        "accepted": [
+          "Dark energy core",
+          "Dark core",
+          "Energy core"
+        ],
+        "explanation": "The dark energy core, per the OSRS Wiki's Corporeal Beast page."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Corporeal_Beast",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_86e9052465a63977",
+      "type": "number_slider",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "payload": {
+        "prompt": "What Slayer level do you need to fight the Alchemical Hydra?",
+        "answer": 95,
+        "min": 1,
+        "max": 99,
+        "scale": "linear",
+        "explanation": "95 Slayer, per the Alchemical Hydra's infobox on the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Alchemical_Hydra",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_7897b8d5b9a01755",
+      "type": "multiple_choice",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "bosses"
+      ],
+      "payload": {
+        "prompt": "Which of these is not one of Zulrah's forms?",
+        "options": [
+          "Venom",
+          "Tanzanite",
+          "Serpentine",
+          "Magma"
+        ],
+        "answer_index": 0,
+        "explanation": "Venom. Zulrah switches between its serpentine, magma and tanzanite forms, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Zulrah",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_3c7f6b47d51bf704",
+      "type": "pick_all_that_apply",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "payload": {
+        "prompt": "Which of these bosses can only be fought on a Slayer task?",
+        "options": [
+          "Cerberus",
+          "Alchemical Hydra",
+          "Vorkath",
+          "Abyssal Sire",
+          "Zulrah"
+        ],
+        "answer_indices": [
+          0,
+          1,
+          3
+        ],
+        "explanation": "Cerberus, the Alchemical Hydra and the Abyssal Sire are Slayer bosses: they or their monster must be your task. Zulrah and Vorkath need no task."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Slayer_boss",
+      "difficulty": "medium"
+    }
+  ]
+}

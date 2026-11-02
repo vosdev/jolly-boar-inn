@@ -269,6 +269,7 @@ describe('SuggestionQueue', () => {
         'ScapeRune',
         'Tales of Gielinor',
         'Uri’s Unravelling',
+        'Slayer Master',
         'Who is That NPC?',
       ])
       expect(screen.queryByText('Who asks it')).toBeNull()
@@ -328,6 +329,7 @@ describe('SuggestionQueue', () => {
         'Minigame Madness',
         'Tales of Gielinor',
         'Uri’s Unravelling',
+        'Slayer Master',
         'Sort It Out',
         'Release Order',
       ])

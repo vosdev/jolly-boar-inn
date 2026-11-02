@@ -195,6 +195,15 @@ export const SAMPLES: Record<string, Sample> = {
     answer: 1,
     extra: 5,
   },
+  slayer_master: {
+    mode: 'slayer_master',
+    type: 'multiple_choice',
+    view: {
+      prompt: 'Which item do you need to kill a rockslug?',
+      options: ['Ice cooler', 'Bag of salt', 'Rock hammer', 'Fungicide spray'],
+    },
+    answer: 1,
+  },
   whos_that_npc: {
     mode: 'whos_that_npc',
     type: 'pick_from_list',
