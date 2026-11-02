@@ -269,6 +269,16 @@ const EVERY_TYPE: { type: string; mode: string; view: object; reveal: object }[]
       answer: [2, 0, 1],
     },
   },
+  {
+    type: 'map_pin',
+    mode: 'custom',
+    view: { prompt: 'Where?', pins: 1 },
+    reveal: {
+      prompt: 'Where?',
+      pins: 1,
+      targets: [{ name: 'Falador', x: 2965, y: 3380, radius: 40 }],
+    },
+  },
 ]
 
 /** The types whose `reveal` carries the author's `explanation` (`questions/types/*.py`). */
@@ -281,6 +291,7 @@ const EXPLAINED = [
   'pick_all_that_apply',
   'ordering',
   'matching',
+  'map_pin',
 ]
 
 const entries = [{ id: 6585, name: 'Amulet of fury' }]

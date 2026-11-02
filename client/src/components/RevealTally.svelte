@@ -33,6 +33,8 @@
    * members' points on this question, in the room's order of gods rather than ranked,
    * because a reveal carries no standings.
    *
+   * A map question ranks its pins instead (`PinRanking`), in either form.
+   *
    * Last, the player who suggested the question, when they asked to be named. It sits off
    * the scroll and under everything else, so the reveal reads the same with or without it.
    *
@@ -49,6 +51,7 @@
   import { loadVocab } from '../lib/vocab'
   import { GEMS, type Gem } from './questions/GemButton.svelte'
   import { inPlace, placement } from './questions/types/Ordering.svelte'
+  import PinRanking from './PinRanking.svelte'
   import TeamLogo from './TeamLogo.svelte'
 
   let {
@@ -405,7 +408,9 @@
 
 {#if panel}
   <div class="panel results" role="group" aria-label="Results">
-    {#if rows.length === 0}
+    {#if type === 'map_pin'}
+      <PinRanking {reveal} {results} {unanswered} {nameOf} {youId} />
+    {:else if rows.length === 0}
       <p class="got">Nobody answered this one.</p>
     {:else}
       <p class="got">
@@ -417,25 +422,25 @@
             : 'got it right'}
       </p>
     {/if}
-    <ul class="rows">
-      {#each panelRows as row (row.key)}
-        <li class="row" class:quiet={row.quiet} class:right={row.right}>
-          <span class="chip {row.gem ?? 'none'}" aria-hidden="true"></span>
-          <span class="label">{row.label}</span>
-          <span class="number">{row.players.length}</span>
-          <span class="bar" aria-hidden="true"><i style:width="{row.share * 100}%"></i></span>
-          {#if row.named.length > 0}
-            <span class="names"
-              >{#each row.named as player, index (player.id)}{index > 0 ? ', ' : ''}<span
-                  class="who"
-                  class:you={player.you}>{player.you ? 'You' : player.name}</span
-                >{#if player.guess !== null}{' '}<span class="guess">{player.guess}</span
-                  >{/if}{/each}{#if row.more > 0}{` and ${row.more} more`}{/if}</span
-            >
-          {/if}
-        </li>
-      {/each}
-    </ul>
+    {#if type !== 'map_pin'}<ul class="rows">
+        {#each panelRows as row (row.key)}
+          <li class="row" class:quiet={row.quiet} class:right={row.right}>
+            <span class="chip {row.gem ?? 'none'}" aria-hidden="true"></span>
+            <span class="label">{row.label}</span>
+            <span class="number">{row.players.length}</span>
+            <span class="bar" aria-hidden="true"><i style:width="{row.share * 100}%"></i></span>
+            {#if row.named.length > 0}
+              <span class="names"
+                >{#each row.named as player, index (player.id)}{index > 0 ? ', ' : ''}<span
+                    class="who"
+                    class:you={player.you}>{player.you ? 'You' : player.name}</span
+                  >{#if player.guess !== null}{' '}<span class="guess">{player.guess}</span
+                    >{/if}{/each}{#if row.more > 0}{` and ${row.more} more`}{/if}</span
+              >
+            {/if}
+          </li>
+        {/each}
+      </ul>{/if}
     {#if teamRows.length > 0}
       <p class="head">Teams</p>
       <ul class="teams">
@@ -454,7 +459,9 @@
   </div>
 {:else}
   <div class="tally">
-    {#if rows.length === 0}
+    {#if type === 'map_pin'}
+      <PinRanking {reveal} {results} {unanswered} {nameOf} {youId} />
+    {:else if rows.length === 0}
       <p class="count">Nobody answered this one.</p>
     {:else}
       <p class="count">

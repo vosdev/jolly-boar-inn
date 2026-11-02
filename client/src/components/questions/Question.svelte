@@ -25,7 +25,8 @@
    * `held` is the question's hold while the scroll types it in: the stem is up, and the
    * view waits for the question's `answerable_at`, drawn but invisible and out of reach, so
    * the panel is its full size from the first frame and nothing moves when the answers
-   * fade in. Left out, for a question with no hold, the view gets no wrapper at all.
+   * fade in. Left out, for a question with no hold, the view gets no wrapper at all. A map
+   * is the stage's backdrop, so it stays in sight through the hold, still out of reach.
    * `QuestionStage` and `RandomEvent` do the counting and say when, and how much of the
    * stem is typed (`shown`). `RandomEvent` puts the `explanation` on its scroll itself
    * (`explain` false).
@@ -153,7 +154,13 @@
 
 {#snippet answers()}
   {#if View !== null && held !== undefined}
-    <div class="gate" class:held inert={held} aria-hidden={held ? 'true' : undefined}>
+    <div
+      class="gate"
+      class:held
+      class:backdrop={question.type === 'map_pin'}
+      inert={held}
+      aria-hidden={held ? 'true' : undefined}
+    >
       {@render view()}
     </div>
   {:else if View !== null}
@@ -208,8 +215,26 @@
     transition: opacity 200ms ease-out;
   }
 
-  .gate.held {
+  .gate.held:not(.backdrop) {
     opacity: 0;
+  }
+
+  .gate.backdrop {
+    position: relative;
+    height: 100%;
+  }
+
+  /* The map leaves no room below it. */
+  .gate.backdrop .unscored {
+    position: absolute;
+    z-index: 1000;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    margin: 0;
+    padding: 0.25rem 0.6rem;
+    background: var(--panel);
+    color: var(--ink);
+    border-radius: var(--radius);
   }
 
   @media (prefers-reduced-motion: reduce) {

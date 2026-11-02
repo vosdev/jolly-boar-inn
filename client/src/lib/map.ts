@@ -57,3 +57,33 @@ export function toLatLng(point: WorldPoint): [number, number] {
 export function toWorld(latLng: { lat: number; lng: number }): WorldPoint {
   return { x: Math.floor(latLng.lng), y: Math.floor(latLng.lat) }
 }
+
+/** The tile nearest `point` that lies inside `area`, whose top and right edges are outside it. */
+export function clampTile(point: WorldPoint, area: MapBounds): WorldPoint {
+  return {
+    x: Math.min(Math.max(point.x, area.minX), area.maxX - 1),
+    y: Math.min(Math.max(point.y, area.minY), area.maxY - 1),
+  }
+}
+
+/** The rectangle round `points`, `margin` tiles wider on every side. */
+export function around(points: readonly WorldPoint[], margin: number): MapBounds {
+  const xs = points.map((point) => point.x)
+  const ys = points.map((point) => point.y)
+  return {
+    minX: Math.min(...xs) - margin,
+    maxX: Math.max(...xs) + margin,
+    minY: Math.min(...ys) - margin,
+    maxY: Math.max(...ys) + margin,
+  }
+}
+
+/** Whether `area` lies wholly inside `outer`. */
+export function within(area: MapBounds, outer: MapBounds): boolean {
+  return (
+    area.minX >= outer.minX &&
+    area.maxX <= outer.maxX &&
+    area.minY >= outer.minY &&
+    area.maxY <= outer.maxY
+  )
+}

@@ -50,6 +50,11 @@
    * stage keeps one shape, and one scale, from question to reveal and back. A `wide` TV
    * stage has no panel: its sheet takes the stage's whole width, and narrows to make room
    * for the panel when the next screen brings one.
+   *
+   * A `map` stage is a question answered on the world map: what goes under the line is the
+   * whole stage, as tall as the room leaves it (`--stage-height`), with the sheet on it at the
+   * top left and the speaker at the bottom left. Stacked there is no room for the speaker
+   * until the `reveal`, and on a TV the table stands beside the map.
    */
   import { onMount, type Snippet } from 'svelte'
 
@@ -78,6 +83,7 @@
     presence = 'here',
     tv = false,
     wide = false,
+    map = null,
     root = $bindable(null),
   }: {
     /** A picture to stand in the host's place instead, larger: Home's, from the branding. */
@@ -109,6 +115,8 @@
     tv?: boolean
     /** On the TV, the sheet across the whole stage, with no panel beside it. */
     wide?: boolean
+    /** Under the line is the whole stage, with the sheet and the speaker on top of it. */
+    map?: 'open' | 'reveal' | null
     root?: HTMLElement | null
   } = $props()
 
@@ -158,6 +166,8 @@
   class:tv
   class:wide={tv && wide}
   class:speaks
+  class:map={map !== null}
+  class:pinning={map === 'open'}
   bind:this={root}
 >
   {#if speaks}
@@ -727,6 +737,83 @@
     .stage.tv,
     .tv .stage-row {
       transition: none;
+    }
+  }
+
+  .stage.map {
+    max-width: var(--stage-wide, none);
+    height: var(--stage-height, calc(100dvh - 9rem));
+  }
+
+  .stage.map .under {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+  }
+
+  .stage.map .stage-row,
+  .stage.map .speaker {
+    position: absolute;
+    z-index: 1100;
+    margin: 0;
+    pointer-events: none;
+  }
+
+  .stage.map .stage-row {
+    --scroll-text: 1.1;
+    --scroll-scale: 0.9;
+    top: 1.1rem;
+    left: 1.4rem;
+    width: min(26rem, calc(100% - 7rem));
+  }
+
+  .stage.map .speaker {
+    left: 0.75rem;
+    bottom: 0.75rem;
+    width: min(24rem, calc(100% - 22rem));
+    min-width: 16rem;
+  }
+
+  .stage.map.tv {
+    display: block;
+    min-height: 0;
+    height: var(--tv-min-height, 40rem);
+  }
+
+  .stage.map.tv .under {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 22rem;
+    gap: var(--tv-gap);
+  }
+
+  .stage.map.tv .stage-row {
+    width: 22rem;
+  }
+
+  /* Stacked: the whole width, and the host only for the reveal, over the foot of the map. */
+  @media (max-width: 1023.98px) {
+    .stage.map {
+      max-width: none;
+    }
+
+    .stage.map .stage-row {
+      top: 0.5rem;
+      left: 0.6rem;
+      width: calc(100% - 1.2rem);
+      --scroll-text: 0.85;
+      --scroll-scale: 0.7;
+    }
+
+    .stage.map .speaker {
+      left: 0.5rem;
+      right: 0.5rem;
+      bottom: 0.5rem;
+      width: auto;
+      min-width: 0;
+    }
+
+    .stage.map.pinning .speaker {
+      display: none;
     }
   }
 

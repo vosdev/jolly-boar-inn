@@ -56,6 +56,8 @@ class Settings(BaseSettings):
     # Set by ``make dev-server``: Vite serves ``client/public``, so a missing or stale build
     # must not decide which question pictures exist.
     client_pictures: str = ""
+    # The same for the map's tiles, which ``make gen-map`` writes to ``client/public``.
+    client_map: str = ""
     log_level: Literal["debug", "info", "warning", "error"] = "info"
     # The operator's key to ``/admin``. Empty, the admin routes do not exist.
     admin_token: str = ""

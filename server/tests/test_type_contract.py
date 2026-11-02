@@ -111,6 +111,36 @@ EXAMPLES: dict[str, Example] = {
         scoring=Scoring.SPEED,
         seconds=(16, 6),
     ),
+    "map_pin": Example(
+        payload={
+            "intro": "A traveller asks the way.",
+            "prompt": "Pin Falador and Varrock.",
+            "targets": [
+                {"name": "Falador", "x": 2965, "y": 3380, "radius": 40},
+                {"name": "Varrock", "x": 3213, "y": 3424, "radius": 40},
+            ],
+            "bounds": {"min_x": 2800, "max_x": 3400, "min_y": 3200, "max_y": 3600},
+            "image": "npc:2042",
+            "explanation": "Both are capitals.",
+        },
+        valid=[
+            [{"x": 2965, "y": 3380}, {"x": 3213, "y": 3424}],
+            [{"x": 3213, "y": 3424}, {"x": 2965, "y": 3380}],
+            [{"x": 2800, "y": 3200}, {"x": 3399, "y": 3599}],
+        ],
+        invalid=[
+            [{"x": 2965, "y": 3380}],
+            [{"x": 2799, "y": 3380}, {"x": 3213, "y": 3424}],
+            [{"x": 2965, "y": 3380}, {"x": 3400, "y": 3424}],
+            {"x": 2965, "y": 3380},
+            "2965,3380",
+        ],
+        right=[{"x": 2965, "y": 3380}, {"x": 3213, "y": 3424}],
+        wrong=[{"x": 2800, "y": 3200}, {"x": 2801, "y": 3200}],
+        secret=frozenset({"targets", "explanation", "name", "radius", "x", "y"}),
+        scoring=Scoring.ACCURACY,
+        seconds=(40, 12),
+    ),
     "closest_number": Example(
         payload={
             "prompt": "How many Zulrah kills did it take?",

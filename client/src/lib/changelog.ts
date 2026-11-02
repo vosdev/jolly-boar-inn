@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.237.0',
+    date: '2026-11-02',
+    text: 'Engine work for map questions.',
+  },
+  {
     version: '0.236.0',
     date: '2026-11-02',
     text: 'The inn now keeps its own copy of the world map, ready for the map rounds to come.',

@@ -24,6 +24,7 @@ from typing import Any
 from app.questions.types import (
     closest_number,
     free_text,
+    map_pin,
     matching,
     more_less,
     multiple_choice,
@@ -47,6 +48,7 @@ TYPES: dict[str, ModuleType] = {
     "pick_all_that_apply": pick_all_that_apply,
     "ordering": ordering,
     "matching": matching,
+    "map_pin": map_pin,
 }
 
 

@@ -37,6 +37,8 @@ export interface Look {
   within?: number
   tv?: boolean
   wide?: boolean
+  /** What goes under the line fills the stage, with the sheet and the speaker on top of it. */
+  map?: 'open' | 'reveal' | null
   /** Whoever speaks stands above the sheet with a bubble; null or none, beside it. */
   bubble?: Bubble | null
 }

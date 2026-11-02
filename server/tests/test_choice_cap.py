@@ -25,6 +25,7 @@ NOT_CHOICES = {
     "/$defs/ordering/properties/answer": "the right order of the entries, never buttons",
     "/$defs/matching/properties/fields": "the places options are dropped on, never buttons",
     "/$defs/matching/properties/answer": "the option on each field, never buttons",
+    "/$defs/map_pin/properties/targets": "places on the map, a pin each, never buttons",
 }
 
 

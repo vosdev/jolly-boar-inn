@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import pin from '../../../data/map.json'
-import { flipRow, tileAt, tileUrl, toLatLng, toWorld } from './map'
+import { around, clampTile, flipRow, tileAt, tileUrl, toLatLng, toWorld, within } from './map'
 
 describe('the map grid', () => {
   it('finds the tile that holds a game tile', () => {
@@ -28,5 +28,38 @@ describe('the map grid', () => {
 
   it('reads the tile under a point anywhere inside it', () => {
     expect(toWorld({ lat: 3380.99, lng: 2965.01 })).toEqual({ x: 2965, y: 3380 })
+  })
+})
+
+describe('clampTile', () => {
+  const area = { minX: 100, maxX: 200, minY: 300, maxY: 400 }
+
+  it('leaves a tile inside alone', () => {
+    expect(clampTile({ x: 150, y: 350 }, area)).toEqual({ x: 150, y: 350 })
+  })
+
+  it('brings a tile in, and the top and right edges are outside', () => {
+    expect(clampTile({ x: 99, y: 400 }, area)).toEqual({ x: 100, y: 399 })
+  })
+})
+
+describe('around', () => {
+  it('holds every point with a margin', () => {
+    const area = around(
+      [
+        { x: 10, y: 20 },
+        { x: 30, y: 5 },
+      ],
+      2,
+    )
+    expect(area).toEqual({ minX: 8, maxX: 32, minY: 3, maxY: 22 })
+  })
+})
+
+describe('within', () => {
+  it('says whether one rectangle holds another', () => {
+    const outer = { minX: 0, maxX: 10, minY: 0, maxY: 10 }
+    expect(within({ minX: 1, maxX: 9, minY: 1, maxY: 9 }, outer)).toBe(true)
+    expect(within({ minX: 1, maxX: 11, minY: 1, maxY: 9 }, outer)).toBe(false)
   })
 })

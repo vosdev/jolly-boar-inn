@@ -1,0 +1,162 @@
+[
+  {
+    "about": "one pin inside",
+    "targets": [
+      {
+        "name": "A",
+        "x": 2000,
+        "y": 3000,
+        "radius": 40
+      }
+    ],
+    "pins": [
+      {
+        "x": 2010,
+        "y": 3000
+      }
+    ],
+    "pairing": [0],
+    "credit": 1.0
+  },
+  {
+    "about": "one pin far outside",
+    "targets": [
+      {
+        "name": "A",
+        "x": 2000,
+        "y": 3000,
+        "radius": 40
+      }
+    ],
+    "pins": [
+      {
+        "x": 2340,
+        "y": 3000
+      }
+    ],
+    "pairing": [0],
+    "credit": 0.36787944117144233
+  },
+  {
+    "about": "two pins swapped",
+    "targets": [
+      {
+        "name": "A",
+        "x": 2000,
+        "y": 3000,
+        "radius": 40
+      },
+      {
+        "name": "B",
+        "x": 2500,
+        "y": 3000,
+        "radius": 40
+      }
+    ],
+    "pins": [
+      {
+        "x": 2500,
+        "y": 3000
+      },
+      {
+        "x": 2000,
+        "y": 3000
+      }
+    ],
+    "pairing": [1, 0],
+    "credit": 1.0
+  },
+  {
+    "about": "nearest first would strand the second pin",
+    "targets": [
+      {
+        "name": "A",
+        "x": 2000,
+        "y": 3000,
+        "radius": 5
+      },
+      {
+        "name": "B",
+        "x": 2030,
+        "y": 3000,
+        "radius": 5
+      }
+    ],
+    "pins": [
+      {
+        "x": 2014,
+        "y": 3000
+      },
+      {
+        "x": 1950,
+        "y": 3000
+      }
+    ],
+    "pairing": [1, 0],
+    "credit": 0.9123526953480365
+  },
+  {
+    "about": "a region shortens the falloff",
+    "targets": [
+      {
+        "name": "A",
+        "x": 3200,
+        "y": 2900,
+        "radius": 5
+      }
+    ],
+    "pins": [
+      {
+        "x": 3240,
+        "y": 2900
+      }
+    ],
+    "bounds": {
+      "min_x": 3100,
+      "max_x": 3400,
+      "min_y": 2800,
+      "max_y": 3100
+    },
+    "pairing": [0],
+    "credit": 0.3114032239145977
+  },
+  {
+    "about": "three pins, one wild",
+    "targets": [
+      {
+        "name": "A",
+        "x": 2660,
+        "y": 3660,
+        "radius": 30
+      },
+      {
+        "name": "B",
+        "x": 2900,
+        "y": 3545,
+        "radius": 30
+      },
+      {
+        "name": "C",
+        "x": 2662,
+        "y": 3305,
+        "radius": 30
+      }
+    ],
+    "pins": [
+      {
+        "x": 2960,
+        "y": 3210
+      },
+      {
+        "x": 2780,
+        "y": 3640
+      },
+      {
+        "x": 3050,
+        "y": 3470
+      }
+    ],
+    "pairing": [2, 0, 1],
+    "credit": 0.5860882907982766
+  }
+]
