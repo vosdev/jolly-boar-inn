@@ -2,6 +2,7 @@
 .github
 ideas
 .pictures
+.map
 .env
 **/node_modules
 **/.venv

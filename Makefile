@@ -11,6 +11,8 @@ DEV_COMPOSE := docker compose -p jbi-dev -f docker-compose.dev.yml
 DATA := HOST_UID=$$(id -u) HOST_GID=$$(id -g) docker compose -f docker-compose.data.yml run --rm --build data python
 # `make logo` alone needs OpenCV and NumPy, so it has its own image on top of the data one.
 LOGO := HOST_UID=$$(id -u) HOST_GID=$$(id -g) docker compose -f docker-compose.data.yml run --rm --build logo python
+# `make gen-map` alone needs Java, so it has its own image too.
+MAP := HOST_UID=$$(id -u) HOST_GID=$$(id -g) docker compose -f docker-compose.data.yml run --rm --build map python
 
 # Postgres server the test suite creates throwaway databases on. Defaults to the dev
 # database above; override with `make test DATABASE_URL_TEST=...`.
@@ -21,6 +23,7 @@ DATABASE_URL_TEST ?= postgresql://jbi:jbi@localhost:5432/jbi
 # The owner's logo is redrawn only when .env uses it.
 all:
 	$(MAKE) fetch-assets
+	$(MAKE) gen-map
 	$(MAKE) gen-price-questions
 	@if grep -q '^PUBLIC_SITE_LOGO=branding/boar/' .env 2>/dev/null; then $(MAKE) logo; fi
 	docker compose build --build-arg VERSION=$(VERSION)
@@ -158,6 +161,13 @@ FETCH_ASSETS_FLAGS = $(if $(filter 1,$(FORCE)),--force) $(if $(filter 1,$(DRY_RU
 	$(foreach c,$(ONLY),--only $(c)) $(if $(FROM_DIR),--from-dir $(FROM_DIR))
 fetch-assets:
 	$(DATA) scripts/fetch_assets.py $(strip $(FETCH_ASSETS_FLAGS))
+
+# Render the surface map from the game cache data/map.json pins into client/public/map/, about
+# 2 minutes and 35 MB. Never part of test or the image build, and never committed: run it before
+# `make image`, which bundles what is on disk. Sends nothing once that cache's tiles are complete.
+# Change the pin to update the map (ideas/architecture.md, section 12).
+gen-map:
+	$(MAP) scripts/gen_map.py
 
 # The owner's logo, drawn from the art `make fetch-assets ONLY=logo` fetched, into branding/boar/
 # (git-ignored). Use it with PUBLIC_SITE_LOGO=branding/boar/logo.svg in .env: the hero and

@@ -1,5 +1,5 @@
 """The wiki's rules: the operator's own User-Agent or nothing is sent, one request a second,
-and no script reaches the network any other way."""
+and no script reaches the network any other way, bar the game cache, which is not the wiki's."""
 
 import ast
 import sys
@@ -17,6 +17,8 @@ import wiki  # noqa: E402
 
 # They talk only to this app's own server, never to the wiki.
 LOCAL_ONLY = {"smoke_ws.py": "the running app", "loadtest.py": "the running app"}
+# One archive from OpenRS2, which has none of the wiki's rules and is too large for wiki.py.
+OPENRS2 = {"gen_map.py": "the pinned game cache"}
 NETWORK_MODULES = {"urllib.request", "http.client", "httpx", "requests", "aiohttp", "urllib3"}
 
 
@@ -134,7 +136,8 @@ def test_no_script_reaches_the_network_but_through_wiki_py() -> None:
     offenders = {
         path.name: sorted(imported)
         for path in sorted(SCRIPTS.glob("*.py"))
-        if path.name not in {"wiki.py", *LOCAL_ONLY} and (imported := network_imports(path))
+        if path.name not in {"wiki.py", *LOCAL_ONLY, *OPENRS2}
+        and (imported := network_imports(path))
     }
     assert offenders == {}
 

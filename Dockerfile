@@ -9,9 +9,10 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile
 COPY client/ ./
 # What the client reads from outside client/: the random-name corpus, the question schema
-# the editor's limits come from, and the pet list with the manifest that says which have art.
+# the editor's limits come from, the pet list with the manifest that says which have art, and
+# the map's pin, which names the folder its tiles are in.
 COPY data/player-names.json ../data/player-names.json
-COPY data/pets.json data/assets.json ../data/
+COPY data/pets.json data/assets.json data/map.json ../data/
 COPY schema/question.schema.json ../schema/question.schema.json
 # The app's version, which the top bar shows (ideas/architecture.md, Versioning).
 COPY VERSION ../VERSION
@@ -75,6 +76,20 @@ RUN --mount=from=builder,source=/usr/local/bin/uv,target=/usr/local/bin/uv \
     --mount=type=cache,target=/root/.cache/uv \
     UV_CACHE_DIR=/root/.cache/uv UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PYTHON_DOWNLOADS=never \
     uv sync --project /app/server --locked --no-default-groups --group logo --no-install-project --inexact
+
+# ---- Map: the data stage plus Java, for `make gen-map` alone ------------------
+# Maven only builds the renderer: what it fetches is cached, and the JRE that runs it is
+# Debian's, so the map image stays one layer on top of the data one.
+FROM maven:3.9.16-eclipse-temurin-17 AS map-render
+WORKDIR /build
+COPY server/scripts/map_render/ ./
+RUN --mount=type=cache,target=/root/.m2 mvn -q -B package
+
+FROM data AS map
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends openjdk-17-jre-headless \
+    && rm -rf /var/lib/apt/lists/*
+COPY --from=map-render /build/target/*.jar /opt/map-render/
 
 # ---- Stage 3: runtime ------------------------------------------------------
 # Same image the uv base is built from, so the venv's interpreter symlink into

@@ -58,6 +58,9 @@
    is a stretch of wall, and the green is the windows. */
 :root,
 [data-theme='jolly'] {
+  /* The map's own black, off the tiles: no theme repaints it. */
+  --map-void: #000;
+
   /* 1. Surface. --bg is the floor, --panel the plaster. */
   --bg: #3b321d;
   --panel: #f2e5bf;

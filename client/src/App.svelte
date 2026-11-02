@@ -14,6 +14,7 @@
    *   /suggest         A question for the packs, linked from Home once this browser has played
    *   /report          A problem with a pack question, linked from the same place
    *   /daily           The day's set, played alone and once
+   *   /dev/map         The world map on its own, under `pnpm dev` only
    *
    * `/r/:code/admin` was the claim screen. It still matches, and now resolves like
    * `/r/:code`: somebody holding a stale host link knows the code, and sending them to
@@ -65,6 +66,7 @@
     | { name: 'suggest' }
     | { name: 'report' }
     | { name: 'daily' }
+    | { name: 'dev-map' }
 
   // Section 1 lists `/r/:code/create` as well; it resolves to the same Create screen.
   const ROOM_PATH = /^\/r\/([A-Za-z0-9]{1,32})(?:\/(admin|create))?$/
@@ -82,6 +84,7 @@
     if (path === '/suggest') return { name: 'suggest' }
     if (path === '/report') return { name: 'report' }
     if (path === '/daily') return { name: 'daily' }
+    if (import.meta.env.DEV && path === '/dev/map') return { name: 'dev-map' }
     const view = howToViewOf(path, SHOWN)
     if (view !== null) return { name: 'how-to', view }
     const past = HISTORY_PATH.exec(path)
@@ -151,6 +154,7 @@
       route.name !== 'report' &&
       route.name !== 'how-to' &&
       route.name !== 'daily' &&
+      route.name !== 'dev-map' &&
       !invite &&
       (location.hash !== '' || currentPath().endsWith('/admin'))
     ) {
@@ -212,6 +216,12 @@
         <Report {navigate} />
       {:else if route.name === 'daily'}
         <Daily {navigate} />
+      {:else if route.name === 'dev-map'}
+        {#if import.meta.env.DEV}
+          {#await import('./routes/DevMap.svelte') then { default: DevMap }}
+            <DevMap />
+          {/await}
+        {/if}
       {:else if route.name === 'history'}
         {#key `${route.code}/${route.stamp}`}
           <History code={route.code} stamp={route.stamp} {navigate} />
