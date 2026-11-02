@@ -6,7 +6,9 @@
    * plays it in `Room`, which knows a daily room by `room.daily`. Opening the page again
    * while an attempt runs, or after one today, goes straight to the server, which resumes
    * the attempt with a fresh session or refuses with `daily_played`. Either end, finishing
-   * or that refusal, shows the result (`DailyResult`), fetched for the attempt's own day.
+   * or that refusal, shows the result (`DailyResult`) for the attempt's own day. An attempt
+   * left unfinished here may have run out on the server since, so that is asked first: a
+   * start would otherwise begin today's without a word.
    *
    * The name is the profile's, else a generated one. Nobody else sees it.
    */
@@ -45,13 +47,26 @@
     void (async () => {
       try {
         const today = await getDaily()
-        if (resumes(lastDaily(), today.day)) await begin(today)
+        const last = lastDaily()
+        if (last !== null && !last.finished && (await ranOut(last.day))) return
+        if (resumes(last, today.day)) await begin(today)
         else view = { name: 'intro', today }
       } catch {
         view = { name: 'error', message: 'The daily is not available right now.' }
       }
     })()
   })
+
+  /** Show `day`'s result if its attempt is over; whether it was. */
+  async function ranOut(day: string): Promise<boolean> {
+    try {
+      show(await getDailyResult(dailyToken(), day))
+      return true
+    } catch (error) {
+      if (error instanceof ApiFailure && error.code === 'no_result') return false
+      throw error
+    }
+  }
 
   async function begin(today: DailyToday): Promise<void> {
     starting = true
@@ -68,8 +83,7 @@
       view = { name: 'playing', code }
     } catch (error) {
       if (error instanceof ApiFailure && error.code === 'daily_played') {
-        noteDaily({ day: today.day, finished: true })
-        await showResult(today.day)
+        show((error.body as { result: DailyResult }).result)
       } else {
         view = { name: 'error', message: error instanceof Error ? error.message : String(error) }
       }
@@ -78,11 +92,15 @@
     }
   }
 
+  function show(result: DailyResult): void {
+    noteDaily({ day: result.day, finished: true })
+    saveScore(result)
+    view = { name: 'result', result }
+  }
+
   async function showResult(day: string): Promise<void> {
     try {
-      const result = await getDailyResult(dailyToken(), day)
-      saveScore(result)
-      view = { name: 'result', result }
+      show(await getDailyResult(dailyToken(), day))
     } catch (error) {
       view = { name: 'error', message: error instanceof Error ? error.message : String(error) }
     }

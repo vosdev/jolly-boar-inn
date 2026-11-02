@@ -45,6 +45,7 @@ const RESULT: DailyResult = {
     'right',
   ],
 }
+const NO_RESULT = new ApiFailure(404, 'no_result', 'no finished daily for that day')
 const navigate = vi.fn()
 
 beforeEach(() => {
@@ -53,7 +54,7 @@ beforeEach(() => {
   profile.set(null)
   vi.mocked(api.getDaily).mockResolvedValue(TODAY)
   vi.mocked(api.startDaily).mockResolvedValue({ code: 'AbyssalWhip', session: 'secret' })
-  vi.mocked(api.getDailyResult).mockResolvedValue(RESULT)
+  vi.mocked(api.getDailyResult).mockRejectedValue(NO_RESULT)
 })
 
 afterEach(() => {
@@ -97,6 +98,25 @@ describe('/daily', () => {
     expect(lastDaily()?.day).toBe('2026-10-30')
   })
 
+  it('shows an attempt that ran out while away, and starts nothing', async () => {
+    noteDaily({ day: '2026-10-30', finished: false })
+    vi.mocked(api.getDailyResult).mockResolvedValue({ ...RESULT, day: '2026-10-30', number: 11 })
+    render(Daily, { navigate })
+    await screen.findByRole('heading', { name: 'Daily #11' })
+    expect(api.startDaily).not.toHaveBeenCalled()
+    expect(api.getDailyResult).toHaveBeenCalledWith(dailyToken(), '2026-10-30')
+    expect(lastDaily()).toEqual({ day: '2026-10-30', finished: true })
+    expect(dailyScores().map((score) => score.number)).toEqual([11])
+  })
+
+  it('starts nothing when it cannot tell whether an attempt finished', async () => {
+    noteDaily({ day: '2026-10-30', finished: false })
+    vi.mocked(api.getDailyResult).mockRejectedValue(new ApiFailure(0, 'unreachable', 'no server'))
+    render(Daily, { navigate })
+    await screen.findByText('The daily is not available right now.')
+    expect(api.startDaily).not.toHaveBeenCalled()
+  })
+
   it('offers Start again the day after a finished one', async () => {
     noteDaily({ day: '2026-10-30', finished: true })
     render(Daily, { navigate })
@@ -107,18 +127,35 @@ describe('/daily', () => {
   it('shows the result on a second visit that day', async () => {
     noteDaily({ day: TODAY.day, finished: true })
     vi.mocked(api.startDaily).mockRejectedValue(
-      new ApiFailure(409, 'daily_played', 'you have played today’s daily already'),
+      new ApiFailure(409, 'daily_played', 'you have played today’s daily already', undefined, {
+        result: RESULT,
+      }),
     )
     render(Daily, { navigate })
     await screen.findByRole('heading', { name: 'Daily #12' })
     expect(screen.getByRole('button', { name: 'Copy your result' })).toBeTruthy()
-    expect(api.getDailyResult).toHaveBeenCalledWith(dailyToken(), TODAY.day)
+    expect(api.getDailyResult).not.toHaveBeenCalled()
+  })
+
+  it('takes the refused day from the server, past a rollover on the intro', async () => {
+    const next = { ...RESULT, day: '2026-11-01', number: 13 }
+    vi.mocked(api.startDaily).mockRejectedValue(
+      new ApiFailure(409, 'daily_played', 'you have played today’s daily already', undefined, {
+        result: next,
+      }),
+    )
+    render(Daily, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: 'Start' }))
+    await screen.findByRole('heading', { name: 'Daily #13' })
+    expect(lastDaily()).toEqual({ day: '2026-11-01', finished: true })
+    expect(dailyScores().map((score) => score.day)).toEqual(['2026-11-01'])
   })
 
   it('shows the result for the attempt’s own day when it finishes', async () => {
     noteDaily({ day: '2026-10-30', finished: false })
     render(Daily, { navigate })
     await vi.waitFor(() => expect(getSession('AbyssalWhip')).toBe('secret'))
+    vi.mocked(api.getDailyResult).mockResolvedValue({ ...RESULT, day: '2026-10-30', number: 11 })
     applyServerMessage({
       t: 'welcome',
       room: {
@@ -168,7 +205,7 @@ describe('/daily', () => {
     })
     await screen.findByRole('button', { name: 'Copy your result' })
     expect(api.getDailyResult).toHaveBeenCalledWith(dailyToken(), '2026-10-30')
-    expect(dailyScores().map((score) => score.number)).toEqual([RESULT.number])
+    expect(dailyScores().map((score) => score.number)).toEqual([11])
     expect(lastDaily()).toEqual({ day: '2026-10-30', finished: true })
   })
 })

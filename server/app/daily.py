@@ -183,7 +183,11 @@ async def daily_set(
     day = day_of(now)
     questions = await _stored(pool, day)
     if questions is None:
-        rows = await pool.fetch("select day, questions from daily_sets order by day")
+        # A question used longer ago than this has rested, the same as one never used.
+        rows = await pool.fetch(
+            "select day, questions from daily_sets where day > $1 order by day",
+            day - timedelta(days=REST_DAYS),
+        )
         last_used = {reuse_key(q): row["day"] for row in rows for q in row["questions"]}
         drawn = draw(candidates(packs, settings, pictures), last_used, day, rng)
         if drawn is None:

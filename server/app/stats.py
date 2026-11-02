@@ -50,8 +50,8 @@ JoinFailure = Literal[
     "request_denied",
 ]
 
-# ``Metric.DAILY``'s keys: attempts started and finished, and the finished ones' sums.
-DailyKey = Literal["started", "finished", "points", "correct"]
+# ``Metric.DAILY``'s keys: attempts started, finished and run out, and the finished ones' sums.
+DailyKey = Literal["started", "finished", "ran_out", "points", "correct"]
 
 
 class Metric(StrEnum):
@@ -94,8 +94,9 @@ class Metric(StrEnum):
     # The day's highest, never a sum: connected players, and the unfinished rooms with any.
     PEAK_PLAYERS = "peak_players"
     PEAK_ROOMS = "peak_rooms"
-    # Daily attempts, keyed ``started`` and ``finished``; ``points`` and ``correct`` sum the
-    # finished ones', so each over ``finished`` is the day's average. No game metric counts one.
+    # Daily attempts, keyed ``started``, ``finished`` and ``ran_out`` (nobody there at the end);
+    # ``points`` and ``correct`` sum the finished ones', so each over ``finished`` is the day's
+    # average. No game metric counts one.
     DAILY = "daily"
 
 

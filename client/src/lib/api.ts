@@ -31,13 +31,22 @@ export class ApiFailure extends Error {
   readonly code: string
   /** From a 429's `Retry-After`: how long until the server takes the request again. */
   readonly retryAfterMs: number | undefined
+  /** The response as it came, for a refusal that carries more than its code. */
+  readonly body: unknown
 
-  constructor(status: number, code: string, message: string, retryAfterMs?: number) {
+  constructor(
+    status: number,
+    code: string,
+    message: string,
+    retryAfterMs?: number,
+    body: unknown = null,
+  ) {
     super(message)
     this.name = 'ApiFailure'
     this.status = status
     this.code = code
     this.retryAfterMs = retryAfterMs
+    this.body = body
   }
 }
 
@@ -66,6 +75,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       code,
       message,
       Number.isFinite(retryAfter) ? retryAfter * 1000 : undefined,
+      body,
     )
   }
   return body as T
@@ -255,7 +265,7 @@ export function getDaily(): Promise<DailyToday> {
 
 /**
  * Start this browser's daily, or resume its unfinished one: the room and a fresh session.
- * A daily played today is a 409 `daily_played`. The token goes in the body, like a session.
+ * A daily played today is a 409 `daily_played` with its `result` in the failure's `body`. The token goes in the body, like a session.
  */
 export function startDaily(
   token: string,

@@ -91,7 +91,7 @@ async def start(body: StartDaily, request: Request) -> dict[str, Any] | JSONResp
 @router.post("/result")
 async def result(body: ResultOf, request: Request) -> dict[str, Any]:
     """This token's finished attempt on ``day``, for the end screen; it starts nothing."""
-    found = await manager(request).daily_result(body.token, body.day)
+    found = await manager(request).daily_result(body.token, body.day, datetime.now(UTC))
     if found is None:
         raise NoResult("no finished daily for that day")
     return result_view(found)

@@ -96,16 +96,21 @@ async def record_close(
 
 
 async def finish_attempt(conn: asyncpg.Connection, room: Room, at: datetime) -> None:
-    """Close a daily room's attempt and count it; call inside the finish's transaction."""
+    """Close a daily room's attempt and count it; call inside the finish's transaction.
+
+    With nobody connected the timer ran it out, and its near-empty score is no player's.
+    """
     row = await conn.fetchrow(
         "update daily_attempts set finished_at = $2 where room_id = $1 returning points, results",
         room.id,
         at,
     )
+    if not room.sockets:
+        await bump(conn, Metric.DAILY, "ran_out")
+        return
     await bump(conn, Metric.DAILY, "finished")
-    if row is not None:
-        await bump(conn, Metric.DAILY, "points", row["points"])
-        await bump(conn, Metric.DAILY, "correct", row["results"].count("right"))
+    await bump(conn, Metric.DAILY, "points", row["points"])
+    await bump(conn, Metric.DAILY, "correct", row["results"].count("right"))
 
 
 class DailyRooms:
@@ -165,28 +170,40 @@ class DailyRooms:
                 except RoomNotFound, RoomExpired:
                     pass
             if not finished:
-                # Its room is gone, so it can never finish: what it played is its result.
-                await pool.execute(
-                    "update daily_attempts set finished_at = $3"
-                    " where day = $1 and token_hash = $2 and finished_at is null",
-                    row["day"],
-                    token_hash,
-                    now,
-                )
+                row = await self._end_roomless(row["day"], token_hash, now)
             if row["day"] == day:
                 raise DailyPlayed(self._daily_result(row["day"], row["points"], row["results"]))
         return None
 
-    async def daily_result(self, token: str, day: date) -> DailyResult | None:
-        """This token's finished attempt on ``day``, or ``None``: an end screen's numbers."""
+    async def _end_roomless(self, day: date, token_hash: str, now: datetime) -> asyncpg.Record:
+        """An attempt whose room is gone can never finish: what it played is its result.
+
+        Returns the row as stored, since a room can finish between the caller's read and this.
+        """
         pool = await self._pool()
-        row = await pool.fetchrow(
-            "select points, results from daily_attempts"
-            " where day = $1 and token_hash = $2 and finished_at is not null",
+        return await pool.fetchrow(
+            "update daily_attempts set finished_at = coalesce(finished_at, $3)"
+            " where day = $1 and token_hash = $2 returning day, points, results",
             day,
-            hash_token(token),
+            token_hash,
+            now,
         )
-        return None if row is None else self._daily_result(day, row["points"], row["results"])
+
+    async def daily_result(self, token: str, day: date, now: datetime) -> DailyResult | None:
+        """This token's over attempt on ``day``, or ``None``: an end screen's numbers."""
+        pool = await self._pool()
+        token_hash = hash_token(token)
+        row = await pool.fetchrow(
+            "select day, points, results, finished_at, room_id from daily_attempts"
+            " where day = $1 and token_hash = $2",
+            day,
+            token_hash,
+        )
+        if row is None or (row["finished_at"] is None and row["room_id"] is not None):
+            return None
+        if row["finished_at"] is None:
+            row = await self._end_roomless(day, token_hash, now)
+        return self._daily_result(day, row["points"], row["results"])
 
     def _daily_result(self, day: date, points: int, results: Sequence[str]) -> DailyResult:
         number = number_of(day, self.settings.daily_first_day)

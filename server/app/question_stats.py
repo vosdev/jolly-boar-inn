@@ -5,8 +5,8 @@ so a close that rolls back adds nothing. It sums credit, not points: speed bucke
 games would skew points. Only hand-written pack questions count, the NPCs' included: no
 host or voided question, and no price mode, whose pack is regenerated from the roster.
 Admins' answers are left out, and so is a close with fewer than two other players, since a
-solo player learns the questions by repeating them. A daily room's one player counts: a
-daily is played once, so each answer is a first sight.
+solo player learns the questions by repeating them. A daily room's one player counts while
+connected: a daily is played once, so each answer is a first sight.
 """
 
 from collections.abc import Iterable, Mapping
@@ -36,13 +36,10 @@ async def record(
     """Add a graded close's answers, with ``credit`` per player who answered, to its row."""
     if not counts(question):
         return
-    if room.daily is not None:
-        players = {pid for pid in room.players if room.can_answer(question, pid)}
-    else:
-        present = {pid for pid in room.sockets if room.can_answer(question, pid)} | set(credit)
-        players = {pid for pid in present if not room.is_admin(pid)}
-        if len(players) < MIN_PLAYERS:
-            return
+    present = {pid for pid in room.sockets if room.can_answer(question, pid)} | set(credit)
+    players = {pid for pid in present if not room.is_admin(pid)}
+    if len(players) < (1 if room.daily is not None else MIN_PLAYERS):
+        return
     got = [credit[pid] for pid in players if pid in credit]
     await conn.execute(
         "insert into question_stats"

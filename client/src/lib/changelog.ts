@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.235.1',
+    date: '2026-11-02',
+    text: "A Daily left unfinished no longer uses up today's try.",
+  },
+  {
     version: '0.235.0',
     date: '2026-11-02',
     text: 'New round, Slayer Master: Konar quo Maten tests your weaknesses, tasks and boss mechanics.',
