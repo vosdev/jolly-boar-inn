@@ -11,11 +11,11 @@ import type { PlayerResult, PlayerView } from '../../lib/protocol'
 import { players, you } from '../../lib/stores'
 import MapPin from './types/MapPin.svelte'
 
-const SARIM = { name: 'Port Sarim', x: 3028, y: 3217, radius: 40 }
+const SARIM = { name: 'Port Sarim', min_x: 3008, max_x: 3060, min_y: 3180, max_y: 3260 }
 const TOWNS = [
   SARIM,
-  { name: 'Rellekka', x: 2660, y: 3660, radius: 30 },
-  { name: 'Ardougne', x: 2662, y: 3305, radius: 30 },
+  { name: 'Rellekka', min_x: 2620, max_x: 2700, min_y: 3620, max_y: 3700 },
+  { name: 'Ardougne', min_x: 2620, max_x: 2700, min_y: 3270, max_y: 3340 },
 ]
 
 function player(index: number): PlayerView {
@@ -39,7 +39,10 @@ function resultsFor(count: number, pins: number): Record<string, PlayerResult> {
   const rows: Record<string, PlayerResult> = {}
   for (let index = 0; index < count; index++) {
     rows[`p${index}`] = result(
-      TOWNS.slice(0, pins).map((town) => ({ x: town.x + 200 + index * 40, y: town.y })),
+      TOWNS.slice(0, pins).map((town) => ({
+        x: town.max_x + 200 + index * 40,
+        y: town.min_y,
+      })),
     )
   }
   return rows
@@ -138,7 +141,7 @@ describe('MapPin', () => {
 
   it('reveals a pin and a line per player and names the target', async () => {
     const { container } = setup({
-      data: { prompt: 'Where?', pins: 1, targets: [SARIM] },
+      data: { prompt: 'Where?', pins: 1, targets: [SARIM], reach: 100 },
       revealed: true,
       yourValue: [{ x: 3228, y: 3217 }],
       results: resultsFor(3, 1),
@@ -151,10 +154,23 @@ describe('MapPin', () => {
     expect(screen.getByText('Player 2')).toBeTruthy()
   })
 
+  it('draws a box for each target and sends a line to its edge', async () => {
+    const { container } = setup({
+      data: { prompt: 'Where?', pins: 1, targets: [SARIM], reach: 100 },
+      revealed: true,
+      yourValue: [{ x: 3100, y: 3220 }],
+      results: { p0: result([{ x: 3100, y: 3220 }]) },
+    })
+    await loaded(container)
+    await waitFor(() => expect(pins(container)).toHaveLength(1))
+    expect(container.querySelectorAll('.map-ring')).toHaveLength(2)
+    expect(screen.getByText('40 tiles')).toBeTruthy()
+  })
+
   it('starts close on the answer and pulls back to fit every pin', async () => {
     const start = Date.now()
     const { container } = setup({
-      data: { prompt: 'Where?', pins: 1, targets: [SARIM] },
+      data: { prompt: 'Where?', pins: 1, targets: [SARIM], reach: 100 },
       revealed: true,
       yourValue: [{ x: 3228, y: 3217 }],
       results: { ...resultsFor(2, 1), far: result([{ x: 1000, y: 3217 }]) },
@@ -168,7 +184,7 @@ describe('MapPin', () => {
 
   it('shows everyone’s pins with five who pinned several', async () => {
     const { container } = setup({
-      data: { prompt: 'Where?', pins: 3, targets: TOWNS },
+      data: { prompt: 'Where?', pins: 3, targets: TOWNS, reach: 100 },
       revealed: true,
       yourValue: resultsFor(1, 3).p0?.value,
       results: resultsFor(5, 3),
@@ -179,7 +195,7 @@ describe('MapPin', () => {
 
   it('keeps to your own pins with more than five who pinned several', async () => {
     const { container } = setup({
-      data: { prompt: 'Where?', pins: 3, targets: TOWNS },
+      data: { prompt: 'Where?', pins: 3, targets: TOWNS, reach: 100 },
       revealed: true,
       yourValue: resultsFor(1, 3).p0?.value,
       results: resultsFor(6, 3),
@@ -192,7 +208,7 @@ describe('MapPin', () => {
   it('shows a TV no pin in a crowd, only the targets', async () => {
     you.set({ ...player(11), role: 'tv' })
     const { container } = setup({
-      data: { prompt: 'Where?', pins: 3, targets: TOWNS },
+      data: { prompt: 'Where?', pins: 3, targets: TOWNS, reach: 100 },
       revealed: true,
       results: resultsFor(6, 3),
     })

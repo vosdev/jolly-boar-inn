@@ -1,7 +1,6 @@
 """Pin on the map: what is particular to it. ``test_type_contract`` holds it to the rest."""
 
 import json
-import math
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -17,11 +16,12 @@ from app.questions.submission import Submission
 from app.questions.types import map_pin
 
 FIXTURE = REPO_ROOT / "client" / "src" / "lib" / "mapPins.fixture.json"
-FALADOR = {"name": "Falador", "x": 2965, "y": 3380, "radius": 40}
-VARROCK = {"name": "Varrock", "x": 3213, "y": 3424, "radius": 40}
-ONE: dict[str, Any] = {"prompt": "Where is Falador?", "targets": [FALADOR]}
-TWO: dict[str, Any] = {"prompt": "Pin both.", "targets": [FALADOR, VARROCK]}
+SARIM = {"name": "Port Sarim", "min_x": 3008, "max_x": 3060, "min_y": 3180, "max_y": 3260}
+VARROCK = {"name": "Varrock", "min_x": 3170, "max_x": 3270, "min_y": 3380, "max_y": 3500}
+ONE: dict[str, Any] = {"prompt": "Where is Port Sarim?", "targets": [SARIM]}
+TWO: dict[str, Any] = {"prompt": "Pin both.", "targets": [SARIM, VARROCK]}
 DESERT = {"min_x": 3100, "max_x": 3400, "min_y": 2800, "max_y": 3100}
+OASIS = {"name": "Oasis", "min_x": 3240, "max_x": 3260, "min_y": 2940, "max_y": 2960}
 
 
 def credit(payload: dict[str, Any], pins: list[dict[str, int]]) -> float:
@@ -34,7 +34,8 @@ def points(payload: dict[str, Any], pins: list[dict[str, int]]) -> int:
 
 
 def east_of(target: dict[str, Any], tiles: int) -> dict[str, int]:
-    return {"x": target["x"] + tiles, "y": target["y"]}
+    """A tile that many past the target's east edge, level with its middle."""
+    return {"x": target["max_x"] + tiles, "y": (target["min_y"] + target["max_y"]) // 2}
 
 
 def test_the_open_view_has_the_pin_count_and_no_target() -> None:
@@ -43,7 +44,12 @@ def test_the_open_view_has_the_pin_count_and_no_target() -> None:
 
 
 def test_the_reveal_has_every_target() -> None:
-    assert map_pin.reveal(TWO)["targets"] == [FALADOR, VARROCK]
+    assert map_pin.reveal(TWO)["targets"] == [SARIM, VARROCK]
+
+
+def test_the_reveal_says_what_reach_scored() -> None:
+    assert map_pin.reveal(ONE)["reach"] == 100
+    assert map_pin.reveal({**ONE, "reach": 250})["reach"] == 250
 
 
 @pytest.mark.parametrize(
@@ -74,50 +80,73 @@ def test_parse_value_keeps_a_tile_on_the_map() -> None:
 
 
 def test_a_region_refuses_a_pin_outside_it() -> None:
-    target = {"name": "Pollnivneach", "x": 3350, "y": 2970, "radius": 20}
-    region = {"prompt": "Where?", "targets": [target], "bounds": DESERT}
+    region = {"prompt": "Where?", "targets": [OASIS], "bounds": DESERT}
     assert map_pin.parse_value(region, [{"x": 3099, "y": 2970}]) is None
     assert map_pin.parse_value(region, [{"x": 3100, "y": 2970}]) == [{"x": 3100, "y": 2970}]
 
 
-def test_inside_the_radius_is_full_credit() -> None:
-    assert credit(ONE, [FALADOR | {}]) == 1.0
-    assert credit(ONE, [east_of(FALADOR, 40)]) == 1.0
+@pytest.mark.parametrize(
+    "pin",
+    [
+        {"x": 3008, "y": 3180},
+        {"x": 3060, "y": 3260},
+        {"x": 3010, "y": 3258},
+        {"x": 3034, "y": 3220},
+    ],
+)
+def test_all_of_the_box_is_full_credit(pin: dict[str, int]) -> None:
+    assert credit(ONE, [pin]) == 1.0
 
 
-def test_300_tiles_outside_the_radius_scores_368() -> None:
-    assert points(ONE, [east_of(FALADOR, 340)]) == 368
+@pytest.mark.parametrize(
+    ("tiles", "scored"), [(0, 1000), (25, 750), (50, 500), (75, 250), (100, 0), (300, 0)]
+)
+def test_points_fall_in_a_line_from_the_edge_to_the_reach(tiles: int, scored: int) -> None:
+    assert points(ONE, [east_of(SARIM, tiles)]) == scored
+
+
+def test_off_a_corner_is_measured_to_the_corner() -> None:
+    assert points(ONE, [{"x": SARIM["max_x"] + 30, "y": SARIM["max_y"] + 40}]) == 500
+
+
+def test_a_tall_town_gives_no_credit_beside_it() -> None:
+    assert points(ONE, [{"x": SARIM["min_x"] - 100, "y": SARIM["max_y"]}]) == 0
 
 
 def test_points_never_rise_with_distance() -> None:
-    far = [points(ONE, [east_of(FALADOR, tiles)]) for tiles in range(0, 1000, 25)]
+    far = [points(ONE, [east_of(SARIM, tiles)]) for tiles in range(0, 400, 10)]
     assert far == sorted(far, reverse=True)
 
 
-def test_a_region_scales_the_falloff() -> None:
-    target = {"name": "Pollnivneach", "x": 3250, "y": 2950, "radius": 20}
-    region = {"prompt": "Where?", "targets": [target], "bounds": DESERT}
-    assert points(region, [east_of(target, 50)]) == 368
+def test_a_region_scales_the_reach() -> None:
+    region = {"prompt": "Where?", "targets": [OASIS], "bounds": DESERT}
+    assert points(region, [east_of(OASIS, 30)]) == 500
 
 
-def test_a_huge_region_scores_as_the_whole_map() -> None:
+def test_a_big_region_keeps_the_whole_maps_reach() -> None:
     bounds = {"min_x": 768, "max_x": 4095, "min_y": 1792, "max_y": 4351}
-    assert points({**ONE, "bounds": bounds}, [east_of(FALADOR, 340)]) == 368
+    assert points({**ONE, "bounds": bounds}, [east_of(SARIM, 50)]) == 500
+
+
+def test_a_question_may_set_its_own_reach() -> None:
+    assert points({**ONE, "reach": 400}, [east_of(SARIM, 300)]) == 250
+    region = {"prompt": "Where?", "targets": [OASIS], "bounds": DESERT, "reach": 120}
+    assert points(region, [east_of(OASIS, 30)]) == 750
 
 
 def test_pins_pair_with_targets_whichever_order_they_arrive_in() -> None:
-    pins = [east_of(VARROCK, 0), east_of(FALADOR, 340)]
+    pins = [east_of(VARROCK, 0), east_of(SARIM, 50)]
     assert points(TWO, pins) == points(TWO, pins[::-1])
-    assert credit(TWO, pins) == pytest.approx((1 + math.exp(-1)) / 2)
+    assert credit(TWO, pins) == pytest.approx(0.75)
 
 
 def test_pairing_finds_the_best_assignment_not_the_nearest_first() -> None:
-    near = {"name": "Near", "x": 2000, "y": 3000, "radius": 5}
-    next_door = {"name": "Next door", "x": 2030, "y": 3000, "radius": 5}
+    near = {"name": "Near", "min_x": 2000, "max_x": 2010, "min_y": 3000, "max_y": 3010}
+    next_door = {"name": "Next door", "min_x": 2040, "max_x": 2050, "min_y": 3000, "max_y": 3010}
     payload = {"prompt": "Pin both.", "targets": [near, next_door]}
     # The first pin is nearest the first target, but taking it strands the second pin.
-    pins = [{"x": 2014, "y": 3000}, {"x": 1950, "y": 3000}]
-    assert credit(payload, pins) == pytest.approx((math.exp(-11 / 300) + math.exp(-45 / 300)) / 2)
+    pins = [{"x": 2024, "y": 3005}, {"x": 1960, "y": 3005}]
+    assert credit(payload, pins) == pytest.approx((0.84 + 0.6) / 2)
 
 
 @pytest.mark.parametrize(
@@ -125,8 +154,15 @@ def test_pairing_finds_the_best_assignment_not_the_nearest_first() -> None:
     [
         ({**ONE, "bounds": DESERT}, "outside the bounds"),
         ({**ONE, "bounds": {**DESERT, "max_x": DESERT["min_x"]}}, "holds no tile"),
-        ({"prompt": "Two.", "targets": [FALADOR, {**FALADOR, "name": "Fally"}]}, "share a tile"),
-        ({"prompt": "Two.", "targets": [FALADOR, {**VARROCK, "name": "Falador"}]}, "share a name"),
+        ({"prompt": "Two.", "targets": [SARIM, {**SARIM, "name": "Sarim"}]}, "overlaps"),
+        (
+            {"prompt": "Two.", "targets": [SARIM, {**VARROCK, "name": SARIM["name"]}]},
+            "share a name",
+        ),
+        (
+            {"prompt": "Tiny.", "targets": [{**SARIM, "max_x": SARIM["min_x"] + 9}]},
+            "under 10 tiles",
+        ),
     ],
 )
 def test_check_refuses(payload: dict[str, Any], problem: str) -> None:
@@ -148,13 +184,16 @@ def envelope(payload: dict[str, Any], **fields: Any) -> dict[str, Any]:
 @pytest.mark.parametrize(
     "payload",
     [
-        {"prompt": "Where?", "targets": [{**FALADOR, "radius": 4}]},
         {"prompt": "Where?", "targets": []},
         {
             "prompt": "Where?",
-            "targets": [{**FALADOR, "name": str(n), "x": FALADOR["x"] + n} for n in range(7)],
+            "targets": [
+                {**SARIM, "name": str(n), "min_x": SARIM["min_x"] + n * 100} for n in range(7)
+            ],
         },
-        {"prompt": "Where?", "targets": [{**FALADOR, "x": 767}]},
+        {"prompt": "Where?", "targets": [{**SARIM, "min_x": 767}]},
+        {"prompt": "Where?", "targets": [{**SARIM, "radius": 40}]},
+        {**ONE, "reach": 9},
     ],
 )
 def test_the_schema_refuses(payload: dict[str, Any]) -> None:
@@ -216,6 +255,8 @@ def test_the_server_offers_a_map_round_once_it_has_the_tiles(
 def test_the_client_reads_the_same_credit(case: dict[str, Any]) -> None:
     """``lib/pins.test.ts`` runs these too: the reveal's lines repeat this pairing."""
     payload: dict[str, Any] = {"prompt": "Where?", "targets": case["targets"]}
-    if "bounds" in case:
-        payload["bounds"] = case["bounds"]
+    for key in ("bounds", "reach"):
+        if key in case:
+            payload[key] = case[key]
     assert credit(payload, case["pins"]) == pytest.approx(case["credit"])
+    assert map_pin.reveal(payload)["reach"] == case["scored_reach"]

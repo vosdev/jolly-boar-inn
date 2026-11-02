@@ -3,7 +3,7 @@
    * A map question's results: how many pinned the place, then every pin nearest first with its
    * pet, distance and points, and last who placed none. `MapPin` draws the same rows on the map.
    */
-  import { falloff, pinRows, type PinTarget } from '../lib/pins'
+  import { pinRows, type PinTarget } from '../lib/pins'
   import { petOf } from '../lib/pets'
   import type { PlayerResult } from '../lib/protocol'
   import { players } from '../lib/stores'
@@ -26,23 +26,9 @@
 
   const count = new Intl.NumberFormat()
 
-  interface Bounds {
-    min_x: number
-    max_x: number
-    min_y: number
-    max_y: number
-  }
-
   const targets = $derived((reveal.targets ?? []) as PinTarget[])
-  const bounds = $derived(reveal.bounds as Bounds | undefined)
-  const fall = $derived(
-    falloff(
-      bounds === undefined
-        ? null
-        : { minX: bounds.min_x, maxX: bounds.max_x, minY: bounds.min_y, maxY: bounds.max_y },
-    ),
-  )
-  const rows = $derived(pinRows(results, targets, fall))
+  const reach = $derived((reveal.reach ?? 1) as number)
+  const rows = $derived(pinRows(results, targets, reach))
   const everyone = $derived(rows.length + unanswered.length)
   const allIn = $derived(rows.filter((row) => row.inside === targets.length).length)
   const place = $derived(

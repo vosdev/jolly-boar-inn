@@ -222,8 +222,8 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 - `number_slider` stores integers. `check()` rejects `min` ≥ `max`, a log `min` below 1, a log
   `min`, `max` or `answer` off the three-figure grid, and an `answer` on an end or on the middle
   where the slider starts (half rounded up).
-- `map_pin` is `targets` (`name`, `x`, `y`, a `radius` of at least 5; six at most, one pin each) and
-  optional `bounds`, a rectangle the map stops at. The open view has `pins`, the count, and never a
+- `map_pin` is `targets` (a `name` and a box of tiles, at least 10 across; six at most, one pin
+  each), optional `bounds`, a rectangle the map stops at, and optional `reach`. The open view has `pins`, the count, and never a
   target. It plays in rounds only: `drawable` needs the tiles (`TILES` among `pictures`, from
   `CLIENT_MAP` or the client), so a pool with no tiles is empty, and an event has no pool to empty.
   Above five pinned players a several-pin map shows only your own, and the TV only the targets.
@@ -576,10 +576,10 @@ Closest number: each guess against the answer alone, speed not counting. Exact i
 `within` (the answer's unit, shown while open) 0.75 falling linearly to 0.25; else 0. No `within`
 is exact only. Editors offer 0/5/10/25% of the answer, whole and at least 1 for a whole answer.
 
-Map pin: straight-line distance. 1.0 within the target's radius, then `exp(-outside / falloff)`, 300
-tiles, or with `bounds` a tenth of their longer side up to 300. The client repeats the pairing
-(`lib/pins.ts`) to draw each pin's line: the server cannot send it in `value`, which is echoed
-while the question is open. `mapPins.fixture.json` holds both to the same answers.
+Map pin: 1.0 inside the target's box, then a straight line from its edge to 0 at `reach` tiles: the
+question's own, else 100, or with `bounds` a fifth of their longer side up to 100. The client repeats
+the pairing (`lib/pins.ts`) to draw each pin's line: the server cannot send it in `value`, which is
+echoed while the question is open. `mapPins.fixture.json` holds both to the same answers.
 
 Slider (`price_is_right`): 1.0 for a guess that rounds to the price at two figures, then falling
 linearly from that band's edge to 0 at a quarter of the log width; the reveal ticks every guess.

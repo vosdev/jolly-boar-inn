@@ -276,7 +276,8 @@ const EVERY_TYPE: { type: string; mode: string; view: object; reveal: object }[]
     reveal: {
       prompt: 'Where?',
       pins: 1,
-      targets: [{ name: 'Falador', x: 2965, y: 3380, radius: 40 }],
+      targets: [{ name: 'Falador', min_x: 2940, max_x: 3060, min_y: 3310, max_y: 3400 }],
+      reach: 100,
     },
   },
 ]

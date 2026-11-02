@@ -3,7 +3,7 @@
    * `map_pin`: place one pin per target on the world map, then lock them in.
    *
    * `data` arrives in the two shapes `questions/types/map_pin.py` sends: while open the prompt,
-   * `pins` and `bounds`; after close the same plus `targets`.
+   * `pins` and `bounds`; after close the same plus `targets` and the `reach` that scored them.
    *
    * Your pet is your pin from the first tap. Until Lock in the pins are this browser's alone,
    * and whatever is down when the question nearly ends goes then, the last pin repeated if some
@@ -29,8 +29,8 @@
   } from '../../../lib/map'
   import { avatarArt, petOf } from '../../../lib/pets'
   import {
+    boundsOf,
     CROWD,
-    falloff,
     filledPins,
     nearestPin,
     pinRows,
@@ -38,6 +38,7 @@
     placed as against,
     type PinRow,
     type PinTarget,
+    type WireBounds,
   } from '../../../lib/pins'
   import { players, you } from '../../../lib/stores'
   import { Until } from '../../../lib/typing.svelte'
@@ -47,14 +48,16 @@
 
   interface Data {
     pins: number
-    bounds?: { min_x: number; max_x: number; min_y: number; max_y: number }
+    bounds?: WireBounds
     /** Reveal only. */
     targets?: PinTarget[]
+    /** Reveal only. */
+    reach?: number
   }
 
   /** How long the reveal stays close, in ms. */
   const CLOSE_MS = 4000
-  /** Tiles round a target in the close view: a town and what stands round it. */
+  /** Tiles round the targets in the close view: a town and what stands round it. */
   const CLOSE_MARGIN = 150
   /** Tiles round the pins in the wide view, for their pets and labels. */
   const WIDE_MARGIN = 40
@@ -74,16 +77,9 @@
   const q = $derived(data as unknown as Data)
   const count = $derived(q.pins)
   const bounds: MapBounds | undefined = $derived(
-    q.bounds === undefined
-      ? undefined
-      : {
-          minX: q.bounds.min_x,
-          maxX: q.bounds.max_x,
-          minY: q.bounds.min_y,
-          maxY: q.bounds.max_y,
-        },
+    q.bounds === undefined ? undefined : boundsOf(q.bounds),
   )
-  const fall = $derived(falloff(bounds))
+  const reach = $derived(q.reach ?? 1)
   const targets = $derived(q.targets ?? [])
 
   const me = fromStore(you)
@@ -144,10 +140,10 @@
   })
 
   const rows: PinRow[] = $derived(
-    revealed && results != null ? pinRows(results, targets, fall) : [],
+    revealed && results != null ? pinRows(results, targets, reach) : [],
   )
   /** A phone beside the TV sees no results, and tells the story of its own pins. */
-  const myPins = $derived(revealed ? against(pinsOf(yourValue), targets, fall) : [])
+  const myPins = $derived(revealed ? against(pinsOf(yourValue), targets, reach) : [])
   const crowded = $derived(count > 1 && rows.length > CROWD)
   const shownRows: PinRow[] = $derived.by(() => {
     if (!crowded) return rows
@@ -218,8 +214,8 @@
     if (!revealed) return []
     const pinned = rows.length > 0 ? shownRows.flatMap((row) => row.pins) : myPins
     return pinned
-      .filter((pin) => pin.off > pin.target.radius)
-      .map((pin) => ({ from: pin.at, to: pin.target, faint: count > 1 && !isMine(pin.at) }))
+      .filter((pin) => pin.off > 0)
+      .map((pin) => ({ from: pin.at, to: pin.to, faint: count > 1 && !isMine(pin.at) }))
   })
 
   function isMine(at: WorldPoint): boolean {
@@ -227,19 +223,23 @@
   }
 
   const areas: MapArea[] = $derived(
-    targets.map((target) => ({ at: target, radius: target.radius, name: target.name })),
+    targets.map((target) => ({ box: boundsOf(target), name: target.name })),
   )
 
-  const close: MapBounds | null = $derived.by(() => {
-    if (!revealed || targets.length === 0) return null
-    const radius = Math.max(...targets.map((target) => target.radius))
-    return around(targets, Math.max(CLOSE_MARGIN, radius * 3))
-  })
-  const wide: MapBounds | null = $derived.by(() => {
-    if (!revealed || targets.length === 0) return null
-    const points = [...targets, ...markers.map((marker) => marker.at)]
-    return around(points, WIDE_MARGIN)
-  })
+  const corners = $derived(
+    targets.flatMap((target) => [
+      { x: target.min_x, y: target.min_y },
+      { x: target.max_x, y: target.max_y },
+    ]),
+  )
+  const close: MapBounds | null = $derived(
+    revealed && corners.length > 0 ? around(corners, CLOSE_MARGIN) : null,
+  )
+  const wide: MapBounds | null = $derived(
+    close === null
+      ? null
+      : around([...corners, ...markers.map((marker) => marker.at)], WIDE_MARGIN),
+  )
 
   const reduced = reducedMotion()
   const shownAt = Date.now()

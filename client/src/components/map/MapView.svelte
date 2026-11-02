@@ -10,7 +10,6 @@
    * moves the view to a rectangle, leaving `inset` pixels clear of what lies over the map.
    */
   import type {
-    Circle,
     CircleMarker,
     Coords,
     LatLngBounds,
@@ -57,9 +56,8 @@
   }
 
   export interface MapArea {
-    at: WorldPoint
-    /** In tiles. It draws at `SMALLEST_RING` px at least, so it shows on a far-out map. */
-    radius: number
+    /** A box of tiles, both edges inside it. Too small to see, a ring marks it instead. */
+    box: MapBounds
     name: string
   }
 
@@ -98,7 +96,7 @@
     pins: LayerGroup
     drawing: LayerGroup
   } | null>(null)
-  let rings: { ring: CircleMarker | Circle; radius: number; tag: HTMLElement }[] = []
+  let marks: { box: MapBounds; ring: CircleMarker; tag: HTMLElement }[] = []
   let framed = false
 
   function tagFor(marker: MapMarker): HTMLElement | null {
@@ -132,10 +130,12 @@
     const { map } = live
     host.dataset.zoom = String(map.getZoom())
     const scale = 2 ** map.getZoom()
-    for (const { ring, radius, tag } of rings) {
-      const size = Math.max(radius * scale, SMALLEST_RING)
-      ;(ring as CircleMarker).setRadius(size)
-      tag.style.setProperty('--ring', `${size}px`)
+    for (const { box, ring, tag } of marks) {
+      const tall = (box.maxY - box.minY + 1) * scale
+      const wide = (box.maxX - box.minX + 1) * scale
+      const shown = Math.max(tall, wide) >= SMALLEST_RING * 2
+      ring.getElement()?.classList.toggle('gone', shown)
+      tag.style.setProperty('--ring', `${shown ? tall / 2 : SMALLEST_RING}px`)
     }
     const pins = [...host.querySelectorAll<HTMLElement>('.pin')]
     const tagged = new Map(pins.map((pin) => [pin.dataset.id ?? '', pin]))
@@ -201,8 +201,11 @@
         interactive: false,
       }).addTo(drawing)
     }
-    rings = areas.map(({ at, radius, name }) => {
-      const ring = L.circleMarker(toLatLng(at), {
+    marks = areas.map(({ box, name }) => {
+      const edges = corners({ ...box, maxX: box.maxX + 1, maxY: box.maxY + 1 })
+      const middle = L.latLngBounds(edges).getCenter()
+      L.rectangle(edges, { className: 'map-ring', interactive: false }).addTo(drawing)
+      const ring = L.circleMarker(middle, {
         className: 'map-ring',
         radius: SMALLEST_RING,
         interactive: false,
@@ -210,13 +213,13 @@
       const tag = document.createElement('span')
       tag.className = 'map-name'
       tag.textContent = name
-      L.marker(toLatLng(at), {
+      L.marker(middle, {
         icon: L.divIcon({ className: 'pin-host', html: tag, iconSize: [0, 0] }),
         interactive: false,
         keyboard: false,
         zIndexOffset: (markers.length + 1) * 1000,
       }).addTo(drawing)
-      return { ring, radius, tag }
+      return { box, ring, tag }
     })
     untrack(settle)
   })
@@ -259,11 +262,12 @@
 
     // A question's map is built in a hidden part of the page and moved onto the stage, and
     // Leaflet fits its view to a frame it can measure.
+    let waiting: ResizeObserver | undefined
     const sized = new Promise<void>((done) => {
       if (host.clientWidth > 0) return done()
-      const waiting = new ResizeObserver(() => {
+      waiting = new ResizeObserver(() => {
         if (host.clientWidth === 0) return
-        waiting.disconnect()
+        waiting?.disconnect()
         done()
       })
       waiting.observe(host)
@@ -339,6 +343,7 @@
 
     return () => {
       gone = true
+      waiting?.disconnect()
       observer?.disconnect()
       map?.remove()
     }
@@ -485,6 +490,10 @@
     fill-opacity: 0.24;
     stroke: var(--panel);
     stroke-width: 2.5;
+  }
+
+  .map :global(.map-ring.gone) {
+    display: none;
   }
 
   .map :global(.map-line) {

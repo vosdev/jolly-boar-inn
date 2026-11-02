@@ -3,22 +3,34 @@
  *
  * `questions/types/map_pin.py` scores the same way. The server pairs pins with targets only to
  * add up credit and sends no pairing, so this repeats its search to draw each pin's line and
- * say how far off it was; `mapPins.fixture.json` holds both to the same answers.
+ * say how far off it was; `mapPins.fixture.json` holds both to the same answers. Where credit
+ * ties, as it does for pins all out of reach, the shorter lines win: the server has no use for
+ * that, and a line across the map to the wrong town would mislead.
  */
 
-import type { MapBounds, WorldPoint } from './map'
+import { type MapBounds, type WorldPoint } from './map'
 import type { PlayerResult } from './protocol'
 
-export interface PinTarget extends WorldPoint {
+/** A rectangle as the wire writes it. */
+export interface WireBounds {
+  min_x: number
+  max_x: number
+  min_y: number
+  max_y: number
+}
+
+/** A box of tiles, both edges inside it. */
+export interface PinTarget extends WireBounds {
   name: string
-  radius: number
 }
 
 export interface PlacedPin {
   at: WorldPoint
   target: PinTarget
-  /** Straight-line tiles from the target's middle. */
+  /** Straight-line tiles outside the target's box; 0 inside it. */
   off: number
+  /** The nearest tile of the box, where the pin's line goes. */
+  to: WorldPoint
 }
 
 export interface PinRow {
@@ -26,31 +38,36 @@ export interface PinRow {
   pins: PlacedPin[]
   /** Mean tiles off: the pin's own, on a one-pin question. */
   off: number
-  /** How many pins are inside their target's radius. */
+  /** How many pins are inside their target. */
   inside: number
   points: number
 }
 
-const WORLD_FALLOFF = 300
-const REGION_FALLOFF_SHARE = 10
+const TIE = 1e-9
 
 /** Above this many players who pinned, a several-pin map shows only your own. */
 export const CROWD = 5
 
-/** Tiles of `outside` a radius that cost a pin 63% of its credit. */
-export function falloff(bounds?: MapBounds | null): number {
-  if (bounds == null) return WORLD_FALLOFF
-  const longer = Math.max(bounds.maxX - bounds.minX, bounds.maxY - bounds.minY)
-  return Math.min(WORLD_FALLOFF, longer / REGION_FALLOFF_SHARE)
+/** A rectangle off the wire. */
+export function boundsOf(bounds: WireBounds): MapBounds {
+  return { minX: bounds.min_x, maxX: bounds.max_x, minY: bounds.min_y, maxY: bounds.max_y }
 }
 
-export function distance(a: WorldPoint, b: WorldPoint): number {
-  return Math.hypot(a.x - b.x, a.y - b.y)
+/** The nearest tile of `target` to `pin`. */
+export function nearestTile(pin: WorldPoint, target: PinTarget): WorldPoint {
+  return {
+    x: Math.min(Math.max(pin.x, target.min_x), target.max_x),
+    y: Math.min(Math.max(pin.y, target.min_y), target.max_y),
+  }
 }
 
-function pinCredit(pin: WorldPoint, target: PinTarget, fall: number): number {
-  const outside = distance(pin, target) - target.radius
-  return outside <= 0 ? 1 : Math.exp(-outside / fall)
+function tilesOff(pin: WorldPoint, target: PinTarget): number {
+  const to = nearestTile(pin, target)
+  return Math.hypot(pin.x - to.x, pin.y - to.y)
+}
+
+function pinCredit(pin: WorldPoint, target: PinTarget, reach: number): number {
+  return Math.max(0, 1 - tilesOff(pin, target) / reach)
 }
 
 function orders(size: number): number[][] {
@@ -60,20 +77,35 @@ function orders(size: number): number[][] {
   )
 }
 
+function along(
+  pins: readonly WorldPoint[],
+  targets: readonly PinTarget[],
+  order: readonly number[],
+  measure: (pin: WorldPoint, target: PinTarget) => number,
+): number {
+  return order.reduce((total, index, position) => {
+    const pin = pins[position]
+    const target = targets[index]
+    return pin === undefined || target === undefined ? total : total + measure(pin, target)
+  }, 0)
+}
+
 /** Each pin's target index, in the assignment that earns the most credit. */
 export function pairPins(
   pins: readonly WorldPoint[],
   targets: readonly PinTarget[],
-  fall: number,
+  reach: number,
 ): number[] {
-  const table = pins.map((pin) => targets.map((target) => pinCredit(pin, target, fall)))
   let best: number[] = []
   let most = -1
+  let least = Infinity
   for (const order of orders(targets.length)) {
-    const sum = order.reduce((total, target, pin) => total + (table[pin]?.[target] ?? 0), 0)
-    if (sum > most) {
-      most = sum
+    const credit = along(pins, targets, order, (pin, target) => pinCredit(pin, target, reach))
+    const off = along(pins, targets, order, tilesOff)
+    if (credit > most + TIE || (credit > most - TIE && off < least)) {
       best = order
+      most = credit
+      least = off
     }
   }
   return best
@@ -83,14 +115,10 @@ export function pairPins(
 export function pairedCredit(
   pins: readonly WorldPoint[],
   targets: readonly PinTarget[],
-  fall: number,
+  reach: number,
 ): number {
-  const order = pairPins(pins, targets, fall)
-  const sum = order.reduce((total, target, pin) => {
-    const at = pins[pin]
-    const to = targets[target]
-    return at === undefined || to === undefined ? total : total + pinCredit(at, to, fall)
-  }, 0)
+  const order = pairPins(pins, targets, reach)
+  const sum = along(pins, targets, order, (pin, target) => pinCredit(pin, target, reach))
   return sum / targets.length
 }
 
@@ -108,14 +136,13 @@ export function pinsOf(value: unknown): WorldPoint[] {
 export function placed(
   pins: readonly WorldPoint[],
   targets: readonly PinTarget[],
-  fall: number,
+  reach: number,
 ): PlacedPin[] {
-  return pairPins(pins, targets, fall).flatMap((index, pin) => {
-    const at = pins[pin]
+  return pairPins(pins, targets, reach).flatMap((index, position) => {
+    const at = pins[position]
     const target = targets[index]
-    return at === undefined || target === undefined
-      ? []
-      : [{ at, target, off: distance(at, target) }]
+    if (at === undefined || target === undefined) return []
+    return [{ at, target, off: tilesOff(at, target), to: nearestTile(at, target) }]
   })
 }
 
@@ -123,13 +150,13 @@ export function placed(
 export function pinRows(
   results: Record<string, PlayerResult>,
   targets: readonly PinTarget[],
-  fall: number,
+  reach: number,
 ): PinRow[] {
   return Object.entries(results)
     .map(([id, result]) => {
-      const pins = placed(pinsOf(result.value), targets, fall)
+      const pins = placed(pinsOf(result.value), targets, reach)
       const off = pins.reduce((total, pin) => total + pin.off, 0) / Math.max(1, pins.length)
-      const inside = pins.filter((pin) => pin.off <= pin.target.radius).length
+      const inside = pins.filter((pin) => pin.off === 0).length
       return { id, pins, off, inside, points: result.points }
     })
     .filter((row) => row.pins.length > 0)
@@ -143,10 +170,14 @@ export function filledPins(pins: readonly WorldPoint[], count: number): WorldPoi
   return [...pins, ...Array.from({ length: Math.max(0, count - pins.length) }, () => last)]
 }
 
+function apart(a: WorldPoint, b: WorldPoint): number {
+  return Math.hypot(a.x - b.x, a.y - b.y)
+}
+
 /** The index in `pins` nearest `point`. */
 export function nearestPin(pins: readonly WorldPoint[], point: WorldPoint): number {
   return pins.reduce((best, pin, index) => {
     const other = pins[best]
-    return other !== undefined && distance(other, point) <= distance(pin, point) ? best : index
+    return other !== undefined && apart(other, point) <= apart(pin, point) ? best : index
   }, 0)
 }

@@ -8,7 +8,7 @@
   import PinRanking from '../components/PinRanking.svelte'
   import QuestionStage from '../components/QuestionStage.svelte'
   import type { MapBounds, WorldPoint } from '../lib/map'
-  import { falloff, pairedCredit, pinsOf, type PinTarget } from '../lib/pins'
+  import { pairedCredit, pinsOf, type PinTarget } from '../lib/pins'
   import type { OpenQuestion, PlayerResult, PlayerView } from '../lib/protocol'
   import { PICKABLE } from '../lib/pets'
   import { players, you } from '../lib/stores'
@@ -20,13 +20,15 @@
   }
   const TARGETS: Record<string, PinTarget[]> = {
     Surface: [
-      { name: 'Port Sarim', x: 3028, y: 3217, radius: 40 },
-      { name: 'Rellekka', x: 2660, y: 3660, radius: 30 },
-      { name: 'Ardougne', x: 2662, y: 3305, radius: 30 },
+      { name: 'Port Sarim', min_x: 3008, max_x: 3060, min_y: 3180, max_y: 3260 },
+      { name: 'Rellekka', min_x: 2620, max_x: 2700, min_y: 3620, max_y: 3700 },
+      { name: 'Ardougne', min_x: 2620, max_x: 2700, min_y: 3270, max_y: 3340 },
     ],
-    Karamja: [{ name: 'Brimhaven', x: 2760, y: 3178, radius: 20 }],
-    Varrock: [{ name: 'Varrock Palace', x: 3212, y: 3473, radius: 10 }],
+    Karamja: [{ name: 'Brimhaven', min_x: 2740, max_x: 2790, min_y: 3150, max_y: 3195 }],
+    Varrock: [{ name: 'Varrock Palace', min_x: 3200, max_x: 3225, min_y: 3460, max_y: 3490 }],
   }
+  /** The server's default: `_reach` in `questions/types/map_pin.py`. */
+  const REACH = 100
 
   let region = $state('Surface')
   let several = $state(false)
@@ -58,6 +60,11 @@
 
   const targets = $derived(several ? (TARGETS[region] ?? []) : (TARGETS[region] ?? []).slice(0, 1))
   const bounds = $derived(REGIONS[region])
+  const reach = $derived(
+    bounds === undefined
+      ? REACH
+      : Math.min(REACH, Math.max(bounds.maxX - bounds.minX, bounds.maxY - bounds.minY) / 5),
+  )
   const view = $derived({
     prompt: targets.length === 1 ? `Where is ${targets[0]?.name}?` : 'Pin all three.',
     pins: targets.length,
@@ -92,22 +99,21 @@
   })
 
   function scatter(index: number): WorldPoint[] {
-    const reach = index % 4 === 3 ? 900 : index % 3 === 2 ? 200 : 30
+    const spread = index % 4 === 3 ? 900 : index % 3 === 2 ? 200 : 30
     return targets.map((target) => {
-      const turn = (index * 2.4 + target.x) % (Math.PI * 2)
+      const turn = (index * 2.4 + target.min_x) % (Math.PI * 2)
       return {
-        x: Math.max(800, Math.min(4000, Math.round(target.x + Math.cos(turn) * reach))),
-        y: Math.max(1900, Math.min(4300, Math.round(target.y + Math.sin(turn) * reach))),
+        x: Math.max(800, Math.min(4000, Math.round(target.min_x + Math.cos(turn) * spread))),
+        y: Math.max(1900, Math.min(4300, Math.round(target.min_y + Math.sin(turn) * spread))),
       }
     })
   }
 
   const results = $derived.by(() => {
-    const fall = falloff(bounds)
     const rows: Record<string, PlayerResult> = {}
     team.slice(0, crowd ? 12 : 4).forEach((player, index) => {
       const value = index === 0 && yours !== null ? yours : scatter(index)
-      const credit = pairedCredit(value, targets, fall)
+      const credit = pairedCredit(value, targets, reach)
       rows[player.id] = {
         value,
         credit,
@@ -141,7 +147,7 @@
     {#key `${question.question_id}-${revealed}-${tv}`}
       <QuestionStage
         {question}
-        reveal={revealed ? { ...view, targets } : null}
+        reveal={revealed ? { ...view, targets, reach } : null}
         yourValue={revealed ? (results['player-0']?.value ?? null) : yours}
         result={revealed ? yourResult : null}
         results={revealed ? results : null}
@@ -150,7 +156,7 @@
       >
         {#if tv && revealed}
           <PinRanking
-            reveal={{ targets }}
+            reveal={{ targets, reach }}
             {results}
             unanswered={[]}
             nameOf={(id) => team.find((player) => player.id === id)?.display_name ?? null}
