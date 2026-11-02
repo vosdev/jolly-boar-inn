@@ -466,8 +466,9 @@ one question a round, with one `player` and settings `run`, early close, no name
   (`jbi:daily:token`), stored as sha256 in `daily_attempts` under the attempt's day, once per day.
   An unfinished attempt resumes, whatever its day, with a new session; a finished one today is
   409 `daily_played` with its `result` `{day, number, points, correct, results}`. A gone room ends
-  its attempt there. `GET /api/daily` → `{day, number, next_at}`, `next_at` when the next day opens. `POST /api/daily/result {token, day}`
-  returns a finished attempt's `result`, or 404, and starts nothing.
+  its attempt there, as does asking for its result. `GET /api/daily` → `{day, number, next_at}`, `next_at` when the next day opens. `POST /api/daily/result {token, day}`
+  returns a finished attempt's `result`, or 404, and starts nothing; `/daily` asks it first for an
+  attempt left unfinished, which may have run out.
 - Home's Daily challenge panel offers the day's daily, or its score and `next_at`, and lists earlier
   days from `jbi:daily:scores`: every result `/daily` showed, in this browser only, never trimmed.
 - The end screen, and `/daily` after playing, shows the result and copies a share text without
@@ -745,13 +746,13 @@ key into them, so cleanup leaves it.
   the question's mode, whether everyone answered, time ran out or it was skipped. Two peaks keep
   the day's highest instead of a sum, written on a socket's connect: connected players (TVs
   aside) and unfinished rooms with any. A daily room counts in none of these, only `daily`:
-  `started`, `finished`, and the finished ones' `points` and `correct` sums. No IP, name, room
+  `started`, `finished`, `ran_out` (nobody connected at its end), and the finished ones' `points` and `correct` sums. No IP, name, room
   code or player id ever goes in it, and every key comes from a fixed set.
 - `question_stats` (`app/question_stats.py`), also outside the cascade, sums per content id how
   players do on hand-written pack questions, the NPCs' included (not host, price modes or
   voided), in the close's transaction: `answers`, `credit_sum` (credit, not points), `correct`,
   `unanswered` and `games`. Admins' answers are left out; a close with fewer than two other
-  players adds nothing, but a daily room's one player counts. A payload edit changes the id, so its numbers restart.
+  players adds nothing, but a daily room's one player counts while connected. A payload edit changes the id, so its numbers restart.
   `/api/admin/questions/stats?mode=…` (every editable mode without one) returns each pack
   question whole with its totals, zeros if never counted; a row for an id the packs lost is
   left out. Bands and suggestions are the client's (`lib/questionStats.ts`), advice only.

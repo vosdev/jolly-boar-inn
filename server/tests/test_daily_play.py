@@ -1,5 +1,6 @@
 """A daily attempt: the day's set, played alone, once, in a room nobody else can find."""
 
+import time
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
@@ -283,6 +284,44 @@ def test_a_daily_answer_counts_in_question_stats(quick: FastAPI, client: TestCli
     }
 
 
+def left_after_one_answer(quick: FastAPI, client: TestClient, db) -> Room:
+    """Answer the first question, walk off and wait for the room to run itself out."""
+    quick.state.rooms.daily_reveal_seconds = 0.2
+    code, session = started(client)
+    room = room_of(client, code)
+    with seat(client, code, session) as ws:
+        opened = next_of(ws, "question_open", 30)
+        ws.send_json(
+            {
+                "t": "answer",
+                "question_id": opened["question"]["question_id"],
+                "value": answer_for(room, 0, "right"),
+            }
+        )
+        next_of(ws, "question_closed", 30)
+    deadline = time.monotonic() + 30
+    while not db("select 1 from daily_attempts where finished_at is not null"):
+        assert time.monotonic() < deadline, "the room never ran out"
+        time.sleep(0.05)
+    return room
+
+
+def test_a_question_that_closes_on_nobody_counts_in_no_question_stats(
+    quick: FastAPI, client: TestClient, db
+) -> None:
+    room = left_after_one_answer(quick, client, db)
+    seen = {row["question_id"] for row in db("select question_id from question_stats")}
+    assert seen == {q.content_id for q in room.questions[:1] if counts(q)}
+
+
+def test_an_attempt_that_ran_out_is_not_counted_as_finished(
+    quick: FastAPI, client: TestClient, db
+) -> None:
+    left_after_one_answer(quick, client, db)
+    stats = {(row["metric"], row["key"]): row["count"] for row in db("select * from daily_stats")}
+    assert stats == {(Metric.DAILY, "started"): 1, (Metric.DAILY, "ran_out"): 1}
+
+
 def test_a_daily_counts_in_the_daily_metrics_and_in_no_game_metric(
     quick: FastAPI, client: TestClient, db
 ) -> None:
@@ -382,6 +421,20 @@ def test_the_next_daily_opens_at_the_rollover(quick: FastAPI, client: TestClient
 
 def test_the_name_must_be_a_name(quick: FastAPI, client: TestClient) -> None:
     assert start(client, name="!!").status_code == 422
+
+
+def test_asking_for_the_result_of_an_attempt_whose_room_went_ends_it(
+    quick: FastAPI, client: TestClient, db, evict: Callable[[str], bool]
+) -> None:
+    code, session = started(client)
+    with seat(client, code, session) as ws:
+        next_of(ws, "question_closed", 30)
+    assert evict(code)
+    db("delete from rooms where code = $1", code.upper())
+    day = day_of(datetime.now(UTC)).isoformat()
+    body = client.post("/api/daily/result", json={"token": TOKEN, "day": day}).json()
+    assert body["results"] == ["missed"] * 10
+    assert db("select finished_at from daily_attempts")[0]["finished_at"] is not None
 
 
 def test_the_result_of_a_finished_attempt_starts_nothing(
