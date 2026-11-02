@@ -46,6 +46,10 @@ const HINTS: Record<string, FieldHints> = {
     prompt: 'Which NPC does this anagram name?',
     explanation: 'Ranael, who runs the skirt shop in Al Kharid.',
   },
+  slayer_master: {
+    prompt: 'Which item do you need to kill a rockslug?',
+    explanation: 'A bag of salt, used once it is nearly dead, per its OSRS Wiki page.',
+  },
   who_said_that: {
     prompt: 'Who said this?',
     explanation:

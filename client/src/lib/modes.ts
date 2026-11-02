@@ -753,7 +753,7 @@ export const MODES: Record<string, Mode> = {
   bestiary: {
     id: 'bestiary',
     label: 'Bestiary',
-    hint: 'Combat levels, weaknesses and haunts of the monsters.',
+    hint: 'Combat levels, looks and haunts of the monsters.',
     host: { id: 'zoo_keeper', name: 'Zoo keeper' },
     greeting: 'Welcome to the zoo! Mind the bars, some of these bite.',
     blurb: 'Every beast in Gielinor has a page in my book. Tell me what you know about them.',
@@ -1525,6 +1525,82 @@ export const MODES: Record<string, Mode> = {
       ],
     },
     stem: 'quote',
+  },
+  slayer_master: {
+    id: 'slayer_master',
+    label: 'Slayer Master',
+    hint: 'Weaknesses, tasks and how to bring down the beasts.',
+    host: { id: 'konar_quo_maten', name: 'Konar quo Maten' },
+    greeting: 'Sit, slayer. There is balance to be brought.',
+    blurb: 'Every beast has its place and its weakness. Name them, and bring balance to Gielinor.',
+    ask: [
+      'Answer me this, and bring balance.',
+      'A slayer must know this.',
+      'Know your task. Tell me.',
+      'Balance asks this of you.',
+    ],
+    waiting: [
+      'Balance is patient. So am I.',
+      'The volcano can wait. Can your task?',
+      'Weigh it well, slayer.',
+      'All tasks end. So will this silence.',
+    ],
+    pace: {
+      quick: [
+        'Quick! A clean kill.',
+        'So fast. The beast never saw you.',
+        'Quick! Balance is pleased.',
+      ],
+      middling: [
+        'A steady hand. Balance holds.',
+        'Neither hasty nor slow. As it should be.',
+        'A measured strike, slayer.',
+      ],
+      late: [
+        'Just in time! The task nearly slipped.',
+        'Just in time. Balance wavered.',
+        'Just in time, slayer.',
+      ],
+      early: [
+        'Early! You came well prepared.',
+        'So early! You knew your task.',
+        'Answered early! A true slayer.',
+      ],
+      later: [
+        'You took your time. The beast did not mind.',
+        'Slowly, then. Even the volcano stirs faster.',
+        'You waited it out, slayer.',
+      ],
+    },
+    reveal: [
+      'Now see the balance.',
+      'See what the task asked.',
+      'The beast gives up its secret.',
+      'Look, and remember it.',
+    ],
+    verdict: {
+      right: [
+        'Correct. Balance is restored.',
+        'Right! A task well done.',
+        'Yes. You bring balance, slayer.',
+      ],
+      partial: [
+        'Half a task is no task. Yet it is something.',
+        'Partly. The scales still tip.',
+        'Close, slayer. Finish the job.',
+      ],
+      wrong: [
+        'No. The scales tip further.',
+        'Wrong! The beast still lives.',
+        'No, slayer. Return to your studies.',
+      ],
+      missed: [
+        'Nothing? Your task goes unfinished.',
+        'Silence brings no balance.',
+        'No answer. The beast walks free.',
+      ],
+    },
+    stem: 'text',
   },
   random_events_only: {
     id: 'random_events_only',

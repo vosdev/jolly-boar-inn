@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.235.0',
+    date: '2026-11-02',
+    text: 'New round, Slayer Master: Konar quo Maten tests your weaknesses, tasks and boss mechanics.',
+  },
+  {
     version: '0.234.0',
     date: '2026-11-01',
     text: 'New round, Uri’s Unravelling: anagrams, ciphers and cryptics, with no blinking yellow arrow to help you.',

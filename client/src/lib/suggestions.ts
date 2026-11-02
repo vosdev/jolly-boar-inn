@@ -219,6 +219,7 @@ const CHOICE_ROUNDS = [
   'scaperune',
   'tales_of_gielinor',
   'uris_unravelling',
+  'slayer_master',
 ]
 
 function choiceRound(
@@ -267,6 +268,15 @@ const ROUND_TYPES: Record<string, readonly SuggestedType[]> = {
     'matching',
   ],
   uris_unravelling: [
+    'multiple_choice',
+    'free_text',
+    'closest_number',
+    'number_slider',
+    'pick_all_that_apply',
+    'ordering',
+    'matching',
+  ],
+  slayer_master: [
     'multiple_choice',
     'free_text',
     'closest_number',

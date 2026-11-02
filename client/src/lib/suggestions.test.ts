@@ -99,6 +99,7 @@ describe('the choices', () => {
       'scaperune',
       'tales_of_gielinor',
       'uris_unravelling',
+      'slayer_master',
       'whos_that_npc',
       'forgetful_bard',
       'sort_it_out',
@@ -397,6 +398,7 @@ describe('a question’s round', () => {
       'minigame_madness',
       'tales_of_gielinor',
       'uris_unravelling',
+      'slayer_master',
     ])
     expect(roundsFor('ordering').map((c) => c.id)).toEqual([
       'random_event',
@@ -404,6 +406,7 @@ describe('a question’s round', () => {
       'minigame_madness',
       'tales_of_gielinor',
       'uris_unravelling',
+      'slayer_master',
       'sort_it_out',
       'release_order',
     ])

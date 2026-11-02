@@ -52,7 +52,14 @@ def test_only_hand_written_one_answer_questions_play_it() -> None:
     pool has one."""
     assert {
         mode.id for mode in MODES.values() if mode.pool is None and "free_text" in mode.types
-    } == {"bestiary", "drop_table", "minigame_madness", "tales_of_gielinor", "uris_unravelling"}
+    } == {
+        "bestiary",
+        "drop_table",
+        "minigame_madness",
+        "tales_of_gielinor",
+        "uris_unravelling",
+        "slayer_master",
+    }
     shipped = [q for pack in load_packs(PACKS_DIR) for q in pack.questions]
     assert {q["mode"] for q in shipped if q["type"] == "free_text"} == {
         "random_event",
@@ -61,6 +68,7 @@ def test_only_hand_written_one_answer_questions_play_it() -> None:
         "minigame_madness",
         "tales_of_gielinor",
         "uris_unravelling",
+        "slayer_master",
     }
 
 

@@ -147,6 +147,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 | `scaperune` | ScapeRune | `multiple_choice`, four options, `extra_answer` 12 | hand-written | done: `prompt` is the answer, a line per entry if ordered, and `options` are questions, at most 120 characters; `/suggest` relabels its form to say so |
 | `tales_of_gielinor` | Tales of Gielinor | Bestiary's seven types | hand-written | done, hosted by the Wise Old Man, who is therefore off the roster |
 | `uris_unravelling` | Uri's Unravelling | Bestiary's seven types, `extra_answer` 5 | hand-written | done: a clue is `multiple_choice`, its text the `quote`, never `free_text`; no map or coordinate clues |
+| `slayer_master` | Slayer Master | Bestiary's seven types | hand-written | done: how to fight a monster; what it is stays in Bestiary |
 | `minimap_guesser`, `name_that_spell` | Minimap Guesser, Name that spell | undecided | | Images (minimap), Sound (spell) |
 
 Create lists the unbuilt ones from `UPCOMING_MODES` in `lib/modes.ts`.
