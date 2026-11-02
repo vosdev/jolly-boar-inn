@@ -348,7 +348,10 @@
 <div class="map" bind:this={host}></div>
 
 <style>
+  /* What stands on the map sits on panels, not on the floor `main` sets the inks for. */
   .map {
+    --ink: var(--surface-ink);
+    --muted: var(--surface-muted);
     width: 100%;
     height: 100%;
   }

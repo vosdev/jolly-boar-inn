@@ -233,7 +233,7 @@
     margin: 0;
     padding: 0.25rem 0.6rem;
     background: var(--panel);
-    color: var(--ink);
+    color: var(--surface-ink);
     border-radius: var(--radius);
   }
 

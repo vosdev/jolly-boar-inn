@@ -5,6 +5,7 @@
    */
   import { onDestroy } from 'svelte'
 
+  import PinRanking from '../components/PinRanking.svelte'
   import QuestionStage from '../components/QuestionStage.svelte'
   import type { MapBounds, WorldPoint } from '../lib/map'
   import { falloff, pairedCredit, pinsOf, type PinTarget } from '../lib/pins'
@@ -31,6 +32,7 @@
   let several = $state(false)
   let crowd = $state(false)
   let revealed = $state(false)
+  let tv = $state(false)
   let yours = $state<WorldPoint[] | null>(null)
 
   const team: PlayerView[] = Array.from({ length: 12 }, (_, index) => ({
@@ -45,7 +47,10 @@
   }))
 
   players.set(team)
-  you.set(team[0] ?? null)
+  $effect(() => {
+    const first = team[0]
+    you.set(first === undefined ? null : { ...first, role: tv ? 'tv' : 'player' })
+  })
   onDestroy(() => {
     players.set([])
     you.set(null)
@@ -130,9 +135,10 @@
     <label><input type="checkbox" bind:checked={several} /> Three pins</label>
     <label><input type="checkbox" bind:checked={crowd} /> 12 players</label>
     <label><input type="checkbox" bind:checked={revealed} /> Reveal</label>
+    <label><input type="checkbox" bind:checked={tv} /> TV</label>
   </div>
   <div class="frame">
-    {#key `${question.question_id}-${revealed}`}
+    {#key `${question.question_id}-${revealed}-${tv}`}
       <QuestionStage
         {question}
         reveal={revealed ? { ...view, targets } : null}
@@ -140,7 +146,18 @@
         result={revealed ? yourResult : null}
         results={revealed ? results : null}
         onAnswer={answer}
-      />
+        {tv}
+      >
+        {#if tv && revealed}
+          <PinRanking
+            reveal={{ targets }}
+            {results}
+            unanswered={[]}
+            nameOf={(id) => team.find((player) => player.id === id)?.display_name ?? null}
+            youId={null}
+          />
+        {/if}
+      </QuestionStage>
     {/key}
   </div>
 </section>

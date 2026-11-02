@@ -265,7 +265,7 @@
     ontap={tap}
   />
   {#if !revealed && canAnswer}
-    <div class="lock">
+    <div class="lock surface">
       <span aria-live="polite">{lockHint}</span>
       {#if movable}
         <button type="button" class="primary" disabled={!full} onclick={() => onAnswer(pins)}>
@@ -298,7 +298,6 @@
     max-width: calc(100% - 1.5rem);
     padding: 0.5rem 0.5rem 0.5rem 0.9rem;
     background: var(--panel);
-    color: var(--ink);
     border: 2px solid var(--line);
     border-radius: var(--radius);
     font-size: 0.95rem;
