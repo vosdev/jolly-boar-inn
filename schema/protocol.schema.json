@@ -127,6 +127,7 @@
           "ping": "#/$defs/Ping",
           "promote": "#/$defs/Promote",
           "ready": "#/$defs/Ready",
+          "rematch": "#/$defs/Rematch",
           "rotate_key": "#/$defs/RotateKey",
           "set_profile": "#/$defs/SetProfile",
           "set_settings": "#/$defs/SetSettings",
@@ -168,6 +169,9 @@
         },
         {
           "$ref": "#/$defs/EndRound"
+        },
+        {
+          "$ref": "#/$defs/Rematch"
         },
         {
           "$ref": "#/$defs/RotateKey"
@@ -912,6 +916,21 @@
         "ready"
       ],
       "title": "Ready",
+      "type": "object"
+    },
+    "Rematch": {
+      "additionalProperties": false,
+      "description": "Admin: send a finished room back to its lobby for another game.",
+      "properties": {
+        "t": {
+          "const": "rematch",
+          "type": "string"
+        }
+      },
+      "required": [
+        "t"
+      ],
+      "title": "Rematch",
       "type": "object"
     },
     "RoomSettings": {

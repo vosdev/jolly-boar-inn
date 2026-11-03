@@ -74,6 +74,7 @@ def test_both_unions_name_every_message() -> None:
         "Kick",
         "EndGame",
         "EndRound",
+        "Rematch",
         "RotateKey",
         "DecideRequest",
         "SetProfile",

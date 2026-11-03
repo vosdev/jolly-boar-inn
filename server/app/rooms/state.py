@@ -807,6 +807,59 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
         self._broadcast(update)
         self._start_timer(room, 0)
 
+    async def rematch(self, code: str, by: Player) -> None:
+        """``finished → lobby`` for another game at the same table (section 7).
+
+        The finished game's questions go, and its answers with them: ``question_stats``
+        already has what they added, and each browser filed the final standings. What
+        stays is which pack questions it showed, so the next selection draws around them.
+        """
+        code = code.upper()
+        pool = await self._pool()
+        async with self._locked(code):
+            room = await self._room(code)
+            _require_admin(by)
+            if room.status != "finished" or room.daily is not None:
+                raise BadState(f"room {code} is {room.status}, not a finished party game")
+            played = room.played_ids | {
+                q.content_id for q in room.questions if q.source == "pack" and q.shown_at
+            }
+            settings = room.settings
+            if settings.surprise_modes:
+                # The last draw is not this game's; the next ``start_game`` draws again.
+                settings = settings.model_copy(update={"modes": []})
+            expires_at = datetime.now(UTC) + timedelta(days=self.settings.room_ttl_days)
+            async with pool.acquire() as conn, conn.transaction():
+                await conn.execute("delete from questions where room_id = $1", room.id)
+                await conn.execute(
+                    "update rooms set status = 'lobby', current_index = null, finished_at = null,"
+                    " expires_at = $2, settings = $3, played_question_ids = $4 where id = $1",
+                    room.id,
+                    expires_at,
+                    settings.model_dump(),
+                    sorted(played),
+                )
+                await bump(conn, Metric.REMATCHES)
+            room.status = "lobby"
+            room.settings = settings
+            room.played_ids = frozenset(played)
+            room.questions = []
+            room.totals = {}
+            room.totals_round = 0
+            room.current_index = None
+            room.finished_at = None
+            room.expires_at = expires_at
+            room.phase = "idle"
+            room.next_at = room.next_mono = None
+            room.reveal_seconds = None
+            for player in room.players.values():
+                player.ready = False
+                player.unreadied = False
+            self._plan_lobby(room)
+            # Everyone's standings go back to zero with the room, as a ``welcome`` would say.
+            update = self._room_updated(room, standings=True)
+        self._broadcast(update)
+
     def _select(self, room: Room) -> tuple[RoomSettings, list[tuple[int, dict[str, Any]]]]:
         """The settings and questions the game plays. A refusal leaves the room in the lobby.
 
@@ -818,7 +871,12 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
             settings = room.settings.drawn(self._rounds_offered(), self.rng)
             settings.check_custom_questions(len(room.custom_questions))
             rounds = selection.select(
-                self.packs, room.custom_questions, settings, self.rng, self.pictures
+                self.packs,
+                room.custom_questions,
+                settings,
+                self.rng,
+                self.pictures,
+                room.played_ids,
             )
         except ValueError as exc:
             raise BadState(str(exc)) from None

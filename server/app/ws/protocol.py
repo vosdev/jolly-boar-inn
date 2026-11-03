@@ -289,6 +289,12 @@ class EndGame(_Message):
     t: Literal["end_game"]
 
 
+class Rematch(_Message):
+    """Admin: send a finished room back to its lobby for another game."""
+
+    t: Literal["rematch"]
+
+
 class EndRound(_Message):
     """End the round holding question ``index``, which must still be the room's."""
 
@@ -381,6 +387,7 @@ ClientMessage = Annotated[
     | Kick
     | EndGame
     | EndRound
+    | Rematch
     | RotateKey
     | DecideRequest
     | SetProfile

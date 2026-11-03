@@ -58,6 +58,7 @@ const COUNTS: Count[] = [
   { day: today, metric: 'game_durations', key: '10-20', count: 2 },
   { day: today, metric: 'custom_questions', key: 'free_text', count: 4 },
   { day: today, metric: 'games_with_custom', key: '', count: 1 },
+  { day: yesterday, metric: 'rematches', key: '', count: 2 },
 ]
 
 function serve(status = 200): ReturnType<typeof vi.fn> {
@@ -139,6 +140,7 @@ describe('Admin', () => {
     expect(rows('Finished games by length')).toEqual(['10–20 min', '60+ min'])
     expect(rows("Hosts' own questions by type")).toEqual(['Type the answer'])
     expect(screen.getByText('In 1 game started.')).toBeTruthy()
+    expect(screen.getByText(/2 games were rematches at the same table\./)).toBeTruthy()
     expect(rows('How players got in')).toEqual([])
   })
 

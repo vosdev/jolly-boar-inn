@@ -60,6 +60,8 @@ class Metric(StrEnum):
     GAMES_ENDED_EARLY = "games_ended_early"
     GAMES_FINISHED = "games_finished"
     GAMES_ABANDONED = "games_abandoned"
+    # A finished room sent back to its lobby; its next game counts as started again.
+    REMATCHES = "rematches"
     # The host counts as a joined player too, so returning can never outnumber joined.
     PLAYERS_JOINED = "players_joined"
     PLAYERS_RETURNING = "players_returning"

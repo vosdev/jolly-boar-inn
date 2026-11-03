@@ -286,6 +286,8 @@ async def _dispatch(
             await manager.kick(code, player, message.player_id)
         case protocol.EndGame():
             await manager.end_game(code, player)
+        case protocol.Rematch():
+            await manager.rematch(code, player)
         case protocol.EndRound():
             await manager.end_round(code, player, message.index)
         case protocol.RotateKey():

@@ -173,6 +173,7 @@
   const frequencies = $derived(of(['event_frequency']))
   const customTypes = $derived(of(['custom_questions']))
   const customGames = $derived(total(counts, range, today, 'games_with_custom'))
+  const rematches = $derived(total(counts, range, today, 'rematches'))
   const lengths = $derived(of(['game_durations'], LENGTHS))
   const connected = $derived(live?.rooms.reduce((n, r) => n + r.connected, 0) ?? 0)
   const players = $derived(live?.rooms.reduce((n, r) => n + r.players, 0) ?? 0)
@@ -465,6 +466,12 @@
           { label: 'abandoned', tone: 'bad', values: games.values[2] ?? [] },
         ]}
       />
+      {#if rematches > 0}
+        <p class="note">
+          {rematches}
+          {rematches === 1 ? 'game was a rematch' : 'games were rematches'} at the same table.
+        </p>
+      {/if}
       <HistoryChart
         title={joins.smoothed ? 'Players a day, 7-day average' : 'Players per day'}
         kind="lines"

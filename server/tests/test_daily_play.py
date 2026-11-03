@@ -3,6 +3,7 @@
 import time
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -16,6 +17,7 @@ from app.question_stats import counts
 from app.questions.submission import Submission
 from app.questions.types import TYPES, pictured
 from app.rooms.daily_room import DAILY_REVEAL_SECONDS
+from app.rooms.errors import BadState
 from app.rooms.models import Room
 from app.stats import Metric
 from app.ws import handler as ws_handler
@@ -455,3 +457,13 @@ def test_the_result_of_a_finished_attempt_starts_nothing(
     other = client.post("/api/daily/result", json={"token": OTHER, "day": day})
     assert other.status_code == 404
     assert len(db("select 1 from daily_attempts")) == 1
+
+
+def test_a_finished_daily_room_cannot_rematch(quick: FastAPI, client: TestClient) -> None:
+    code = played(client)
+    room = room_of(client, code)
+    (player,) = room.players.values()
+    as_admin = replace(player, role="admin")
+    with pytest.raises(BadState):
+        call(client, client.app.state.rooms.rematch, code, as_admin)  # type: ignore[attr-defined]
+    assert room_of(client, code).status == "finished"

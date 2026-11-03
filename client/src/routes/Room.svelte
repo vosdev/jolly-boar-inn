@@ -535,7 +535,14 @@
         stacked={framed === null}
         tv={$you?.role === 'tv'}
       >
-        <button type="button" onclick={leave}>Home</button>
+        <div class="row">
+          {#if isAdmin}
+            <button type="button" class="primary" onclick={() => socket?.send({ t: 'rematch' })}>
+              Another round
+            </button>
+          {/if}
+          <button type="button" onclick={leave}>Home</button>
+        </div>
       </FinalStandings>
     {:else if $room.phase === 'splash' && $room.segment !== null}
       <!-- The splash is the whole screen: no header, no scoreboard, nothing to read past.

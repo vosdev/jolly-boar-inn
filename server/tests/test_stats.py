@@ -644,6 +644,7 @@ def keys_allowed() -> dict[Metric, set[str]]:
         Metric.GAMES_ENDED_EARLY,
         Metric.GAMES_FINISHED,
         Metric.GAMES_ABANDONED,
+        Metric.REMATCHES,
         Metric.PLAYERS_JOINED,
         Metric.PLAYERS_RETURNING,
         Metric.GAMES_WITH_CUSTOM,
