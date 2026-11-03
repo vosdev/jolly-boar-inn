@@ -631,7 +631,7 @@
     </div>
   </div>
 {:else if placing}
-  <div class="editor surface place" role="group" aria-labelledby="{id}-title">
+  <div class="editor surface" role="group" aria-labelledby="{id}-title">
     <SuggestSteps {steps} />
     <div class="layout stacks">
       <div class="fields">
@@ -829,30 +829,30 @@
     text-align: right;
   }
 
+  /* The step line's labels never wrap, so a size container holds them to the width there is. */
   .editor {
+    container-type: inline-size;
     padding: 1rem;
     border: var(--border-width) solid var(--line);
     border-radius: min(var(--radius), 8px);
     background: var(--panel-raised);
   }
 
+  /* On a phone the preview stands under the fields rather than squeezing beside them. */
   .layout {
     display: grid;
-    grid-template-columns: 3fr 2fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 1.25rem;
     align-items: start;
   }
 
-  /* The step line's labels never wrap, so this holds them to the width there is. */
-  .place {
-    container-type: inline-size;
+  @container (min-width: 40rem) {
+    .layout:not(.stacks) {
+      grid-template-columns: 3fr 2fr;
+    }
   }
 
   /* A map too narrow to find anything on is no use: it stands over the preview until both fit. */
-  .layout.stacks {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
   @container (min-width: 46rem) {
     .layout.stacks {
       grid-template-columns: 3fr 2fr;
