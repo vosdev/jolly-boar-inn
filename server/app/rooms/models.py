@@ -255,9 +255,9 @@ class RoomQuestion:
 
     @property
     def steps(self) -> Steps | None:
-        """How the question's picture builds up, for ``STEP`` scoring (section 8): its mode's,
-        Pixel Hunt's alone. ``None`` turns ``STEP`` into ``SPEED``."""
-        return steps_of(self.mode)
+        """How the question's picture builds up, for ``STEP`` scoring (section 8): Pixel Hunt's,
+        or Certer's wherever he asks. ``None`` turns ``STEP`` into ``SPEED``."""
+        return steps_of(self.mode, self.random_event)
 
     @property
     def scoring(self) -> Scoring:

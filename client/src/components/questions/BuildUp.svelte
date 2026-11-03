@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * Pixel Hunt's picture building up: `lib/pixelHunt.ts`'s frame on a canvas over the image,
+   * Pixel Hunt's picture building up, or Certer's sketch: `lib/pixelHunt.ts`'s frame on a canvas over the image,
    * which `QuestionPicture` holds invisible so the canvas is exactly its size.
    *
    * It draws every animation frame on the server's clock, so a phone that slept wakes on the
@@ -26,6 +26,7 @@
     index,
     answerableAt,
     endsAt,
+    sketch = false,
   }: Build & { image: HTMLImageElement | null } = $props()
 
   let canvas = $state<HTMLCanvasElement | null>(null)
@@ -74,7 +75,7 @@
     if (picture === null || pen === null) return
     target.width = picture.width
     target.height = picture.height
-    const { reveal, seed } = revealFor(room, questionId, index)
+    const { reveal, seed } = revealFor(room, questionId, index, sketch)
     const theme = look(target)
     const from = Date.parse(answerableAt)
     const to = Date.parse(endsAt)

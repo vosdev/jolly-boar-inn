@@ -186,6 +186,14 @@ describe('the reveal a question gets', () => {
     }
   })
 
+  it("is always the Sketch for Certer's, with the seed the deal would give", () => {
+    for (let index = 0; index < 12; index++) {
+      const sketched = revealFor('WHIPLASH', QUESTION, index, true)
+      expect(sketched.reveal.id).toBe('sketch')
+      expect(sketched.seed).toBe(revealFor('WHIPLASH', QUESTION, index).seed)
+    }
+  })
+
   it('shuffles the order by the room, so the first question is not always the same reveal', () => {
     const rooms = Array.from({ length: 120 }, (_, n) => `ROOM${n}`)
     const first = rooms.map((room) => revealFor(room, QUESTION, 0).reveal.id)

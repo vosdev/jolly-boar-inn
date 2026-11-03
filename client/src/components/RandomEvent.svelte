@@ -145,7 +145,7 @@
   <p class={kind}><Typed line={lines[i] ?? ''} shown={typist.shown[i]} /></p>
 {/snippet}
 
-{#snippet staged(stem: Snippet, answers: Snippet | null)}
+{#snippet staged(stem: Snippet, answers: Snippet | null, picture: Snippet | null)}
   {#snippet words()}
     <h2 class="who">{npc.name}</h2>
     {#if answers === null || prompt === ''}
@@ -162,7 +162,10 @@
   {/snippet}
   {#snippet sheet()}
     {#if tv}
-      <div class="tv-words">{@render words()}</div>
+      <div class="tv-words">
+        {@render words()}
+        {#if answers !== null && prompt !== ''}{@render picture?.()}{/if}
+      </div>
       <div class="foot">
         <p class="explanation">{explanation}</p>
       </div>
@@ -171,6 +174,7 @@
         {@render stem()}
       {:else}
         {@render typed(asked, 'ask')}
+        {@render picture?.()}
       {/if}
     {/if}
   {/snippet}

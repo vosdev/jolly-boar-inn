@@ -35,6 +35,11 @@ export interface RandomEventNpc {
   wrong: string
   /** `npc:<id>`: the picture, once there is one. */
   asset: string
+  /**
+   * Its questions are an item sketched as Pixel Hunt's Sketch draws it, generated from the
+   * roster: it asks nothing else, so nobody can pick it to ask a question of their own.
+   */
+  sketches?: true
 }
 
 export const RANDOM_EVENTS: readonly RandomEventNpc[] = [
@@ -166,7 +171,19 @@ export const RANDOM_EVENTS: readonly RandomEventNpc[] = [
     wrong: 'Hmm, no. Do try the library some time.',
     asset: 'npc:reldo',
   },
+  {
+    id: 'certer',
+    name: 'Certer',
+    theme: 'Items, from their outline',
+    right: 'Splendid! That settles it, thank you.',
+    wrong: 'Oh dear. My brothers will never let me forget this.',
+    asset: 'npc:certer',
+    sketches: true,
+  },
 ]
+
+/** The NPCs a host or a player may name to ask a question of their own. */
+export const ASKERS: readonly RandomEventNpc[] = RANDOM_EVENTS.filter((npc) => !npc.sketches)
 
 /** The Mysterious Old Man's id: the face of an NPC this build has no entry or art for. */
 export const STRANGER = 'mysterious_old_man'

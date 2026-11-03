@@ -23,6 +23,7 @@ from app.http import (
     daily,
     modes,
     players,
+    question_counts,
     questions,
     reports,
     rooms,
@@ -305,6 +306,7 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
     app.include_router(modes.router)
     app.include_router(vocab.router)
     app.include_router(credits.router)
+    app.include_router(question_counts.router)
     app.include_router(suggestions.router)
     app.include_router(reports.router)
     app.include_router(questions.router)

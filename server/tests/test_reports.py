@@ -127,7 +127,10 @@ WHAT_PLAYERS_READ = {
     "bestiary": _prompt,
     "drop_table": _prompt,
     "minigame_madness": _prompt,
-    "random_event": _prompt,
+    # Certer's are pictures, named as Pixel Hunt's are.
+    "random_event": lambda q: (
+        q["payload"]["subject"]["name"] if q.get("random_event") == "certer" else _prompt(q)
+    ),
     "forgetful_bard": _prompt,
     "scaperune": _prompt,
     "tales_of_gielinor": _prompt,

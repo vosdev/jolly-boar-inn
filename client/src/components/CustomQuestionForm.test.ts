@@ -6,7 +6,7 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/svelte'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { RANDOM_EVENTS } from '../lib/randomEvents'
+import { ASKERS, RANDOM_EVENTS } from '../lib/randomEvents'
 import CustomQuestionForm from './CustomQuestionForm.svelte'
 
 afterEach(cleanup)
@@ -28,12 +28,11 @@ async function choose(value: string): Promise<void> {
 }
 
 describe('CustomQuestionForm', () => {
-  it('lists every NPC once as its theme and name, sorted by theme, then by name', () => {
+  it('lists every NPC who may ask once as its theme and name, sorted by theme, then by name', () => {
     render(CustomQuestionForm, { asker: 'required', onsave: () => {}, oncancel: () => {} })
     const options = [...topics().options].filter((option) => option.value !== '')
-    expect(options.map((option) => option.value).sort()).toEqual(
-      RANDOM_EVENTS.map((npc) => npc.id).sort(),
-    )
+    expect(options.map((option) => option.value).sort()).toEqual(ASKERS.map((npc) => npc.id).sort())
+    expect(options.map((option) => option.value)).not.toContain('certer')
     const listed = options.map((option) => RANDOM_EVENTS.find((npc) => npc.id === option.value)!)
     for (const [index, npc] of listed.entries()) {
       expect(options[index]!.textContent).toBe(`${npc.theme} (${npc.name})`)

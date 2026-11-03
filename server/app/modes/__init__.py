@@ -29,6 +29,7 @@ from app.modes.mode import Mode
 from app.questions.types import TYPES
 from app.questions.types.bounds import Bounds
 from app.questions.types.scoring import Steps
+from app.random_events import BUILT_UP
 
 # Only for the annotation: the packs import the registry to check a question's mode.
 if TYPE_CHECKING:
@@ -170,6 +171,7 @@ MODES: dict[str, Mode] = {
                 "pick_all_that_apply",
                 "ordering",
                 "matching",
+                "pick_from_list",
             }
         ),
         # The pool is small: 20 leaves room for the events the room adds on top.
@@ -197,8 +199,13 @@ def drawable(question: dict[str, Any], pictures: Collection[str]) -> bool:
     and on the map only with the tiles."""
     if question.get("type") == "map_pin" and TILES not in pictures:
         return False
+    return not needs_picture(question) or question["payload"].get("image") in pictures
+
+
+def needs_picture(question: dict[str, Any]) -> bool:
+    """Whether ``question`` is its picture: a ``pictured`` mode's, or a built-up NPC's."""
     mode = MODES.get(question["mode"])
-    return mode is None or not mode.pictured or question["payload"].get("image") in pictures
+    return (mode is not None and mode.pictured) or question.get("random_event") in BUILT_UP
 
 
 def offered(settings: Any, packs: Iterable[Pack], pictures: Collection[str] = ()) -> list[Mode]:
@@ -221,9 +228,11 @@ def offered(settings: Any, packs: Iterable[Pack], pictures: Collection[str] = ()
     ]
 
 
-def steps_of(mode: str) -> Steps | None:
-    """How a round of ``mode`` builds its picture up, or ``None``: a stored room may play a
-    mode this build no longer has."""
+def steps_of(mode: str, random_event: str | None = None) -> Steps | None:
+    """How a question of ``mode``, asked by ``random_event``, builds its picture up, or
+    ``None``: a stored room may play a mode this build no longer has."""
+    if random_event in BUILT_UP:
+        return BUILT_UP[random_event]
     entry = MODES.get(mode)
     return None if entry is None else entry.steps
 

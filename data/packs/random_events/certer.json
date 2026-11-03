@@ -1,0 +1,6704 @@
+{
+  "pack": "random_events",
+  "random_event": "certer",
+  "questions": [
+    {
+      "id": "q_ec93ee64c8ff9dea",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 10352,
+        "image": "item:10352",
+        "subject": {
+          "name": "3rd Age kiteshield"
+        }
+      }
+    },
+    {
+      "id": "q_56b6b5ee65c1d648",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 20014,
+        "image": "item:20014",
+        "subject": {
+          "name": "3rd Age pickaxe"
+        }
+      }
+    },
+    {
+      "id": "q_f87b28e49367c4b0",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 10348,
+        "image": "item:10348",
+        "subject": {
+          "name": "3rd Age platebody"
+        }
+      }
+    },
+    {
+      "id": "q_0ddd4d1ecb924f2d",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 13263,
+        "image": "item:13263",
+        "subject": {
+          "name": "Abyssal bludgeon"
+        }
+      }
+    },
+    {
+      "id": "q_bef198d66b779957",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 13265,
+        "image": "item:13265",
+        "subject": {
+          "name": "Abyssal dagger"
+        }
+      }
+    },
+    {
+      "id": "q_8c68fcc72c857fe7",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 12006,
+        "image": "item:12006",
+        "subject": {
+          "name": "Abyssal tentacle"
+        }
+      }
+    },
+    {
+      "id": "q_a440ca61d599c707",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 4151,
+        "image": "item:4151",
+        "subject": {
+          "name": "Abyssal whip"
+        }
+      }
+    },
+    {
+      "id": "q_9a8027a0abd81e1a",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 9771,
+        "image": "item:9771",
+        "subject": {
+          "name": "Agility cape"
+        }
+      }
+    },
+    {
+      "id": "q_0a1bfcc31e75fff5",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 4712,
+        "image": "item:4712",
+        "subject": {
+          "name": "Ahrim's robetop"
+        }
+      }
+    },
+    {
+      "id": "q_a23e96e91c84a893",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 4710,
+        "image": "item:4710",
+        "subject": {
+          "name": "Ahrim's staff"
+        }
+      }
+    },
+    {
+      "id": "q_acc189ab33cd5ae8",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 556,
+        "image": "item:556",
+        "subject": {
+          "name": "Air rune"
+        }
+      }
+    },
+    {
+      "id": "q_990c880376ce9502",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 21326,
+        "image": "item:21326",
+        "subject": {
+          "name": "Amethyst arrow"
+        }
+      }
+    },
+    {
+      "id": "q_000ff186a90fb414",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 24780,
+        "image": "item:24780",
+        "subject": {
+          "name": "Amulet of blood fury"
+        }
+      }
+    },
+    {
+      "id": "q_c7d4d2491fa9f753",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 19707,
+        "image": "item:19707",
+        "subject": {
+          "name": "Amulet of eternal glory"
+        }
+      }
+    },
+    {
+      "id": "q_1617c220a8423fb9",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 6585,
+        "image": "item:6585",
+        "subject": {
+          "name": "Amulet of fury"
+        }
+      }
+    },
+    {
+      "id": "q_b5bd4c421e57d960",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1725,
+        "image": "item:1725",
+        "subject": {
+          "name": "Amulet of strength"
+        }
+      }
+    },
+    {
+      "id": "q_64c5d3e29e38de37",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 19553,
+        "image": "item:19553",
+        "subject": {
+          "name": "Amulet of torture"
+        }
+      }
+    },
+    {
+      "id": "q_7cee8af368d74a19",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 21018,
+        "image": "item:21018",
+        "subject": {
+          "name": "Ancestral hat"
+        }
+      }
+    },
+    {
+      "id": "q_9b2f36429c19f336",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 21024,
+        "image": "item:21024",
+        "subject": {
+          "name": "Ancestral robe bottom"
+        }
+      }
+    },
+    {
+      "id": "q_18ce6fd3d080e32a",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 21021,
+        "image": "item:21021",
+        "subject": {
+          "name": "Ancestral robe top"
+        }
+      }
+    },
+    {
+      "id": "q_8ab52c7614629913",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 12460,
+        "image": "item:12460",
+        "subject": {
+          "name": "Ancient platebody"
+        }
+      }
+    },
+    {
+      "id": "q_51b6101a6a09098a",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 4675,
+        "image": "item:4675",
+        "subject": {
+          "name": "Ancient staff"
+        }
+      }
+    },
+    {
+      "id": "q_6e312918f27c5e84",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 13258,
+        "image": "item:13258",
+        "subject": {
+          "name": "Angler hat"
+        }
+      }
+    },
+    {
+      "id": "q_df0e0d0552fd723a",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 13441,
+        "image": "item:13441",
+        "subject": {
+          "name": "Anglerfish"
+        }
+      }
+    },
+    {
+      "id": "q_b12e747c7c7d7180",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1540,
+        "image": "item:1540",
+        "subject": {
+          "name": "Anti-dragon shield"
+        }
+      }
+    },
+    {
+      "id": "q_75b69c66ff8688ae",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 12905,
+        "image": "item:12905",
+        "subject": {
+          "name": "Anti-venom(4)"
+        }
+      }
+    },
+    {
+      "id": "q_2820b1ac8a4d4a76",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 21079,
+        "image": "item:21079",
+        "subject": {
+          "name": "Arcane prayer scroll"
+        }
+      }
+    },
+    {
+      "id": "q_ffb2e5ae05571101",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 12825,
+        "image": "item:12825",
+        "subject": {
+          "name": "Arcane spirit shield"
+        }
+      }
+    },
+    {
+      "id": "q_045c8de285ddffea",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 6733,
+        "image": "item:6733",
+        "subject": {
+          "name": "Archers ring"
+        }
+      }
+    },
+    {
+      "id": "q_06d8f3090e835dee",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 19675,
+        "image": "item:19675",
+        "subject": {
+          "name": "Arclight"
+        }
+      }
+    },
+    {
+      "id": "q_3a44ca60e3515572",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 13121,
+        "image": "item:13121",
+        "subject": {
+          "name": "Ardougne cloak 1"
+        }
+      }
+    },
+    {
+      "id": "q_8ce1db8a1a6f0c92",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11830,
+        "image": "item:11830",
+        "subject": {
+          "name": "Armadyl chainskirt"
+        }
+      }
+    },
+    {
+      "id": "q_e452205f73686cbc",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11828,
+        "image": "item:11828",
+        "subject": {
+          "name": "Armadyl chestplate"
+        }
+      }
+    },
+    {
+      "id": "q_9e0b08a97ebe3703",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11785,
+        "image": "item:11785",
+        "subject": {
+          "name": "Armadyl crossbow"
+        }
+      }
+    },
+    {
+      "id": "q_97791956fee1393d",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11802,
+        "image": "item:11802",
+        "subject": {
+          "name": "Armadyl godsword"
+        }
+      }
+    },
+    {
+      "id": "q_294364c82ac4fa15",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11826,
+        "image": "item:11826",
+        "subject": {
+          "name": "Armadyl helmet"
+        }
+      }
+    },
+    {
+      "id": "q_976986f3d105abf1",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 12470,
+        "image": "item:12470",
+        "subject": {
+          "name": "Armadyl platebody"
+        }
+      }
+    },
+    {
+      "id": "q_8392681c4bc17265",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1905,
+        "image": "item:1905",
+        "subject": {
+          "name": "Asgarnian ale"
+        }
+      }
+    },
+    {
+      "id": "q_bc6340588b4f099a",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 9075,
+        "image": "item:9075",
+        "subject": {
+          "name": "Astral rune"
+        }
+      }
+    },
+    {
+      "id": "q_1e3e6a0343e73237",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 9747,
+        "image": "item:9747",
+        "subject": {
+          "name": "Attack cape"
+        }
+      }
+    },
+    {
+      "id": "q_ddd097909d21310b",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 10499,
+        "image": "item:10499",
+        "subject": {
+          "name": "Ava's accumulator"
+        }
+      }
+    },
+    {
+      "id": "q_63dd49304579b6d4",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 22109,
+        "image": "item:22109",
+        "subject": {
+          "name": "Ava's assembler"
+        }
+      }
+    },
+    {
+      "id": "q_f5942d49249d75d4",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 22322,
+        "image": "item:22322",
+        "subject": {
+          "name": "Avernic defender"
+        }
+      }
+    },
+    {
+      "id": "q_15a9165c12691972",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 31088,
+        "image": "item:31088",
+        "subject": {
+          "name": "Avernic treads"
+        }
+      }
+    },
+    {
+      "id": "q_75354c1af5431ea3",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1759,
+        "image": "item:1759",
+        "subject": {
+          "name": "Ball of wool"
+        }
+      }
+    },
+    {
+      "id": "q_37492e38257b6a8b",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11836,
+        "image": "item:11836",
+        "subject": {
+          "name": "Bandos boots"
+        }
+      }
+    },
+    {
+      "id": "q_724dd3bfa9ccf1df",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11832,
+        "image": "item:11832",
+        "subject": {
+          "name": "Bandos chestplate"
+        }
+      }
+    },
+    {
+      "id": "q_bb4f66fa0dd25083",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11804,
+        "image": "item:11804",
+        "subject": {
+          "name": "Bandos godsword"
+        }
+      }
+    },
+    {
+      "id": "q_a681e1c2eccedfbb",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 12480,
+        "image": "item:12480",
+        "subject": {
+          "name": "Bandos platebody"
+        }
+      }
+    },
+    {
+      "id": "q_91b93a8756cc10ac",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11834,
+        "image": "item:11834",
+        "subject": {
+          "name": "Bandos tassets"
+        }
+      }
+    },
+    {
+      "id": "q_dde421af02e9aa12",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 7462,
+        "image": "item:7462",
+        "subject": {
+          "name": "Barrows gloves"
+        }
+      }
+    },
+    {
+      "id": "q_50bb0625307df019",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1917,
+        "image": "item:1917",
+        "subject": {
+          "name": "Beer"
+        }
+      }
+    },
+    {
+      "id": "q_1ebef906327e3c83",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1919,
+        "image": "item:1919",
+        "subject": {
+          "name": "Beer glass"
+        }
+      }
+    },
+    {
+      "id": "q_9d3aff3ed2e6eb72",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 3751,
+        "image": "item:3751",
+        "subject": {
+          "name": "Berserker helm"
+        }
+      }
+    },
+    {
+      "id": "q_3be0c7425e21174a",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 6737,
+        "image": "item:6737",
+        "subject": {
+          "name": "Berserker ring"
+        }
+      }
+    },
+    {
+      "id": "q_ae605d80002f4399",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 532,
+        "image": "item:532",
+        "subject": {
+          "name": "Big bones"
+        }
+      }
+    },
+    {
+      "id": "q_297e3752e498c0dc",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11959,
+        "image": "item:11959",
+        "subject": {
+          "name": "Black chinchompa"
+        }
+      }
+    },
+    {
+      "id": "q_f84ceea8ebdcaa8e",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 2503,
+        "image": "item:2503",
+        "subject": {
+          "name": "Black d'hide body"
+        }
+      }
+    },
+    {
+      "id": "q_1b4dd99d473bcc3a",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 23997,
+        "image": "item:23997",
+        "subject": {
+          "name": "Blade of Saeldor (inactive)"
+        }
+      }
+    },
+    {
+      "id": "q_2df05183b94bbe00",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 565,
+        "image": "item:565",
+        "subject": {
+          "name": "Blood rune"
+        }
+      }
+    },
+    {
+      "id": "q_755695cb9c4b34f2",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1055,
+        "image": "item:1055",
+        "subject": {
+          "name": "Blue halloween mask"
+        }
+      }
+    },
+    {
+      "id": "q_746bb984a9b88871",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1042,
+        "image": "item:1042",
+        "subject": {
+          "name": "Blue partyhat"
+        }
+      }
+    },
+    {
+      "id": "q_0cceb1b4ca6ac092",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 579,
+        "image": "item:579",
+        "subject": {
+          "name": "Blue wizard hat"
+        }
+      }
+    },
+    {
+      "id": "q_6cca7d402f36f37b",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 526,
+        "image": "item:526",
+        "subject": {
+          "name": "Bones"
+        }
+      }
+    },
+    {
+      "id": "q_ab5f4e08ad64ae92",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 22994,
+        "image": "item:22994",
+        "subject": {
+          "name": "Bottomless compost bucket"
+        }
+      }
+    },
+    {
+      "id": "q_8a4944663c838bb3",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 25862,
+        "image": "item:25862",
+        "subject": {
+          "name": "Bow of Faerdhinen (inactive)"
+        }
+      }
+    },
+    {
+      "id": "q_fb3cfb59fd158e55",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1777,
+        "image": "item:1777",
+        "subject": {
+          "name": "Bow string"
+        }
+      }
+    },
+    {
+      "id": "q_0bd7fa198a0001f9",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 22975,
+        "image": "item:22975",
+        "subject": {
+          "name": "Brimstone ring"
+        }
+      }
+    },
+    {
+      "id": "q_ba9b42626d29459d",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11875,
+        "image": "item:11875",
+        "subject": {
+          "name": "Broad bolts"
+        }
+      }
+    },
+    {
+      "id": "q_18bb42d7225a17f9",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 882,
+        "image": "item:882",
+        "subject": {
+          "name": "Bronze arrow"
+        }
+      }
+    },
+    {
+      "id": "q_01efb7f6b0afa9b3",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1205,
+        "image": "item:1205",
+        "subject": {
+          "name": "Bronze dagger"
+        }
+      }
+    },
+    {
+      "id": "q_2a034bf49472fcee",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 20720,
+        "image": "item:20720",
+        "subject": {
+          "name": "Bruma torch"
+        }
+      }
+    },
+    {
+      "id": "q_903d277bcda6ae13",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1925,
+        "image": "item:1925",
+        "subject": {
+          "name": "Bucket"
+        }
+      }
+    },
+    {
+      "id": "q_af216c8bc2608455",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 381,
+        "image": "item:381",
+        "subject": {
+          "name": "Burnt lobster"
+        }
+      }
+    },
+    {
+      "id": "q_1b140bacc7b0b56a",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1965,
+        "image": "item:1965",
+        "subject": {
+          "name": "Cabbage"
+        }
+      }
+    },
+    {
+      "id": "q_0ef847d41b48050a",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 13679,
+        "image": "item:13679",
+        "subject": {
+          "name": "Cabbage cape"
+        }
+      }
+    },
+    {
+      "id": "q_67c02d44aa5bdd61",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1891,
+        "image": "item:1891",
+        "subject": {
+          "name": "Cake"
+        }
+      }
+    },
+    {
+      "id": "q_73b165e6db19758f",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1052,
+        "image": "item:1052",
+        "subject": {
+          "name": "Cape of Legends"
+        }
+      }
+    },
+    {
+      "id": "q_d2c90ec1dd5e31ad",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 4677,
+        "image": "item:4677",
+        "subject": {
+          "name": "Catspeak amulet"
+        }
+      }
+    },
+    {
+      "id": "q_23a7f30705cf97fb",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 562,
+        "image": "item:562",
+        "subject": {
+          "name": "Chaos rune"
+        }
+      }
+    },
+    {
+      "id": "q_87fb5ca912b3928e",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1755,
+        "image": "item:1755",
+        "subject": {
+          "name": "Chisel"
+        }
+      }
+    },
+    {
+      "id": "q_f32063e2dd22c33a",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 962,
+        "image": "item:962",
+        "subject": {
+          "name": "Christmas cracker"
+        }
+      }
+    },
+    {
+      "id": "q_e3b7fa6282cc3f52",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 3105,
+        "image": "item:3105",
+        "subject": {
+          "name": "Climbing boots"
+        }
+      }
+    },
+    {
+      "id": "q_f0cea21dfce3390f",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 453,
+        "image": "item:453",
+        "subject": {
+          "name": "Coal"
+        }
+      }
+    },
+    {
+      "id": "q_fc0828bbc9670be0",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 995,
+        "image": "item:995",
+        "subject": {
+          "name": "Coins"
+        }
+      }
+    },
+    {
+      "id": "q_924fe2b39dc980b4",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 26784,
+        "image": "item:26784",
+        "subject": {
+          "name": "Colossal pouch"
+        }
+      }
+    },
+    {
+      "id": "q_c16924667f0854e2",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 3144,
+        "image": "item:3144",
+        "subject": {
+          "name": "Cooked karambwan"
+        }
+      }
+    },
+    {
+      "id": "q_42d26226ef87d15f",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 9801,
+        "image": "item:9801",
+        "subject": {
+          "name": "Cooking cape"
+        }
+      }
+    },
+    {
+      "id": "q_f47dce3b1aafc309",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 564,
+        "image": "item:564",
+        "subject": {
+          "name": "Cosmic rune"
+        }
+      }
+    },
+    {
+      "id": "q_ec7726a67a7af811",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1739,
+        "image": "item:1739",
+        "subject": {
+          "name": "Cowhide"
+        }
+      }
+    },
+    {
+      "id": "q_6832420d0cd6a48a",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 23983,
+        "image": "item:23983",
+        "subject": {
+          "name": "Crystal bow"
+        }
+      }
+    },
+    {
+      "id": "q_d91139c151d31f05",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 23987,
+        "image": "item:23987",
+        "subject": {
+          "name": "Crystal halberd"
+        }
+      }
+    },
+    {
+      "id": "q_1dce39811a2031f1",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 6103,
+        "image": "item:6103",
+        "subject": {
+          "name": "Crystal teleport seed"
+        }
+      }
+    },
+    {
+      "id": "q_ac427a510714ddae",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 23953,
+        "image": "item:23953",
+        "subject": {
+          "name": "Crystal tool seed"
+        }
+      }
+    },
+    {
+      "id": "q_63d66b36d3733241",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 24704,
+        "image": "item:24704",
+        "subject": {
+          "name": "Daeyalt essence"
+        }
+      }
+    },
+    {
+      "id": "q_890bfaf09ac959ee",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11235,
+        "image": "item:11235",
+        "subject": {
+          "name": "Dark bow"
+        }
+      }
+    },
+    {
+      "id": "q_3d544e4b0500e530",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11936,
+        "image": "item:11936",
+        "subject": {
+          "name": "Dark crab"
+        }
+      }
+    },
+    {
+      "id": "q_7918bbef8484e905",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 19685,
+        "image": "item:19685",
+        "subject": {
+          "name": "Dark totem"
+        }
+      }
+    },
+    {
+      "id": "q_d22d8d9b7ce856c7",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 6746,
+        "image": "item:6746",
+        "subject": {
+          "name": "Darklight"
+        }
+      }
+    },
+    {
+      "id": "q_dcee675f9ed4185b",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 30626,
+        "image": "item:30626",
+        "subject": {
+          "name": "Deadeye prayer scroll"
+        }
+      }
+    },
+    {
+      "id": "q_8da0462f8ffa584b",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 560,
+        "image": "item:560",
+        "subject": {
+          "name": "Death rune"
+        }
+      }
+    },
+    {
+      "id": "q_5e0588713dac0bf0",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 13133,
+        "image": "item:13133",
+        "subject": {
+          "name": "Desert amulet 1"
+        }
+      }
+    },
+    {
+      "id": "q_851892203a16316d",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 30640,
+        "image": "item:30640",
+        "subject": {
+          "name": "Desiccated page"
+        }
+      }
+    },
+    {
+      "id": "q_45336895a9ee3bb9",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 21034,
+        "image": "item:21034",
+        "subject": {
+          "name": "Dexterous prayer scroll"
+        }
+      }
+    },
+    {
+      "id": "q_9f603e8e4674e6e5",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 4718,
+        "image": "item:4718",
+        "subject": {
+          "name": "Dharok's greataxe"
+        }
+      }
+    },
+    {
+      "id": "q_b61146892cdad8d4",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 4716,
+        "image": "item:4716",
+        "subject": {
+          "name": "Dharok's helm"
+        }
+      }
+    },
+    {
+      "id": "q_18e4a9d88ec9ee1f",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 9243,
+        "image": "item:9243",
+        "subject": {
+          "name": "Diamond bolts (e)"
+        }
+      }
+    },
+    {
+      "id": "q_2154c1bed8b2c478",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 21015,
+        "image": "item:21015",
+        "subject": {
+          "name": "Dinh's bulwark"
+        }
+      }
+    },
+    {
+      "id": "q_14979430f98b3861",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 981,
+        "image": "item:981",
+        "subject": {
+          "name": "Disk of Returning"
+        }
+      }
+    },
+    {
+      "id": "q_19091caddb7d51c4",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 27281,
+        "image": "item:27281",
+        "subject": {
+          "name": "Divine rune pouch"
+        }
+      }
+    },
+    {
+      "id": "q_e6fe81ebf7421e99",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11286,
+        "image": "item:11286",
+        "subject": {
+          "name": "Draconic visage"
+        }
+      }
+    },
+    {
+      "id": "q_75b0f51b44f7d598",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 7158,
+        "image": "item:7158",
+        "subject": {
+          "name": "Dragon 2h sword"
+        }
+      }
+    },
+    {
+      "id": "q_2515125f3b43309c",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11212,
+        "image": "item:11212",
+        "subject": {
+          "name": "Dragon arrow"
+        }
+      }
+    },
+    {
+      "id": "q_aa3e0a5784ce755e",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 6739,
+        "image": "item:6739",
+        "subject": {
+          "name": "Dragon axe"
+        }
+      }
+    },
+    {
+      "id": "q_c2da9614343df690",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1377,
+        "image": "item:1377",
+        "subject": {
+          "name": "Dragon battleaxe"
+        }
+      }
+    },
+    {
+      "id": "q_c72b45ff5e27953d",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 536,
+        "image": "item:536",
+        "subject": {
+          "name": "Dragon bones"
+        }
+      }
+    },
+    {
+      "id": "q_064a7f9e91c02b07",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11840,
+        "image": "item:11840",
+        "subject": {
+          "name": "Dragon boots"
+        }
+      }
+    },
+    {
+      "id": "q_b124ad9d7c086823",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 3140,
+        "image": "item:3140",
+        "subject": {
+          "name": "Dragon chainbody"
+        }
+      }
+    },
+    {
+      "id": "q_d2b455a6814d9dc4",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 13652,
+        "image": "item:13652",
+        "subject": {
+          "name": "Dragon claws"
+        }
+      }
+    },
+    {
+      "id": "q_5fe9756876f13cbf",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1215,
+        "image": "item:1215",
+        "subject": {
+          "name": "Dragon dagger"
+        }
+      }
+    },
+    {
+      "id": "q_b4832ad9f24bc9cd",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 12954,
+        "image": "item:12954",
+        "subject": {
+          "name": "Dragon defender"
+        }
+      }
+    },
+    {
+      "id": "q_a28ad27c1689de89",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11335,
+        "image": "item:11335",
+        "subject": {
+          "name": "Dragon full helm"
+        }
+      }
+    },
+    {
+      "id": "q_2169df5289911fb5",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 3204,
+        "image": "item:3204",
+        "subject": {
+          "name": "Dragon halberd"
+        }
+      }
+    },
+    {
+      "id": "q_31b3f7182c55a1c8",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 22731,
+        "image": "item:22731",
+        "subject": {
+          "name": "Dragon hasta"
+        }
+      }
+    },
+    {
+      "id": "q_b8d85d36d4f8bc14",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 21012,
+        "image": "item:21012",
+        "subject": {
+          "name": "Dragon hunter crossbow"
+        }
+      }
+    },
+    {
+      "id": "q_7eb0878891f5829e",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 22978,
+        "image": "item:22978",
+        "subject": {
+          "name": "Dragon hunter lance"
+        }
+      }
+    },
+    {
+      "id": "q_667b39f786135f04",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11256,
+        "image": "item:11256",
+        "subject": {
+          "name": "Dragon impling jar"
+        }
+      }
+    },
+    {
+      "id": "q_26b7721499dff871",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1305,
+        "image": "item:1305",
+        "subject": {
+          "name": "Dragon longsword"
+        }
+      }
+    },
+    {
+      "id": "q_adaa1b7e593fe1b5",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1149,
+        "image": "item:1149",
+        "subject": {
+          "name": "Dragon med helm"
+        }
+      }
+    },
+    {
+      "id": "q_bc827ec0d59c13a3",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11920,
+        "image": "item:11920",
+        "subject": {
+          "name": "Dragon pickaxe"
+        }
+      }
+    },
+    {
+      "id": "q_21a1325ff71bfee2",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 21892,
+        "image": "item:21892",
+        "subject": {
+          "name": "Dragon platebody"
+        }
+      }
+    },
+    {
+      "id": "q_5958f2d692092725",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 4587,
+        "image": "item:4587",
+        "subject": {
+          "name": "Dragon scimitar"
+        }
+      }
+    },
+    {
+      "id": "q_8f2ecc9939c6162b",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1187,
+        "image": "item:1187",
+        "subject": {
+          "name": "Dragon sq shield"
+        }
+      }
+    },
+    {
+      "id": "q_7cd06a680d117afb",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 13576,
+        "image": "item:13576",
+        "subject": {
+          "name": "Dragon warhammer"
+        }
+      }
+    },
+    {
+      "id": "q_156b6d4e2184b663",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11284,
+        "image": "item:11284",
+        "subject": {
+          "name": "Dragonfire shield"
+        }
+      }
+    },
+    {
+      "id": "q_4e9aab7fbf8140f6",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 772,
+        "image": "item:772",
+        "subject": {
+          "name": "Dramen staff"
+        }
+      }
+    },
+    {
+      "id": "q_c08305a39aef60d6",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 2957,
+        "image": "item:2957",
+        "subject": {
+          "name": "Druid pouch"
+        }
+      }
+    },
+    {
+      "id": "q_5418bba6ce9a70d3",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 557,
+        "image": "item:557",
+        "subject": {
+          "name": "Earth rune"
+        }
+      }
+    },
+    {
+      "id": "q_f284dd028b8c0a2f",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1961,
+        "image": "item:1961",
+        "subject": {
+          "name": "Easter egg"
+        }
+      }
+    },
+    {
+      "id": "q_6e617fbddd55597d",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 4278,
+        "image": "item:4278",
+        "subject": {
+          "name": "Ecto-token"
+        }
+      }
+    },
+    {
+      "id": "q_263ae7e1038820bc",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11942,
+        "image": "item:11942",
+        "subject": {
+          "name": "Ecumenical key"
+        }
+      }
+    },
+    {
+      "id": "q_5cdb2c8616de433e",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 20595,
+        "image": "item:20595",
+        "subject": {
+          "name": "Elder chaos hood"
+        }
+      }
+    },
+    {
+      "id": "q_cf886320fdc373a0",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 20520,
+        "image": "item:20520",
+        "subject": {
+          "name": "Elder chaos robe"
+        }
+      }
+    },
+    {
+      "id": "q_d3f13474515759b5",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 20517,
+        "image": "item:20517",
+        "subject": {
+          "name": "Elder chaos top"
+        }
+      }
+    },
+    {
+      "id": "q_d046361336962f9e",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 21003,
+        "image": "item:21003",
+        "subject": {
+          "name": "Elder maul"
+        }
+      }
+    },
+    {
+      "id": "q_74c282d1cdaf6918",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 13072,
+        "image": "item:13072",
+        "subject": {
+          "name": "Elite void top"
+        }
+      }
+    },
+    {
+      "id": "q_8422ffcb9f055d38",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 12819,
+        "image": "item:12819",
+        "subject": {
+          "name": "Elysian sigil"
+        }
+      }
+    },
+    {
+      "id": "q_647b22b833410682",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 12817,
+        "image": "item:12817",
+        "subject": {
+          "name": "Elysian spirit shield"
+        }
+      }
+    },
+    {
+      "id": "q_3091513d29c16d1e",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 29589,
+        "image": "item:29589",
+        "subject": {
+          "name": "Emberlight"
+        }
+      }
+    },
+    {
+      "id": "q_e35a7b9f0c035150",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 22433,
+        "image": "item:22433",
+        "subject": {
+          "name": "Emerald sickle (b)"
+        }
+      }
+    },
+    {
+      "id": "q_b3b3f877dd992e8d",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 25859,
+        "image": "item:25859",
+        "subject": {
+          "name": "Enhanced crystal weapon seed"
+        }
+      }
+    },
+    {
+      "id": "q_4421cadad4a839d7",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 13493,
+        "image": "item:13493",
+        "subject": {
+          "name": "Ensouled dagannoth head"
+        }
+      }
+    },
+    {
+      "id": "q_aa52478dc031e9b2",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 13511,
+        "image": "item:13511",
+        "subject": {
+          "name": "Ensouled dragon head"
+        }
+      }
+    },
+    {
+      "id": "q_5e9fb0aec442dd5d",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 13466,
+        "image": "item:13466",
+        "subject": {
+          "name": "Ensouled unicorn head"
+        }
+      }
+    },
+    {
+      "id": "q_3eddf0433692e851",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 13235,
+        "image": "item:13235",
+        "subject": {
+          "name": "Eternal boots"
+        }
+      }
+    },
+    {
+      "id": "q_b11aeb00c934f4a9",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 31211,
+        "image": "item:31211",
+        "subject": {
+          "name": "Event lamp"
+        }
+      }
+    },
+    {
+      "id": "q_7f48a35e800cb749",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 35,
+        "image": "item:35",
+        "subject": {
+          "name": "Excalibur"
+        }
+      }
+    },
+    {
+      "id": "q_b2cba6dfbc3004f2",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 13125,
+        "image": "item:13125",
+        "subject": {
+          "name": "Explorer's ring 1"
+        }
+      }
+    },
+    {
+      "id": "q_cc158e1f30e0112c",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 31113,
+        "image": "item:31113",
+        "subject": {
+          "name": "Eye of Ayak"
+        }
+      }
+    },
+    {
+      "id": "q_5056e0f2fb0b334e",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 31115,
+        "image": "item:31115",
+        "subject": {
+          "name": "Eye of Ayak (uncharged)"
+        }
+      }
+    },
+    {
+      "id": "q_40af68093ad5169e",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 28672,
+        "image": "item:28672",
+        "subject": {
+          "name": "Fancier boots"
+        }
+      }
+    },
+    {
+      "id": "q_82f688c67be8eacb",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 9005,
+        "image": "item:9005",
+        "subject": {
+          "name": "Fancy boots"
+        }
+      }
+    },
+    {
+      "id": "q_626cf84e4cacf769",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 13646,
+        "image": "item:13646",
+        "subject": {
+          "name": "Farmer's strawhat"
+        }
+      }
+    },
+    {
+      "id": "q_18023d27a3c3838b",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 9810,
+        "image": "item:9810",
+        "subject": {
+          "name": "Farming cape"
+        }
+      }
+    },
+    {
+      "id": "q_cd89676395c5e2b3",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 314,
+        "image": "item:314",
+        "subject": {
+          "name": "Feather"
+        }
+      }
+    },
+    {
+      "id": "q_dac963b601a704b3",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 22981,
+        "image": "item:22981",
+        "subject": {
+          "name": "Ferocious gloves"
+        }
+      }
+    },
+    {
+      "id": "q_9734a8704e6f4232",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 10551,
+        "image": "item:10551",
+        "subject": {
+          "name": "Fighter torso"
+        }
+      }
+    },
+    {
+      "id": "q_1c5c55dc9deb3245",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 9006,
+        "image": "item:9006",
+        "subject": {
+          "name": "Fighting boots"
+        }
+      }
+    },
+    {
+      "id": "q_7543f8d8569a63b9",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 6570,
+        "image": "item:6570",
+        "subject": {
+          "name": "Fire cape"
+        }
+      }
+    },
+    {
+      "id": "q_a6373c74474fc394",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 554,
+        "image": "item:554",
+        "subject": {
+          "name": "Fire rune"
+        }
+      }
+    },
+    {
+      "id": "q_4ea58cd7044d89fd",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 9804,
+        "image": "item:9804",
+        "subject": {
+          "name": "Firemaking cape"
+        }
+      }
+    },
+    {
+      "id": "q_515cece5ad7004fa",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 22838,
+        "image": "item:22838",
+        "subject": {
+          "name": "Fish sack"
+        }
+      }
+    },
+    {
+      "id": "q_01f55afab5d3530a",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 6666,
+        "image": "item:6666",
+        "subject": {
+          "name": "Flippers"
+        }
+      }
+    },
+    {
+      "id": "q_67d157fa2494b2a9",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 309,
+        "image": "item:309",
+        "subject": {
+          "name": "Fly fishing rod"
+        }
+      }
+    },
+    {
+      "id": "q_dcb3d3fd7f244c01",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 28136,
+        "image": "item:28136",
+        "subject": {
+          "name": "Forestry kit"
+        }
+      }
+    },
+    {
+      "id": "q_73979ad021575739",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 6188,
+        "image": "item:6188",
+        "subject": {
+          "name": "Frog mask"
+        }
+      }
+    },
+    {
+      "id": "q_21135bb6ebf23b71",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 6183,
+        "image": "item:6183",
+        "subject": {
+          "name": "Frog token"
+        }
+      }
+    },
+    {
+      "id": "q_4883078bd8e6cdc9",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 12774,
+        "image": "item:12774",
+        "subject": {
+          "name": "Frozen abyssal whip"
+        }
+      }
+    },
+    {
+      "id": "q_2ba06d3b56dae58a",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 12020,
+        "image": "item:12020",
+        "subject": {
+          "name": "Gem bag"
+        }
+      }
+    },
+    {
+      "id": "q_bf3e9a45c19fc4cf",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 25926,
+        "image": "item:25926",
+        "subject": {
+          "name": "Ghommal's hilt 1"
+        }
+      }
+    },
+    {
+      "id": "q_017a60d19b933f5f",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 552,
+        "image": "item:552",
+        "subject": {
+          "name": "Ghostspeak amulet"
+        }
+      }
+    },
+    {
+      "id": "q_4ff3b84c3b63a640",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 22324,
+        "image": "item:22324",
+        "subject": {
+          "name": "Ghrazi rapier"
+        }
+      }
+    },
+    {
+      "id": "q_54ee749284bd0b63",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 23520,
+        "image": "item:23520",
+        "subject": {
+          "name": "Giant egg sac"
+        }
+      }
+    },
+    {
+      "id": "q_0b9abee6ef6a86ca",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 21504,
+        "image": "item:21504",
+        "subject": {
+          "name": "Giant seaweed"
+        }
+      }
+    },
+    {
+      "id": "q_de800c75f5101550",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 30638,
+        "image": "item:30638",
+        "subject": {
+          "name": "Giantsoul amulet"
+        }
+      }
+    },
+    {
+      "id": "q_cd8eb44b61c2d677",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 3486,
+        "image": "item:3486",
+        "subject": {
+          "name": "Gilded full helm"
+        }
+      }
+    },
+    {
+      "id": "q_9016d77c7d59b952",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 3488,
+        "image": "item:3488",
+        "subject": {
+          "name": "Gilded kiteshield"
+        }
+      }
+    },
+    {
+      "id": "q_1593d1b5e9c4a1f8",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 3481,
+        "image": "item:3481",
+        "subject": {
+          "name": "Gilded platebody"
+        }
+      }
+    },
+    {
+      "id": "q_775ed6b827a55779",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 3483,
+        "image": "item:3483",
+        "subject": {
+          "name": "Gilded platelegs"
+        }
+      }
+    },
+    {
+      "id": "q_8d6b83fb889b61ee",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 295,
+        "image": "item:295",
+        "subject": {
+          "name": "Glarial's amulet"
+        }
+      }
+    },
+    {
+      "id": "q_7ca3fb9196e1e9fa",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 2357,
+        "image": "item:2357",
+        "subject": {
+          "name": "Gold bar"
+        }
+      }
+    },
+    {
+      "id": "q_6613b5251da74611",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 4567,
+        "image": "item:4567",
+        "subject": {
+          "name": "Gold helmet"
+        }
+      }
+    },
+    {
+      "id": "q_f49a55ebf92431b1",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 22840,
+        "image": "item:22840",
+        "subject": {
+          "name": "Golden tench"
+        }
+      }
+    },
+    {
+      "id": "q_9e9f5691d65c555b",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 4026,
+        "image": "item:4026",
+        "subject": {
+          "name": "Gorilla greegree"
+        }
+      }
+    },
+    {
+      "id": "q_64b2bc573c50fd65",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11860,
+        "image": "item:11860",
+        "subject": {
+          "name": "Graceful boots"
+        }
+      }
+    },
+    {
+      "id": "q_8257a8efad5aa083",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11850,
+        "image": "item:11850",
+        "subject": {
+          "name": "Graceful hood"
+        }
+      }
+    },
+    {
+      "id": "q_251bc125375d2737",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 4153,
+        "image": "item:4153",
+        "subject": {
+          "name": "Granite maul"
+        }
+      }
+    },
+    {
+      "id": "q_0eed880146ca3ecb",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1135,
+        "image": "item:1135",
+        "subject": {
+          "name": "Green d'hide body"
+        }
+      }
+    },
+    {
+      "id": "q_dc4216d9cc510212",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1053,
+        "image": "item:1053",
+        "subject": {
+          "name": "Green halloween mask"
+        }
+      }
+    },
+    {
+      "id": "q_df39cf8c69c2bac3",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1044,
+        "image": "item:1044",
+        "subject": {
+          "name": "Green partyhat"
+        }
+      }
+    },
+    {
+      "id": "q_268cc02d2262bdaa",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 207,
+        "image": "item:207",
+        "subject": {
+          "name": "Grimy ranarr weed"
+        }
+      }
+    },
+    {
+      "id": "q_15f9a843f10ae37c",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 4726,
+        "image": "item:4726",
+        "subject": {
+          "name": "Guthan's warspear"
+        }
+      }
+    },
+    {
+      "id": "q_ca11f0e1de45a38c",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 2669,
+        "image": "item:2669",
+        "subject": {
+          "name": "Guthix platebody"
+        }
+      }
+    },
+    {
+      "id": "q_22d8c73bc7f2aec9",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 2416,
+        "image": "item:2416",
+        "subject": {
+          "name": "Guthix staff"
+        }
+      }
+    },
+    {
+      "id": "q_b443d94c7fa11419",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 2347,
+        "image": "item:2347",
+        "subject": {
+          "name": "Hammer"
+        }
+      }
+    },
+    {
+      "id": "q_5b30bbeec7c5682e",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 24511,
+        "image": "item:24511",
+        "subject": {
+          "name": "Harmonised orb"
+        }
+      }
+    },
+    {
+      "id": "q_30007a51587a8e1e",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 19481,
+        "image": "item:19481",
+        "subject": {
+          "name": "Heavy ballista"
+        }
+      }
+    },
+    {
+      "id": "q_4cb180620477e25c",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 10828,
+        "image": "item:10828",
+        "subject": {
+          "name": "Helm of Neitiznot"
+        }
+      }
+    },
+    {
+      "id": "q_bdcafda31b2c3326",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 22875,
+        "image": "item:22875",
+        "subject": {
+          "name": "Hespori seed"
+        }
+      }
+    },
+    {
+      "id": "q_28b3f29caa9253ca",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 6714,
+        "image": "item:6714",
+        "subject": {
+          "name": "Holy wrench"
+        }
+      }
+    },
+    {
+      "id": "q_5fc7ef412308f605",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 34679,
+        "image": "item:34679",
+        "subject": {
+          "name": "Horn of Bran"
+        }
+      }
+    },
+    {
+      "id": "q_75a468a33be1e563",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1409,
+        "image": "item:1409",
+        "subject": {
+          "name": "Iban's staff"
+        }
+      }
+    },
+    {
+      "id": "q_bcb42304de0ca105",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 21295,
+        "image": "item:21295",
+        "subject": {
+          "name": "Infernal cape"
+        }
+      }
+    },
+    {
+      "id": "q_57ac469685a779ee",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 24417,
+        "image": "item:24417",
+        "subject": {
+          "name": "Inquisitor's mace"
+        }
+      }
+    },
+    {
+      "id": "q_0eccd9092d092d3c",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 2351,
+        "image": "item:2351",
+        "subject": {
+          "name": "Iron bar"
+        }
+      }
+    },
+    {
+      "id": "q_d96ee161a5fb11f9",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1115,
+        "image": "item:1115",
+        "subject": {
+          "name": "Iron platebody"
+        }
+      }
+    },
+    {
+      "id": "q_0c1716eccaede0ab",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1323,
+        "image": "item:1323",
+        "subject": {
+          "name": "Iron scimitar"
+        }
+      }
+    },
+    {
+      "id": "q_9665cf7163201933",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 22398,
+        "image": "item:22398",
+        "subject": {
+          "name": "Ivandis flail"
+        }
+      }
+    },
+    {
+      "id": "q_74e42f9c43f296ec",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 12007,
+        "image": "item:12007",
+        "subject": {
+          "name": "Jar of Dirt"
+        }
+      }
+    },
+    {
+      "id": "q_faebae6f2f3357e1",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1993,
+        "image": "item:1993",
+        "subject": {
+          "name": "Jug of wine"
+        }
+      }
+    },
+    {
+      "id": "q_1527be22e95089b4",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 22326,
+        "image": "item:22326",
+        "subject": {
+          "name": "Justiciar faceguard"
+        }
+      }
+    },
+    {
+      "id": "q_9849215fb4c41684",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 4736,
+        "image": "item:4736",
+        "subject": {
+          "name": "Karil's leathertop"
+        }
+      }
+    },
+    {
+      "id": "q_36456ec0607e3485",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 10581,
+        "image": "item:10581",
+        "subject": {
+          "name": "Keris"
+        }
+      }
+    },
+    {
+      "id": "q_5af4bd1bd557b2cf",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 21006,
+        "image": "item:21006",
+        "subject": {
+          "name": "Kodai wand"
+        }
+      }
+    },
+    {
+      "id": "q_763b6a32bb7b72de",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 12004,
+        "image": "item:12004",
+        "subject": {
+          "name": "Kraken tentacle"
+        }
+      }
+    },
+    {
+      "id": "q_a9c5dcd43d92ece6",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 563,
+        "image": "item:563",
+        "subject": {
+          "name": "Law rune"
+        }
+      }
+    },
+    {
+      "id": "q_a3669684c141deec",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1458,
+        "image": "item:1458",
+        "subject": {
+          "name": "Law talisman"
+        }
+      }
+    },
+    {
+      "id": "q_8ca3e790993cbc55",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1061,
+        "image": "item:1061",
+        "subject": {
+          "name": "Leather boots"
+        }
+      }
+    },
+    {
+      "id": "q_ac716d2cfbfaacfe",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 25975,
+        "image": "item:25975",
+        "subject": {
+          "name": "Lightbearer"
+        }
+      }
+    },
+    {
+      "id": "q_518f0e534fa96187",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 379,
+        "image": "item:379",
+        "subject": {
+          "name": "Lobster"
+        }
+      }
+    },
+    {
+      "id": "q_0a30e74e855b9b8f",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 10976,
+        "image": "item:10976",
+        "subject": {
+          "name": "Long bone"
+        }
+      }
+    },
+    {
+      "id": "q_2719aef20a42c915",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11941,
+        "image": "item:11941",
+        "subject": {
+          "name": "Looting bag"
+        }
+      }
+    },
+    {
+      "id": "q_3c8299b71eeb51a3",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 10939,
+        "image": "item:10939",
+        "subject": {
+          "name": "Lumberjack top"
+        }
+      }
+    },
+    {
+      "id": "q_974583ff5927bb07",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 4021,
+        "image": "item:4021",
+        "subject": {
+          "name": "M'speak amulet"
+        }
+      }
+    },
+    {
+      "id": "q_07cd9cbe04b6f709",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 6889,
+        "image": "item:6889",
+        "subject": {
+          "name": "Mage's book"
+        }
+      }
+    },
+    {
+      "id": "q_969fb069b0c71582",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1513,
+        "image": "item:1513",
+        "subject": {
+          "name": "Magic logs"
+        }
+      }
+    },
+    {
+      "id": "q_c8a87f923aa235a7",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 861,
+        "image": "item:861",
+        "subject": {
+          "name": "Magic shortbow"
+        }
+      }
+    },
+    {
+      "id": "q_43086c80ea62f02b",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 28313,
+        "image": "item:28313",
+        "subject": {
+          "name": "Magus ring"
+        }
+      }
+    },
+    {
+      "id": "q_07945c64e52a007f",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 391,
+        "image": "item:391",
+        "subject": {
+          "name": "Manta ray"
+        }
+      }
+    },
+    {
+      "id": "q_11cb5bf9fd03dbcc",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1517,
+        "image": "item:1517",
+        "subject": {
+          "name": "Maple logs"
+        }
+      }
+    },
+    {
+      "id": "q_22451261e0e23b33",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11849,
+        "image": "item:11849",
+        "subject": {
+          "name": "Mark of Grace"
+        }
+      }
+    },
+    {
+      "id": "q_1b10c8d2cb0eae74",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 27229,
+        "image": "item:27229",
+        "subject": {
+          "name": "Masori body"
+        }
+      }
+    },
+    {
+      "id": "q_311cc6aec0719c4a",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 6914,
+        "image": "item:6914",
+        "subject": {
+          "name": "Master wand"
+        }
+      }
+    },
+    {
+      "id": "q_5396698f28010860",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 13280,
+        "image": "item:13280",
+        "subject": {
+          "name": "Max cape"
+        }
+      }
+    },
+    {
+      "id": "q_fa01f7459cd7d32e",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 3057,
+        "image": "item:3057",
+        "subject": {
+          "name": "Mime mask"
+        }
+      }
+    },
+    {
+      "id": "q_11c18c431d342f65",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 558,
+        "image": "item:558",
+        "subject": {
+          "name": "Mind rune"
+        }
+      }
+    },
+    {
+      "id": "q_251d4ae5b968b46d",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 447,
+        "image": "item:447",
+        "subject": {
+          "name": "Mithril ore"
+        }
+      }
+    },
+    {
+      "id": "q_e4ab687a095a0af8",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 7416,
+        "image": "item:7416",
+        "subject": {
+          "name": "Mole claw"
+        }
+      }
+    },
+    {
+      "id": "q_8a8149d3772fd0e6",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 4012,
+        "image": "item:4012",
+        "subject": {
+          "name": "Monkey nuts"
+        }
+      }
+    },
+    {
+      "id": "q_dc1929a9ddceba5a",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 7946,
+        "image": "item:7946",
+        "subject": {
+          "name": "Monkfish"
+        }
+      }
+    },
+    {
+      "id": "q_f2a8d19551281090",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 4698,
+        "image": "item:4698",
+        "subject": {
+          "name": "Mud rune"
+        }
+      }
+    },
+    {
+      "id": "q_5f7bf887d14c21ce",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 13221,
+        "image": "item:13221",
+        "subject": {
+          "name": "Music cape"
+        }
+      }
+    },
+    {
+      "id": "q_01a78b8a248b1727",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 4091,
+        "image": "item:4091",
+        "subject": {
+          "name": "Mystic robe top"
+        }
+      }
+    },
+    {
+      "id": "q_c7f62de170984c78",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 22114,
+        "image": "item:22114",
+        "subject": {
+          "name": "Mythical cape"
+        }
+      }
+    },
+    {
+      "id": "q_d33f51ab6f897a22",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 561,
+        "image": "item:561",
+        "subject": {
+          "name": "Nature rune"
+        }
+      }
+    },
+    {
+      "id": "q_eae52baa69b6ad12",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 19547,
+        "image": "item:19547",
+        "subject": {
+          "name": "Necklace of anguish"
+        }
+      }
+    },
+    {
+      "id": "q_efb8c79ae4ed3d8e",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 24271,
+        "image": "item:24271",
+        "subject": {
+          "name": "Neitiznot faceguard"
+        }
+      }
+    },
+    {
+      "id": "q_12c4a83891af6221",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 24422,
+        "image": "item:24422",
+        "subject": {
+          "name": "Nightmare staff"
+        }
+      }
+    },
+    {
+      "id": "q_c9d47e7f78c747f7",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 34717,
+        "image": "item:34717",
+        "subject": {
+          "name": "Obligator (uncharged)"
+        }
+      }
+    },
+    {
+      "id": "q_949959bfb7a4d493",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 6568,
+        "image": "item:6568",
+        "subject": {
+          "name": "Obsidian cape"
+        }
+      }
+    },
+    {
+      "id": "q_bc6ac39ace6d28d9",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 12002,
+        "image": "item:12002",
+        "subject": {
+          "name": "Occult necklace"
+        }
+      }
+    },
+    {
+      "id": "q_f50f6735a8b61448",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 13190,
+        "image": "item:13190",
+        "subject": {
+          "name": "Old school bond"
+        }
+      }
+    },
+    {
+      "id": "q_585f1522f8b8b1ad",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 10537,
+        "image": "item:10537",
+        "subject": {
+          "name": "Omega egg"
+        }
+      }
+    },
+    {
+      "id": "q_49bfce5a4de84c21",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 6573,
+        "image": "item:6573",
+        "subject": {
+          "name": "Onyx"
+        }
+      }
+    },
+    {
+      "id": "q_584574a47dc34c34",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 26219,
+        "image": "item:26219",
+        "subject": {
+          "name": "Osmumten's fang"
+        }
+      }
+    },
+    {
+      "id": "q_3cb00198c056cdb4",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 13237,
+        "image": "item:13237",
+        "subject": {
+          "name": "Pegasian boots"
+        }
+      }
+    },
+    {
+      "id": "q_b7d98be6253d852f",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 3695,
+        "image": "item:3695",
+        "subject": {
+          "name": "Pet rock"
+        }
+      }
+    },
+    {
+      "id": "q_c0408a818c465dd8",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 26948,
+        "image": "item:26948",
+        "subject": {
+          "name": "Pharaoh's sceptre"
+        }
+      }
+    },
+    {
+      "id": "q_3612013c68721a4b",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 2434,
+        "image": "item:2434",
+        "subject": {
+          "name": "Prayer potion(4)"
+        }
+      }
+    },
+    {
+      "id": "q_4e0e5c5a27525801",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 13239,
+        "image": "item:13239",
+        "subject": {
+          "name": "Primordial boots"
+        }
+      }
+    },
+    {
+      "id": "q_27de6d7cab7aa575",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 12013,
+        "image": "item:12013",
+        "subject": {
+          "name": "Prospector helmet"
+        }
+      }
+    },
+    {
+      "id": "q_9721867b19030a7a",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 7936,
+        "image": "item:7936",
+        "subject": {
+          "name": "Pure essence"
+        }
+      }
+    },
+    {
+      "id": "q_63e1d44dbe0ad63b",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1046,
+        "image": "item:1046",
+        "subject": {
+          "name": "Purple partyhat"
+        }
+      }
+    },
+    {
+      "id": "q_966ac944bb78142c",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 10476,
+        "image": "item:10476",
+        "subject": {
+          "name": "Purple sweets"
+        }
+      }
+    },
+    {
+      "id": "q_4d8b8618785a9252",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 9813,
+        "image": "item:9813",
+        "subject": {
+          "name": "Quest point cape"
+        }
+      }
+    },
+    {
+      "id": "q_535d75f0f0f99a25",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 257,
+        "image": "item:257",
+        "subject": {
+          "name": "Ranarr weed"
+        }
+      }
+    },
+    {
+      "id": "q_347a5c9a8f91a048",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 2577,
+        "image": "item:2577",
+        "subject": {
+          "name": "Ranger boots"
+        }
+      }
+    },
+    {
+      "id": "q_f56dffef9882755b",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 2444,
+        "image": "item:2444",
+        "subject": {
+          "name": "Ranging potion(4)"
+        }
+      }
+    },
+    {
+      "id": "q_3d836828c8e85daa",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 345,
+        "image": "item:345",
+        "subject": {
+          "name": "Raw herring"
+        }
+      }
+    },
+    {
+      "id": "q_63b7a8a2f967ebd7",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 3142,
+        "image": "item:3142",
+        "subject": {
+          "name": "Raw karambwan"
+        }
+      }
+    },
+    {
+      "id": "q_33a553d34b858411",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 383,
+        "image": "item:383",
+        "subject": {
+          "name": "Raw shark"
+        }
+      }
+    },
+    {
+      "id": "q_174c60f1f198f001",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 317,
+        "image": "item:317",
+        "subject": {
+          "name": "Raw shrimps"
+        }
+      }
+    },
+    {
+      "id": "q_eabc6d2c2e55649e",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1057,
+        "image": "item:1057",
+        "subject": {
+          "name": "Red halloween mask"
+        }
+      }
+    },
+    {
+      "id": "q_2fa3d021951205b8",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1038,
+        "image": "item:1038",
+        "subject": {
+          "name": "Red partyhat"
+        }
+      }
+    },
+    {
+      "id": "q_5dd78a67c14c8ea2",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 2325,
+        "image": "item:2325",
+        "subject": {
+          "name": "Redberry pie"
+        }
+      }
+    },
+    {
+      "id": "q_84222c062b62445c",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 19669,
+        "image": "item:19669",
+        "subject": {
+          "name": "Redwood logs"
+        }
+      }
+    },
+    {
+      "id": "q_4e579314a4d8266d",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 21820,
+        "image": "item:21820",
+        "subject": {
+          "name": "Revenant ether"
+        }
+      }
+    },
+    {
+      "id": "q_c65c0a5a8e707344",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 2570,
+        "image": "item:2570",
+        "subject": {
+          "name": "Ring of life"
+        }
+      }
+    },
+    {
+      "id": "q_ac3f9193047e51ee",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 2550,
+        "image": "item:2550",
+        "subject": {
+          "name": "Ring of recoil"
+        }
+      }
+    },
+    {
+      "id": "q_1f8f9371e73f672d",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 19550,
+        "image": "item:19550",
+        "subject": {
+          "name": "Ring of suffering"
+        }
+      }
+    },
+    {
+      "id": "q_259dec082a195e40",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 2572,
+        "image": "item:2572",
+        "subject": {
+          "name": "Ring of wealth"
+        }
+      }
+    },
+    {
+      "id": "q_01db51cdf195212e",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 5554,
+        "image": "item:5554",
+        "subject": {
+          "name": "Rogue mask"
+        }
+      }
+    },
+    {
+      "id": "q_f276ba43840f48d1",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 34719,
+        "image": "item:34719",
+        "subject": {
+          "name": "Rondache"
+        }
+      }
+    },
+    {
+      "id": "q_d8c028d98057f64f",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 954,
+        "image": "item:954",
+        "subject": {
+          "name": "Rope"
+        }
+      }
+    },
+    {
+      "id": "q_0fc5c6df71cbf0bb",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 4566,
+        "image": "item:4566",
+        "subject": {
+          "name": "Rubber chicken"
+        }
+      }
+    },
+    {
+      "id": "q_f2a064f9277c89a1",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1319,
+        "image": "item:1319",
+        "subject": {
+          "name": "Rune 2h sword"
+        }
+      }
+    },
+    {
+      "id": "q_d2fff52a4efa7de6",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 892,
+        "image": "item:892",
+        "subject": {
+          "name": "Rune arrow"
+        }
+      }
+    },
+    {
+      "id": "q_7a22d639904dab9f",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 9185,
+        "image": "item:9185",
+        "subject": {
+          "name": "Rune crossbow"
+        }
+      }
+    },
+    {
+      "id": "q_ff8800733fcad666",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1163,
+        "image": "item:1163",
+        "subject": {
+          "name": "Rune full helm"
+        }
+      }
+    },
+    {
+      "id": "q_6b2e5ff7298ac3f6",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 7460,
+        "image": "item:7460",
+        "subject": {
+          "name": "Rune gloves"
+        }
+      }
+    },
+    {
+      "id": "q_5eb2cdc74aaa45b2",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1201,
+        "image": "item:1201",
+        "subject": {
+          "name": "Rune kiteshield"
+        }
+      }
+    },
+    {
+      "id": "q_1cdbcc50131d4fbe",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1275,
+        "image": "item:1275",
+        "subject": {
+          "name": "Rune pickaxe"
+        }
+      }
+    },
+    {
+      "id": "q_f5bd27a7281baa59",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1127,
+        "image": "item:1127",
+        "subject": {
+          "name": "Rune platebody"
+        }
+      }
+    },
+    {
+      "id": "q_f48b86074c7ba70c",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 12791,
+        "image": "item:12791",
+        "subject": {
+          "name": "Rune pouch"
+        }
+      }
+    },
+    {
+      "id": "q_8cc83c471c03ff38",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1333,
+        "image": "item:1333",
+        "subject": {
+          "name": "Rune scimitar"
+        }
+      }
+    },
+    {
+      "id": "q_8b89be71eedcca47",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 451,
+        "image": "item:451",
+        "subject": {
+          "name": "Runite ore"
+        }
+      }
+    },
+    {
+      "id": "q_4728dcb8f7f6dd12",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 329,
+        "image": "item:329",
+        "subject": {
+          "name": "Salmon"
+        }
+      }
+    },
+    {
+      "id": "q_8239004551484e85",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 4081,
+        "image": "item:4081",
+        "subject": {
+          "name": "Salve amulet"
+        }
+      }
+    },
+    {
+      "id": "q_46dec77626573b98",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 22481,
+        "image": "item:22481",
+        "subject": {
+          "name": "Sanguinesti staff (uncharged)"
+        }
+      }
+    },
+    {
+      "id": "q_b2e7735c2b34a460",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1050,
+        "image": "item:1050",
+        "subject": {
+          "name": "Santa hat"
+        }
+      }
+    },
+    {
+      "id": "q_29029a17ebaef07a",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 6685,
+        "image": "item:6685",
+        "subject": {
+          "name": "Saradomin brew(4)"
+        }
+      }
+    },
+    {
+      "id": "q_abaad036fb8163aa",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 2412,
+        "image": "item:2412",
+        "subject": {
+          "name": "Saradomin cape"
+        }
+      }
+    },
+    {
+      "id": "q_b665d26aa56f7c90",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 19933,
+        "image": "item:19933",
+        "subject": {
+          "name": "Saradomin d'hide boots"
+        }
+      }
+    },
+    {
+      "id": "q_98a259668b49bba6",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11806,
+        "image": "item:11806",
+        "subject": {
+          "name": "Saradomin godsword"
+        }
+      }
+    },
+    {
+      "id": "q_a83369854d94caf9",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 2661,
+        "image": "item:2661",
+        "subject": {
+          "name": "Saradomin platebody"
+        }
+      }
+    },
+    {
+      "id": "q_b15d9fa2fd468b24",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11838,
+        "image": "item:11838",
+        "subject": {
+          "name": "Saradomin sword"
+        }
+      }
+    },
+    {
+      "id": "q_27ff3d8b2ae13e1e",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 27641,
+        "image": "item:27641",
+        "subject": {
+          "name": "Saturated heart"
+        }
+      }
+    },
+    {
+      "id": "q_e5126801eb3dd645",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 22486,
+        "image": "item:22486",
+        "subject": {
+          "name": "Scythe of Vitur (uncharged)"
+        }
+      }
+    },
+    {
+      "id": "q_a46c62031019d23a",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 13639,
+        "image": "item:13639",
+        "subject": {
+          "name": "Seed box"
+        }
+      }
+    },
+    {
+      "id": "q_ece7dd5f57e2092c",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 22993,
+        "image": "item:22993",
+        "subject": {
+          "name": "Seed pack"
+        }
+      }
+    },
+    {
+      "id": "q_419fa01600605b9d",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 6731,
+        "image": "item:6731",
+        "subject": {
+          "name": "Seers ring"
+        }
+      }
+    },
+    {
+      "id": "q_c9e842291b408796",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 12929,
+        "image": "item:12929",
+        "subject": {
+          "name": "Serpentine helm (uncharged)"
+        }
+      }
+    },
+    {
+      "id": "q_5affa3ed555513ec",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 385,
+        "image": "item:385",
+        "subject": {
+          "name": "Shark"
+        }
+      }
+    },
+    {
+      "id": "q_0b1d0f139b5ba121",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 315,
+        "image": "item:315",
+        "subject": {
+          "name": "Shrimps"
+        }
+      }
+    },
+    {
+      "id": "q_20377cac46341942",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 10836,
+        "image": "item:10836",
+        "subject": {
+          "name": "Silly jester hat"
+        }
+      }
+    },
+    {
+      "id": "q_e41f0a6237742b0f",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 2961,
+        "image": "item:2961",
+        "subject": {
+          "name": "Silver sickle"
+        }
+      }
+    },
+    {
+      "id": "q_5be0bc12b6aea418",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 2402,
+        "image": "item:2402",
+        "subject": {
+          "name": "Silverlight"
+        }
+      }
+    },
+    {
+      "id": "q_be79944ef540f4d0",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11864,
+        "image": "item:11864",
+        "subject": {
+          "name": "Slayer helmet"
+        }
+      }
+    },
+    {
+      "id": "q_6b9e170b319a289f",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11865,
+        "image": "item:11865",
+        "subject": {
+          "name": "Slayer helmet (i)"
+        }
+      }
+    },
+    {
+      "id": "q_13a88b6bc8938678",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 5509,
+        "image": "item:5509",
+        "subject": {
+          "name": "Small pouch"
+        }
+      }
+    },
+    {
+      "id": "q_0cec11fd6aae4a5f",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 3000,
+        "image": "item:3000",
+        "subject": {
+          "name": "Snapdragon"
+        }
+      }
+    },
+    {
+      "id": "q_b96bfa8c6ebdaf56",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 566,
+        "image": "item:566",
+        "subject": {
+          "name": "Soul rune"
+        }
+      }
+    },
+    {
+      "id": "q_8d08fac4f1fd9df7",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 28338,
+        "image": "item:28338",
+        "subject": {
+          "name": "Soulreaper axe"
+        }
+      }
+    },
+    {
+      "id": "q_e6595739a62a8cbd",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 952,
+        "image": "item:952",
+        "subject": {
+          "name": "Spade"
+        }
+      }
+    },
+    {
+      "id": "q_ae82db41bca3be6a",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1381,
+        "image": "item:1381",
+        "subject": {
+          "name": "Staff of air"
+        }
+      }
+    },
+    {
+      "id": "q_33bf19b3f58bcb4c",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11791,
+        "image": "item:11791",
+        "subject": {
+          "name": "Staff of the Dead"
+        }
+      }
+    },
+    {
+      "id": "q_cae149b9297927d0",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 20590,
+        "image": "item:20590",
+        "subject": {
+          "name": "Stale baguette"
+        }
+      }
+    },
+    {
+      "id": "q_64864ad9eeb6d9e5",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 12625,
+        "image": "item:12625",
+        "subject": {
+          "name": "Stamina potion(4)"
+        }
+      }
+    },
+    {
+      "id": "q_dc7fcce3fdb25e9e",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 2,
+        "image": "item:2",
+        "subject": {
+          "name": "Steel cannonball"
+        }
+      }
+    },
+    {
+      "id": "q_93979e5a99a06843",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 12695,
+        "image": "item:12695",
+        "subject": {
+          "name": "Super combat potion(4)"
+        }
+      }
+    },
+    {
+      "id": "q_939a90005c10f458",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 3024,
+        "image": "item:3024",
+        "subject": {
+          "name": "Super restore(4)"
+        }
+      }
+    },
+    {
+      "id": "q_d237050851200915",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 22124,
+        "image": "item:22124",
+        "subject": {
+          "name": "Superior dragon bones"
+        }
+      }
+    },
+    {
+      "id": "q_7d4e8ebf09999c03",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 373,
+        "image": "item:373",
+        "subject": {
+          "name": "Swordfish"
+        }
+      }
+    },
+    {
+      "id": "q_01e8a00d15098faf",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 6102,
+        "image": "item:6102",
+        "subject": {
+          "name": "Teleport crystal (1)"
+        }
+      }
+    },
+    {
+      "id": "q_538d1c36c6d33396",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 8013,
+        "image": "item:8013",
+        "subject": {
+          "name": "Teleport to house (tablet)"
+        }
+      }
+    },
+    {
+      "id": "q_0e7ea3c8f9454b99",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 27279,
+        "image": "item:27279",
+        "subject": {
+          "name": "Thread of Elidinis"
+        }
+      }
+    },
+    {
+      "id": "q_ec433ff53611e126",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 590,
+        "image": "item:590",
+        "subject": {
+          "name": "Tinderbox"
+        }
+      }
+    },
+    {
+      "id": "q_620a325aedc0a42a",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 20714,
+        "image": "item:20714",
+        "subject": {
+          "name": "Tome of Fire"
+        }
+      }
+    },
+    {
+      "id": "q_cb21a1644eceb439",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 25574,
+        "image": "item:25574",
+        "subject": {
+          "name": "Tome of Water"
+        }
+      }
+    },
+    {
+      "id": "q_b1815c7a3cec61ef",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 4747,
+        "image": "item:4747",
+        "subject": {
+          "name": "Torag's hammers"
+        }
+      }
+    },
+    {
+      "id": "q_7feb5c76899e41c7",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 19544,
+        "image": "item:19544",
+        "subject": {
+          "name": "Tormented bracelet"
+        }
+      }
+    },
+    {
+      "id": "q_ffc5622532cf2a6e",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 269,
+        "image": "item:269",
+        "subject": {
+          "name": "Torstol"
+        }
+      }
+    },
+    {
+      "id": "q_2f89dcabae50a4cf",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 26382,
+        "image": "item:26382",
+        "subject": {
+          "name": "Torva full helm"
+        }
+      }
+    },
+    {
+      "id": "q_8f373196235841dd",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 26384,
+        "image": "item:26384",
+        "subject": {
+          "name": "Torva platebody"
+        }
+      }
+    },
+    {
+      "id": "q_f736c2f93214fbd7",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 26386,
+        "image": "item:26386",
+        "subject": {
+          "name": "Torva platelegs"
+        }
+      }
+    },
+    {
+      "id": "q_24fb3a3974f9e36b",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 12924,
+        "image": "item:12924",
+        "subject": {
+          "name": "Toxic blowpipe (empty)"
+        }
+      }
+    },
+    {
+      "id": "q_81d7bf17aa0abd8c",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11907,
+        "image": "item:11907",
+        "subject": {
+          "name": "Trident of the Seas"
+        }
+      }
+    },
+    {
+      "id": "q_7434bd3ab2acda38",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 12899,
+        "image": "item:12899",
+        "subject": {
+          "name": "Trident of the Swamp"
+        }
+      }
+    },
+    {
+      "id": "q_2ebf3ffc13c741f5",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 27277,
+        "image": "item:27277",
+        "subject": {
+          "name": "Tumeken's shadow (uncharged)"
+        }
+      }
+    },
+    {
+      "id": "q_0136820a585def71",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 20997,
+        "image": "item:20997",
+        "subject": {
+          "name": "Twisted bow"
+        }
+      }
+    },
+    {
+      "id": "q_8aa71fd53eb1b18b",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 21000,
+        "image": "item:21000",
+        "subject": {
+          "name": "Twisted buckler"
+        }
+      }
+    },
+    {
+      "id": "q_64614a953dc74fed",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 6528,
+        "image": "item:6528",
+        "subject": {
+          "name": "Tzhaar-ket-om"
+        }
+      }
+    },
+    {
+      "id": "q_f3153071b6e68292",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 28307,
+        "image": "item:28307",
+        "subject": {
+          "name": "Ultor ring"
+        }
+      }
+    },
+    {
+      "id": "q_25644da77c1f9a2a",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1631,
+        "image": "item:1631",
+        "subject": {
+          "name": "Uncut dragonstone"
+        }
+      }
+    },
+    {
+      "id": "q_69ed618eacd8907b",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 27610,
+        "image": "item:27610",
+        "subject": {
+          "name": "Venator bow"
+        }
+      }
+    },
+    {
+      "id": "q_d3f4d12b86e849fb",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 27614,
+        "image": "item:27614",
+        "subject": {
+          "name": "Venator shard"
+        }
+      }
+    },
+    {
+      "id": "q_5ab92b81f8f8d07f",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 4757,
+        "image": "item:4757",
+        "subject": {
+          "name": "Verac's brassard"
+        }
+      }
+    },
+    {
+      "id": "q_4fb19e2e61b89d76",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 4755,
+        "image": "item:4755",
+        "subject": {
+          "name": "Verac's flail"
+        }
+      }
+    },
+    {
+      "id": "q_56c41955beb2291f",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 4759,
+        "image": "item:4759",
+        "subject": {
+          "name": "Verac's plateskirt"
+        }
+      }
+    },
+    {
+      "id": "q_c5a9eeb3dea7b0c8",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 227,
+        "image": "item:227",
+        "subject": {
+          "name": "Vial of water"
+        }
+      }
+    },
+    {
+      "id": "q_d7dfec77275cf198",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 8841,
+        "image": "item:8841",
+        "subject": {
+          "name": "Void knight mace"
+        }
+      }
+    },
+    {
+      "id": "q_bcfd463b83d7208d",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 8839,
+        "image": "item:8839",
+        "subject": {
+          "name": "Void knight top"
+        }
+      }
+    },
+    {
+      "id": "q_bee89f967030815f",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 27690,
+        "image": "item:27690",
+        "subject": {
+          "name": "Voidwaker"
+        }
+      }
+    },
+    {
+      "id": "q_3603bd6886ae60a1",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 555,
+        "image": "item:555",
+        "subject": {
+          "name": "Water rune"
+        }
+      }
+    },
+    {
+      "id": "q_d207bc7e2051581a",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1048,
+        "image": "item:1048",
+        "subject": {
+          "name": "White partyhat"
+        }
+      }
+    },
+    {
+      "id": "q_f066ab1cb7c118d9",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1519,
+        "image": "item:1519",
+        "subject": {
+          "name": "Willow logs"
+        }
+      }
+    },
+    {
+      "id": "q_2dbe173ba3bdf74f",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 9807,
+        "image": "item:9807",
+        "subject": {
+          "name": "Woodcutting cape"
+        }
+      }
+    },
+    {
+      "id": "q_5285dbc162a4e1c2",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 21880,
+        "image": "item:21880",
+        "subject": {
+          "name": "Wrath rune"
+        }
+      }
+    },
+    {
+      "id": "q_db5ca9db1d1115be",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 6812,
+        "image": "item:6812",
+        "subject": {
+          "name": "Wyvern bones"
+        }
+      }
+    },
+    {
+      "id": "q_3a30b934455be0b2",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 21637,
+        "image": "item:21637",
+        "subject": {
+          "name": "Wyvern visage"
+        }
+      }
+    },
+    {
+      "id": "q_d725c1647128b2df",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 13393,
+        "image": "item:13393",
+        "subject": {
+          "name": "Xeric's talisman"
+        }
+      }
+    },
+    {
+      "id": "q_99ae3d44c4b0816e",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11746,
+        "image": "item:11746",
+        "subject": {
+          "name": "Yanille teleport"
+        }
+      }
+    },
+    {
+      "id": "q_ce9a848627fba52b",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1040,
+        "image": "item:1040",
+        "subject": {
+          "name": "Yellow partyhat"
+        }
+      }
+    },
+    {
+      "id": "q_c3a3453f7d7718e7",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 1515,
+        "image": "item:1515",
+        "subject": {
+          "name": "Yew logs"
+        }
+      }
+    },
+    {
+      "id": "q_00a6703566e64cf7",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 10370,
+        "image": "item:10370",
+        "subject": {
+          "name": "Zamorak d'hide body"
+        }
+      }
+    },
+    {
+      "id": "q_f34dcd8884fd3216",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11808,
+        "image": "item:11808",
+        "subject": {
+          "name": "Zamorak godsword"
+        }
+      }
+    },
+    {
+      "id": "q_2207ac5474e5aa05",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 2653,
+        "image": "item:2653",
+        "subject": {
+          "name": "Zamorak platebody"
+        }
+      }
+    },
+    {
+      "id": "q_9a9104a7779229e5",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11889,
+        "image": "item:11889",
+        "subject": {
+          "name": "Zamorakian hasta"
+        }
+      }
+    },
+    {
+      "id": "q_f070054a7196c62a",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 11824,
+        "image": "item:11824",
+        "subject": {
+          "name": "Zamorakian spear"
+        }
+      }
+    },
+    {
+      "id": "q_18a59f655abdc7e8",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 26374,
+        "image": "item:26374",
+        "subject": {
+          "name": "Zaryte crossbow"
+        }
+      }
+    },
+    {
+      "id": "q_7b2ebb5a01b1fc76",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 26235,
+        "image": "item:26235",
+        "subject": {
+          "name": "Zaryte vambraces"
+        }
+      }
+    },
+    {
+      "id": "q_48d76de6996571fa",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Pardon me, adventurer. Could you help me identify this? I'll be ever so grateful.",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 19529,
+        "image": "item:19529",
+        "subject": {
+          "name": "Zenyte shard"
+        }
+      }
+    },
+    {
+      "id": "q_f06bc646e49f4fb9",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Ah, hello there! My brothers and I can't agree on what this is. Could you settle it?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 34725,
+        "image": "item:34725",
+        "subject": {
+          "name": "Zorya's tome"
+        }
+      }
+    },
+    {
+      "id": "q_bf6719fe451a8e55",
+      "type": "pick_from_list",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "intro": "Good day! I sketched this from memory, and now I can't recall what it was. Can you?",
+        "prompt": "What is this item?",
+        "vocab": "items",
+        "answer_id": 12934,
+        "image": "item:12934",
+        "subject": {
+          "name": "Zulrah's scales"
+        }
+      }
+    }
+  ]
+}

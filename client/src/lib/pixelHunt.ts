@@ -25,6 +25,8 @@ export interface Build {
   /** ISO 8601, as `OpenQuestion` carries them. */
   answerableAt: string
   endsAt: string
+  /** Certer's: always the Sketch, whatever the room's deal. */
+  sketch?: boolean
 }
 
 /** The picture a reveal draws from: its pixels, and the image itself to draw it whole. */
@@ -121,17 +123,18 @@ export function deal(room: string, deck: number): Reveal[] {
 }
 
 /**
- * The reveal a question is drawn with, dealt by its number in the game, and its seed from
- * the room code and its id.
+ * The reveal a question is drawn with, dealt by its number in the game unless it is a
+ * `sketch`, and its seed from the room code and its id.
  */
 export function revealFor(
   room: string,
   questionId: string,
   index: number,
+  sketch = false,
 ): { reveal: Reveal; seed: number } {
   const deck = Math.floor(index / REVEALS.length)
   return {
-    reveal: deal(room, deck)[index % REVEALS.length]!,
+    reveal: sketch ? SKETCH : deal(room, deck)[index % REVEALS.length]!,
     seed: hash(`${room.toUpperCase()}:${questionId}:seed`),
   }
 }

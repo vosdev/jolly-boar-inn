@@ -555,3 +555,34 @@ describe('an event with no prompt of its own', () => {
     expect(name.textContent).toBe('Coal')
   })
 })
+
+describe("Certer's card", () => {
+  const certer = (patch: Partial<OpenQuestion> = {}) =>
+    event({
+      type: 'pick_from_list',
+      view: { intro: 'Pardon me, adventurer.', prompt: 'What is this item?', vocab: 'items' },
+      random_event: 'certer',
+      picture: 'feedc0de.png',
+      ...patch,
+    })
+
+  it('sketches his picture under the question, on a phone and on the TV', () => {
+    for (const tv of [false, true]) {
+      const { unmount } = render(RandomEvent, {
+        question: certer(),
+        yourValue: null,
+        onAnswer: () => {},
+        tv,
+      })
+      const frame = document.querySelector('.picture.large .frame.building')!
+      expect(frame.querySelector('img')!.getAttribute('src')).toBe('/pictures/feedc0de.png')
+      expect(frame.querySelector('canvas')).toBeTruthy()
+      unmount()
+    }
+  })
+
+  it('leaves the picture out of a card that has none', () => {
+    render(RandomEvent, { question: event(), yourValue: null, onAnswer: () => {} })
+    expect(document.querySelector('.picture')).toBeNull()
+  })
+})

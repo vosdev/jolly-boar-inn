@@ -22,6 +22,8 @@ the least used one instead, and never the same face twice running. An id is stor
 room's questions, so it is never renamed once it has shipped.
 """
 
+from app.questions.types.scoring import Steps
+
 RANDOM_EVENTS: tuple[str, ...] = (
     "sandwich_lady",
     "lumbridge_cook",
@@ -39,4 +41,9 @@ RANDOM_EVENTS: tuple[str, ...] = (
     "baba_yaga",
     "fairy_queen",
     "reldo",
+    "certer",
 )
+
+# An NPC whose questions are a picture building up, as Pixel Hunt's are: each needs its
+# picture on the instance, and scores on how soon it is named. Certer's always sketches.
+BUILT_UP: dict[str, Steps] = {"certer": Steps(build=17, of=25)}

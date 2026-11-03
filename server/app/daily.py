@@ -12,7 +12,7 @@ keep a set varied, and four types hold at most nine questions, so ten always spa
 
 import random
 from collections import Counter
-from collections.abc import Collection, Iterable, Mapping, Sequence
+from collections.abc import Callable, Collection, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
@@ -159,7 +159,7 @@ def _attempt(
         ready = [
             found
             for questions in rested.values()
-            if (found := next(filter(fits, questions), None)) is not None
+            if (found := _next_fit(questions, fits, rng)) is not None
         ]
         question = rng.choice(ready) if ready else next(filter(fits, returning), None)
         if question is None:
@@ -169,6 +169,22 @@ def _attempt(
         modes[question["mode"]] += 1
         types[question["type"]] += 1
     return picked
+
+
+def _next_fit(
+    questions: Sequence[dict[str, Any]],
+    fits: Callable[[dict[str, Any]], bool],
+    rng: random.Random,
+) -> dict[str, Any] | None:
+    """A mode's next question that fits. The NPCs' comes from a random NPC that has one, so
+    one with a file generated from the roster takes one NPC's share, not most of the pool's."""
+    if not questions or questions[0]["mode"] != EVENT_MODE:
+        return next(filter(fits, questions), None)
+    firsts: dict[str, dict[str, Any]] = {}
+    for question in questions:
+        if question["random_event"] not in firsts and fits(question):
+            firsts[question["random_event"]] = question
+    return rng.choice(list(firsts.values())) if firsts else None
 
 
 async def daily_set(

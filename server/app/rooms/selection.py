@@ -26,8 +26,11 @@ from typing import Any
 
 from app.modes import MODES, drawable
 from app.questions.packs import EVENT_MODE, Pack, live_packs
-from app.random_events import RANDOM_EVENTS
+from app.random_events import BUILT_UP, RANDOM_EVENTS
 from app.rooms.settings import EVENT_EVERY, TIERS, RoomSettings, event_windows
+
+# Who may ask a host's question: not an NPC whose questions are a picture building up.
+HOST_FACES = tuple(npc for npc in RANDOM_EVENTS if npc not in BUILT_UP)
 
 
 class TooManyEvents(ValueError):
@@ -115,18 +118,34 @@ def select(
     rounds: list[Round] = []
     for entry in order:
         mode = MODES.get(entry.mode)
-        pool = pools.get(mode.pool if mode and mode.pool else entry.mode, [])
+        source = mode.pool if mode and mode.pool else entry.mode
+        pool = pools.get(source, [])
         take = min(entry.questions, len(pool))
         if take <= 0:
             continue  # this mode has nothing to play; a round with no questions is not a round
+        draw = _npc_first if source == EVENT_MODE else _last
         # Restamped, so the round is named for its mode rather than for the pool it borrowed.
         rounds.append(
             Round(
-                mode=entry.mode, questions=[{**pool.pop(), "mode": entry.mode} for _ in range(take)]
+                mode=entry.mode,
+                questions=[{**draw(pool, rng), "mode": entry.mode} for _ in range(take)],
             )
         )
 
     return place_random_events(rounds, custom, pools.get(EVENT_MODE, []), settings, rng)
+
+
+def _last(pool: list[dict[str, Any]], rng: random.Random) -> dict[str, Any]:
+    """Take a shuffled pool's next question: its last, where the allowed tiers sort."""
+    return pool.pop()
+
+
+def _npc_first(pool: list[dict[str, Any]], rng: random.Random) -> dict[str, Any]:
+    """Take one of the NPCs' questions, a random NPC first: one with a file generated from
+    the roster would otherwise ask most of a round that borrows their pool."""
+    npc = rng.choice(sorted({question["random_event"] for question in pool}))
+    at = max(i for i, question in enumerate(pool) if question["random_event"] == npc)
+    return pool.pop(at)
 
 
 def place_random_events(
@@ -189,7 +208,7 @@ def place_random_events(
         if question is not None and question.get("random_event") is not None:
             face = question["random_event"]
         elif question is not None:
-            face = _face(RANDOM_EVENTS, seen, avoid, rng)
+            face = _face(HOST_FACES, seen, avoid, rng)
             if face is None:  # only a roster of fewer than three could leave nobody
                 raise TooManyEvents("the random-event roster has no face left to draw")
             seen[face] += 1

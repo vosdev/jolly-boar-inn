@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { asOfDate } from '../lib/dates'
 import { DISCORD_URL, VERSION_LABEL } from '../lib/links'
 import { pricesAsOf } from '../lib/pricesAsOf.svelte'
+import { questionCounts } from '../lib/questionCounts.svelte'
 import Footer from './Footer.svelte'
 
 beforeEach(() => {
@@ -19,6 +20,7 @@ beforeEach(() => {
 
 afterEach(() => {
   pricesAsOf.byMode = {}
+  questionCounts.counts = null
   vi.unstubAllGlobals()
 })
 
@@ -67,5 +69,19 @@ describe('Footer', () => {
     pricesAsOf.byMode = { more_less: '2026-09-01', price_is_right: '2026-10-08' }
     await tick()
     expect(screen.getByText(`GE prices as of ${asOfDate('2026-10-08')}`)).toBeTruthy()
+  })
+
+  it('counts every question, and opens them per round and per NPC', async () => {
+    render(Footer)
+    expect(document.body.textContent).not.toContain('questions and counting')
+    questionCounts.counts = {
+      modes: { bestiary: 1200, odd_one_out: 34 },
+      random_events: { bob: 10, death: 334 },
+    }
+    await tick()
+    await fireEvent.click(screen.getByRole('button', { name: '1,578 questions and counting' }))
+    expect(screen.getByRole('dialog', { name: '1,578 questions' })).toBeTruthy()
+    await fireEvent.click(screen.getByRole('button', { name: 'Got it' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
   })
 })

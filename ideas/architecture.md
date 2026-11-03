@@ -93,7 +93,7 @@ steps=None, pictured=False, picture_at_reveal=False, extra_answer=0)` in `modes/
   the `Settings` flag that offers the mode; off, or with an empty pool, `/api/modes` omits it and
   `POST /api/rooms` is a 403 `mode_not_offered`. A stored room keeps playing it. `options` holds a
   round's `multiple_choice` questions to fewer options than the schema's two to six; `mode_errors`
-  refuses the rest. `steps` and `pictured` are Pixel Hunt's (sections 8 and 12). `picture_at_reveal` keeps a question's `picture` off the open view. `extra_answer` adds seconds to a question's answer time, before the pace, for a round that takes longer to read.
+  refuses the rest. `steps` and `pictured` are Pixel Hunt's (sections 8 and 12); `BUILT_UP` in `random_events.py` gives Certer both. `picture_at_reveal` keeps a question's `picture` off the open view. `extra_answer` adds seconds to a question's answer time, before the pace, for a round that takes longer to read.
 
 Each module in `questions/types/` exports:
 
@@ -131,8 +131,8 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 | `price_is_right` | The Price is Right | `price_is_right` | `/mapping` + `/latest` | done |
 | `guess_examine` | Guess the Examine | `multiple_choice`, four to six names | `examine.json` | done |
 | `custom` | Host's Questions | per question | the host | done, as events |
-| `random_event` | Random Event | per question | one file per NPC | done, as events |
-| `random_events_only` | Random Events Only | `multiple_choice`, `free_text`, `closest_number`, `number_slider`, `pick_all_that_apply`, `ordering`, `matching` | the `random_event` pool | done, 20 at most, `RANDOM_EVENT_GAME_MODE` |
+| `random_event` | Random Event | per question | one file per NPC; Certer's from the Pixel Hunt roster, always sketched | done, as events |
+| `random_events_only` | Random Events Only | `multiple_choice`, `free_text`, `closest_number`, `number_slider`, `pick_all_that_apply`, `ordering`, `matching`, `pick_from_list` | the `random_event` pool, an NPC first, then one of theirs | done, 20 at most, `RANDOM_EVENT_GAME_MODE` |
 | `bestiary` | Bestiary | `multiple_choice`, `closest_number`, `number_slider`, `free_text`, `ordering`, `pick_all_that_apply`, `matching` | hand-written | done |
 | `drop_table` | Drop Table | `multiple_choice`, `free_text`, `pick_all_that_apply`, `closest_number`, `number_slider`, `matching`; `image` is its picture | hand-written | done |
 | `odd_one_out` | Odd One Out | `multiple_choice`, four to six names | hand-written | done |
@@ -186,6 +186,7 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 - An optional `multiple_choice.quote` is shown as a quotation under `prompt`.
 - `credit` names the player who suggested a pack question; with `credit_shown` the reveal says it,
   and `GET /api/credits` counts it: `{authors: [{name, questions}]}`, most first, for the credits.
+- `GET /api/question-counts` is `{modes, random_events}`, drawable questions by round and by NPC, the daily set's pool, for the footer.
 
 | Type | `value` | Credit |
 |---|---|---|
@@ -286,7 +287,7 @@ Random events:
 - Other slots take an NPC's own question, drawn with its face, preferring a type the interrupted
   round does not play. A slot stays empty only when nothing qualifies.
 - Faces: a named NPC asks its question. Others come from the unseen NPCs, then the least seen, never
-  next to the same face. An NPC with no file yet only asks host questions.
+  next to the same face. An NPC with no file yet only asks host questions; Certer never does.
 - `MAX_QUESTIONS_PER_ROOM` (100) counts events.
 
 Writing an NPC's questions:
@@ -315,8 +316,8 @@ and stores it (section 11), with no cron, never seeded from the date, since the 
 
 - The pool is the offered rounds' own pools and the NPCs': never a mode with a `pool`, so never
   `random_events_only`, a host's question, an undrawable one, or `sample.json`'s stale prices.
-- Each place draws a random mode, then a question in it: by question, the largest pools would take
-  their places every day.
+- Each place draws a random mode, then a question in it (the NPCs' pool an NPC first): by question,
+  the largest pools would take their places every day.
 - At most 2 per `mode`, so the NPCs' pool counts as one. At most 3 `multiple_choice` and 2 of any
   other type, which makes at least 5 types.
 - A question rests 60 days, tracked by id, but `price_is_right` by item and `more_less` by metric and
@@ -557,7 +558,7 @@ from taking the lock. `grade` returns credit; `scoring.py` turns it into points 
 |---|---|---|
 | `SPEED` | `round(bucket points × credit)` | `more_less`, `price_is_right`, `number_slider`, `multiple_choice`, `free_text`, `pick_all_that_apply`, `ordering`, `matching` |
 | `ACCURACY` | `round(1000 × credit)` | `closest_number`, `map_pin` |
-| `STEP` | `round(step points × credit)` | `pick_from_list` in a mode with `steps` |
+| `STEP` | `round(step points × credit)` | `pick_from_list` in a mode with `steps`, or Certer's |
 
 | Speed bucket | Fraction of the question's seconds | Points |
 |---|---|---|
@@ -587,7 +588,7 @@ Slider (`price_is_right`): 1.0 for a guess that rounds to the price at two figur
 linearly from that band's edge to 0 at a quarter of the log width; the reveal ticks every guess.
 `number_slider` has no band: 1.0 on the answer, 0 a quarter of the track's width away.
 
-Steps (Pixel Hunt): `Steps(build=17, of=25)`, 17 steps of a 25th of the question's seconds while
+Steps (Pixel Hunt, and Certer anywhere): `Steps(build=17, of=25)`, 17 steps of a 25th of the question's seconds while
 the picture builds up, then the whole picture as step 18. Points fall from 1000 to 435 on step
 17 and 400 on 18, `round(400 + 600 × (18 - k) / 17)`. A mode without `steps` scores on speed.
 

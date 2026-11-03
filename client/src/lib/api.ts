@@ -178,6 +178,17 @@ export function getCredits(): Promise<{ authors: Author[] }> {
   return request<{ authors: Author[] }>('/api/credits')
 }
 
+/** How many questions this instance can draw, by round mode and by NPC id. */
+export interface QuestionCounts {
+  modes: Record<string, number>
+  random_events: Record<string, number>
+}
+
+/** `GET /api/question-counts`: each drawable question once, where a room draws it from. */
+export function getQuestionCounts(): Promise<QuestionCounts> {
+  return request<QuestionCounts>('/api/question-counts')
+}
+
 export interface Credentials {
   session: string
   player: PlayerView
