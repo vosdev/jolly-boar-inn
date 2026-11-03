@@ -186,6 +186,7 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 - An optional `multiple_choice.quote` is shown as a quotation under `prompt`.
 - `credit` names the player who suggested a pack question; with `credit_shown` the reveal says it,
   and `GET /api/credits` counts it: `{authors: [{name, questions}]}`, most first, for the credits.
+- `GET /api/question-counts` is `{modes, random_events}`, drawable questions by round and by NPC, the daily set's pool, for the footer.
 
 | Type | `value` | Credit |
 |---|---|---|
