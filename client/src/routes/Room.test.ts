@@ -1434,6 +1434,70 @@ describe('the shared stage', () => {
     expect(words().style.opacity).toBe('')
     expect(words().textContent).toContain('Which costs more')
   })
+
+  it('keeps the map up from a map question’s reveal into the next, and only the words change hands', async () => {
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(800)
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(600)
+    const segment = { mode: 'mark_the_map', index: 0, total: 1, start: 0, count: 2 }
+    const place = (id: string, index: number, name: string): OpenQuestion => ({
+      question_id: id,
+      index,
+      total: 2,
+      type: 'map_pin',
+      mode: 'mark_the_map',
+      segment,
+      view: { prompt: `Where is ${name}?`, pins: 1 },
+      random_event: null,
+      opened_at: new Date().toISOString(),
+      answerable_at: inSeconds(3),
+      ends_at: inSeconds(20),
+      you_can_answer: true,
+      picture: null,
+      answered: 0,
+      of: 0,
+      waiting: [],
+    })
+    const first = place('q1', 0, 'Lumbridge')
+    await arrive({
+      ...welcome(roomView({ phase: 'open', next_at: null, segment, total: 2 })),
+      question: first,
+    })
+    await waitFor(() =>
+      expect(document.querySelector('.map-canvas.leaflet-container')).not.toBeNull(),
+    )
+    applyServerMessage({
+      t: 'question_closed',
+      unanswered: [],
+      question_id: 'q1',
+      reveal: {
+        ...first.view,
+        targets: [{ name: 'Lumbridge', min_x: 3200, max_x: 3240, min_y: 3200, max_y: 3240 }],
+        reach: 50,
+      },
+      results: {},
+      standings: STANDINGS,
+      team_standings: null,
+      next_at: inSeconds(8),
+      reveal_seconds: 8,
+      picture: null,
+    })
+    await waitFor(() => expect(document.querySelector('.map-name')?.textContent).toBe('Lumbridge'))
+    const map = document.querySelector('.map-canvas')
+    restore()
+    restore = stubAnimations()
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+    applyServerMessage({ t: 'question_open', question: place('q2', 1, 'Varrock') })
+    await tick()
+    expect(document.querySelector('.map-canvas')).toBe(map)
+    expect(map!.isConnected).toBe(true)
+    expect(document.querySelector('.stage-ghost .map-canvas')).toBeNull()
+    expect(under().style.opacity).toBe('')
+    expect(words().style.opacity).toBe('0')
+    expect(words().textContent).toContain('Where is Varrock?')
+    await vi.advanceTimersByTimeAsync(WORDS_OUT_MS + MOVE_MS)
+    expect(document.querySelector('.map-canvas')).toBe(map)
+    vi.restoreAllMocks()
+  })
 })
 
 describe('the host’s skip', () => {

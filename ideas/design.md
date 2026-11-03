@@ -467,7 +467,8 @@ in display tabular numerals and the box's ink:
 the bubble at the bottom left, Lock in at the bottom right. Your pet is your pin. Stacked, the sheet
 crosses the top and the host waits for the reveal. The reveal opens close on the target's box for 4 s,
 then pulls back to fit every pin, so the worst lands last: far pins are named first, the furthest
-in `--bad`, and the table ranks them all. The TV shows no map until the reveal.
+in `--bad`, and the table ranks them all. The TV shows no map until the reveal. One map stays up into
+the reveal and the next map question: the old pins fade with the words as it glides on.
 
 ## 11. Standings
 
