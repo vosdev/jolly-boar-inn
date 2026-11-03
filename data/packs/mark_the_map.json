@@ -128,7 +128,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_b9b58479d485ba91",
+      "id": "q_92e673eeb6ac33ed",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -138,10 +138,10 @@
         "targets": [
           {
             "name": "Al Kharid",
-            "min_x": 3285,
-            "max_x": 3295,
-            "min_y": 3180,
-            "max_y": 3190
+            "min_x": 3280,
+            "max_x": 3300,
+            "min_y": 3175,
+            "max_y": 3195
           }
         ]
       },
@@ -212,7 +212,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_8870319e3248a8ff",
+      "id": "q_38af5f31f4cfbc02",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -222,10 +222,10 @@
         "targets": [
           {
             "name": "Al Kharid mine",
-            "min_x": 3293,
-            "max_x": 3303,
-            "min_y": 3288,
-            "max_y": 3298
+            "min_x": 3288,
+            "max_x": 3308,
+            "min_y": 3283,
+            "max_y": 3303
           }
         ]
       },
@@ -254,7 +254,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_877a27248b9b472c",
+      "id": "q_73edb844181e2f5c",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -264,10 +264,10 @@
         "targets": [
           {
             "name": "Aldarin",
-            "min_x": 1386,
-            "max_x": 1396,
-            "min_y": 2930,
-            "max_y": 2940
+            "min_x": 1366,
+            "max_x": 1416,
+            "min_y": 2910,
+            "max_y": 2960
           }
         ]
       },
@@ -338,7 +338,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_f7630f7e2c331ff7",
+      "id": "q_d6d265df394ee08e",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -348,10 +348,10 @@
         "targets": [
           {
             "name": "Ancient Pyramid",
-            "min_x": 3227,
-            "max_x": 3237,
-            "min_y": 2893,
-            "max_y": 2903
+            "min_x": 3222,
+            "max_x": 3242,
+            "min_y": 2888,
+            "max_y": 2908
           }
         ]
       },
@@ -359,7 +359,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_16b72d6f9d78198a",
+      "id": "q_4f19ed7655a93557",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -369,10 +369,10 @@
         "targets": [
           {
             "name": "Ancient Vault",
-            "min_x": 3503,
-            "max_x": 3513,
-            "min_y": 2966,
-            "max_y": 2976
+            "min_x": 3498,
+            "max_x": 3518,
+            "min_y": 2961,
+            "max_y": 2981
           }
         ]
       },
@@ -380,7 +380,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_1687c3aac06049dc",
+      "id": "q_3715fd75992dec19",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -390,10 +390,10 @@
         "targets": [
           {
             "name": "Anglers' Retreat",
-            "min_x": 2473,
-            "max_x": 2483,
-            "min_y": 2710,
-            "max_y": 2720
+            "min_x": 2468,
+            "max_x": 2488,
+            "min_y": 2705,
+            "max_y": 2725
           }
         ]
       },
@@ -401,7 +401,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_ed103a883ff8480c",
+      "id": "q_c70f449156c06399",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -411,10 +411,10 @@
         "targets": [
           {
             "name": "Ape Atoll Agility Course",
-            "min_x": 2748,
-            "max_x": 2758,
-            "min_y": 2736,
-            "max_y": 2746
+            "min_x": 2743,
+            "max_x": 2763,
+            "min_y": 2731,
+            "max_y": 2751
           }
         ]
       },
@@ -464,7 +464,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_be480555a3326882",
+      "id": "q_0377bcf73301a277",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -474,10 +474,10 @@
         "targets": [
           {
             "name": "Apple orchard",
-            "min_x": 2475,
-            "max_x": 2485,
-            "min_y": 3375,
-            "max_y": 3385
+            "min_x": 2470,
+            "max_x": 2490,
+            "min_y": 3370,
+            "max_y": 3390
           }
         ]
       },
@@ -485,7 +485,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_d694e17cfc05899d",
+      "id": "q_151a05dad92de95a",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -495,10 +495,10 @@
         "targets": [
           {
             "name": "Arandar",
-            "min_x": 2337,
-            "max_x": 2347,
-            "min_y": 3285,
-            "max_y": 3295
+            "min_x": 2332,
+            "max_x": 2352,
+            "min_y": 3280,
+            "max_y": 3300
           }
         ]
       },
@@ -548,7 +548,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_7e3c6992b78b8a04",
+      "id": "q_1fb0555ebe9c2e7f",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -558,10 +558,10 @@
         "targets": [
           {
             "name": "Arceuus",
-            "min_x": 1695,
-            "max_x": 1705,
-            "min_y": 3795,
-            "max_y": 3805
+            "min_x": 1650,
+            "max_x": 1750,
+            "min_y": 3750,
+            "max_y": 3850
           }
         ]
       },
@@ -653,7 +653,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_e0a5ba20af4025fe",
+      "id": "q_22a4d21f5cb5afa4",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -663,10 +663,10 @@
         "targets": [
           {
             "name": "Ardougne",
-            "min_x": 2565,
-            "max_x": 2575,
-            "min_y": 3295,
-            "max_y": 3305
+            "min_x": 2520,
+            "max_x": 2620,
+            "min_y": 3250,
+            "max_y": 3350
           }
         ]
       },
@@ -695,7 +695,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_6e88b47856725d5a",
+      "id": "q_7178e0b3453c5857",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -705,10 +705,10 @@
         "targets": [
           {
             "name": "Ardougne Market",
-            "min_x": 2655,
-            "max_x": 2665,
-            "min_y": 3295,
-            "max_y": 3305
+            "min_x": 2650,
+            "max_x": 2670,
+            "min_y": 3290,
+            "max_y": 3310
           }
         ]
       },
@@ -884,7 +884,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_a8fbe22881327106",
+      "id": "q_82b446404170542d",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -894,10 +894,10 @@
         "targets": [
           {
             "name": "Auburnvale",
-            "min_x": 1412,
-            "max_x": 1422,
-            "min_y": 3355,
-            "max_y": 3365
+            "min_x": 1407,
+            "max_x": 1427,
+            "min_y": 3350,
+            "max_y": 3370
           }
         ]
       },
@@ -947,7 +947,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_250e426a234ab1d3",
+      "id": "q_94888e61efc7a5ce",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -957,10 +957,10 @@
         "targets": [
           {
             "name": "Avium Savannah",
-            "min_x": 1630,
-            "max_x": 1640,
-            "min_y": 3005,
-            "max_y": 3015
+            "min_x": 1585,
+            "max_x": 1685,
+            "min_y": 2960,
+            "max_y": 3060
           }
         ]
       },
@@ -989,7 +989,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_68107ce46c365a04",
+      "id": "q_576754820b94823a",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -999,10 +999,10 @@
         "targets": [
           {
             "name": "Bandit Camp",
-            "min_x": 3166,
-            "max_x": 3176,
-            "min_y": 2974,
-            "max_y": 2984
+            "min_x": 3161,
+            "max_x": 3181,
+            "min_y": 2969,
+            "max_y": 2989
           }
         ]
       },
@@ -1010,7 +1010,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_f03660131bd445a0",
+      "id": "q_162b6900c7156a00",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -1020,10 +1020,10 @@
         "targets": [
           {
             "name": "Bandit Camp",
-            "min_x": 3032,
-            "max_x": 3042,
-            "min_y": 3680,
-            "max_y": 3690
+            "min_x": 3012,
+            "max_x": 3062,
+            "min_y": 3660,
+            "max_y": 3710
           }
         ]
       },
@@ -1031,7 +1031,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_092a07eb24ba3435",
+      "id": "q_bc2ed76813b09e98",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -1041,10 +1041,10 @@
         "targets": [
           {
             "name": "Bandit Camp mine",
-            "min_x": 3082,
-            "max_x": 3092,
-            "min_y": 3757,
-            "max_y": 3767
+            "min_x": 3077,
+            "max_x": 3097,
+            "min_y": 3752,
+            "max_y": 3772
           }
         ]
       },
@@ -1073,7 +1073,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_9d67d7b22627d402",
+      "id": "q_9d5a916b39d3dd44",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -1083,10 +1083,10 @@
         "targets": [
           {
             "name": "Barbarian Outpost",
-            "min_x": 2544,
-            "max_x": 2554,
-            "min_y": 3553,
-            "max_y": 3563
+            "min_x": 2539,
+            "max_x": 2559,
+            "min_y": 3548,
+            "max_y": 3568
           }
         ]
       },
@@ -1136,7 +1136,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_6e0b51005206054e",
+      "id": "q_f0c5d2a914afa9a8",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -1146,10 +1146,10 @@
         "targets": [
           {
             "name": "Barbarian Village mine",
-            "min_x": 3075,
-            "max_x": 3085,
-            "min_y": 3425,
-            "max_y": 3435
+            "min_x": 3070,
+            "max_x": 3090,
+            "min_y": 3420,
+            "max_y": 3440
           }
         ]
       },
@@ -1157,7 +1157,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_9702657f2d936972",
+      "id": "q_9e69680a8cdb7972",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -1167,10 +1167,10 @@
         "targets": [
           {
             "name": "Barrows",
-            "min_x": 3562,
-            "max_x": 3572,
-            "min_y": 3286,
-            "max_y": 3296
+            "min_x": 3557,
+            "max_x": 3577,
+            "min_y": 3281,
+            "max_y": 3301
           }
         ]
       },
@@ -1199,7 +1199,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_ea1a7c201a38099f",
+      "id": "q_99305faf4e383c4e",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -1209,10 +1209,10 @@
         "targets": [
           {
             "name": "Battlefield",
-            "min_x": 2515,
-            "max_x": 2525,
-            "min_y": 3227,
-            "max_y": 3237
+            "min_x": 2510,
+            "max_x": 2530,
+            "min_y": 3222,
+            "max_y": 3242
           }
         ]
       },
@@ -1241,7 +1241,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_a6bd5b8c60fc9092",
+      "id": "q_2e21e738cb89782c",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -1251,10 +1251,10 @@
         "targets": [
           {
             "name": "Battlefront",
-            "min_x": 1363,
-            "max_x": 1373,
-            "min_y": 3711,
-            "max_y": 3721
+            "min_x": 1358,
+            "max_x": 1378,
+            "min_y": 3706,
+            "max_y": 3726
           }
         ]
       },
@@ -1262,7 +1262,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_688d0057a76e9f6b",
+      "id": "q_173591e444e82c91",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -1272,10 +1272,10 @@
         "targets": [
           {
             "name": "Baxtorian Falls",
-            "min_x": 2508,
-            "max_x": 2518,
-            "min_y": 3478,
-            "max_y": 3488
+            "min_x": 2503,
+            "max_x": 2523,
+            "min_y": 3473,
+            "max_y": 3493
           }
         ]
       },
@@ -1283,7 +1283,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_d65197fb48d55833",
+      "id": "q_d7cff2f8772d4bb5",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -1293,10 +1293,10 @@
         "targets": [
           {
             "name": "Bazaar",
-            "min_x": 1675,
-            "max_x": 1685,
-            "min_y": 3101,
-            "max_y": 3111
+            "min_x": 1670,
+            "max_x": 1690,
+            "min_y": 3096,
+            "max_y": 3116
           }
         ]
       },
@@ -1388,7 +1388,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_26801df7bd34d8c8",
+      "id": "q_d28b89a49b7b84b8",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -1398,10 +1398,10 @@
         "targets": [
           {
             "name": "Blighted Volcano",
-            "min_x": 3360,
-            "max_x": 3370,
-            "min_y": 3930,
-            "max_y": 3940
+            "min_x": 3355,
+            "max_x": 3375,
+            "min_y": 3925,
+            "max_y": 3945
           }
         ]
       },
@@ -1409,7 +1409,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_92573abfeacca1fa",
+      "id": "q_718860b9d669d3c4",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -1419,10 +1419,10 @@
         "targets": [
           {
             "name": "Bone Yard",
-            "min_x": 3231,
-            "max_x": 3241,
-            "min_y": 3741,
-            "max_y": 3751
+            "min_x": 3226,
+            "max_x": 3246,
+            "min_y": 3736,
+            "max_y": 3756
           }
         ]
       },
@@ -1451,7 +1451,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_4bd90224f7923bd3",
+      "id": "q_0561ade5c2191207",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -1461,10 +1461,10 @@
         "targets": [
           {
             "name": "Brimhaven",
-            "min_x": 2755,
-            "max_x": 2765,
-            "min_y": 3190,
-            "max_y": 3200
+            "min_x": 2735,
+            "max_x": 2785,
+            "min_y": 3170,
+            "max_y": 3220
           }
         ]
       },
@@ -1472,7 +1472,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_478e077604aeaf1d",
+      "id": "q_3cd75618ad5c188b",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -1482,10 +1482,10 @@
         "targets": [
           {
             "name": "Brittle Isle",
-            "min_x": 1942,
-            "max_x": 1952,
-            "min_y": 4064,
-            "max_y": 4074
+            "min_x": 1937,
+            "max_x": 1957,
+            "min_y": 4059,
+            "max_y": 4079
           }
         ]
       },
@@ -1493,7 +1493,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_6a8256f75bd4c6eb",
+      "id": "q_17587b760940e2c3",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -1503,10 +1503,10 @@
         "targets": [
           {
             "name": "Buccaneers' Haven",
-            "min_x": 2075,
-            "max_x": 2085,
-            "min_y": 3680,
-            "max_y": 3690
+            "min_x": 2070,
+            "max_x": 2090,
+            "min_y": 3675,
+            "max_y": 3695
           }
         ]
       },
@@ -1577,7 +1577,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_b11f6bda9a248271",
+      "id": "q_a92bd777e73880d8",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -1587,10 +1587,10 @@
         "targets": [
           {
             "name": "Burthorpe",
-            "min_x": 2865,
-            "max_x": 2875,
-            "min_y": 3539,
-            "max_y": 3549
+            "min_x": 2845,
+            "max_x": 2895,
+            "min_y": 3519,
+            "max_y": 3569
           }
         ]
       },
@@ -1640,7 +1640,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_eb795b23fc9c8ced",
+      "id": "q_13f68735b4aaeaf7",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -1650,10 +1650,10 @@
         "targets": [
           {
             "name": "Camelot",
-            "min_x": 2753,
-            "max_x": 2763,
-            "min_y": 3502,
-            "max_y": 3512
+            "min_x": 2748,
+            "max_x": 2768,
+            "min_y": 3497,
+            "max_y": 3517
           }
         ]
       },
@@ -1661,7 +1661,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_765710f737dc739d",
+      "id": "q_95719789dba7665c",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -1671,10 +1671,10 @@
         "targets": [
           {
             "name": "Canal barge",
-            "min_x": 3357,
-            "max_x": 3367,
-            "min_y": 3446,
-            "max_y": 3456
+            "min_x": 3352,
+            "max_x": 3372,
+            "min_y": 3441,
+            "max_y": 3461
           }
         ]
       },
@@ -1703,7 +1703,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_b32a559098f7e19c",
+      "id": "q_ba475002276ac804",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -1713,10 +1713,10 @@
         "targets": [
           {
             "name": "Canifis Hunter area",
-            "min_x": 3545,
-            "max_x": 3555,
-            "min_y": 3445,
-            "max_y": 3455
+            "min_x": 3540,
+            "max_x": 3560,
+            "min_y": 3440,
+            "max_y": 3460
           }
         ]
       },
@@ -1850,7 +1850,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_84fe3280ecbb6c83",
+      "id": "q_ecee6471bf20f2e2",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -1860,10 +1860,10 @@
         "targets": [
           {
             "name": "Castle Wars",
-            "min_x": 2402,
-            "max_x": 2412,
-            "min_y": 3100,
-            "max_y": 3110
+            "min_x": 2382,
+            "max_x": 2432,
+            "min_y": 3080,
+            "max_y": 3130
           }
         ]
       },
@@ -2102,7 +2102,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_266d788a67f1efc0",
+      "id": "q_a922b14058efbfe5",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -2112,10 +2112,10 @@
         "targets": [
           {
             "name": "Chompy Marsh",
-            "min_x": 2370,
-            "max_x": 2380,
-            "min_y": 3043,
-            "max_y": 3053
+            "min_x": 2350,
+            "max_x": 2400,
+            "min_y": 3023,
+            "max_y": 3073
           }
         ]
       },
@@ -2186,7 +2186,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_d3f26aac15745a1b",
+      "id": "q_2849631d05a7fc16",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -2196,10 +2196,10 @@
         "targets": [
           {
             "name": "Civitas illa Fortis",
-            "min_x": 1720,
-            "max_x": 1730,
-            "min_y": 3123,
-            "max_y": 3133
+            "min_x": 1675,
+            "max_x": 1775,
+            "min_y": 3078,
+            "max_y": 3178
           }
         ]
       },
@@ -2333,7 +2333,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_488fcf5c34a1c4c2",
+      "id": "q_ee70442727ceda8c",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -2343,10 +2343,10 @@
         "targets": [
           {
             "name": "Combat Training Camp",
-            "min_x": 2510,
-            "max_x": 2520,
-            "min_y": 3365,
-            "max_y": 3375
+            "min_x": 2505,
+            "max_x": 2525,
+            "min_y": 3360,
+            "max_y": 3380
           }
         ]
       },
@@ -2375,7 +2375,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_d130e7804066e50c",
+      "id": "q_086deb0422b880cd",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -2385,10 +2385,10 @@
         "targets": [
           {
             "name": "Corsair Cove",
-            "min_x": 2568,
-            "max_x": 2578,
-            "min_y": 2851,
-            "max_y": 2861
+            "min_x": 2563,
+            "max_x": 2583,
+            "min_y": 2846,
+            "max_y": 2866
           }
         ]
       },
@@ -2396,7 +2396,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_6d56b4e5e3857559",
+      "id": "q_a7bedceaad2b2795",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -2406,10 +2406,10 @@
         "targets": [
           {
             "name": "Corsair Cove Resource Area",
-            "min_x": 2472,
-            "max_x": 2482,
-            "min_y": 2887,
-            "max_y": 2897
+            "min_x": 2467,
+            "max_x": 2487,
+            "min_y": 2882,
+            "max_y": 2902
           }
         ]
       },
@@ -2438,7 +2438,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_3dc324b603e8cff6",
+      "id": "q_5a227c07accb331f",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -2448,10 +2448,10 @@
         "targets": [
           {
             "name": "Crabclaw Isle",
-            "min_x": 1762,
-            "max_x": 1772,
-            "min_y": 3415,
-            "max_y": 3425
+            "min_x": 1757,
+            "max_x": 1777,
+            "min_y": 3410,
+            "max_y": 3430
           }
         ]
       },
@@ -2501,7 +2501,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_7acbafe237ab1539",
+      "id": "q_50d9cea2171d5dba",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -2511,10 +2511,10 @@
         "targets": [
           {
             "name": "Crandor",
-            "min_x": 2831,
-            "max_x": 2841,
-            "min_y": 3266,
-            "max_y": 3276
+            "min_x": 2826,
+            "max_x": 2846,
+            "min_y": 3261,
+            "max_y": 3281
           }
         ]
       },
@@ -2522,7 +2522,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_2b0919ee5c66f205",
+      "id": "q_895f9d91d8b87525",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -2532,10 +2532,10 @@
         "targets": [
           {
             "name": "Crash Island",
-            "min_x": 2909,
-            "max_x": 2919,
-            "min_y": 2715,
-            "max_y": 2725
+            "min_x": 2904,
+            "max_x": 2924,
+            "min_y": 2710,
+            "max_y": 2730
           }
         ]
       },
@@ -2585,7 +2585,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_61f0516216c82834",
+      "id": "q_94cc70d8ff26af44",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -2595,10 +2595,10 @@
         "targets": [
           {
             "name": "Custodia Mountains",
-            "min_x": 1272,
-            "max_x": 1282,
-            "min_y": 3385,
-            "max_y": 3395
+            "min_x": 1252,
+            "max_x": 1302,
+            "min_y": 3365,
+            "max_y": 3415
           }
         ]
       },
@@ -2606,7 +2606,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_444184b0b8634a55",
+      "id": "q_cb859ffd932fc5e5",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -2616,10 +2616,10 @@
         "targets": [
           {
             "name": "Custodia Mountains mine",
-            "min_x": 1277,
-            "max_x": 1287,
-            "min_y": 3407,
-            "max_y": 3417
+            "min_x": 1272,
+            "max_x": 1292,
+            "min_y": 3402,
+            "max_y": 3422
           }
         ]
       },
@@ -2648,7 +2648,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_2c90c25a7f157111",
+      "id": "q_499c4459e15bd858",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -2658,10 +2658,10 @@
         "targets": [
           {
             "name": "Daimon's Crater",
-            "min_x": 3421,
-            "max_x": 3431,
-            "min_y": 4059,
-            "max_y": 4069
+            "min_x": 3401,
+            "max_x": 3451,
+            "min_y": 4039,
+            "max_y": 4089
           }
         ]
       },
@@ -2669,7 +2669,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_4258f8c9f490d9e4",
+      "id": "q_4e98323ffb73aef8",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -2679,10 +2679,10 @@
         "targets": [
           {
             "name": "Dareeyak",
-            "min_x": 2965,
-            "max_x": 2975,
-            "min_y": 3690,
-            "max_y": 3700
+            "min_x": 2960,
+            "max_x": 2980,
+            "min_y": 3685,
+            "max_y": 3705
           }
         ]
       },
@@ -2690,7 +2690,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_43e6dca91271322c",
+      "id": "q_f20e44f4944b4dbd",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -2700,10 +2700,10 @@
         "targets": [
           {
             "name": "Dark Warriors' Fortress",
-            "min_x": 3024,
-            "max_x": 3034,
-            "min_y": 3625,
-            "max_y": 3635
+            "min_x": 3019,
+            "max_x": 3039,
+            "min_y": 3620,
+            "max_y": 3640
           }
         ]
       },
@@ -2732,7 +2732,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_045ef2576da304de",
+      "id": "q_57d7f2069a7d85da",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -2742,10 +2742,10 @@
         "targets": [
           {
             "name": "Darkmeyer",
-            "min_x": 3592,
-            "max_x": 3602,
-            "min_y": 3355,
-            "max_y": 3365
+            "min_x": 3572,
+            "max_x": 3622,
+            "min_y": 3335,
+            "max_y": 3385
           }
         ]
       },
@@ -2795,7 +2795,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_a3b317d9b4c188a0",
+      "id": "q_8dd63a4ecbf426a1",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -2805,10 +2805,10 @@
         "targets": [
           {
             "name": "Darkmoon Ravine",
-            "min_x": 1305,
-            "max_x": 1315,
-            "min_y": 2910,
-            "max_y": 2920
+            "min_x": 1300,
+            "max_x": 1320,
+            "min_y": 2905,
+            "max_y": 2925
           }
         ]
       },
@@ -2837,7 +2837,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_e5a491d237c2d5a3",
+      "id": "q_fe18c4a51dc83e91",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -2847,10 +2847,10 @@
         "targets": [
           {
             "name": "Deepfin Point",
-            "min_x": 1943,
-            "max_x": 1953,
-            "min_y": 2777,
-            "max_y": 2787
+            "min_x": 1938,
+            "max_x": 1958,
+            "min_y": 2772,
+            "max_y": 2792
           }
         ]
       },
@@ -2879,7 +2879,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_ea65a445ced3764f",
+      "id": "q_de9b85662fe23884",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -2889,10 +2889,10 @@
         "targets": [
           {
             "name": "Dense essence mine",
-            "min_x": 1759,
-            "max_x": 1769,
-            "min_y": 3848,
-            "max_y": 3858
+            "min_x": 1754,
+            "max_x": 1774,
+            "min_y": 3843,
+            "max_y": 3863
           }
         ]
       },
@@ -2900,7 +2900,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_d06ef937e3b8c32b",
+      "id": "q_45c4fdc0a3aef35a",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -2910,10 +2910,10 @@
         "targets": [
           {
             "name": "Desert Mining Camp",
-            "min_x": 3283,
-            "max_x": 3293,
-            "min_y": 3016,
-            "max_y": 3026
+            "min_x": 3278,
+            "max_x": 3298,
+            "min_y": 3011,
+            "max_y": 3031
           }
         ]
       },
@@ -2921,7 +2921,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_df6d2eae680dc233",
+      "id": "q_2e3e540e8cd54f2d",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -2931,10 +2931,10 @@
         "targets": [
           {
             "name": "Deserted Keep",
-            "min_x": 3148,
-            "max_x": 3158,
-            "min_y": 3927,
-            "max_y": 3937
+            "min_x": 3143,
+            "max_x": 3163,
+            "min_y": 3922,
+            "max_y": 3942
           }
         ]
       },
@@ -2963,7 +2963,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_c7505969e529fcc7",
+      "id": "q_087bf3affb335ae8",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -2973,10 +2973,10 @@
         "targets": [
           {
             "name": "Digsite",
-            "min_x": 3349,
-            "max_x": 3359,
-            "min_y": 3415,
-            "max_y": 3425
+            "min_x": 3344,
+            "max_x": 3364,
+            "min_y": 3410,
+            "max_y": 3430
           }
         ]
       },
@@ -3068,7 +3068,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_e89dd8572f9dde05",
+      "id": "q_2569540576a2f261",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -3078,10 +3078,10 @@
         "targets": [
           {
             "name": "Dragontooth Island",
-            "min_x": 3801,
-            "max_x": 3811,
-            "min_y": 3544,
-            "max_y": 3554
+            "min_x": 3796,
+            "max_x": 3816,
+            "min_y": 3539,
+            "max_y": 3559
           }
         ]
       },
@@ -3236,7 +3236,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_0a51d3998befee5c",
+      "id": "q_b906c1c524da4468",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -3246,10 +3246,10 @@
         "targets": [
           {
             "name": "Duel Arena",
-            "min_x": 3355,
-            "max_x": 3365,
-            "min_y": 3228,
-            "max_y": 3238
+            "min_x": 3335,
+            "max_x": 3385,
+            "min_y": 3208,
+            "max_y": 3258
           }
         ]
       },
@@ -3257,7 +3257,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_4528910e329ed590",
+      "id": "q_21c4bf06a41539b0",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -3267,10 +3267,10 @@
         "targets": [
           {
             "name": "Eagles' Peak",
-            "min_x": 2327,
-            "max_x": 2337,
-            "min_y": 3481,
-            "max_y": 3491
+            "min_x": 2322,
+            "max_x": 2342,
+            "min_y": 3476,
+            "max_y": 3496
           }
         ]
       },
@@ -3278,7 +3278,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_0514c2afc5b77f9c",
+      "id": "q_e60fd7c79391a750",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -3288,10 +3288,10 @@
         "targets": [
           {
             "name": "East Ardougne",
-            "min_x": 2619,
-            "max_x": 2629,
-            "min_y": 3295,
-            "max_y": 3305
+            "min_x": 2599,
+            "max_x": 2649,
+            "min_y": 3275,
+            "max_y": 3325
           }
         ]
       },
@@ -3299,7 +3299,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_30298b935c19272d",
+      "id": "q_efced76fa5622e49",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -3309,10 +3309,10 @@
         "targets": [
           {
             "name": "East Fremennik Isles mine",
-            "min_x": 2403,
-            "max_x": 2413,
-            "min_y": 3855,
-            "max_y": 3865
+            "min_x": 2398,
+            "max_x": 2418,
+            "min_y": 3850,
+            "max_y": 3870
           }
         ]
       },
@@ -3362,7 +3362,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_b8a2849e20e6d745",
+      "id": "q_e4961e837d107811",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -3372,10 +3372,10 @@
         "targets": [
           {
             "name": "East Tlati Rainforest mine",
-            "min_x": 1348,
-            "max_x": 1358,
-            "min_y": 3108,
-            "max_y": 3118
+            "min_x": 1343,
+            "max_x": 1363,
+            "min_y": 3103,
+            "max_y": 3123
           }
         ]
       },
@@ -3404,7 +3404,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_65f3da18abee06b8",
+      "id": "q_a042d66c6b3a503d",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -3414,10 +3414,10 @@
         "targets": [
           {
             "name": "Edgeville",
-            "min_x": 3075,
-            "max_x": 3085,
-            "min_y": 3487,
-            "max_y": 3497
+            "min_x": 3055,
+            "max_x": 3105,
+            "min_y": 3467,
+            "max_y": 3517
           }
         ]
       },
@@ -3425,7 +3425,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_ca53504384c59076",
+      "id": "q_3f6fbbf447576f66",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -3435,10 +3435,10 @@
         "targets": [
           {
             "name": "Edgeville Monastery",
-            "min_x": 3047,
-            "max_x": 3057,
-            "min_y": 3485,
-            "max_y": 3495
+            "min_x": 3042,
+            "max_x": 3062,
+            "min_y": 3480,
+            "max_y": 3500
           }
         ]
       },
@@ -3551,7 +3551,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_559610724b03d77b",
+      "id": "q_c197958cf529bad6",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -3561,10 +3561,10 @@
         "targets": [
           {
             "name": "Entrana",
-            "min_x": 2835,
-            "max_x": 2845,
-            "min_y": 3353,
-            "max_y": 3363
+            "min_x": 2815,
+            "max_x": 2865,
+            "min_y": 3333,
+            "max_y": 3383
           }
         ]
       },
@@ -3614,7 +3614,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_27580aec7d5913bf",
+      "id": "q_6dfd33094e117865",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -3624,10 +3624,10 @@
         "targets": [
           {
             "name": "Etceteria",
-            "min_x": 2599,
-            "max_x": 2609,
-            "min_y": 3868,
-            "max_y": 3878
+            "min_x": 2594,
+            "max_x": 2614,
+            "min_y": 3863,
+            "max_y": 3883
           }
         ]
       },
@@ -3656,7 +3656,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_8e354f4afc4930fa",
+      "id": "q_d93bbe5d6b9f1d87",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -3666,10 +3666,10 @@
         "targets": [
           {
             "name": "Exam Centre",
-            "min_x": 3347,
-            "max_x": 3357,
-            "min_y": 3335,
-            "max_y": 3345
+            "min_x": 3342,
+            "max_x": 3362,
+            "min_y": 3330,
+            "max_y": 3350
           }
         ]
       },
@@ -3845,7 +3845,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_d8a7ffd1a4e1c2ca",
+      "id": "q_32e215f04a2db1a8",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -3855,10 +3855,10 @@
         "targets": [
           {
             "name": "Fenkenstrain's Castle",
-            "min_x": 3544,
-            "max_x": 3554,
-            "min_y": 3545,
-            "max_y": 3555
+            "min_x": 3539,
+            "max_x": 3559,
+            "min_y": 3540,
+            "max_y": 3560
           }
         ]
       },
@@ -3866,7 +3866,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_38998e3e6bc358f1",
+      "id": "q_82b49530dcd45245",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -3876,10 +3876,10 @@
         "targets": [
           {
             "name": "Ferox Enclave",
-            "min_x": 3132,
-            "max_x": 3142,
-            "min_y": 3618,
-            "max_y": 3628
+            "min_x": 3127,
+            "max_x": 3147,
+            "min_y": 3613,
+            "max_y": 3633
           }
         ]
       },
@@ -3971,7 +3971,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_f28785f4ed0ab523",
+      "id": "q_0ae74ecff2d5c8fb",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -3981,10 +3981,10 @@
         "targets": [
           {
             "name": "Fishing Hamlet",
-            "min_x": 1694,
-            "max_x": 1704,
-            "min_y": 3940,
-            "max_y": 3950
+            "min_x": 1689,
+            "max_x": 1709,
+            "min_y": 3935,
+            "max_y": 3955
           }
         ]
       },
@@ -3992,7 +3992,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_2c5c401485fd2053",
+      "id": "q_cfbc67c0b1a113aa",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -4002,10 +4002,10 @@
         "targets": [
           {
             "name": "Fishing Platform",
-            "min_x": 2773,
-            "max_x": 2783,
-            "min_y": 3277,
-            "max_y": 3287
+            "min_x": 2768,
+            "max_x": 2788,
+            "min_y": 3272,
+            "max_y": 3292
           }
         ]
       },
@@ -4076,7 +4076,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_e61a2502a2dfac54",
+      "id": "q_c1ff25b81b4430b2",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -4086,10 +4086,10 @@
         "targets": [
           {
             "name": "Fortis Aqueduct",
-            "min_x": 1553,
-            "max_x": 1563,
-            "min_y": 3148,
-            "max_y": 3158
+            "min_x": 1533,
+            "max_x": 1583,
+            "min_y": 3128,
+            "max_y": 3178
           }
         ]
       },
@@ -4097,7 +4097,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_cc2f27ea743eea08",
+      "id": "q_cd972b4505a9b5fe",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -4107,10 +4107,10 @@
         "targets": [
           {
             "name": "Fortis Cothon",
-            "min_x": 1755,
-            "max_x": 1765,
-            "min_y": 3153,
-            "max_y": 3163
+            "min_x": 1735,
+            "max_x": 1785,
+            "min_y": 3133,
+            "max_y": 3183
           }
         ]
       },
@@ -4181,7 +4181,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_81dc72afdbebe223",
+      "id": "q_9ae90142e15795e6",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -4191,10 +4191,10 @@
         "targets": [
           {
             "name": "Fossil Island",
-            "min_x": 3725,
-            "max_x": 3735,
-            "min_y": 3802,
-            "max_y": 3812
+            "min_x": 3680,
+            "max_x": 3780,
+            "min_y": 3757,
+            "max_y": 3857
           }
         ]
       },
@@ -4202,7 +4202,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_593ac8c146dd363c",
+      "id": "q_8f4dc23bb8d04eb2",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -4212,10 +4212,10 @@
         "targets": [
           {
             "name": "Fossil Island Volcano",
-            "min_x": 3778,
-            "max_x": 3788,
-            "min_y": 3778,
-            "max_y": 3788
+            "min_x": 3758,
+            "max_x": 3808,
+            "min_y": 3758,
+            "max_y": 3808
           }
         ]
       },
@@ -4286,7 +4286,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_0b6b0d87534bcfe3",
+      "id": "q_5744aaa61f308dd1",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -4296,10 +4296,10 @@
         "targets": [
           {
             "name": "Frozen Waste Plateau",
-            "min_x": 2959,
-            "max_x": 2969,
-            "min_y": 3898,
-            "max_y": 3908
+            "min_x": 2954,
+            "max_x": 2974,
+            "min_y": 3893,
+            "max_y": 3913
           }
         ]
       },
@@ -4307,7 +4307,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_893e9cdded38ad17",
+      "id": "q_8406fa3818d83887",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -4317,10 +4317,10 @@
         "targets": [
           {
             "name": "Galarpos Mountains",
-            "min_x": 2395,
-            "max_x": 2405,
-            "min_y": 3235,
-            "max_y": 3245
+            "min_x": 2375,
+            "max_x": 2425,
+            "min_y": 3215,
+            "max_y": 3265
           }
         ]
       },
@@ -4412,7 +4412,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_4b1d60d067d37707",
+      "id": "q_e169e0c486f2ccd4",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -4422,10 +4422,10 @@
         "targets": [
           {
             "name": "Gloomthorn Trail",
-            "min_x": 1376,
-            "max_x": 1386,
-            "min_y": 3221,
-            "max_y": 3231
+            "min_x": 1371,
+            "max_x": 1391,
+            "min_y": 3216,
+            "max_y": 3236
           }
         ]
       },
@@ -4496,7 +4496,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_5f10ac5faa83a008",
+      "id": "q_3e39a24ef4f99164",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -4506,10 +4506,10 @@
         "targets": [
           {
             "name": "Goblin settlement",
-            "min_x": 2460,
-            "max_x": 2470,
-            "min_y": 3175,
-            "max_y": 3185
+            "min_x": 2455,
+            "max_x": 2475,
+            "min_y": 3170,
+            "max_y": 3190
           }
         ]
       },
@@ -4622,7 +4622,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_e0f2e65e9889c1a2",
+      "id": "q_fae3dad7be59da66",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -4632,10 +4632,10 @@
         "targets": [
           {
             "name": "Grand Tree",
-            "min_x": 2461,
-            "max_x": 2471,
-            "min_y": 3487,
-            "max_y": 3497
+            "min_x": 2456,
+            "max_x": 2476,
+            "min_y": 3482,
+            "max_y": 3502
           }
         ]
       },
@@ -4664,7 +4664,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_cfcca188371f9c5f",
+      "id": "q_552d69dea5aa9c4b",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -4674,10 +4674,10 @@
         "targets": [
           {
             "name": "Graveyard",
-            "min_x": 3564,
-            "max_x": 3574,
-            "min_y": 3397,
-            "max_y": 3407
+            "min_x": 3559,
+            "max_x": 3579,
+            "min_y": 3392,
+            "max_y": 3412
           }
         ]
       },
@@ -4685,7 +4685,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_49e7ecc43aba6fa8",
+      "id": "q_ce62a5a175fac70f",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -4695,10 +4695,10 @@
         "targets": [
           {
             "name": "Graveyard of Heroes",
-            "min_x": 1492,
-            "max_x": 1502,
-            "min_y": 3559,
-            "max_y": 3569
+            "min_x": 1487,
+            "max_x": 1507,
+            "min_y": 3554,
+            "max_y": 3574
           }
         ]
       },
@@ -4706,7 +4706,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_bea8218e91d74fec",
+      "id": "q_0006ccbf985cae68",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -4716,10 +4716,10 @@
         "targets": [
           {
             "name": "Graveyard of Shadows",
-            "min_x": 3159,
-            "max_x": 3169,
-            "min_y": 3667,
-            "max_y": 3677
+            "min_x": 3154,
+            "max_x": 3174,
+            "min_y": 3662,
+            "max_y": 3682
           }
         ]
       },
@@ -4790,7 +4790,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_6ac98df674c950ed",
+      "id": "q_f74a77c36e4f052d",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -4800,10 +4800,10 @@
         "targets": [
           {
             "name": "Gu'Tanoth",
-            "min_x": 2519,
-            "max_x": 2529,
-            "min_y": 3030,
-            "max_y": 3040
+            "min_x": 2514,
+            "max_x": 2534,
+            "min_y": 3025,
+            "max_y": 3045
           }
         ]
       },
@@ -4811,7 +4811,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_7e6bbbab7877800a",
+      "id": "q_3579eb1e2c43b078",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -4821,10 +4821,10 @@
         "targets": [
           {
             "name": "Gwenith",
-            "min_x": 2195,
-            "max_x": 2205,
-            "min_y": 3405,
-            "max_y": 3415
+            "min_x": 2190,
+            "max_x": 2210,
+            "min_y": 3400,
+            "max_y": 3420
           }
         ]
       },
@@ -4874,7 +4874,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_a3d66bf3ffded62b",
+      "id": "q_b0ef1b1714c38e2e",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -4884,10 +4884,10 @@
         "targets": [
           {
             "name": "Hailstorm Mountains",
-            "min_x": 1495,
-            "max_x": 1505,
-            "min_y": 3195,
-            "max_y": 3205
+            "min_x": 1475,
+            "max_x": 1525,
+            "min_y": 3175,
+            "max_y": 3225
           }
         ]
       },
@@ -4937,7 +4937,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_2692671cfd69cfc7",
+      "id": "q_07d1fbe63009b6d6",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -4947,10 +4947,10 @@
         "targets": [
           {
             "name": "Harmony Island",
-            "min_x": 3800,
-            "max_x": 3810,
-            "min_y": 2839,
-            "max_y": 2849
+            "min_x": 3795,
+            "max_x": 3815,
+            "min_y": 2834,
+            "max_y": 2854
           }
         ]
       },
@@ -4979,7 +4979,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_394333317992a332",
+      "id": "q_014f437e3ce149ff",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -4989,10 +4989,10 @@
         "targets": [
           {
             "name": "Haunted Woods",
-            "min_x": 3579,
-            "max_x": 3589,
-            "min_y": 3487,
-            "max_y": 3497
+            "min_x": 3559,
+            "max_x": 3609,
+            "min_y": 3467,
+            "max_y": 3517
           }
         ]
       },
@@ -5000,7 +5000,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_ac06a9aa8b8b3e40",
+      "id": "q_894185651c96c4b3",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -5010,10 +5010,10 @@
         "targets": [
           {
             "name": "Here be penguins",
-            "min_x": 2580,
-            "max_x": 2590,
-            "min_y": 3905,
-            "max_y": 3915
+            "min_x": 2560,
+            "max_x": 2610,
+            "min_y": 3885,
+            "max_y": 3935
           }
         ]
       },
@@ -5063,7 +5063,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_79d5f361c7e40b86",
+      "id": "q_fd5cb7f97f48fd14",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -5073,10 +5073,10 @@
         "targets": [
           {
             "name": "Hosidius",
-            "min_x": 1757,
-            "max_x": 1767,
-            "min_y": 3593,
-            "max_y": 3603
+            "min_x": 1752,
+            "max_x": 1772,
+            "min_y": 3588,
+            "max_y": 3608
           }
         ]
       },
@@ -5210,7 +5210,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_143cbe07d5cc434d",
+      "id": "q_5ab009ce8bb4a939",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -5220,10 +5220,10 @@
         "targets": [
           {
             "name": "House on the Hill",
-            "min_x": 3767,
-            "max_x": 3777,
-            "min_y": 3867,
-            "max_y": 3877
+            "min_x": 3762,
+            "max_x": 3782,
+            "min_y": 3862,
+            "max_y": 3882
           }
         ]
       },
@@ -5231,7 +5231,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_596cd972399b7ae6",
+      "id": "q_672032fb610a6b09",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -5241,10 +5241,10 @@
         "targets": [
           {
             "name": "Hunter Guild",
-            "min_x": 1554,
-            "max_x": 1564,
-            "min_y": 3043,
-            "max_y": 3053
+            "min_x": 1549,
+            "max_x": 1569,
+            "min_y": 3038,
+            "max_y": 3058
           }
         ]
       },
@@ -5273,7 +5273,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_50993005bd35b729",
+      "id": "q_6a77fcae065bd775",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -5283,10 +5283,10 @@
         "targets": [
           {
             "name": "Ice Path",
-            "min_x": 2848,
-            "max_x": 2858,
-            "min_y": 3804,
-            "max_y": 3814
+            "min_x": 2828,
+            "max_x": 2878,
+            "min_y": 3784,
+            "max_y": 3834
           }
         ]
       },
@@ -5294,7 +5294,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_2b6af49a1d143d0c",
+      "id": "q_3c45806cf42d60c1",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -5304,10 +5304,10 @@
         "targets": [
           {
             "name": "Iceberg",
-            "min_x": 2647,
-            "max_x": 2657,
-            "min_y": 4024,
-            "max_y": 4034
+            "min_x": 2627,
+            "max_x": 2677,
+            "min_y": 4004,
+            "max_y": 4054
           }
         ]
       },
@@ -5357,7 +5357,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_068096e0ffb4cd1e",
+      "id": "q_7875de97c70a1bfc",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -5367,10 +5367,10 @@
         "targets": [
           {
             "name": "Iorwerth Camp",
-            "min_x": 2193,
-            "max_x": 2203,
-            "min_y": 3248,
-            "max_y": 3258
+            "min_x": 2188,
+            "max_x": 2208,
+            "min_y": 3243,
+            "max_y": 3263
           }
         ]
       },
@@ -5378,7 +5378,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_18b0e40a4005b66d",
+      "id": "q_38b19a2ef099936e",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -5388,10 +5388,10 @@
         "targets": [
           {
             "name": "Isafdar",
-            "min_x": 2239,
-            "max_x": 2249,
-            "min_y": 3177,
-            "max_y": 3187
+            "min_x": 2219,
+            "max_x": 2269,
+            "min_y": 3157,
+            "max_y": 3207
           }
         ]
       },
@@ -5441,7 +5441,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_2fe0362aff4a69ab",
+      "id": "q_67f0cdca362e5bde",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -5451,10 +5451,10 @@
         "targets": [
           {
             "name": "Isle of Bones",
-            "min_x": 2528,
-            "max_x": 2538,
-            "min_y": 2528,
-            "max_y": 2538
+            "min_x": 2523,
+            "max_x": 2543,
+            "min_y": 2523,
+            "max_y": 2543
           }
         ]
       },
@@ -5462,7 +5462,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_bb20d19e46354e55",
+      "id": "q_d620500d1209735e",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -5472,10 +5472,10 @@
         "targets": [
           {
             "name": "Isle of Serpents",
-            "min_x": 1850,
-            "max_x": 1860,
-            "min_y": 2420,
-            "max_y": 2430
+            "min_x": 1830,
+            "max_x": 1880,
+            "min_y": 2400,
+            "max_y": 2450
           }
         ]
       },
@@ -5483,7 +5483,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_d46f0d3c10d1c3cf",
+      "id": "q_40c7afb835d085b5",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -5493,10 +5493,10 @@
         "targets": [
           {
             "name": "Isle of Souls",
-            "min_x": 2205,
-            "max_x": 2215,
-            "min_y": 2895,
-            "max_y": 2905
+            "min_x": 2160,
+            "max_x": 2260,
+            "min_y": 2850,
+            "max_y": 2950
           }
         ]
       },
@@ -5504,7 +5504,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_dd0e8dbffcc6dbb6",
+      "id": "q_22de2f4096aa74c7",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -5514,10 +5514,10 @@
         "targets": [
           {
             "name": "Isle of Souls mine",
-            "min_x": 2193,
-            "max_x": 2203,
-            "min_y": 2788,
-            "max_y": 2798
+            "min_x": 2188,
+            "max_x": 2208,
+            "min_y": 2783,
+            "max_y": 2803
           }
         ]
       },
@@ -5546,7 +5546,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_07227737dee441f9",
+      "id": "q_525a1bd960fbf230",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -5556,10 +5556,10 @@
         "targets": [
           {
             "name": "Jaltevas Pyramid",
-            "min_x": 3360,
-            "max_x": 3370,
-            "min_y": 2700,
-            "max_y": 2710
+            "min_x": 3355,
+            "max_x": 3375,
+            "min_y": 2695,
+            "max_y": 2715
           }
         ]
       },
@@ -5567,7 +5567,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_ff32c3e5d11ca2a1",
+      "id": "q_75989f0c467b82ef",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -5577,10 +5577,10 @@
         "targets": [
           {
             "name": "Jatizso",
-            "min_x": 2400,
-            "max_x": 2410,
-            "min_y": 3800,
-            "max_y": 3810
+            "min_x": 2395,
+            "max_x": 2415,
+            "min_y": 3795,
+            "max_y": 3815
           }
         ]
       },
@@ -5630,7 +5630,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_334ef765f9fb5ebb",
+      "id": "q_6a8fda9cf1732416",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -5640,10 +5640,10 @@
         "targets": [
           {
             "name": "Jiggig",
-            "min_x": 2460,
-            "max_x": 2470,
-            "min_y": 3041,
-            "max_y": 3051
+            "min_x": 2455,
+            "max_x": 2475,
+            "min_y": 3036,
+            "max_y": 3056
           }
         ]
       },
@@ -5777,7 +5777,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_9f4d12fd52bf5dcd",
+      "id": "q_a25dbe9e8d7c3922",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -5787,10 +5787,10 @@
         "targets": [
           {
             "name": "Kebos Swamp",
-            "min_x": 1265,
-            "max_x": 1275,
-            "min_y": 3611,
-            "max_y": 3621
+            "min_x": 1260,
+            "max_x": 1280,
+            "min_y": 3606,
+            "max_y": 3626
           }
         ]
       },
@@ -5861,7 +5861,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_e7cfba8d5411954f",
+      "id": "q_2b6a55eba1f2bfb8",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -5871,10 +5871,10 @@
         "targets": [
           {
             "name": "Keldagrim entrance mine",
-            "min_x": 2710,
-            "max_x": 2720,
-            "min_y": 3700,
-            "max_y": 3710
+            "min_x": 2690,
+            "max_x": 2740,
+            "min_y": 3680,
+            "max_y": 3730
           }
         ]
       },
@@ -5882,7 +5882,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_d7c084b887f2288d",
+      "id": "q_275f5de5212cb939",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -5892,10 +5892,10 @@
         "targets": [
           {
             "name": "Kharazi Jungle",
-            "min_x": 2860,
-            "max_x": 2870,
-            "min_y": 2902,
-            "max_y": 2912
+            "min_x": 2840,
+            "max_x": 2890,
+            "min_y": 2882,
+            "max_y": 2932
           }
         ]
       },
@@ -5903,7 +5903,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_b2aa9a8d53eb5960",
+      "id": "q_5ee2f3612b036aea",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -5913,10 +5913,10 @@
         "targets": [
           {
             "name": "Kingstown",
-            "min_x": 1655,
-            "max_x": 1665,
-            "min_y": 3672,
-            "max_y": 3682
+            "min_x": 1635,
+            "max_x": 1685,
+            "min_y": 3652,
+            "max_y": 3702
           }
         ]
       },
@@ -5945,7 +5945,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_8b128494bae15da0",
+      "id": "q_2c72bdea61d8895d",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -5955,10 +5955,10 @@
         "targets": [
           {
             "name": "Kourend Castle",
-            "min_x": 1623,
-            "max_x": 1633,
-            "min_y": 3668,
-            "max_y": 3678
+            "min_x": 1618,
+            "max_x": 1638,
+            "min_y": 3663,
+            "max_y": 3683
           }
         ]
       },
@@ -5966,7 +5966,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_0c88ba541afc7f13",
+      "id": "q_67de6ca9abbaf6f4",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -5976,10 +5976,10 @@
         "targets": [
           {
             "name": "Kourend Woodland",
-            "min_x": 1535,
-            "max_x": 1545,
-            "min_y": 3459,
-            "max_y": 3469
+            "min_x": 1530,
+            "max_x": 1550,
+            "min_y": 3454,
+            "max_y": 3474
           }
         ]
       },
@@ -5987,7 +5987,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_db90a5b3b3b91220",
+      "id": "q_65b9285f1a1eafde",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -5997,10 +5997,10 @@
         "targets": [
           {
             "name": "Kualti Headquarters",
-            "min_x": 1640,
-            "max_x": 1650,
-            "min_y": 3143,
-            "max_y": 3153
+            "min_x": 1635,
+            "max_x": 1655,
+            "min_y": 3138,
+            "max_y": 3158
           }
         ]
       },
@@ -6050,7 +6050,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_bb7d4004a3bc298d",
+      "id": "q_adb9ce1bcd81b2b0",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -6060,10 +6060,10 @@
         "targets": [
           {
             "name": "Laguna Aurorae",
-            "min_x": 1190,
-            "max_x": 1200,
-            "min_y": 2767,
-            "max_y": 2777
+            "min_x": 1170,
+            "max_x": 1220,
+            "min_y": 2747,
+            "max_y": 2797
           }
         ]
       },
@@ -6113,7 +6113,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_e8f7b746650ce161",
+      "id": "q_720b17fb3de978bf",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -6123,10 +6123,10 @@
         "targets": [
           {
             "name": "Lava Dragon Isle",
-            "min_x": 3199,
-            "max_x": 3209,
-            "min_y": 3823,
-            "max_y": 3833
+            "min_x": 3194,
+            "max_x": 3214,
+            "min_y": 3818,
+            "max_y": 3838
           }
         ]
       },
@@ -6134,7 +6134,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_3488d03920865b3e",
+      "id": "q_f5f9e72153612e4b",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -6144,10 +6144,10 @@
         "targets": [
           {
             "name": "Lava Maze",
-            "min_x": 3067,
-            "max_x": 3077,
-            "min_y": 3849,
-            "max_y": 3859
+            "min_x": 3047,
+            "max_x": 3097,
+            "min_y": 3829,
+            "max_y": 3879
           }
         ]
       },
@@ -6260,7 +6260,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_93c672e773c3d3a0",
+      "id": "q_cc4ea60bc6744bc7",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -6270,10 +6270,10 @@
         "targets": [
           {
             "name": "Lighthouse",
-            "min_x": 2504,
-            "max_x": 2514,
-            "min_y": 3636,
-            "max_y": 3646
+            "min_x": 2499,
+            "max_x": 2519,
+            "min_y": 3631,
+            "max_y": 3651
           }
         ]
       },
@@ -6323,7 +6323,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_a4a1de838b828ce7",
+      "id": "q_3b3cc922f3935ae7",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -6333,10 +6333,10 @@
         "targets": [
           {
             "name": "Lithkren",
-            "min_x": 3561,
-            "max_x": 3571,
-            "min_y": 3998,
-            "max_y": 4008
+            "min_x": 3556,
+            "max_x": 3576,
+            "min_y": 3993,
+            "max_y": 4013
           }
         ]
       },
@@ -6344,7 +6344,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_96fb93e2f3ff434f",
+      "id": "q_5cb2c7d4d2ebdc62",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -6354,10 +6354,10 @@
         "targets": [
           {
             "name": "Lizardman Canyon",
-            "min_x": 1498,
-            "max_x": 1508,
-            "min_y": 3699,
-            "max_y": 3709
+            "min_x": 1493,
+            "max_x": 1513,
+            "min_y": 3694,
+            "max_y": 3714
           }
         ]
       },
@@ -6365,7 +6365,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_6c8a1c64ca4d00ca",
+      "id": "q_d1d3e8043be69ba1",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -6375,10 +6375,10 @@
         "targets": [
           {
             "name": "Lizardman Settlement",
-            "min_x": 1319,
-            "max_x": 1329,
-            "min_y": 3551,
-            "max_y": 3561
+            "min_x": 1314,
+            "max_x": 1334,
+            "min_y": 3546,
+            "max_y": 3566
           }
         ]
       },
@@ -6407,7 +6407,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_2fd3dfa9b4c9a71a",
+      "id": "q_80d1ea772e688461",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -6417,10 +6417,10 @@
         "targets": [
           {
             "name": "Lletya",
-            "min_x": 2333,
-            "max_x": 2343,
-            "min_y": 3166,
-            "max_y": 3176
+            "min_x": 2328,
+            "max_x": 2348,
+            "min_y": 3161,
+            "max_y": 3181
           }
         ]
       },
@@ -6449,7 +6449,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_5a5266d11ec97c12",
+      "id": "q_f50bf0dd0f59de96",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -6459,10 +6459,10 @@
         "targets": [
           {
             "name": "Lletya shrine",
-            "min_x": 2333,
-            "max_x": 2343,
-            "min_y": 3166,
-            "max_y": 3176
+            "min_x": 2328,
+            "max_x": 2348,
+            "min_y": 3161,
+            "max_y": 3181
           }
         ]
       },
@@ -6512,7 +6512,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_f4a5a45649bb04ca",
+      "id": "q_83d8ca371c1c1ca1",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -6522,10 +6522,10 @@
         "targets": [
           {
             "name": "Lovakengj",
-            "min_x": 1500,
-            "max_x": 1510,
-            "min_y": 3796,
-            "max_y": 3806
+            "min_x": 1480,
+            "max_x": 1530,
+            "min_y": 3776,
+            "max_y": 3826
           }
         ]
       },
@@ -6638,7 +6638,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_4be32f09cffbe565",
+      "id": "q_806071d1ac7b56d4",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -6648,10 +6648,10 @@
         "targets": [
           {
             "name": "Lovakite mine",
-            "min_x": 1428,
-            "max_x": 1438,
-            "min_y": 3825,
-            "max_y": 3835
+            "min_x": 1423,
+            "max_x": 1443,
+            "min_y": 3820,
+            "max_y": 3840
           }
         ]
       },
@@ -6680,7 +6680,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_0496a5a00e6877a9",
+      "id": "q_4218e6874662c6e5",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -6690,10 +6690,10 @@
         "targets": [
           {
             "name": "Lucien's camp",
-            "min_x": 2922,
-            "max_x": 2932,
-            "min_y": 3799,
-            "max_y": 3809
+            "min_x": 2917,
+            "max_x": 2937,
+            "min_y": 3794,
+            "max_y": 3814
           }
         ]
       },
@@ -6722,7 +6722,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_34a51eb9eeb3513a",
+      "id": "q_60f65f9d87d9ca94",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -6732,10 +6732,10 @@
         "targets": [
           {
             "name": "Lumbridge",
-            "min_x": 3183,
-            "max_x": 3193,
-            "min_y": 3215,
-            "max_y": 3225
+            "min_x": 3163,
+            "max_x": 3213,
+            "min_y": 3195,
+            "max_y": 3245
           }
         ]
       },
@@ -6890,7 +6890,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_3b26e3a7581fd1ad",
+      "id": "q_c4caa90dc2a1e35f",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -6900,10 +6900,10 @@
         "targets": [
           {
             "name": "Lunar Isle",
-            "min_x": 2112,
-            "max_x": 2122,
-            "min_y": 3898,
-            "max_y": 3908
+            "min_x": 2092,
+            "max_x": 2142,
+            "min_y": 3878,
+            "max_y": 3928
           }
         ]
       },
@@ -7016,7 +7016,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_961d532103be61fc",
+      "id": "q_56bd5e46ee7924cc",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -7026,10 +7026,10 @@
         "targets": [
           {
             "name": "Marim",
-            "min_x": 2760,
-            "max_x": 2770,
-            "min_y": 2781,
-            "max_y": 2791
+            "min_x": 2755,
+            "max_x": 2775,
+            "min_y": 2776,
+            "max_y": 2796
           }
         ]
       },
@@ -7058,7 +7058,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_5d1353b559944b1e",
+      "id": "q_3f5a369faf73122f",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -7068,10 +7068,10 @@
         "targets": [
           {
             "name": "McGrubor's Wood",
-            "min_x": 2647,
-            "max_x": 2657,
-            "min_y": 3480,
-            "max_y": 3490
+            "min_x": 2642,
+            "max_x": 2662,
+            "min_y": 3475,
+            "max_y": 3495
           }
         ]
       },
@@ -7079,7 +7079,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_82ae02d27a38c766",
+      "id": "q_7e2a8dcc9620297a",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -7089,10 +7089,10 @@
         "targets": [
           {
             "name": "Meiyerditch",
-            "min_x": 3610,
-            "max_x": 3620,
-            "min_y": 3245,
-            "max_y": 3255
+            "min_x": 3605,
+            "max_x": 3625,
+            "min_y": 3240,
+            "max_y": 3260
           }
         ]
       },
@@ -7121,7 +7121,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_781e7540e746e639",
+      "id": "q_eb0fe3b74c043c78",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -7131,10 +7131,10 @@
         "targets": [
           {
             "name": "Menaphos",
-            "min_x": 3195,
-            "max_x": 3205,
-            "min_y": 2740,
-            "max_y": 2750
+            "min_x": 3175,
+            "max_x": 3225,
+            "min_y": 2720,
+            "max_y": 2770
           }
         ]
       },
@@ -7142,7 +7142,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_a09d42ec5928d028",
+      "id": "q_e756553d65684969",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -7152,10 +7152,10 @@
         "targets": [
           {
             "name": "Minotaurs' Rest",
-            "min_x": 1948,
-            "max_x": 1958,
-            "min_y": 3098,
-            "max_y": 3108
+            "min_x": 1943,
+            "max_x": 1963,
+            "min_y": 3093,
+            "max_y": 3113
           }
         ]
       },
@@ -7163,7 +7163,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_48e3eedc4be8dc32",
+      "id": "q_72264d5b24e32b85",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -7173,10 +7173,10 @@
         "targets": [
           {
             "name": "Miscellania",
-            "min_x": 2555,
-            "max_x": 2565,
-            "min_y": 3865,
-            "max_y": 3875
+            "min_x": 2535,
+            "max_x": 2585,
+            "min_y": 3845,
+            "max_y": 3895
           }
         ]
       },
@@ -7226,7 +7226,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_15dcc142021769e2",
+      "id": "q_6718ed35320eae22",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -7236,10 +7236,10 @@
         "targets": [
           {
             "name": "Miscellania farm",
-            "min_x": 2542,
-            "max_x": 2552,
-            "min_y": 3845,
-            "max_y": 3855
+            "min_x": 2537,
+            "max_x": 2557,
+            "min_y": 3840,
+            "max_y": 3860
           }
         ]
       },
@@ -7415,7 +7415,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_8b30e854802eb7b7",
+      "id": "q_b731cb1e28f21c99",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -7425,10 +7425,10 @@
         "targets": [
           {
             "name": "Mort Myre Swamp",
-            "min_x": 3473,
-            "max_x": 3483,
-            "min_y": 3385,
-            "max_y": 3395
+            "min_x": 3453,
+            "max_x": 3503,
+            "min_y": 3365,
+            "max_y": 3415
           }
         ]
       },
@@ -7457,7 +7457,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_b0bd70cbdd04e993",
+      "id": "q_91104b100889e0ce",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -7467,10 +7467,10 @@
         "targets": [
           {
             "name": "Mos Le'Harmless",
-            "min_x": 3730,
-            "max_x": 3740,
-            "min_y": 2994,
-            "max_y": 3004
+            "min_x": 3685,
+            "max_x": 3785,
+            "min_y": 2949,
+            "max_y": 3049
           }
         ]
       },
@@ -7520,7 +7520,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_1f9b03387d74596c",
+      "id": "q_b89397e40fbf3ca4",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -7530,10 +7530,10 @@
         "targets": [
           {
             "name": "Mount Karuulm",
-            "min_x": 1306,
-            "max_x": 1316,
-            "min_y": 3802,
-            "max_y": 3812
+            "min_x": 1301,
+            "max_x": 1321,
+            "min_y": 3797,
+            "max_y": 3817
           }
         ]
       },
@@ -7562,7 +7562,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_40e5fbc8ccb491cb",
+      "id": "q_339ad7129edd725a",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -7572,10 +7572,10 @@
         "targets": [
           {
             "name": "Mount Quidamortem",
-            "min_x": 1241,
-            "max_x": 1251,
-            "min_y": 3545,
-            "max_y": 3555
+            "min_x": 1221,
+            "max_x": 1271,
+            "min_y": 3525,
+            "max_y": 3575
           }
         ]
       },
@@ -7604,7 +7604,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_6d2c87911c0c5ba9",
+      "id": "q_b34380226246f231",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -7614,10 +7614,10 @@
         "targets": [
           {
             "name": "Mountain Camp",
-            "min_x": 2795,
-            "max_x": 2805,
-            "min_y": 3665,
-            "max_y": 3675
+            "min_x": 2790,
+            "max_x": 2810,
+            "min_y": 3660,
+            "max_y": 3680
           }
         ]
       },
@@ -7667,7 +7667,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_f1f830b949db9352",
+      "id": "q_d93332000f1cc1ab",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -7677,10 +7677,10 @@
         "targets": [
           {
             "name": "Musa Point",
-            "min_x": 2899,
-            "max_x": 2909,
-            "min_y": 3157,
-            "max_y": 3167
+            "min_x": 2894,
+            "max_x": 2914,
+            "min_y": 3152,
+            "max_y": 3172
           }
         ]
       },
@@ -7709,7 +7709,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_dee376d559e90c95",
+      "id": "q_ff07153e4feca1e1",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -7719,10 +7719,10 @@
         "targets": [
           {
             "name": "Mushroom Forest",
-            "min_x": 3683,
-            "max_x": 3693,
-            "min_y": 3852,
-            "max_y": 3862
+            "min_x": 3678,
+            "max_x": 3698,
+            "min_y": 3847,
+            "max_y": 3867
           }
         ]
       },
@@ -7751,7 +7751,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_f68d5fc2596071fb",
+      "id": "q_6dc3a0e846f4993b",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -7761,10 +7761,10 @@
         "targets": [
           {
             "name": "Mynydd",
-            "min_x": 2153,
-            "max_x": 2163,
-            "min_y": 3418,
-            "max_y": 3428
+            "min_x": 2148,
+            "max_x": 2168,
+            "min_y": 3413,
+            "max_y": 3433
           }
         ]
       },
@@ -7835,7 +7835,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_2993576a12ea31de",
+      "id": "q_da5a860b788e21da",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -7845,10 +7845,10 @@
         "targets": [
           {
             "name": "Myths' Guild",
-            "min_x": 2452,
-            "max_x": 2462,
-            "min_y": 2841,
-            "max_y": 2851
+            "min_x": 2447,
+            "max_x": 2467,
+            "min_y": 2836,
+            "max_y": 2856
           }
         ]
       },
@@ -7856,7 +7856,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_51b539e56786c591",
+      "id": "q_bf282ec7024d3956",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -7866,10 +7866,10 @@
         "targets": [
           {
             "name": "Nardah",
-            "min_x": 3422,
-            "max_x": 3432,
-            "min_y": 2906,
-            "max_y": 2916
+            "min_x": 3417,
+            "max_x": 3437,
+            "min_y": 2901,
+            "max_y": 2921
           }
         ]
       },
@@ -7940,7 +7940,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_dd83539f56586e0f",
+      "id": "q_e3b632cba7ccd60d",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -7950,10 +7950,10 @@
         "targets": [
           {
             "name": "Necropolis",
-            "min_x": 3335,
-            "max_x": 3345,
-            "min_y": 2719,
-            "max_y": 2729
+            "min_x": 3330,
+            "max_x": 3350,
+            "min_y": 2714,
+            "max_y": 2734
           }
         ]
       },
@@ -7961,7 +7961,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_6bb289d392b48dc2",
+      "id": "q_c269fec0da67b896",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -7971,10 +7971,10 @@
         "targets": [
           {
             "name": "Necropolis Hunter area",
-            "min_x": 3282,
-            "max_x": 3292,
-            "min_y": 2733,
-            "max_y": 2743
+            "min_x": 3277,
+            "max_x": 3297,
+            "min_y": 2728,
+            "max_y": 2748
           }
         ]
       },
@@ -7982,7 +7982,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_151cac512a702e72",
+      "id": "q_805cf3bc742a541a",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -7992,10 +7992,10 @@
         "targets": [
           {
             "name": "Neitiznot",
-            "min_x": 2326,
-            "max_x": 2336,
-            "min_y": 3797,
-            "max_y": 3807
+            "min_x": 2321,
+            "max_x": 2341,
+            "min_y": 3792,
+            "max_y": 3812
           }
         ]
       },
@@ -8024,7 +8024,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_1fbb4476f97c0b3b",
+      "id": "q_cd98fae1c588155c",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -8034,10 +8034,10 @@
         "targets": [
           {
             "name": "Nemus Retreat",
-            "min_x": 1371,
-            "max_x": 1381,
-            "min_y": 3305,
-            "max_y": 3315
+            "min_x": 1366,
+            "max_x": 1386,
+            "min_y": 3300,
+            "max_y": 3320
           }
         ]
       },
@@ -8087,7 +8087,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_5805a771dc2d532f",
+      "id": "q_4cbae970cd320dce",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -8097,10 +8097,10 @@
         "targets": [
           {
             "name": "North Tlati Rainforest mine",
-            "min_x": 1269,
-            "max_x": 1279,
-            "min_y": 3163,
-            "max_y": 3173
+            "min_x": 1264,
+            "max_x": 1284,
+            "min_y": 3158,
+            "max_y": 3178
           }
         ]
       },
@@ -8129,7 +8129,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_80734c2653de3ec3",
+      "id": "q_e32b69eb82600193",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -8139,10 +8139,10 @@
         "targets": [
           {
             "name": "Northern Tundras",
-            "min_x": 1625,
-            "max_x": 1635,
-            "min_y": 3952,
-            "max_y": 3962
+            "min_x": 1605,
+            "max_x": 1655,
+            "min_y": 3932,
+            "max_y": 3982
           }
         ]
       },
@@ -8255,7 +8255,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_dd238ca421c986b7",
+      "id": "q_b86aeefa1f71072b",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -8265,10 +8265,10 @@
         "targets": [
           {
             "name": "Outer Fortis",
-            "min_x": 1699,
-            "max_x": 1709,
-            "min_y": 3060,
-            "max_y": 3070
+            "min_x": 1679,
+            "max_x": 1729,
+            "min_y": 3040,
+            "max_y": 3090
           }
         ]
       },
@@ -8381,7 +8381,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_1fa6b073fdf20392",
+      "id": "q_f2e2e2e26ff56bbc",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -8391,10 +8391,10 @@
         "targets": [
           {
             "name": "Paterdomus Temple",
-            "min_x": 3411,
-            "max_x": 3421,
-            "min_y": 3482,
-            "max_y": 3492
+            "min_x": 3406,
+            "max_x": 3426,
+            "min_y": 3477,
+            "max_y": 3497
           }
         ]
       },
@@ -8402,7 +8402,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_49a144c0a8abd678",
+      "id": "q_261d031973bd6c2c",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -8412,10 +8412,10 @@
         "targets": [
           {
             "name": "Penguin Agility Course",
-            "min_x": 2643,
-            "max_x": 2653,
-            "min_y": 4050,
-            "max_y": 4060
+            "min_x": 2638,
+            "max_x": 2658,
+            "min_y": 4045,
+            "max_y": 4065
           }
         ]
       },
@@ -8423,7 +8423,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_d789fe4dff03c72b",
+      "id": "q_3fc19c0353425e82",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -8433,10 +8433,10 @@
         "targets": [
           {
             "name": "Pest Control",
-            "min_x": 2653,
-            "max_x": 2663,
-            "min_y": 2620,
-            "max_y": 2630
+            "min_x": 2633,
+            "max_x": 2683,
+            "min_y": 2600,
+            "max_y": 2650
           }
         ]
       },
@@ -8486,7 +8486,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_38eb9f620201ad5d",
+      "id": "q_9c1f8ceff9272fdb",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -8496,10 +8496,10 @@
         "targets": [
           {
             "name": "Pirates' Cove",
-            "min_x": 2200,
-            "max_x": 2210,
-            "min_y": 3807,
-            "max_y": 3817
+            "min_x": 2195,
+            "max_x": 2215,
+            "min_y": 3802,
+            "max_y": 3822
           }
         ]
       },
@@ -8528,7 +8528,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_41b0298158da0140",
+      "id": "q_54ed2123cafa2e20",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -8538,10 +8538,10 @@
         "targets": [
           {
             "name": "Pirates' Hideout mine",
-            "min_x": 3051,
-            "max_x": 3061,
-            "min_y": 3939,
-            "max_y": 3949
+            "min_x": 3046,
+            "max_x": 3066,
+            "min_y": 3934,
+            "max_y": 3954
           }
         ]
       },
@@ -8570,7 +8570,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_cf4e1147bcf429a2",
+      "id": "q_00e34971cdd3678e",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -8580,10 +8580,10 @@
         "targets": [
           {
             "name": "Piscatoris Fishing Colony",
-            "min_x": 2327,
-            "max_x": 2337,
-            "min_y": 3678,
-            "max_y": 3688
+            "min_x": 2322,
+            "max_x": 2342,
+            "min_y": 3673,
+            "max_y": 3693
           }
         ]
       },
@@ -8591,7 +8591,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_c0779545a0314a7c",
+      "id": "q_b3deada9d00cec46",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -8601,10 +8601,10 @@
         "targets": [
           {
             "name": "Piscatoris Hunter area",
-            "min_x": 2324,
-            "max_x": 2334,
-            "min_y": 3580,
-            "max_y": 3590
+            "min_x": 2304,
+            "max_x": 2354,
+            "min_y": 3560,
+            "max_y": 3610
           }
         ]
       },
@@ -8633,7 +8633,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_a432eb9b5a307b2b",
+      "id": "q_288b2965af9822d8",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -8643,10 +8643,10 @@
         "targets": [
           {
             "name": "Piscatoris falconry area",
-            "min_x": 2373,
-            "max_x": 2383,
-            "min_y": 3591,
-            "max_y": 3601
+            "min_x": 2368,
+            "max_x": 2388,
+            "min_y": 3586,
+            "max_y": 3606
           }
         ]
       },
@@ -8675,7 +8675,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_e50bbe30138aac33",
+      "id": "q_9040c10cad3124f0",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -8685,10 +8685,10 @@
         "targets": [
           {
             "name": "Poison Waste",
-            "min_x": 2240,
-            "max_x": 2250,
-            "min_y": 3073,
-            "max_y": 3083
+            "min_x": 2220,
+            "max_x": 2270,
+            "min_y": 3053,
+            "max_y": 3103
           }
         ]
       },
@@ -8696,7 +8696,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_a1881703561f9612",
+      "id": "q_ef1735a25fb4bb2f",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -8706,10 +8706,10 @@
         "targets": [
           {
             "name": "Pollnivneach",
-            "min_x": 3353,
-            "max_x": 3363,
-            "min_y": 2969,
-            "max_y": 2979
+            "min_x": 3348,
+            "max_x": 3368,
+            "min_y": 2964,
+            "max_y": 2984
           }
         ]
       },
@@ -8738,7 +8738,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_387d458e962b1a63",
+      "id": "q_2698967de346c38a",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -8748,10 +8748,10 @@
         "targets": [
           {
             "name": "Port Khazard",
-            "min_x": 2648,
-            "max_x": 2658,
-            "min_y": 3154,
-            "max_y": 3164
+            "min_x": 2643,
+            "max_x": 2663,
+            "min_y": 3149,
+            "max_y": 3169
           }
         ]
       },
@@ -8759,7 +8759,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_a75cda3266a8209c",
+      "id": "q_771f90ba45326912",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -8769,10 +8769,10 @@
         "targets": [
           {
             "name": "Port Phasmatys",
-            "min_x": 3674,
-            "max_x": 3684,
-            "min_y": 3481,
-            "max_y": 3491
+            "min_x": 3654,
+            "max_x": 3704,
+            "min_y": 3461,
+            "max_y": 3511
           }
         ]
       },
@@ -8801,7 +8801,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_7f75a6c4b40256d3",
+      "id": "q_7122c098584c8b56",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -8811,10 +8811,10 @@
         "targets": [
           {
             "name": "Port Piscarilius",
-            "min_x": 1798,
-            "max_x": 1808,
-            "min_y": 3747,
-            "max_y": 3757
+            "min_x": 1778,
+            "max_x": 1828,
+            "min_y": 3727,
+            "max_y": 3777
           }
         ]
       },
@@ -8843,7 +8843,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_563efe242fb1ef61",
+      "id": "q_a4efc015eb59d1bf",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -8853,10 +8853,10 @@
         "targets": [
           {
             "name": "Port Roberts",
-            "min_x": 1883,
-            "max_x": 1893,
-            "min_y": 3293,
-            "max_y": 3303
+            "min_x": 1878,
+            "max_x": 1898,
+            "min_y": 3288,
+            "max_y": 3308
           }
         ]
       },
@@ -8927,7 +8927,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_119d6d27784622e1",
+      "id": "q_08742b48ebc5c109",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -8937,10 +8937,10 @@
         "targets": [
           {
             "name": "Port Tyras",
-            "min_x": 2148,
-            "max_x": 2158,
-            "min_y": 3117,
-            "max_y": 3127
+            "min_x": 2143,
+            "max_x": 2163,
+            "min_y": 3112,
+            "max_y": 3132
           }
         ]
       },
@@ -8948,7 +8948,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_df8ccb32bb22643c",
+      "id": "q_f779d406c60492fd",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -8958,10 +8958,10 @@
         "targets": [
           {
             "name": "Pyre Cove",
-            "min_x": 3344,
-            "max_x": 3354,
-            "min_y": 3613,
-            "max_y": 3623
+            "min_x": 3324,
+            "max_x": 3374,
+            "min_y": 3593,
+            "max_y": 3643
           }
         ]
       },
@@ -8969,7 +8969,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_42147c02a58f6162",
+      "id": "q_5210aedf302b09d5",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -8979,10 +8979,10 @@
         "targets": [
           {
             "name": "Quarry",
-            "min_x": 3167,
-            "max_x": 3177,
-            "min_y": 2907,
-            "max_y": 2917
+            "min_x": 3162,
+            "max_x": 3182,
+            "min_y": 2902,
+            "max_y": 2922
           }
         ]
       },
@@ -8990,7 +8990,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_e83df1efe830631f",
+      "id": "q_30e20aece5caa681",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -9000,10 +9000,10 @@
         "targets": [
           {
             "name": "Quetzacalli Gorge",
-            "min_x": 1500,
-            "max_x": 1510,
-            "min_y": 3227,
-            "max_y": 3237
+            "min_x": 1495,
+            "max_x": 1515,
+            "min_y": 3222,
+            "max_y": 3242
           }
         ]
       },
@@ -9053,7 +9053,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_0fa8d486257b04bb",
+      "id": "q_32dffa2cacc8092b",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -9063,10 +9063,10 @@
         "targets": [
           {
             "name": "Ralos' Rise",
-            "min_x": 1445,
-            "max_x": 1455,
-            "min_y": 3135,
-            "max_y": 3145
+            "min_x": 1425,
+            "max_x": 1475,
+            "min_y": 3115,
+            "max_y": 3165
           }
         ]
       },
@@ -9074,7 +9074,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_1aeaf368073da7b0",
+      "id": "q_bb888339e958e2d9",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -9084,10 +9084,10 @@
         "targets": [
           {
             "name": "Ralos' Rise mine",
-            "min_x": 1477,
-            "max_x": 1487,
-            "min_y": 3080,
-            "max_y": 3090
+            "min_x": 1472,
+            "max_x": 1492,
+            "min_y": 3075,
+            "max_y": 3095
           }
         ]
       },
@@ -9200,7 +9200,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_bd0631eb51511c71",
+      "id": "q_ec422ed101b37f10",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -9210,10 +9210,10 @@
         "targets": [
           {
             "name": "Rellekka",
-            "min_x": 2653,
-            "max_x": 2663,
-            "min_y": 3672,
-            "max_y": 3682
+            "min_x": 2633,
+            "max_x": 2683,
+            "min_y": 3652,
+            "max_y": 3702
           }
         ]
       },
@@ -9221,7 +9221,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_e9f91dc92719b38b",
+      "id": "q_3982c099d4468402",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -9231,10 +9231,10 @@
         "targets": [
           {
             "name": "Rellekka Hunter area",
-            "min_x": 2716,
-            "max_x": 2726,
-            "min_y": 3786,
-            "max_y": 3796
+            "min_x": 2696,
+            "max_x": 2746,
+            "min_y": 3766,
+            "max_y": 3816
           }
         ]
       },
@@ -9263,7 +9263,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_82baf826dad12c4b",
+      "id": "q_f3dc38d2e37b820d",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -9273,10 +9273,10 @@
         "targets": [
           {
             "name": "Rellekka mine",
-            "min_x": 2678,
-            "max_x": 2688,
-            "min_y": 3699,
-            "max_y": 3709
+            "min_x": 2673,
+            "max_x": 2693,
+            "min_y": 3694,
+            "max_y": 3714
           }
         ]
       },
@@ -9368,7 +9368,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_ea53689878df21a0",
+      "id": "q_3cbd8c4243326e7a",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -9378,10 +9378,10 @@
         "targets": [
           {
             "name": "Rimmington mine",
-            "min_x": 2973,
-            "max_x": 2983,
-            "min_y": 3234,
-            "max_y": 3244
+            "min_x": 2968,
+            "max_x": 2988,
+            "min_y": 3229,
+            "max_y": 3249
           }
         ]
       },
@@ -9410,7 +9410,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_ed1cf28813e97d18",
+      "id": "q_b339d2666db18d52",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -9420,10 +9420,10 @@
         "targets": [
           {
             "name": "River Amja",
-            "min_x": 2910,
-            "max_x": 2920,
-            "min_y": 3025,
-            "max_y": 3035
+            "min_x": 2890,
+            "max_x": 2940,
+            "min_y": 3005,
+            "max_y": 3055
           }
         ]
       },
@@ -9431,7 +9431,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_0f0b808172d28cf0",
+      "id": "q_09b6dd5f2f3f5aee",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -9441,10 +9441,10 @@
         "targets": [
           {
             "name": "River Crannmor",
-            "min_x": 2377,
-            "max_x": 2387,
-            "min_y": 3467,
-            "max_y": 3477
+            "min_x": 2357,
+            "max_x": 2407,
+            "min_y": 3447,
+            "max_y": 3497
           }
         ]
       },
@@ -9452,7 +9452,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_762ac66e7f48ff53",
+      "id": "q_0fb7baabc373392c",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -9462,10 +9462,10 @@
         "targets": [
           {
             "name": "River Shilo",
-            "min_x": 2825,
-            "max_x": 2835,
-            "min_y": 2970,
-            "max_y": 2980
+            "min_x": 2805,
+            "max_x": 2855,
+            "min_y": 2950,
+            "max_y": 3000
           }
         ]
       },
@@ -9494,7 +9494,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_167743e2c3be4782",
+      "id": "q_b560079962c61dea",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -9504,10 +9504,10 @@
         "targets": [
           {
             "name": "Rogues' Castle",
-            "min_x": 3281,
-            "max_x": 3291,
-            "min_y": 3928,
-            "max_y": 3938
+            "min_x": 3276,
+            "max_x": 3296,
+            "min_y": 3923,
+            "max_y": 3943
           }
         ]
       },
@@ -9515,7 +9515,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_da0cc55401ee09df",
+      "id": "q_9fc40baacde90238",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -9525,10 +9525,10 @@
         "targets": [
           {
             "name": "Rower's Arm",
-            "min_x": 2551,
-            "max_x": 2561,
-            "min_y": 3613,
-            "max_y": 3623
+            "min_x": 2531,
+            "max_x": 2581,
+            "min_y": 3593,
+            "max_y": 3643
           }
         ]
       },
@@ -9536,7 +9536,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_01ed663cd152ffff",
+      "id": "q_8de7edfa146f4ca9",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -9546,10 +9546,10 @@
         "targets": [
           {
             "name": "Ruins",
-            "min_x": 3160,
-            "max_x": 3170,
-            "min_y": 3729,
-            "max_y": 3739
+            "min_x": 3155,
+            "max_x": 3175,
+            "min_y": 3724,
+            "max_y": 3744
           }
         ]
       },
@@ -9557,7 +9557,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_c11949959e020099",
+      "id": "q_02af0635ba6d35f5",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -9567,10 +9567,10 @@
         "targets": [
           {
             "name": "Ruins",
-            "min_x": 2965,
-            "max_x": 2975,
-            "min_y": 3690,
-            "max_y": 3700
+            "min_x": 2960,
+            "max_x": 2980,
+            "min_y": 3685,
+            "max_y": 3705
           }
         ]
       },
@@ -9599,7 +9599,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_d4a0bda3778d5cb6",
+      "id": "q_adf3bfc7ddf25bd8",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -9609,10 +9609,10 @@
         "targets": [
           {
             "name": "Ruins of Ullek",
-            "min_x": 3407,
-            "max_x": 3417,
-            "min_y": 2806,
-            "max_y": 2816
+            "min_x": 3402,
+            "max_x": 3422,
+            "min_y": 2801,
+            "max_y": 2821
           }
         ]
       },
@@ -9641,7 +9641,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_55b5204cab4a5a20",
+      "id": "q_a71012fc85ea07fa",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -9651,10 +9651,10 @@
         "targets": [
           {
             "name": "Ruins of Unkah mine",
-            "min_x": 3165,
-            "max_x": 3175,
-            "min_y": 2865,
-            "max_y": 2875
+            "min_x": 3160,
+            "max_x": 3180,
+            "min_y": 2860,
+            "max_y": 2880
           }
         ]
       },
@@ -9662,7 +9662,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_52741a0063382528",
+      "id": "q_97e12c5db5c34ed6",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -9672,10 +9672,10 @@
         "targets": [
           {
             "name": "Ruins of Uzer",
-            "min_x": 3475,
-            "max_x": 3485,
-            "min_y": 3090,
-            "max_y": 3100
+            "min_x": 3470,
+            "max_x": 3490,
+            "min_y": 3085,
+            "max_y": 3105
           }
         ]
       },
@@ -9683,7 +9683,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_7dccaed241787434",
+      "id": "q_c023cbd20a67acb0",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -9693,10 +9693,10 @@
         "targets": [
           {
             "name": "Salvager Overlook",
-            "min_x": 1620,
-            "max_x": 1630,
-            "min_y": 3290,
-            "max_y": 3300
+            "min_x": 1615,
+            "max_x": 1635,
+            "min_y": 3285,
+            "max_y": 3305
           }
         ]
       },
@@ -9746,7 +9746,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_1c55ba16c5c62065",
+      "id": "q_39007a1adb9137a0",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -9756,10 +9756,10 @@
         "targets": [
           {
             "name": "Scorpion Pit",
-            "min_x": 3235,
-            "max_x": 3245,
-            "min_y": 3939,
-            "max_y": 3949
+            "min_x": 3230,
+            "max_x": 3250,
+            "min_y": 3934,
+            "max_y": 3954
           }
         ]
       },
@@ -9788,7 +9788,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_c779a204570cc827",
+      "id": "q_e5f11c3760d7b691",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -9798,10 +9798,10 @@
         "targets": [
           {
             "name": "Seers' Village",
-            "min_x": 2705,
-            "max_x": 2715,
-            "min_y": 3480,
-            "max_y": 3490
+            "min_x": 2685,
+            "max_x": 2735,
+            "min_y": 3460,
+            "max_y": 3510
           }
         ]
       },
@@ -9872,7 +9872,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_24b8de1741623122",
+      "id": "q_e47801ca889f6924",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -9882,10 +9882,10 @@
         "targets": [
           {
             "name": "Seers' Village courthouse",
-            "min_x": 2730,
-            "max_x": 2740,
-            "min_y": 3464,
-            "max_y": 3474
+            "min_x": 2725,
+            "max_x": 2745,
+            "min_y": 3459,
+            "max_y": 3479
           }
         ]
       },
@@ -9914,7 +9914,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_7d20d828db642a14",
+      "id": "q_3e47288da5108fd7",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -9924,10 +9924,10 @@
         "targets": [
           {
             "name": "Settlement Ruins",
-            "min_x": 1555,
-            "max_x": 1565,
-            "min_y": 3890,
-            "max_y": 3900
+            "min_x": 1550,
+            "max_x": 1570,
+            "min_y": 3885,
+            "max_y": 3905
           }
         ]
       },
@@ -9935,7 +9935,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_6d1b3cdb5cefac45",
+      "id": "q_4381756607f0bf1a",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -9945,10 +9945,10 @@
         "targets": [
           {
             "name": "Shantay Pass",
-            "min_x": 3299,
-            "max_x": 3309,
-            "min_y": 3118,
-            "max_y": 3128
+            "min_x": 3294,
+            "max_x": 3314,
+            "min_y": 3113,
+            "max_y": 3133
           }
         ]
       },
@@ -9977,7 +9977,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_70edefdf8a112f05",
+      "id": "q_9f761f871b5b2595",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -9987,10 +9987,10 @@
         "targets": [
           {
             "name": "Shayzien",
-            "min_x": 1512,
-            "max_x": 1522,
-            "min_y": 3587,
-            "max_y": 3597
+            "min_x": 1492,
+            "max_x": 1542,
+            "min_y": 3567,
+            "max_y": 3617
           }
         ]
       },
@@ -10040,7 +10040,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_16e0e4eb4370dda3",
+      "id": "q_b00a4062b4e81152",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -10050,10 +10050,10 @@
         "targets": [
           {
             "name": "Shayzien Encampment",
-            "min_x": 1500,
-            "max_x": 1510,
-            "min_y": 3640,
-            "max_y": 3650
+            "min_x": 1480,
+            "max_x": 1530,
+            "min_y": 3620,
+            "max_y": 3670
           }
         ]
       },
@@ -10124,7 +10124,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_a3674d755f1aa28a",
+      "id": "q_ac7550708dfaa517",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -10134,10 +10134,10 @@
         "targets": [
           {
             "name": "Shayziens' Wall",
-            "min_x": 1400,
-            "max_x": 1410,
-            "min_y": 3530,
-            "max_y": 3540
+            "min_x": 1380,
+            "max_x": 1430,
+            "min_y": 3510,
+            "max_y": 3560
           }
         ]
       },
@@ -10166,7 +10166,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_4a22610f836f6a3a",
+      "id": "q_49060e351c5a90c8",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -10176,10 +10176,10 @@
         "targets": [
           {
             "name": "Shilo Village",
-            "min_x": 2844,
-            "max_x": 2854,
-            "min_y": 2967,
-            "max_y": 2977
+            "min_x": 2824,
+            "max_x": 2874,
+            "min_y": 2947,
+            "max_y": 2997
           }
         ]
       },
@@ -10229,7 +10229,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_fcb1e426c1122623",
+      "id": "q_92c82ee7e2196e7b",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -10239,10 +10239,10 @@
         "targets": [
           {
             "name": "Shipwreck Cove",
-            "min_x": 1570,
-            "max_x": 1580,
-            "min_y": 3310,
-            "max_y": 3320
+            "min_x": 1565,
+            "max_x": 1585,
+            "min_y": 3305,
+            "max_y": 3325
           }
         ]
       },
@@ -10271,7 +10271,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_60e378e08df5157a",
+      "id": "q_6e55180c02e5d083",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -10281,10 +10281,10 @@
         "targets": [
           {
             "name": "Shipyard",
-            "min_x": 2982,
-            "max_x": 2992,
-            "min_y": 3045,
-            "max_y": 3055
+            "min_x": 2977,
+            "max_x": 2997,
+            "min_y": 3040,
+            "max_y": 3060
           }
         ]
       },
@@ -10292,7 +10292,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_48ba12185fa64d48",
+      "id": "q_5eeed3101062c0f0",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -10302,10 +10302,10 @@
         "targets": [
           {
             "name": "Silvarea",
-            "min_x": 3370,
-            "max_x": 3380,
-            "min_y": 3495,
-            "max_y": 3505
+            "min_x": 3365,
+            "max_x": 3385,
+            "min_y": 3490,
+            "max_y": 3510
           }
         ]
       },
@@ -10313,7 +10313,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_8f8185b3afd5956d",
+      "id": "q_dfa07ae4e9a7adee",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -10323,10 +10323,10 @@
         "targets": [
           {
             "name": "Sinclair Mansion",
-            "min_x": 2738,
-            "max_x": 2748,
-            "min_y": 3550,
-            "max_y": 3560
+            "min_x": 2733,
+            "max_x": 2753,
+            "min_y": 3545,
+            "max_y": 3565
           }
         ]
       },
@@ -10334,7 +10334,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_8ca67be5a38017a0",
+      "id": "q_3e64110c444657ad",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -10344,10 +10344,10 @@
         "targets": [
           {
             "name": "Slepe",
-            "min_x": 3719,
-            "max_x": 3729,
-            "min_y": 3330,
-            "max_y": 3340
+            "min_x": 3699,
+            "max_x": 3749,
+            "min_y": 3310,
+            "max_y": 3360
           }
         ]
       },
@@ -10376,7 +10376,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_e7de58d65c629be5",
+      "id": "q_bad12e334ea8a3b7",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -10386,10 +10386,10 @@
         "targets": [
           {
             "name": "Sophanem",
-            "min_x": 3292,
-            "max_x": 3302,
-            "min_y": 2778,
-            "max_y": 2788
+            "min_x": 3287,
+            "max_x": 3307,
+            "min_y": 2773,
+            "max_y": 2793
           }
         ]
       },
@@ -10607,7 +10607,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_773428dd1fc50c7c",
+      "id": "q_cdb64d470cef6f5e",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -10617,10 +10617,10 @@
         "targets": [
           {
             "name": "South-west Tlati Rainforest mine",
-            "min_x": 1234,
-            "max_x": 1244,
-            "min_y": 3038,
-            "max_y": 3048
+            "min_x": 1229,
+            "max_x": 1249,
+            "min_y": 3033,
+            "max_y": 3053
           }
         ]
       },
@@ -10733,7 +10733,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_80e95988319cf4d7",
+      "id": "q_a41c16be3f9564d6",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -10743,10 +10743,10 @@
         "targets": [
           {
             "name": "Sulphur mine",
-            "min_x": 1446,
-            "max_x": 1456,
-            "min_y": 3847,
-            "max_y": 3857
+            "min_x": 1426,
+            "max_x": 1476,
+            "min_y": 3827,
+            "max_y": 3877
           }
         ]
       },
@@ -10754,7 +10754,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_8a443368c70c3e98",
+      "id": "q_e9522d28060b16aa",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -10764,10 +10764,10 @@
         "targets": [
           {
             "name": "Sunbleak Island",
-            "min_x": 2204,
-            "max_x": 2214,
-            "min_y": 2325,
-            "max_y": 2335
+            "min_x": 2199,
+            "max_x": 2219,
+            "min_y": 2320,
+            "max_y": 2340
           }
         ]
       },
@@ -10796,7 +10796,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_936f91f79c5c8076",
+      "id": "q_89f73a1a8bef0dd0",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -10806,10 +10806,10 @@
         "targets": [
           {
             "name": "Sunset Coast",
-            "min_x": 1525,
-            "max_x": 1535,
-            "min_y": 2978,
-            "max_y": 2988
+            "min_x": 1520,
+            "max_x": 1540,
+            "min_y": 2973,
+            "max_y": 2993
           }
         ]
       },
@@ -10817,7 +10817,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_b3b1b8fec23c64e3",
+      "id": "q_a7f1005bc5c20ede",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -10827,10 +10827,10 @@
         "targets": [
           {
             "name": "Tai Bwo Wannai",
-            "min_x": 2790,
-            "max_x": 2800,
-            "min_y": 3060,
-            "max_y": 3070
+            "min_x": 2770,
+            "max_x": 2820,
+            "min_y": 3040,
+            "max_y": 3090
           }
         ]
       },
@@ -10838,7 +10838,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_eaa33617d31a158a",
+      "id": "q_84f9ca5bdd10bcbd",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -10848,10 +10848,10 @@
         "targets": [
           {
             "name": "Tal Teklan",
-            "min_x": 1218,
-            "max_x": 1228,
-            "min_y": 3106,
-            "max_y": 3116
+            "min_x": 1213,
+            "max_x": 1233,
+            "min_y": 3101,
+            "max_y": 3121
           }
         ]
       },
@@ -10901,7 +10901,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_8e9203d85bcefc46",
+      "id": "q_2aea9556d0503a1c",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -10911,10 +10911,10 @@
         "targets": [
           {
             "name": "Tal Teok",
-            "min_x": 1243,
-            "max_x": 1253,
-            "min_y": 3161,
-            "max_y": 3171
+            "min_x": 1238,
+            "max_x": 1258,
+            "min_y": 3156,
+            "max_y": 3176
           }
         ]
       },
@@ -10922,7 +10922,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_df7b4f98a09ea015",
+      "id": "q_cb848c1ee3716dcc",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -10932,10 +10932,10 @@
         "targets": [
           {
             "name": "Tar Swamp",
-            "min_x": 3670,
-            "max_x": 3680,
-            "min_y": 3745,
-            "max_y": 3755
+            "min_x": 3650,
+            "max_x": 3700,
+            "min_y": 3725,
+            "max_y": 3775
           }
         ]
       },
@@ -10985,7 +10985,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_9776bde1dd5fc027",
+      "id": "q_2212e06888e93d81",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -10995,10 +10995,10 @@
         "targets": [
           {
             "name": "Tempestus",
-            "min_x": 1280,
-            "max_x": 1290,
-            "min_y": 3251,
-            "max_y": 3261
+            "min_x": 1260,
+            "max_x": 1310,
+            "min_y": 3231,
+            "max_y": 3281
           }
         ]
       },
@@ -11027,7 +11027,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_349c4a039170e05b",
+      "id": "q_d67b5e05c82477a8",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -11037,10 +11037,10 @@
         "targets": [
           {
             "name": "Tempoross Cove",
-            "min_x": 3030,
-            "max_x": 3040,
-            "min_y": 2845,
-            "max_y": 2855
+            "min_x": 3025,
+            "max_x": 3045,
+            "min_y": 2840,
+            "max_y": 2860
           }
         ]
       },
@@ -11048,7 +11048,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_bee773205dc95d87",
+      "id": "q_5c6881714b73bfcc",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -11058,10 +11058,10 @@
         "targets": [
           {
             "name": "The Crown Jewel",
-            "min_x": 1756,
-            "max_x": 1766,
-            "min_y": 2659,
-            "max_y": 2669
+            "min_x": 1751,
+            "max_x": 1771,
+            "min_y": 2654,
+            "max_y": 2674
           }
         ]
       },
@@ -11111,7 +11111,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_fef8561d54561d4f",
+      "id": "q_3dba7f517278f26b",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -11121,10 +11121,10 @@
         "targets": [
           {
             "name": "The Forgotten Cemetery",
-            "min_x": 2971,
-            "max_x": 2981,
-            "min_y": 3745,
-            "max_y": 3755
+            "min_x": 2966,
+            "max_x": 2986,
+            "min_y": 3740,
+            "max_y": 3760
           }
         ]
       },
@@ -11153,7 +11153,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_4bd4046c24280234",
+      "id": "q_8019fd84acc5d3ea",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -11163,10 +11163,10 @@
         "targets": [
           {
             "name": "The Great Conch",
-            "min_x": 3195,
-            "max_x": 3205,
-            "min_y": 2430,
-            "max_y": 2440
+            "min_x": 3150,
+            "max_x": 3250,
+            "min_y": 2385,
+            "max_y": 2485
           }
         ]
       },
@@ -11237,7 +11237,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_47da5016b7ae3bce",
+      "id": "q_4ec01e5a52026220",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -11247,10 +11247,10 @@
         "targets": [
           {
             "name": "The Node",
-            "min_x": 3101,
-            "max_x": 3111,
-            "min_y": 3023,
-            "max_y": 3033
+            "min_x": 3096,
+            "max_x": 3116,
+            "min_y": 3018,
+            "max_y": 3038
           }
         ]
       },
@@ -11321,7 +11321,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_0651f735f0493bf3",
+      "id": "q_dde416bcfd9bc6d0",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -11331,10 +11331,10 @@
         "targets": [
           {
             "name": "The Proudspire",
-            "min_x": 1565,
-            "max_x": 1575,
-            "min_y": 3230,
-            "max_y": 3240
+            "min_x": 1545,
+            "max_x": 1595,
+            "min_y": 3210,
+            "max_y": 3260
           }
         ]
       },
@@ -11363,7 +11363,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_f97bbb29afd0ec79",
+      "id": "q_2822d948f382672b",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -11373,10 +11373,10 @@
         "targets": [
           {
             "name": "The Stranglewood",
-            "min_x": 1157,
-            "max_x": 1167,
-            "min_y": 3374,
-            "max_y": 3384
+            "min_x": 1137,
+            "max_x": 1187,
+            "min_y": 3354,
+            "max_y": 3404
           }
         ]
       },
@@ -11384,7 +11384,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_196034b2d1e246f8",
+      "id": "q_1bf92abb8c2518dd",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -11394,10 +11394,10 @@
         "targets": [
           {
             "name": "The Stranglewood mine",
-            "min_x": 1163,
-            "max_x": 1173,
-            "min_y": 3315,
-            "max_y": 3325
+            "min_x": 1158,
+            "max_x": 1178,
+            "min_y": 3310,
+            "max_y": 3330
           }
         ]
       },
@@ -11405,7 +11405,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_2e7e0e1357fb9390",
+      "id": "q_ba25e16d39a46e8b",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -11415,10 +11415,10 @@
         "targets": [
           {
             "name": "The Summer Shore",
-            "min_x": 3150,
-            "max_x": 3160,
-            "min_y": 2410,
-            "max_y": 2420
+            "min_x": 3130,
+            "max_x": 3180,
+            "min_y": 2390,
+            "max_y": 2440
           }
         ]
       },
@@ -11426,7 +11426,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_4855ffebc0e6d24f",
+      "id": "q_a24dfc413597d595",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -11436,10 +11436,10 @@
         "targets": [
           {
             "name": "The Teomat",
-            "min_x": 1444,
-            "max_x": 1454,
-            "min_y": 3180,
-            "max_y": 3190
+            "min_x": 1439,
+            "max_x": 1459,
+            "min_y": 3175,
+            "max_y": 3195
           }
         ]
       },
@@ -11447,7 +11447,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_131fbd22bebe4aa8",
+      "id": "q_595c90fd992fa531",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -11457,10 +11457,10 @@
         "targets": [
           {
             "name": "The White Cliffs of Lova",
-            "min_x": 1498,
-            "max_x": 1508,
-            "min_y": 3955,
-            "max_y": 3965
+            "min_x": 1478,
+            "max_x": 1528,
+            "min_y": 3935,
+            "max_y": 3985
           }
         ]
       },
@@ -11552,7 +11552,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_9b8d05fbe6eb79d5",
+      "id": "q_9e92f59556042c23",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -11562,10 +11562,10 @@
         "targets": [
           {
             "name": "Tower of Magic",
-            "min_x": 1575,
-            "max_x": 1585,
-            "min_y": 3815,
-            "max_y": 3825
+            "min_x": 1570,
+            "max_x": 1590,
+            "min_y": 3810,
+            "max_y": 3830
           }
         ]
       },
@@ -11594,7 +11594,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_29df29a4f1acf482",
+      "id": "q_c7e98de0dbc59755",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -11604,10 +11604,10 @@
         "targets": [
           {
             "name": "Tree Gnome Stronghold",
-            "min_x": 2435,
-            "max_x": 2445,
-            "min_y": 3455,
-            "max_y": 3465
+            "min_x": 2415,
+            "max_x": 2465,
+            "min_y": 3435,
+            "max_y": 3485
           }
         ]
       },
@@ -11615,7 +11615,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_44fb8c70fdeb4b0f",
+      "id": "q_c41132e69b4d16fa",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -11625,10 +11625,10 @@
         "targets": [
           {
             "name": "Tree Gnome Village",
-            "min_x": 2515,
-            "max_x": 2525,
-            "min_y": 3162,
-            "max_y": 3172
+            "min_x": 2495,
+            "max_x": 2545,
+            "min_y": 3142,
+            "max_y": 3192
           }
         ]
       },
@@ -11636,7 +11636,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_1a3c98cc20d51f53",
+      "id": "q_f5f6a9115733d1e5",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -11646,10 +11646,10 @@
         "targets": [
           {
             "name": "Troll Stronghold",
-            "min_x": 2831,
-            "max_x": 2841,
-            "min_y": 3675,
-            "max_y": 3685
+            "min_x": 2826,
+            "max_x": 2846,
+            "min_y": 3670,
+            "max_y": 3690
           }
         ]
       },
@@ -11657,7 +11657,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_e84fc9f759216e32",
+      "id": "q_205ac22188fa5686",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -11667,10 +11667,10 @@
         "targets": [
           {
             "name": "Troll arena",
-            "min_x": 2906,
-            "max_x": 2916,
-            "min_y": 3607,
-            "max_y": 3617
+            "min_x": 2901,
+            "max_x": 2921,
+            "min_y": 3602,
+            "max_y": 3622
           }
         ]
       },
@@ -11678,7 +11678,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_4769a7dca2e56fd8",
+      "id": "q_6949751360a8f1cc",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -11688,10 +11688,10 @@
         "targets": [
           {
             "name": "Trollheim",
-            "min_x": 2886,
-            "max_x": 2896,
-            "min_y": 3673,
-            "max_y": 3683
+            "min_x": 2881,
+            "max_x": 2901,
+            "min_y": 3668,
+            "max_y": 3688
           }
         ]
       },
@@ -11699,7 +11699,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_90b7de3fa117363d",
+      "id": "q_e91160fed477e1e0",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -11709,10 +11709,10 @@
         "targets": [
           {
             "name": "Trollweiss Mountain",
-            "min_x": 2777,
-            "max_x": 2787,
-            "min_y": 3785,
-            "max_y": 3795
+            "min_x": 2757,
+            "max_x": 2807,
+            "min_y": 3765,
+            "max_y": 3815
           }
         ]
       },
@@ -11720,7 +11720,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_8a1c40b4b7708aa5",
+      "id": "q_55b444f9e7530a6a",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -11730,10 +11730,10 @@
         "targets": [
           {
             "name": "Tutorial Island",
-            "min_x": 3095,
-            "max_x": 3105,
-            "min_y": 3095,
-            "max_y": 3105
+            "min_x": 3075,
+            "max_x": 3125,
+            "min_y": 3075,
+            "max_y": 3125
           }
         ]
       },
@@ -11804,7 +11804,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_dea360c96fdf0b21",
+      "id": "q_dca6b94a7ec48caa",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -11814,10 +11814,10 @@
         "targets": [
           {
             "name": "Tyras Camp",
-            "min_x": 2180,
-            "max_x": 2190,
-            "min_y": 3140,
-            "max_y": 3150
+            "min_x": 2175,
+            "max_x": 2195,
+            "min_y": 3135,
+            "max_y": 3155
           }
         ]
       },
@@ -11825,7 +11825,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_7fe7f12589493f90",
+      "id": "q_373c4efa7ca3d49b",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -11835,10 +11835,10 @@
         "targets": [
           {
             "name": "Underground Pass",
-            "min_x": 2444,
-            "max_x": 2454,
-            "min_y": 3307,
-            "max_y": 3317
+            "min_x": 2439,
+            "max_x": 2459,
+            "min_y": 3302,
+            "max_y": 3322
           }
         ]
       },
@@ -11846,7 +11846,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_a4d730f06cea80ef",
+      "id": "q_c95286b58e2fd39f",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -11856,10 +11856,10 @@
         "targets": [
           {
             "name": "Ungael",
-            "min_x": 2267,
-            "max_x": 2277,
-            "min_y": 4059,
-            "max_y": 4069
+            "min_x": 2262,
+            "max_x": 2282,
+            "min_y": 4054,
+            "max_y": 4074
           }
         ]
       },
@@ -11867,7 +11867,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_db4b8df3a9b84c85",
+      "id": "q_dc4c317ebbba23a9",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -11877,10 +11877,10 @@
         "targets": [
           {
             "name": "Unmarked Grave",
-            "min_x": 1572,
-            "max_x": 1582,
-            "min_y": 3933,
-            "max_y": 3943
+            "min_x": 1567,
+            "max_x": 1587,
+            "min_y": 3928,
+            "max_y": 3948
           }
         ]
       },
@@ -11930,7 +11930,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_4e41180c61ecab92",
+      "id": "q_042dab416dff77dd",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -11940,10 +11940,10 @@
         "targets": [
           {
             "name": "Unnamed island",
-            "min_x": 3890,
-            "max_x": 3900,
-            "min_y": 3735,
-            "max_y": 3745
+            "min_x": 3885,
+            "max_x": 3905,
+            "min_y": 3730,
+            "max_y": 3750
           }
         ]
       },
@@ -11951,7 +11951,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_b8259eb8e045918d",
+      "id": "q_de71c3255b8582e0",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -11961,10 +11961,10 @@
         "targets": [
           {
             "name": "Unnamed island",
-            "min_x": 3532,
-            "max_x": 3542,
-            "min_y": 3095,
-            "max_y": 3105
+            "min_x": 3527,
+            "max_x": 3547,
+            "min_y": 3090,
+            "max_y": 3110
           }
         ]
       },
@@ -11972,7 +11972,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_8a4963d26d0e280c",
+      "id": "q_d937328c61d44d48",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -11982,10 +11982,10 @@
         "targets": [
           {
             "name": "Unnamed island",
-            "min_x": 3724,
-            "max_x": 3734,
-            "min_y": 3965,
-            "max_y": 3975
+            "min_x": 3704,
+            "max_x": 3754,
+            "min_y": 3945,
+            "max_y": 3995
           }
         ]
       },
@@ -11993,7 +11993,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_52368adb20302dcc",
+      "id": "q_88691a86359bf266",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -12003,10 +12003,10 @@
         "targets": [
           {
             "name": "Unnamed island",
-            "min_x": 2506,
-            "max_x": 2516,
-            "min_y": 3080,
-            "max_y": 3090
+            "min_x": 2501,
+            "max_x": 2521,
+            "min_y": 3075,
+            "max_y": 3095
           }
         ]
       },
@@ -12014,7 +12014,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_c159979e5566cefc",
+      "id": "q_c0c1e66bc8f1f439",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -12024,10 +12024,10 @@
         "targets": [
           {
             "name": "Unnamed island",
-            "min_x": 3824,
-            "max_x": 3834,
-            "min_y": 3889,
-            "max_y": 3899
+            "min_x": 3819,
+            "max_x": 3839,
+            "min_y": 3884,
+            "max_y": 3904
           }
         ]
       },
@@ -12035,7 +12035,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_c43a67fa6d800e95",
+      "id": "q_0838be57cc9eeffd",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -12045,10 +12045,10 @@
         "targets": [
           {
             "name": "Unnamed island",
-            "min_x": 3492,
-            "max_x": 3502,
-            "min_y": 3679,
-            "max_y": 3689
+            "min_x": 3487,
+            "max_x": 3507,
+            "min_y": 3674,
+            "max_y": 3694
           }
         ]
       },
@@ -12056,7 +12056,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_2d7d116524d1ba4a",
+      "id": "q_509f8ad4d244785b",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -12066,10 +12066,10 @@
         "targets": [
           {
             "name": "Unnamed island",
-            "min_x": 3857,
-            "max_x": 3867,
-            "min_y": 4062,
-            "max_y": 4072
+            "min_x": 3852,
+            "max_x": 3872,
+            "min_y": 4057,
+            "max_y": 4077
           }
         ]
       },
@@ -12077,7 +12077,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_98d4b973f853a663",
+      "id": "q_8e3ad631ab9c4588",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -12087,10 +12087,10 @@
         "targets": [
           {
             "name": "Unnamed island",
-            "min_x": 3598,
-            "max_x": 3608,
-            "min_y": 4072,
-            "max_y": 4082
+            "min_x": 3593,
+            "max_x": 3613,
+            "min_y": 4067,
+            "max_y": 4087
           }
         ]
       },
@@ -12119,7 +12119,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_8557af5a3261ecfc",
+      "id": "q_e003bc9662ac40ff",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -12129,10 +12129,10 @@
         "targets": [
           {
             "name": "Unnamed island",
-            "min_x": 3747,
-            "max_x": 3757,
-            "min_y": 3658,
-            "max_y": 3668
+            "min_x": 3742,
+            "max_x": 3762,
+            "min_y": 3653,
+            "max_y": 3673
           }
         ]
       },
@@ -12140,7 +12140,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_2fc1d942e94aa471",
+      "id": "q_c842a77b208a149d",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -12150,10 +12150,10 @@
         "targets": [
           {
             "name": "Unnamed island",
-            "min_x": 3175,
-            "max_x": 3185,
-            "min_y": 2637,
-            "max_y": 2647
+            "min_x": 3170,
+            "max_x": 3190,
+            "min_y": 2632,
+            "max_y": 2652
           }
         ]
       },
@@ -12161,7 +12161,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_6f6564e9c740928b",
+      "id": "q_8a28b43badff48a0",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -12171,10 +12171,10 @@
         "targets": [
           {
             "name": "Unnamed island",
-            "min_x": 2533,
-            "max_x": 2543,
-            "min_y": 3822,
-            "max_y": 3832
+            "min_x": 2528,
+            "max_x": 2548,
+            "min_y": 3817,
+            "max_y": 3837
           }
         ]
       },
@@ -12182,7 +12182,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_91a25d9bbc2892f7",
+      "id": "q_a77b5085eb049d48",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -12192,10 +12192,10 @@
         "targets": [
           {
             "name": "Unnamed island",
-            "min_x": 3417,
-            "max_x": 3427,
-            "min_y": 2725,
-            "max_y": 2735
+            "min_x": 3412,
+            "max_x": 3432,
+            "min_y": 2720,
+            "max_y": 2740
           }
         ]
       },
@@ -12203,7 +12203,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_bbd7ea23ebf94069",
+      "id": "q_2ee88f9c30c033cb",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -12213,10 +12213,10 @@
         "targets": [
           {
             "name": "Unnamed island",
-            "min_x": 2692,
-            "max_x": 2702,
-            "min_y": 3242,
-            "max_y": 3252
+            "min_x": 2687,
+            "max_x": 2707,
+            "min_y": 3237,
+            "max_y": 3257
           }
         ]
       },
@@ -12224,7 +12224,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_4f9efb6f228a92ef",
+      "id": "q_4f570b9627b77f17",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -12234,10 +12234,10 @@
         "targets": [
           {
             "name": "Unnamed island",
-            "min_x": 3855,
-            "max_x": 3865,
-            "min_y": 3679,
-            "max_y": 3689
+            "min_x": 3850,
+            "max_x": 3870,
+            "min_y": 3674,
+            "max_y": 3694
           }
         ]
       },
@@ -12245,7 +12245,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_ff8d7c561ffb9848",
+      "id": "q_5f8990d3d6e868bf",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -12255,10 +12255,10 @@
         "targets": [
           {
             "name": "Unnamed island",
-            "min_x": 3601,
-            "max_x": 3611,
-            "min_y": 3669,
-            "max_y": 3679
+            "min_x": 3596,
+            "max_x": 3616,
+            "min_y": 3664,
+            "max_y": 3684
           }
         ]
       },
@@ -12266,7 +12266,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_1ae3891792bee9f4",
+      "id": "q_8123798c57f2cb0e",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -12276,10 +12276,10 @@
         "targets": [
           {
             "name": "Unnamed island",
-            "min_x": 3589,
-            "max_x": 3599,
-            "min_y": 3827,
-            "max_y": 3837
+            "min_x": 3584,
+            "max_x": 3604,
+            "min_y": 3822,
+            "max_y": 3842
           }
         ]
       },
@@ -12287,7 +12287,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_f636e2732f39d386",
+      "id": "q_20964f7190eeb6f3",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -12297,10 +12297,10 @@
         "targets": [
           {
             "name": "Uzer Hunter area",
-            "min_x": 3414,
-            "max_x": 3424,
-            "min_y": 3095,
-            "max_y": 3105
+            "min_x": 3409,
+            "max_x": 3429,
+            "min_y": 3090,
+            "max_y": 3110
           }
         ]
       },
@@ -12308,7 +12308,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_4c240ab8f4084718",
+      "id": "q_afeceb8a6896a12e",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -12318,10 +12318,10 @@
         "targets": [
           {
             "name": "Uzer Mastaba",
-            "min_x": 3485,
-            "max_x": 3495,
-            "min_y": 3016,
-            "max_y": 3026
+            "min_x": 3480,
+            "max_x": 3500,
+            "min_y": 3011,
+            "max_y": 3031
           }
         ]
       },
@@ -12329,7 +12329,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_197c5f303a7f31c9",
+      "id": "q_4902532b7fa195bc",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -12339,10 +12339,10 @@
         "targets": [
           {
             "name": "Uzer Oasis",
-            "min_x": 3484,
-            "max_x": 3494,
-            "min_y": 3036,
-            "max_y": 3046
+            "min_x": 3479,
+            "max_x": 3499,
+            "min_y": 3031,
+            "max_y": 3051
           }
         ]
       },
@@ -12371,7 +12371,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_5311887dd1b37fe5",
+      "id": "q_abee163c7ecfa345",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -12381,10 +12381,10 @@
         "targets": [
           {
             "name": "Varrock",
-            "min_x": 3205,
-            "max_x": 3215,
-            "min_y": 3443,
-            "max_y": 3453
+            "min_x": 3185,
+            "max_x": 3235,
+            "min_y": 3423,
+            "max_y": 3473
           }
         ]
       },
@@ -12413,7 +12413,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_7fa55f2ede04f440",
+      "id": "q_909179aa10fa2a39",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -12423,10 +12423,10 @@
         "targets": [
           {
             "name": "Varrock Palace",
-            "min_x": 3207,
-            "max_x": 3217,
-            "min_y": 3469,
-            "max_y": 3479
+            "min_x": 3202,
+            "max_x": 3222,
+            "min_y": 3464,
+            "max_y": 3484
           }
         ]
       },
@@ -12476,7 +12476,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_91764f815b26f8d1",
+      "id": "q_f77957947d7dc814",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -12486,10 +12486,10 @@
         "targets": [
           {
             "name": "Varrock Square",
-            "min_x": 3208,
-            "max_x": 3218,
-            "min_y": 3424,
-            "max_y": 3434
+            "min_x": 3203,
+            "max_x": 3223,
+            "min_y": 3419,
+            "max_y": 3439
           }
         ]
       },
@@ -12518,7 +12518,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_e3569a3d2415c6bf",
+      "id": "q_c1d682f386834e2f",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -12528,10 +12528,10 @@
         "targets": [
           {
             "name": "Varrock church",
-            "min_x": 3250,
-            "max_x": 3260,
-            "min_y": 3475,
-            "max_y": 3485
+            "min_x": 3245,
+            "max_x": 3265,
+            "min_y": 3470,
+            "max_y": 3490
           }
         ]
       },
@@ -12602,7 +12602,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_8e20d07bcb89a35e",
+      "id": "q_fcd5832c30705857",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -12612,10 +12612,10 @@
         "targets": [
           {
             "name": "Vatrachos Island",
-            "min_x": 1882,
-            "max_x": 1892,
-            "min_y": 2979,
-            "max_y": 2989
+            "min_x": 1877,
+            "max_x": 1897,
+            "min_y": 2974,
+            "max_y": 2994
           }
         ]
       },
@@ -12623,7 +12623,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_795eadfb0c45f971",
+      "id": "q_b7c35d0cdb89caf6",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -12633,10 +12633,10 @@
         "targets": [
           {
             "name": "Ver Sinhaza",
-            "min_x": 3658,
-            "max_x": 3668,
-            "min_y": 3215,
-            "max_y": 3225
+            "min_x": 3653,
+            "max_x": 3673,
+            "min_y": 3210,
+            "max_y": 3230
           }
         ]
       },
@@ -12665,7 +12665,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_19b06716ed84f0fa",
+      "id": "q_7b528c73ad1f410a",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -12675,10 +12675,10 @@
         "targets": [
           {
             "name": "Verdant Valley",
-            "min_x": 3755,
-            "max_x": 3765,
-            "min_y": 3755,
-            "max_y": 3765
+            "min_x": 3750,
+            "max_x": 3770,
+            "min_y": 3750,
+            "max_y": 3770
           }
         ]
       },
@@ -12686,7 +12686,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_6fa04fa8daaf5d77",
+      "id": "q_419f6c8f4b4d8ab6",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -12696,10 +12696,10 @@
         "targets": [
           {
             "name": "Villa Lucens",
-            "min_x": 1445,
-            "max_x": 1455,
-            "min_y": 2925,
-            "max_y": 2935
+            "min_x": 1440,
+            "max_x": 1460,
+            "min_y": 2920,
+            "max_y": 2940
           }
         ]
       },
@@ -12707,7 +12707,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_70b788d838687c4a",
+      "id": "q_7f28a665844c5219",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -12717,10 +12717,10 @@
         "targets": [
           {
             "name": "Vinery",
-            "min_x": 1810,
-            "max_x": 1820,
-            "min_y": 3550,
-            "max_y": 3560
+            "min_x": 1805,
+            "max_x": 1825,
+            "min_y": 3545,
+            "max_y": 3565
           }
         ]
       },
@@ -12854,7 +12854,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_61dc73cf6b77321c",
+      "id": "q_b87edbf1ae88b94b",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -12864,10 +12864,10 @@
         "targets": [
           {
             "name": "Waterbirth Island",
-            "min_x": 2520,
-            "max_x": 2530,
-            "min_y": 3738,
-            "max_y": 3748
+            "min_x": 2515,
+            "max_x": 2535,
+            "min_y": 3733,
+            "max_y": 3753
           }
         ]
       },
@@ -12875,7 +12875,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_faabed6ec79ab95a",
+      "id": "q_67df710a631f60ce",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -12885,10 +12885,10 @@
         "targets": [
           {
             "name": "Watson's house",
-            "min_x": 1640,
-            "max_x": 1650,
-            "min_y": 3565,
-            "max_y": 3575
+            "min_x": 1635,
+            "max_x": 1655,
+            "min_y": 3560,
+            "max_y": 3580
           }
         ]
       },
@@ -12896,7 +12896,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_54b569ec41721ff6",
+      "id": "q_8df1c8c2b26e9e95",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -12906,10 +12906,10 @@
         "targets": [
           {
             "name": "Weiss",
-            "min_x": 2865,
-            "max_x": 2875,
-            "min_y": 3935,
-            "max_y": 3945
+            "min_x": 2860,
+            "max_x": 2880,
+            "min_y": 3930,
+            "max_y": 3950
           }
         ]
       },
@@ -12938,7 +12938,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_a5d3cf59c0634848",
+      "id": "q_4d59e9b42015efaa",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -12948,10 +12948,10 @@
         "targets": [
           {
             "name": "West Ardougne",
-            "min_x": 2495,
-            "max_x": 2505,
-            "min_y": 3300,
-            "max_y": 3310
+            "min_x": 2475,
+            "max_x": 2525,
+            "min_y": 3280,
+            "max_y": 3330
           }
         ]
       },
@@ -13085,7 +13085,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_4e14dd0330c1587f",
+      "id": "q_f1c7cf99c85e64e4",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -13095,10 +13095,10 @@
         "targets": [
           {
             "name": "White Wolf Mountain",
-            "min_x": 2840,
-            "max_x": 2850,
-            "min_y": 3478,
-            "max_y": 3488
+            "min_x": 2820,
+            "max_x": 2870,
+            "min_y": 3458,
+            "max_y": 3508
           }
         ]
       },
@@ -13169,7 +13169,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_6a29e349996f64e0",
+      "id": "q_3c0d9c1ba74c4328",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -13179,10 +13179,10 @@
         "targets": [
           {
             "name": "Wintertodt Camp",
-            "min_x": 1625,
-            "max_x": 1635,
-            "min_y": 3933,
-            "max_y": 3943
+            "min_x": 1620,
+            "max_x": 1640,
+            "min_y": 3928,
+            "max_y": 3948
           }
         ]
       },
@@ -13190,7 +13190,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_6197e7359a718351",
+      "id": "q_85a3cb4ea7ff9589",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -13200,10 +13200,10 @@
         "targets": [
           {
             "name": "Wintumber Island",
-            "min_x": 2063,
-            "max_x": 2073,
-            "min_y": 2598,
-            "max_y": 2608
+            "min_x": 2058,
+            "max_x": 2078,
+            "min_y": 2593,
+            "max_y": 2613
           }
         ]
       },
@@ -13232,7 +13232,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_4f3f694a65810d14",
+      "id": "q_296445b8a0c76979",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -13242,10 +13242,10 @@
         "targets": [
           {
             "name": "Witchaven",
-            "min_x": 2715,
-            "max_x": 2725,
-            "min_y": 3282,
-            "max_y": 3292
+            "min_x": 2710,
+            "max_x": 2730,
+            "min_y": 3277,
+            "max_y": 3297
           }
         ]
       },
@@ -13358,7 +13358,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_2dc567639a4be590",
+      "id": "q_2f6b0c4a6a089bbb",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -13368,10 +13368,10 @@
         "targets": [
           {
             "name": "Wyrmscraig",
-            "min_x": 2566,
-            "max_x": 2576,
-            "min_y": 2235,
-            "max_y": 2245
+            "min_x": 2546,
+            "max_x": 2596,
+            "min_y": 2215,
+            "max_y": 2265
           }
         ]
       },
@@ -13400,7 +13400,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_1a2bce042011c0f0",
+      "id": "q_f75d64f7bf013227",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -13410,10 +13410,10 @@
         "targets": [
           {
             "name": "Xeric's Shrine",
-            "min_x": 1305,
-            "max_x": 1315,
-            "min_y": 3613,
-            "max_y": 3623
+            "min_x": 1300,
+            "max_x": 1320,
+            "min_y": 3608,
+            "max_y": 3628
           }
         ]
       },
@@ -13421,7 +13421,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_5fdac20cb7a7a60a",
+      "id": "q_b1ac8d7149fda084",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -13431,10 +13431,10 @@
         "targets": [
           {
             "name": "Yanille",
-            "min_x": 2572,
-            "max_x": 2582,
-            "min_y": 3085,
-            "max_y": 3095
+            "min_x": 2552,
+            "max_x": 2602,
+            "min_y": 3065,
+            "max_y": 3115
           }
         ]
       },
@@ -13484,7 +13484,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_c4d48a3f31749d99",
+      "id": "q_a113d0f2eec9025b",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -13494,10 +13494,10 @@
         "targets": [
           {
             "name": "Ynysdail",
-            "min_x": 2215,
-            "max_x": 2225,
-            "min_y": 3470,
-            "max_y": 3480
+            "min_x": 2210,
+            "max_x": 2230,
+            "min_y": 3465,
+            "max_y": 3485
           }
         ]
       },
@@ -13505,7 +13505,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_054be2022fa39830",
+      "id": "q_8f3a19fc642a8427",
       "type": "map_pin",
       "mode": "mark_the_map",
       "source": "pack",
@@ -13515,10 +13515,10 @@
         "targets": [
           {
             "name": "Zamorakian chapel",
-            "min_x": 3254,
-            "max_x": 3264,
-            "min_y": 3382,
-            "max_y": 3392
+            "min_x": 3249,
+            "max_x": 3269,
+            "min_y": 3377,
+            "max_y": 3397
           }
         ]
       },

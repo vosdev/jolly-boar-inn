@@ -113,6 +113,14 @@ def test_the_script_boxes_a_polygon_and_a_point() -> None:
     assert point == {"min_x": 2809, "max_x": 2819, "min_y": 3438, "max_y": 3448}
 
 
+@pytest.mark.parametrize(("zoom", "across"), [("0", 100), ("1", 50), ("2", 20), ("3", 10)])
+def test_the_script_sizes_a_point_by_how_far_its_map_zooms_out(zoom: str, across: int) -> None:
+    tiles = gen_locations.place(infobox(f"{{{{Map|name=Varrock|x=3210|y=3448|zoom={zoom}}}}}"))
+    assert tiles is not None
+    assert tiles["max_x"] - tiles["min_x"] == tiles["max_y"] - tiles["min_y"] == across
+    assert (tiles["min_x"] + tiles["max_x"]) / 2 == 3210
+
+
 def test_the_script_takes_the_polygon_over_a_point_and_ignores_the_body() -> None:
     switch = (
         "{{Switch infobox|item1=" + POLYGON + "|text1=Today"

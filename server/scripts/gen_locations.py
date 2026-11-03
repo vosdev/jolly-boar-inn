@@ -5,7 +5,8 @@ so the owner's cuts, tiers and rewordings are never lost to a re-run. Every page
 ``Category:Locations`` becomes a question if the map in its infobox is on the surface. The
 infobox's map, not the page's first, because a page's body maps show things near the place
 (an entrance, an NPC), not the place. The first area among them (a polygon, a rectangle) gives
-its bounding box; without one, the first point gets a ``LEAST_TARGET`` box round it. A map's
+its bounding box; without one, the first point gets a box round it as wide as its map's
+``zoom`` suggests: a page zooms out for an island or a city and in for a house. A map's
 ``width`` and ``height`` are the size of its view, not of the place, so they count for nothing.
 
 Seas, lakes, rivers, regions, realms and places that are not in the game are left out by
@@ -54,6 +55,8 @@ WIKI_PAGE = "https://oldschool.runescape.wiki/w/"
 # The wiki's own map ids for the surface; any other is a dungeon, an instance or a realm.
 SURFACE_MAPS = {None, "-1", "0"}
 OUTLINES = {"polygon", "highlightedarea", "focusarea"}
+# Tiles across a point's box, by its map's zoom; no zoom, or a closer one, is a building.
+ZOOM_ACROSS = {"0": 100, "1": 50, "2": 20}
 _POINT = re.compile(r"^\s*(-?\d+(?:\.\d+)?)\s*[,:]\s*(-?\d+(?:\.\d+)?)\s*$")
 _SUFFIX = re.compile(r"\s+\([^()]*\)$")
 
@@ -155,7 +158,8 @@ def _size(found: Map) -> tuple[float, float]:
             return across, across
     except KeyError, ValueError:
         pass
-    return 0, 0
+    across = ZOOM_ACROSS.get(found.named.get("zoom", ""), LEAST_TARGET)
+    return across, across
 
 
 def _widened(min_x: int, max_x: int, min_y: int, max_y: int) -> dict[str, int]:
