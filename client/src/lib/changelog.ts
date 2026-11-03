@@ -46,7 +46,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.239.0',
     date: '2026-11-03',
-    text: 'New round, Mark the Map: Hatius Cosaintus names a place and you pin it on the world map.',
+    text: 'New round, Mark the Map: Auguste names a place and you pin it on the world map.',
   },
   {
     version: '0.238.0',
