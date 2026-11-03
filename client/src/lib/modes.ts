@@ -1605,11 +1605,11 @@ export const MODES: Record<string, Mode> = {
   mark_the_map: {
     id: 'mark_the_map',
     label: 'Mark the Map',
-    hint: 'Bill Teach names a place. Show him where it is.',
+    hint: 'Arr, ye a pirate? Show me where the treasure be.',
     host: { id: 'bill_teach', name: 'Bill Teach' },
     greeting: 'Ahoy, landlubber! Fetch me map and a pin.',
     blurb:
-      'I need places to plunder, and you know the land. I name a place, you put your pin where it is.',
+      'I need places to plunder, and you know the land. Help me find the places and I will share the loot with ye.',
     ask: [
       'Where be this one, matey?',
       'Mark me the next place to plunder.',
