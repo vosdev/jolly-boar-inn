@@ -116,6 +116,76 @@ describe('MapView', () => {
     await waitFor(() => expect(container.querySelector('.map-reach')).not.toBeNull())
   })
 
+  describe('built on a stage that then grows', () => {
+    let height = 600
+    const grown: (() => void)[] = []
+
+    beforeEach(() => {
+      height = 600
+      grown.length = 0
+      vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockImplementation(() => height)
+      vi.stubGlobal(
+        'ResizeObserver',
+        class {
+          constructor(callback: () => void) {
+            grown.push(callback)
+          }
+          observe(): void {}
+          unobserve(): void {}
+          disconnect(): void {}
+        },
+      )
+    })
+
+    afterEach(() => {
+      vi.unstubAllGlobals()
+    })
+
+    async function zoomOf(container: HTMLElement): Promise<number> {
+      const map = container.querySelector<HTMLElement>('.map')!
+      await waitFor(() => expect(map.dataset.zoom).toBeDefined())
+      return Number(map.dataset.zoom)
+    }
+
+    it('opens on its opening at the size it ends up', async () => {
+      const full = render(MapView, { opening: REGION })
+      const wanted = await zoomOf(full.container)
+      full.unmount()
+      grown.length = 0
+      height = 40
+      const { container } = render(MapView, { opening: REGION })
+      expect(await zoomOf(container)).toBeLessThan(wanted)
+      height = 600
+      grown.forEach((callback) => callback())
+      await waitFor(async () => expect(await zoomOf(container)).toBe(wanted))
+    })
+
+    it('waits for a height before it opens on its opening', async () => {
+      const full = render(MapView, { opening: REGION })
+      const wanted = await zoomOf(full.container)
+      full.unmount()
+      grown.length = 0
+      height = 0
+      const { container } = render(MapView, { opening: REGION })
+      await new Promise((done) => setTimeout(done, 50))
+      expect(container.querySelector('.leaflet-container')).toBeNull()
+      height = 600
+      grown.forEach((callback) => callback())
+      expect(await zoomOf(container)).toBe(wanted)
+    })
+
+    it('keeps a view the player has moved', async () => {
+      height = 40
+      const { container } = render(MapView, { opening: REGION })
+      const small = await zoomOf(container)
+      container.querySelector<HTMLElement>('.leaflet-control-zoom-out')!.click()
+      await waitFor(async () => expect(await zoomOf(container)).toBe(small - 1))
+      height = 600
+      grown.forEach((callback) => callback())
+      expect(await zoomOf(container)).toBe(small - 1)
+    })
+  })
+
   describe('kept from one view to the next', () => {
     const PLACE = { minX: 3200, maxX: 3240, minY: 3200, maxY: 3240 }
 

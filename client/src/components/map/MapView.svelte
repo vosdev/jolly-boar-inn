@@ -354,6 +354,23 @@
 
   const pickAt = (event: LeafletMouseEvent): void => onpick?.(toWorld(event.latlng))
 
+  /** The player has dragged or zoomed the view, which a resize then leaves alone. */
+  let moved = false
+  let ours = false
+
+  function playerMoved(): void {
+    if (!ours) moved = true
+  }
+
+  function ourMove(move: () => void): void {
+    ours = true
+    try {
+      move()
+    } finally {
+      ours = false
+    }
+  }
+
   function pickMiddle(event: KeyboardEvent): void {
     if (live === null) return
     const container = live.map.getContainer()
@@ -438,12 +455,14 @@
           )
 
     // A question's map is built in a hidden part of the page and moved onto the stage, and
-    // Leaflet fits its view to a frame it can measure.
+    // Leaflet fits its view to a frame it can measure. The stage can be wide before it is
+    // tall, and an opening fitted to no height is the whole world.
+    const measured = () => host.clientWidth > 0 && host.clientHeight > 0
     let waiting: ResizeObserver | undefined
     const sized = new Promise<void>((done) => {
-      if (host.clientWidth > 0) return done()
+      if (measured()) return done()
       waiting = new ResizeObserver(() => {
-        if (host.clientWidth === 0) return
+        if (!measured()) return
         waiting?.disconnect()
         done()
       })
@@ -462,22 +481,29 @@
       const fit = () => map.setMinZoom(map.getBoundsZoom(limit))
       fit()
       // A region or an opening shows whole. The surface fills the frame, cropping ocean instead.
-      const filled = map.getBoundsZoom(opening, bounds === undefined && opensOn === undefined)
+      const filled = () => map.getBoundsZoom(opening, bounds === undefined && opensOn === undefined)
       if (taken === null || (fresh && reducedMotion())) {
-        map.setView(opening.getCenter(), filled, { animate: false })
+        map.setView(opening.getCenter(), filled(), { animate: false })
       } else if (fresh) {
-        map.flyTo(opening.getCenter(), filled, { duration: GLIDE_S })
+        map.flyTo(opening.getCenter(), filled(), { duration: GLIDE_S })
       }
       clearAway(kept, kept.groups, !reducedMotion())
       gliding = taken !== null
 
       map.on('click', pickAt)
       map.on('zoomend', settle)
+      map.on('dragstart zoomstart', playerMoved)
       kept.canvas.addEventListener('keydown', pickMiddle)
 
       observer = new ResizeObserver(() => {
         map.invalidateSize()
-        fit()
+        // A round's first map is built while the stage still has the splash's shape, and
+        // would keep the zoom it got for that until the player moved it.
+        ourMove(() => {
+          fit()
+          if (frame === null && !moved)
+            map.setView(opening.getCenter(), filled(), { animate: false })
+        })
         settle()
       })
       observer.observe(host)
@@ -499,6 +525,7 @@
       if (held === null) return
       held.map.off('click', pickAt)
       held.map.off('zoomend', settle)
+      held.map.off('dragstart zoomstart', playerMoved)
       held.canvas.removeEventListener('keydown', pickMiddle)
       if (keep) handOn(held)
       else held.map.remove()
