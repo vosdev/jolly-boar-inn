@@ -170,7 +170,7 @@ class Joins:
                             " values ($1, 'lobby', $2, $3, $4, $5, $6)"
                             " returning id, code, status, settings, current_index,"
                             " created_at, expires_at, finished_at, invite_key, public,"
-                            " custom_questions, custom_author",
+                            " custom_questions, custom_author, played_question_ids",
                             code,
                             settings.model_dump(),
                             expires_at,

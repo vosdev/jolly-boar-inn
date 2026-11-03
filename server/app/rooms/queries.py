@@ -49,6 +49,7 @@ def _room_from_row(row: asyncpg.Record, total: int, lock: asyncio.Lock) -> Room:
         public=row["public"],
         custom_questions=row["custom_questions"],
         custom_author=row["custom_author"],
+        played_ids=frozenset(row["played_question_ids"]),
     )
 
 
@@ -208,7 +209,8 @@ def _round_start(questions: Sequence[RoomQuestion], position: int | None) -> int
 async def _fetch_room(conn: asyncpg.Connection, code: str, grace: timedelta) -> asyncpg.Record:
     row = await conn.fetchrow(
         "select id, code, status, settings, current_index, created_at, expires_at, finished_at,"
-        " invite_key, public, custom_questions, custom_author, daily from rooms where code = $1",
+        " invite_key, public, custom_questions, custom_author, daily, played_question_ids"
+        " from rooms where code = $1",
         code,
     )
     if row is None:

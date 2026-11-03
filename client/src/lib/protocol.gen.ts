@@ -18,6 +18,7 @@ export type ClientMessage =
   | Kick
   | EndGame
   | EndRound
+  | Rematch
   | RotateKey
   | DecideRequest
   | SetProfile
@@ -92,6 +93,12 @@ export interface EndGame {
 export interface EndRound {
   t: 'end_round'
   index: number
+}
+/**
+ * Admin: send a finished room back to its lobby for another game.
+ */
+export interface Rematch {
+  t: 'rematch'
 }
 /**
  * Replace an invite-only room's key. Lobby only.

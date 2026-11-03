@@ -61,7 +61,7 @@ Nothing else writes `rooms`, `players`, `questions` or `answers` after creation.
 `RoomManager` methods: `get` (rehydrates, section 9), `create`, `join`, `connect`, `disconnect`,
 `set_profile`, `set_ready`, `set_editing`, `start_game`, `submit_answer`, `skip(phase, index)`,
 `rotate_key`, `request_join`, `poll_request`, `cancel_request`, `decide_request`, `promote`, `kick`,
-`end_game`, `delete`, `purge_expired`, `evict`. A `Room` holds `players`, `requests`,
+`end_game`, `rematch`, `delete`, `purge_expired`, `evict`. A `Room` holds `players`, `requests`,
 `questions`, `totals`, `current_index`, `phase`, `next_at` (wall clock) with `next_mono`
 (monotonic), `sockets` (one `Outbox` each), `timer`, the `advance` and `rescheduled` events, and
 `lock`.
@@ -274,6 +274,7 @@ a dry `select` thrown away (`rooms/plan.py`), redone on every change of settings
   modes sharing a type would draw each other's questions.
 - `mode_order: random` shuffles the rounds once, here. The stored order is the running order.
 - Questions are drawn without replacement. A dry pool gives a short round; an empty one is dropped.
+  Pack questions a room's earlier games showed (`rooms.played_question_ids`) are drawn last, before any tier.
 - It ends with `place_random_events`, which adds events on top of the rounds.
 
 Random events:
@@ -353,13 +354,14 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 | `kick` | `player_id` | admin | Deletes the player and their answers; closes 4003. Not on admins. |
 | `end_round` | `index` | admin | Splash, open or reveal of `index`: voids an open question, standings, next round. Last round: `end_game`. |
 | `end_game` | | admin | Voids an open question, `playing → finished`. |
+| `rematch` | | admin | `finished → lobby` for another game (section 7). A daily room or any other status: `bad_state`. |
 | `rotate_key` | | admin | Lobby, invite-only room. New key; the old link stops joining, nobody leaves. |
 | `decide_request` | `request_id`, `accept` | admin | Lets a waiting join request in or turns it away, once (section 10). |
 
 | Server `t` | Fields | When |
 |---|---|---|
 | `welcome` | `room`, `you`, `players`, `question`, `your_answer`, `standings`, `team_standings`, `server_time`, `server_version` | Reply to `hello`. The full state. |
-| `room_updated` | `room`, `players`, `standings`?, `team_standings`? | Join, leave, promote, `set_tv`, kick, rename, `set_teams`, `set_settings`, status change, a splash or standings starting (with both standings), a ready change that moves `next_at`. |
+| `room_updated` | `room`, `players`, `standings`?, `team_standings`? | Join, leave, promote, `set_tv`, kick, rename, `set_teams`, `set_settings`, status change, a splash or standings starting or a rematch (with both standings), a ready change that moves `next_at`. |
 | `players_updated` | `players` | A ready, team, editing, connect or disconnect that changed players only. |
 | `question_open` | `question` | A question opens. |
 | `answer_ack` | `question_id`, `scoring`, `band`, `answered`, `of` | Answer committed. Never correctness. |
@@ -450,6 +452,7 @@ entry, not the question's options.
 POST /api/rooms ─▶ lobby ─start_game─▶ playing ─last reveal / end_game─▶ finished
 any state ─▶ deleted: expires_at passes (cleanup), or an admin sends DELETE /api/rooms/{code}
 finished ─▶ deleted: FINISHED_ROOM_GRACE_MINUTES (60) after finished_at (cleanup)
+finished ─rematch─▶ lobby
 ```
 
 - Each browser saves the final standings in `jbi:history` (newest 20) on `game_finished`, or on a
@@ -466,6 +469,10 @@ finished ─▶ deleted: FINISHED_ROOM_GRACE_MINUTES (60) after finished_at (cle
   questions, and a selection that fails leaves the room in the lobby. It resets `expires_at`. A team
   game also needs every player, connected or not, in a team and players in two teams or more.
   Teams are fixed from then on; `players.team` and `settings.teams` are written before memory.
+- `rematch` keeps the code, players, teams, TV, key, host's questions and settings, but for a surprise
+  room's drawn rounds. It deletes the game's questions and answers, adds its shown pack questions'
+  ids to `played_question_ids`, clears ready and `finished_at`, resets `expires_at` and counts in
+  `rematches`. Everyone lands in the lobby at once; each browser filed the game under its own `finished_at`.
 - A deleted room closes its sockets with 4004, and its code is free again.
 
 A daily attempt (`rooms/daily_room.py`, `/daily`) is a room born `playing` from the day's stored set,
@@ -747,7 +754,7 @@ ends at the proxy, and HSTS would lock out a LAN selfhoster on plain HTTP.
 ## 11. Database
 
 The schema is the sum of `server/app/migrations/`; this file keeps no copy. Add a migration, never
-edit one. `rooms`, `players`, `questions` (every question the room will play, fixed at creation) and
+edit one. `rooms`, `players`, `questions` (every question the game will play, fixed at start) and
 `answers` (one per player per question); the last three cascade from `rooms`. `daily_stats` has no
 key into them, so cleanup leaves it.
 

@@ -72,6 +72,7 @@ def select(
     settings: RoomSettings,
     rng: random.Random,
     pictures: Collection[str] = (),
+    played: Collection[str] = (),
 ) -> list[Round]:
     """The room's rounds: one per mode picked, as long as that mode asked to be.
 
@@ -99,6 +100,9 @@ def select(
     questions plays easier ones rather than a short round. The NPCs' pool is never ordered.
 
     A ``pictured`` mode's pool holds only the questions whose picture is in ``pictures``.
+
+    ``played`` holds the content ids the room's earlier games showed. Every pool, the
+    NPCs' included, draws them only once it has nothing else left, before any tier.
     """
     pools: dict[str, list[dict[str, Any]]] = {}
     for pack in live_packs(packs):
@@ -110,7 +114,12 @@ def select(
         rng.shuffle(pool)
         if mode_id != EVENT_MODE:
             # Stable, so each tier stays shuffled; ``pop`` takes the allowed ones, at the end.
-            pool.sort(key=lambda question: question.get("difficulty", "medium") in allowed)
+            pool.sort(
+                key=lambda question: (
+                    question["id"] not in played,
+                    question.get("difficulty", "medium") in allowed,
+                )
+            )
     order = list(settings.modes)
     if settings.mode_order == "random":
         rng.shuffle(order)
@@ -123,29 +132,32 @@ def select(
         take = min(entry.questions, len(pool))
         if take <= 0:
             continue  # this mode has nothing to play; a round with no questions is not a round
-        draw = _npc_first if source == EVENT_MODE else _last
         # Restamped, so the round is named for its mode rather than for the pool it borrowed.
-        rounds.append(
-            Round(
-                mode=entry.mode,
-                questions=[{**draw(pool, rng), "mode": entry.mode} for _ in range(take)],
-            )
-        )
+        if source == EVENT_MODE:
+            drawn = [_npc_first(pool, rng, played) for _ in range(take)]
+        else:
+            drawn = [pool.pop() for _ in range(take)]
+        rounds.append(Round(mode=entry.mode, questions=[{**q, "mode": entry.mode} for q in drawn]))
 
-    return place_random_events(rounds, custom, pools.get(EVENT_MODE, []), settings, rng)
-
-
-def _last(pool: list[dict[str, Any]], rng: random.Random) -> dict[str, Any]:
-    """Take a shuffled pool's next question: its last, where the allowed tiers sort."""
-    return pool.pop()
+    events = pools.get(EVENT_MODE, [])
+    return place_random_events(rounds, custom, events, settings, rng, played)
 
 
-def _npc_first(pool: list[dict[str, Any]], rng: random.Random) -> dict[str, Any]:
+def _unplayed(pool: list[dict[str, Any]], played: Collection[str]) -> list[dict[str, Any]]:
+    """The questions of ``pool`` not in ``played``, or all of it once none are left."""
+    return [question for question in pool if question["id"] not in played] or pool
+
+
+def _npc_first(
+    pool: list[dict[str, Any]], rng: random.Random, played: Collection[str]
+) -> dict[str, Any]:
     """Take one of the NPCs' questions, a random NPC first: one with a file generated from
     the roster would otherwise ask most of a round that borrows their pool."""
-    npc = rng.choice(sorted({question["random_event"] for question in pool}))
-    at = max(i for i, question in enumerate(pool) if question["random_event"] == npc)
-    return pool.pop(at)
+    fresh = _unplayed(pool, played)
+    npc = rng.choice(sorted({question["random_event"] for question in fresh}))
+    question = next(q for q in reversed(fresh) if q["random_event"] == npc)
+    pool.remove(question)
+    return question
 
 
 def place_random_events(
@@ -154,6 +166,7 @@ def place_random_events(
     events: Sequence[dict[str, Any]],
     settings: RoomSettings,
     rng: random.Random,
+    played: Collection[str] = (),
 ) -> list[Round]:
     """Interrupt ``rounds`` with the host's questions and the NPCs' own.
 
@@ -181,7 +194,7 @@ def place_random_events(
     face the host named counts as seen from the start, so the draw does not spend it early.
     A host's question may be asked by anyone on the roster; an NPC's own question comes
     with its NPC, so for a pack slot the face and the question are drawn together, from the
-    NPCs with questions left.
+    NPCs with questions left, among those not in ``played`` while there are any.
 
     Returns new rounds; ``rounds`` and the questions in it are left as they were.
     """
@@ -213,7 +226,8 @@ def place_random_events(
                 raise TooManyEvents("the random-event roster has no face left to draw")
             seen[face] += 1
         else:
-            question = _npc_question(left, seen, avoid, MODES[rounds[slot.round].mode].types, rng)
+            types = MODES[rounds[slot.round].mode].types
+            question = _npc_question(left, seen, avoid, types, rng, played)
             if question is None:
                 continue
             face = question["random_event"]
@@ -263,6 +277,7 @@ def _npc_question(
     avoid: set[str | None],
     interrupted_types: frozenset[str],
     rng: random.Random,
+    played: Collection[str] = (),
 ) -> dict[str, Any] | None:
     """Draw an NPC's own question for a slot, and take it out of ``left``.
 
@@ -271,7 +286,9 @@ def _npc_question(
     back while a fresher one is waiting. ``left`` is already shuffled, so the first
     question that fits is a random one.
     """
-    npcs = sorted({q["random_event"] for q in left} - avoid)
+    fresh = [q for q in left if q["id"] not in played and q["random_event"] not in avoid]
+    pool = fresh or left
+    npcs = sorted({q["random_event"] for q in pool} - avoid)
     if not npcs:
         return None
     fewest = min(seen[npc] for npc in npcs)
@@ -279,10 +296,10 @@ def _npc_question(
     different = [
         npc
         for npc in freshest
-        if any(q["random_event"] == npc and q["type"] not in interrupted_types for q in left)
+        if any(q["random_event"] == npc and q["type"] not in interrupted_types for q in pool)
     ]
     npc = rng.choice(different or freshest)
-    theirs = [q for q in left if q["random_event"] == npc]
+    theirs = [q for q in pool if q["random_event"] == npc]
     question = next((q for q in theirs if q["type"] not in interrupted_types), theirs[0])
     left.remove(question)
     return question

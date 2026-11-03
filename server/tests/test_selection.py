@@ -298,6 +298,32 @@ def test_the_difficulty_leaves_random_events_and_the_hosts_questions_alone() -> 
     assert any(q["id"] == "q_custom_0" for q in events_placed)
 
 
+def test_played_questions_are_drawn_only_once_the_pool_runs_out() -> None:
+    pack = _pack("a", "more_less", 10)
+    played = {f"q_a_{i}" for i in range(6)}
+    fresh = select([pack], [], _settings(("more_less", 4)), random.Random(1), played=played)
+    assert {q["id"] for q in _questions(fresh)} == {f"q_a_{i}" for i in range(6, 10)}
+    topped = select([pack], [], _settings(("more_less", 6)), random.Random(1), played=played)
+    assert {q["id"] for q in _questions(topped)} >= {f"q_a_{i}" for i in range(6, 10)}
+
+
+def test_played_comes_before_the_difficulty() -> None:
+    pack = _tiered(easy=4, medium=0, hard=4)
+    hard = {q["id"] for q in pack.questions if q["difficulty"] == "hard"}
+    settings = _settings(("more_less", 4), difficulty="hard")
+    rounds = select([pack], [], settings, random.Random(1), played=hard)
+    assert _tiers(rounds) == {"easy": 4}
+
+
+def test_played_npc_questions_wait_for_the_unplayed() -> None:
+    settings = _settings(("more_less", 20), random_event_frequency="more")
+    first = select([PACKS[0], *EVENT_PACKS], [], settings, random.Random(1))
+    played = {q["id"] for _, _, q in _events(first)}
+    again = select([PACKS[0], *EVENT_PACKS], [], settings, random.Random(2), played=played)
+    assert _events(again)
+    assert not played & {q["id"] for _, _, q in _events(again)}
+
+
 def test_seeded_and_deterministic(stubs: tuple[str, ...]) -> None:
     settings = _settings(
         *((mode, 5) for mode in ("more_less", *STUBS[:3])), random_event_frequency="more"

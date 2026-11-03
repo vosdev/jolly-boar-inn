@@ -344,6 +344,27 @@ describe('a finished game', () => {
     expect(pastGames()[0]?.teams).toEqual({})
   })
 
+  it('keeps each game of a rematch, and leaves the last one behind in the lobby', () => {
+    applyServerMessage(welcome({ you: host, room: { ...lobby, status: 'playing' } }))
+    applyServerMessage({ t: 'room_updated', room: FINISHED, players: [host, me] })
+    applyServerMessage({ t: 'game_finished', standings: FINAL, team_standings: null })
+    const zero = FINAL.map((s) => ({ ...s, points: 0, points_gained: 0, rank: 1 }))
+    applyServerMessage({ t: 'room_updated', room: lobby, players: [host, me], standings: zero })
+    expect(get(endedLive)).toBe(false)
+    expect(get(standings)).toEqual(zero)
+    expect(get(lastClosed)).toBeNull()
+
+    const again = { ...FINISHED, finished_at: '2026-10-01T20:30:00Z' }
+    applyServerMessage({
+      t: 'room_updated',
+      room: { ...lobby, status: 'playing' },
+      players: [host, me],
+    })
+    applyServerMessage({ t: 'room_updated', room: again, players: [host, me] })
+    applyServerMessage({ t: 'game_finished', standings: FINAL, team_standings: null })
+    expect(pastGames().map((g) => g.finishedAt)).toEqual([again.finished_at, FINISHED.finished_at])
+  })
+
   it('is not filed while the room is still being played', () => {
     applyServerMessage(welcome({ room: { ...lobby, status: 'playing' }, standings: FINAL }))
     expect(pastGames()).toEqual([])

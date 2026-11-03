@@ -245,6 +245,13 @@ export function applyServerMessage(message: ServerMessage): void {
       // The room_updated saying `finished` comes before `game_finished`, and the final
       // screen mounts on it, so this is where it learns it is watching the end.
       if (get(room)?.status === 'playing' && message.room.status === 'finished') endedLive.set(true)
+      if (get(room)?.status === 'finished' && message.room.status === 'lobby') {
+        // A rematch: the last game's question and answer are not this one's.
+        question.set(null)
+        questionLive.set(false)
+        endedLive.set(false)
+        forgetQuestion()
+      }
       room.set(message.room)
       setPlayers(message.players)
       if (message.standings !== undefined) standings.set(message.standings)

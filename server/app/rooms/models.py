@@ -350,6 +350,8 @@ class Room:
     # ``questions``, and who sent them.
     custom_questions: list[dict[str, Any]] = field(default_factory=list, repr=False)
     custom_author: UUID | None = None
+    # Pack content ids shown in this room's earlier games, which a rematch draws around.
+    played_ids: frozenset[str] = field(default_factory=frozenset, repr=False)
     # A lobby's numbers, until ``questions`` holds the real ones.
     plan: Plan | None = field(default=None, repr=False)
     # Rebuilt from ``sum(answers.points)`` at every close, never added to.

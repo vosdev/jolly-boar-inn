@@ -1546,6 +1546,22 @@ describe('the host’s skip', () => {
   })
 })
 
+describe('Another round', () => {
+  const over = () => roomView({ status: 'finished', phase: 'idle', next_at: null, segment: null })
+
+  it('sends the room back to the lobby when an admin presses it', async () => {
+    await arrive(welcome(over(), 'admin'))
+    await fireEvent.click(screen.getByRole('button', { name: 'Another round' }))
+    expect(sent).toEqual([{ t: 'rematch' }])
+  })
+
+  it('is not offered to a player', async () => {
+    await arrive(welcome(over()))
+    expect(screen.getByRole('button', { name: 'Home' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Another round' })).toBeNull()
+  })
+})
+
 describe('the host’s End the game', () => {
   async function ask(): Promise<HTMLElement> {
     await arrive(welcome(roomView({ phase: 'reveal' }), 'admin'))

@@ -12,8 +12,9 @@ import pytest
 
 from app.modes import offered, questions_bounds
 from app.rooms.settings import RoomSettings
-from tests.game_api import Game, Seat, reseat
+from tests.game_api import Game, Seat, reseat, updated
 from tests.rooms_api import begin, create, hello
+from tests.test_rematch import in_lobby
 
 # Three real modes, played in this order. Neither later id is also a question type an
 # event could carry, so finding one in a frame means the round leaked.
@@ -320,6 +321,21 @@ def test_surprise_modes_hide_every_round_from_the_admin_too(table) -> None:
     player = [m["room"] for m in frames_until_finished(game.players[0]) if m["t"] == "room_updated"]
     assert [played_modes(r) for r in admin] == [played_modes(r) for r in player]
     assert played_modes(admin[-1]) == game.room.settings.mode_ids
+
+
+def test_a_rematch_draws_its_surprise_rounds_again(table) -> None:
+    game = surprise_modes(table)
+    # The room is over once it says so; another skip after that would name no phase.
+    play_until(game, lambda m: finished(m) or m.get("room", {}).get("status") == "finished")
+    game.admin.send(t="rematch")
+    lobby = updated(game.admin, lambda m: m["t"] == "room_updated" and in_lobby(m))
+    assert lobby["room"]["settings"]["modes"] == []
+    assert lobby["room"]["rounds"] == 3
+    assert game.room.settings.modes == []
+    assert game.room.settings.hide_rounds is True
+    game.started = False
+    game.start()
+    assert len(set(game.room.settings.mode_ids)) == 3
 
 
 def test_surprise_modes_refuse_picked_modes_alongside(client) -> None:
