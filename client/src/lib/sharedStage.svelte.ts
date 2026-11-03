@@ -50,6 +50,8 @@ export interface Parts {
   said: HTMLElement | null
 }
 
+type Part = keyof Parts
+
 /** Whether the host or guest is standing, leaving, gone or walking on. */
 export type Presence = 'here' | 'leaving' | 'away' | 'arriving'
 
@@ -175,8 +177,12 @@ export class SharedStage {
     // The bubble keeps its size while its words fade, rather than closing around them.
     const bubble = root.querySelector<HTMLElement>('.bubble:not(.shell)')
     if (bubble !== null) lock(bubble, unscaled(root, bubble.getBoundingClientRect()))
-    this.#ghosts = from.parts === null ? [] : ghostsOf(root, from.parts, handoff.out)
-    this.#place(to, true)
+    // A map under the line stays up from one map screen to the next: the new screen takes
+    // the old one's map over (`MapView`'s `keep`), and only the words change hands.
+    const stays: Part[] = from.look.map != null && to.look.map != null ? ['under'] : []
+    if (stays.length > 0) from.parts?.under?.remove()
+    this.#ghosts = from.parts === null ? [] : ghostsOf(root, from.parts, handoff.out, stays)
+    this.#place(to, true, stays)
     if (handoff.kind === 'swap') this.presence = 'leaving'
 
     await wait(handoff.out)
@@ -188,7 +194,7 @@ export class SharedStage {
     await tick()
     if (run !== this.#run) return
     // The new screen's look may draw a slot the old one had not: its bubble.
-    this.#place(to, true)
+    this.#place(to, true, stays)
 
     unlock(scroll)
     const end = unscaled(root, scroll.getBoundingClientRect())
@@ -217,7 +223,7 @@ export class SharedStage {
       if (run !== this.#run) return
       this.presence = 'here'
     }
-    this.#fading = slotsOf(root).map((slot) =>
+    this.#fading = slotsOf(root, stays).map((slot) =>
       slot.animate([{ opacity: 0 }, { opacity: 1 }], { duration: WORDS_IN_MS, easing: 'ease-out' }),
     )
     reveal(root)
@@ -235,8 +241,8 @@ export class SharedStage {
     })
   }
 
-  /** Puts a screen's parts in the stage's slots, held invisible while `hidden`. */
-  #place(scene: Scene, hidden: boolean): void {
+  /** Puts a screen's parts in the stage's slots, held invisible while `hidden` but `stays`. */
+  #place(scene: Scene, hidden: boolean, stays: Part[] = []): void {
     const root = this.#root
     if (root === null || scene.parts === null) return
     for (const [part, selector] of Object.entries(SLOTS)) {
@@ -245,7 +251,7 @@ export class SharedStage {
       if (node !== null && slot !== null) slot.append(node)
     }
     if (hidden) {
-      for (const slot of slotsOf(root)) {
+      for (const slot of slotsOf(root, stays)) {
         slot.style.opacity = '0'
         slot.style.pointerEvents = 'none'
       }
@@ -301,9 +307,10 @@ function withoutUndefined(look: Look): Partial<Cast> {
   ) as Partial<Cast>
 }
 
-function slotsOf(root: HTMLElement): HTMLElement[] {
-  return Object.values(SLOTS)
-    .map((selector) => root.querySelector<HTMLElement>(selector))
+function slotsOf(root: HTMLElement, but: Part[] = []): HTMLElement[] {
+  return Object.entries(SLOTS)
+    .filter(([part]) => !but.includes(part as Part))
+    .map(([, selector]) => root.querySelector<HTMLElement>(selector))
     .filter((slot) => slot !== null)
 }
 
@@ -356,13 +363,14 @@ function unlock(box: HTMLElement): void {
 }
 
 /**
- * The old screen's parts as they stood, fading over `ms`: each moves into a box of its
+ * The old screen's parts as they stood, all but `but`, fading over `ms`: each moves into a box of its
  * slot's size and place, laid out as the slot was, inside the slot's parent so the
  * sheet's inks and type still reach it.
  */
-function ghostsOf(root: HTMLElement, parts: Parts, ms: number): HTMLElement[] {
+function ghostsOf(root: HTMLElement, parts: Parts, ms: number, but: Part[]): HTMLElement[] {
   const ghosts: HTMLElement[] = []
   for (const [part, selector] of Object.entries(SLOTS)) {
+    if (but.includes(part as Part)) continue
     const node = parts[part as keyof Parts]
     const slot = root.querySelector<HTMLElement>(selector)
     const parent = slot?.parentElement ?? null

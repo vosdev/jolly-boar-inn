@@ -113,4 +113,67 @@ describe('MapView', () => {
     })
     await waitFor(() => expect(container.querySelector('.map-reach')).not.toBeNull())
   })
+
+  describe('kept from one view to the next', () => {
+    const PLACE = { minX: 3200, maxX: 3240, minY: 3200, maxY: 3240 }
+
+    async function shown(props: Record<string, unknown>) {
+      const view = render(MapView, { keep: true, ...props })
+      await waitFor(() =>
+        expect(view.container.querySelector<HTMLElement>('.map')?.dataset.zoom).toBeDefined(),
+      )
+      return view
+    }
+
+    it('is taken over whole by a view mounting in the same turn, tiles and all', async () => {
+      const first = await shown({})
+      await waitFor(() => expect(tiles(first.container).length).toBeGreaterThan(0))
+      const canvas = first.container.querySelector('.map-canvas')
+      const tile = first.container.querySelector('img')
+      first.unmount()
+      const next = render(MapView, { keep: true, fresh: true })
+      expect(next.container.querySelector('.map-canvas')).toBe(canvas)
+      await new Promise((done) => setTimeout(done, 0))
+      expect(tile!.isConnected).toBe(true)
+    })
+
+    it('is removed when nothing takes it over', async () => {
+      const first = await shown({})
+      await waitFor(() => expect(tiles(first.container).length).toBeGreaterThan(0))
+      const canvas = first.container.querySelector('.map-canvas')!
+      first.unmount()
+      await new Promise((done) => setTimeout(done, 0))
+      expect(canvas.querySelector('img')).toBeNull()
+    })
+
+    it('fades what stood on it for a fresh view, and keeps it gone', async () => {
+      const first = await shown({ areas: [{ box: PLACE, name: 'Lumbridge' }] })
+      await waitFor(() => expect(first.container.querySelector('.map-name')).not.toBeNull())
+      const name = first.container.querySelector('.map-name')!
+      first.unmount()
+      const next = await shown({ fresh: true, areas: [{ box: PLACE, name: 'Varrock' }] })
+      await waitFor(() => expect(next.container.textContent).toContain('Varrock'))
+      expect(name.closest('.leaving')).not.toBeNull()
+      await waitFor(() => expect(next.container.textContent).not.toContain('Lumbridge'))
+    })
+
+    it('clears what stood on it at once for its own reveal', async () => {
+      const first = await shown({ areas: [{ box: PLACE, name: 'Lumbridge' }] })
+      await waitFor(() => expect(first.container.querySelector('.map-name')).not.toBeNull())
+      first.unmount()
+      const next = await shown({})
+      expect(next.container.textContent).not.toContain('Lumbridge')
+    })
+
+    it('takes on the new view’s bounds', async () => {
+      const first = await shown({})
+      expect(first.container.querySelector('.map-outside')).toBeNull()
+      first.unmount()
+      const next = await shown({ fresh: true, bounds: REGION })
+      expect(next.container.querySelector('.map-outside')).not.toBeNull()
+      next.unmount()
+      const last = await shown({ fresh: true })
+      expect(last.container.querySelector('.map-outside')).toBeNull()
+    })
+  })
 })

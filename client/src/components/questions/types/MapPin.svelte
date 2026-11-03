@@ -15,6 +15,9 @@
    * With several pins and a crowd the map keeps to your own, and the table has the rest.
    *
    * A view without `results` is a phone beside the room's TV, which only shows your own pins.
+   *
+   * The map is kept from one screen to the next (`keep`): open to reveal, and on into the next
+   * map question, which clears it and glides to its own opening.
    */
   import { fromStore } from 'svelte/store'
 
@@ -260,6 +263,8 @@
   <MapView
     {bounds}
     {opening}
+    keep
+    fresh={!revealed}
     {markers}
     {lines}
     {areas}

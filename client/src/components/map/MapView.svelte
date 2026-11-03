@@ -4,6 +4,12 @@
    * without one never fetches it. `bounds` keeps the map to a rectangle of game tiles: nothing
    * outside is requested, the view cannot leave, and a tile that straddles the edge is masked.
    *
+   * A `keep` view hands its map on to a `keep` view mounting in the same turn, which takes it
+   * over as it stands rather than building one and loading its tiles again: a question's map
+   * stays up into its reveal and into the next map question. A `fresh` view taking one over
+   * is a new question: what stood on the map fades with the old words and the view glides to
+   * the opening.
+   *
    * What stands on the map comes in as data: `markers`, `lines` and `areas`. Each change redraws
    * its whole layer, since a reveal sets them once and a player moves one pin at a time. `grips`
    * are the exception: they follow a box while one of them is dragged, and redrawing a marker
@@ -15,7 +21,9 @@
     CircleMarker,
     Coords,
     LatLngBounds,
+    Layer,
     LayerGroup,
+    LeafletMouseEvent,
     Map as LeafletMap,
     Marker,
   } from 'leaflet'
@@ -38,6 +46,8 @@
   import { reducedMotion } from '../../lib/interlude'
   import { reachLine } from '../../lib/mapBox'
   import { placeLabels, type PinLabel } from '../../lib/mapLabels'
+  import { canvasIn, handOn, type Held, takeOver } from '../../lib/keptMap'
+  import { WORDS_OUT_MS } from '../../lib/stageMoves'
 
   export interface MapMarker {
     id: string
@@ -75,10 +85,14 @@
   }
 
   const SMALLEST_RING = 13
+  /** How long a taken-over map glides to a new question's opening, in seconds. */
+  const GLIDE_S = 1
 
   let {
     bounds,
     opening: opensOn,
+    keep = false,
+    fresh = false,
     markers = [],
     lines = [],
     areas = [],
@@ -93,6 +107,10 @@
     bounds?: MapBounds
     /** Where the map opens, whole, without keeping the player there. */
     opening?: MapBounds
+    /** Hands the map on, and takes one over, rather than building it each time. */
+    keep?: boolean
+    /** A new question on a map taken over: clear it, and glide to the opening. */
+    fresh?: boolean
     markers?: readonly MapMarker[]
     lines?: readonly MapLine[]
     areas?: readonly MapArea[]
@@ -327,12 +345,90 @@
     ]
   }
 
+  const pickAt = (event: LeafletMouseEvent): void => onpick?.(toWorld(event.latlng))
+
+  function pickMiddle(event: KeyboardEvent): void {
+    if (live === null) return
+    const container = live.map.getContainer()
+    if (event.key !== 'Enter' || event.target !== container) return
+    onpick?.(toWorld(live.map.getCenter()))
+  }
+
+  function build(L: typeof import('leaflet'), limit: LatLngBounds): Held {
+    const canvas = canvasIn(host)
+    const map = L.map(canvas, {
+      crs: L.CRS.Simple,
+      minZoom: LOWEST_ZOOM,
+      maxZoom: HIGHEST_ZOOM,
+      // Fractional zoom puts every tile on a non-integer scale, which Safari crawls at.
+      zoomSnap: 1,
+      maxBoundsViscosity: 1,
+      attributionControl: false,
+      zoomControl: false,
+    })
+    L.control.zoom({ position: 'topright' }).addTo(map)
+    const tiles = new L.TileLayer('', {
+      tileSize: TILE_SIZE,
+      minNativeZoom: LOWEST_ZOOM,
+      maxNativeZoom: NATIVE_ZOOM,
+      minZoom: LOWEST_ZOOM,
+      maxZoom: HIGHEST_ZOOM,
+      noWrap: true,
+      bounds: limit,
+    })
+    tiles.getTileUrl = (coords: Coords) => tileUrl(coords.z, coords.x, flipRow(coords.y))
+    return { L, map, canvas, tiles, outside: null, limits: '', groups: [] }
+  }
+
+  /** Keeps the map to `bounds`, masking what lies outside, unless it already is. */
+  function restrict(held: Held, limit: LatLngBounds): void {
+    const { L, map, tiles } = held
+    const limits = JSON.stringify(bounds ?? null)
+    map.setMaxBounds(limit)
+    if (held.limits === limits) return
+    held.limits = limits
+    tiles.options.bounds = limit
+    if (map.hasLayer(tiles)) tiles.redraw()
+    else tiles.addTo(map)
+    held.outside?.remove()
+    held.outside =
+      bounds === undefined
+        ? null
+        : L.polygon([ring(SURFACE), ring(bounds)], {
+            className: 'map-outside',
+            stroke: false,
+            fillOpacity: 1,
+            interactive: false,
+          }).addTo(map)
+  }
+
+  /** What an earlier view left on the map: gone at once, or fading with the old words. */
+  function clearAway(held: Held, groups: LayerGroup[], fade: boolean): void {
+    if (!fade) {
+      groups.forEach((group) => group.remove())
+      return
+    }
+    for (const group of groups) {
+      group.eachLayer((layer) => {
+        const element = (layer as Layer & { getElement?: () => Element | undefined }).getElement?.()
+        element?.classList.add('leaving')
+      })
+    }
+    setTimeout(() => groups.forEach((group) => held.map.removeLayer(group)), WORDS_OUT_MS)
+  }
+
   onMount(() => {
-    let map: LeafletMap | undefined
+    let held: Held | null = keep ? takeOver(host) : null
+    const taken = held
     let observer: ResizeObserver | undefined
     let gone = false
 
-    const loaded = Promise.all([import('leaflet'), import('leaflet/dist/leaflet.css')])
+    const loaded =
+      taken !== null
+        ? Promise.resolve(taken.L)
+        : Promise.all([import('leaflet'), import('leaflet/dist/leaflet.css')]).then(
+            ([{ default: L }]) => L,
+          )
 
     // A question's map is built in a hidden part of the page and moved onto the stage, and
     // Leaflet fits its view to a frame it can measure.
@@ -347,61 +443,32 @@
       waiting.observe(host)
     })
 
-    void Promise.all([loaded, sized]).then(([[{ default: L }]]) => {
+    void Promise.all([loaded, sized]).then(([L]) => {
       if (gone) return
       const limit: LatLngBounds = L.latLngBounds(corners(bounds ?? SURFACE))
       const opening = L.latLngBounds(corners(opensOn ?? bounds ?? PLAY_AREA))
+      const kept = held ?? build(L, limit)
+      held = kept
+      const { map } = kept
+      restrict(kept, limit)
 
-      const shown = L.map(host, {
-        crs: L.CRS.Simple,
-        minZoom: LOWEST_ZOOM,
-        maxZoom: HIGHEST_ZOOM,
-        // Fractional zoom puts every tile on a non-integer scale, which Safari crawls at.
-        zoomSnap: 1,
-        maxBounds: limit,
-        maxBoundsViscosity: 1,
-        attributionControl: false,
-        zoomControl: false,
-      })
-      map = shown
-      L.control.zoom({ position: 'topright' }).addTo(shown)
-
-      const fit = () => shown.setMinZoom(shown.getBoundsZoom(limit))
+      const fit = () => map.setMinZoom(map.getBoundsZoom(limit))
       fit()
       // A region or an opening shows whole. The surface fills the frame, cropping ocean instead.
-      const filled = shown.getBoundsZoom(opening, bounds === undefined && opensOn === undefined)
-      shown.setView(opening.getCenter(), filled, { animate: false })
-
-      const tiles = new L.TileLayer('', {
-        tileSize: TILE_SIZE,
-        minNativeZoom: LOWEST_ZOOM,
-        maxNativeZoom: NATIVE_ZOOM,
-        minZoom: LOWEST_ZOOM,
-        maxZoom: HIGHEST_ZOOM,
-        noWrap: true,
-        bounds: limit,
-      })
-      tiles.getTileUrl = (coords: Coords) => tileUrl(coords.z, coords.x, flipRow(coords.y))
-      tiles.addTo(shown)
-
-      if (bounds !== undefined) {
-        L.polygon([ring(SURFACE), ring(bounds)], {
-          className: 'map-outside',
-          stroke: false,
-          fillOpacity: 1,
-          interactive: false,
-        }).addTo(shown)
+      const filled = map.getBoundsZoom(opening, bounds === undefined && opensOn === undefined)
+      if (taken === null || (fresh && reducedMotion())) {
+        map.setView(opening.getCenter(), filled, { animate: false })
+      } else if (fresh) {
+        map.flyTo(opening.getCenter(), filled, { duration: GLIDE_S })
       }
+      clearAway(kept, kept.groups, fresh && !reducedMotion())
 
-      shown.on('click', (event) => onpick?.(toWorld(event.latlng)))
-      shown.getContainer().addEventListener('keydown', (event) => {
-        if (event.key !== 'Enter' || event.target !== shown.getContainer()) return
-        onpick?.(toWorld(shown.getCenter()))
-      })
-      shown.on('zoomend', settle)
+      map.on('click', pickAt)
+      map.on('zoomend', settle)
+      kept.canvas.addEventListener('keydown', pickMiddle)
 
       observer = new ResizeObserver(() => {
-        shown.invalidateSize()
+        map.invalidateSize()
         fit()
         settle()
       })
@@ -409,18 +476,24 @@
 
       live = {
         L,
-        map: shown,
-        pins: L.layerGroup().addTo(shown),
-        drawing: L.layerGroup().addTo(shown),
-        handles: L.layerGroup().addTo(shown),
+        map,
+        pins: L.layerGroup().addTo(map),
+        drawing: L.layerGroup().addTo(map),
+        handles: L.layerGroup().addTo(map),
       }
+      kept.groups = [live.pins, live.drawing, live.handles]
     })
 
     return () => {
       gone = true
       waiting?.disconnect()
       observer?.disconnect()
-      map?.remove()
+      if (held === null) return
+      held.map.off('click', pickAt)
+      held.map.off('zoomend', settle)
+      held.canvas.removeEventListener('keydown', pickMiddle)
+      if (keep) handOn(held)
+      else held.map.remove()
     }
   })
 </script>
@@ -436,9 +509,25 @@
     height: 100%;
   }
 
+  .map :global(.map-canvas) {
+    width: 100%;
+    height: 100%;
+  }
+
   /* A tile that would be all black is not on disk, and everything outside `bounds` is black too. */
-  .map:global(.leaflet-container) {
+  .map :global(.leaflet-container) {
     background: var(--map-void);
+  }
+
+  .map :global(.leaving) {
+    animation: -global-map-leave 150ms ease-in forwards;
+    pointer-events: none;
+  }
+
+  @keyframes -global-map-leave {
+    to {
+      opacity: 0;
+    }
   }
 
   .map :global(.map-outside) {

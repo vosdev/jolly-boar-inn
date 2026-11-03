@@ -63,10 +63,11 @@ function setup(props: Record<string, unknown>) {
 
 const mapOf = (container: HTMLElement) => container.querySelector<HTMLElement>('.map')!
 
+/** Leaflet's own element, which hears the taps, once the map has its zoom. */
 async function loaded(container: HTMLElement): Promise<HTMLElement> {
   await waitFor(() => expect(container.querySelector('.leaflet-container')).not.toBeNull())
   await waitFor(() => expect(mapOf(container).dataset.zoom).toBeDefined())
-  return mapOf(container)
+  return container.querySelector<HTMLElement>('.leaflet-container')!
 }
 
 const pins = (container: HTMLElement) => [...container.querySelectorAll<HTMLElement>('.pin')]
@@ -191,11 +192,13 @@ describe('MapPin', () => {
       yourValue: [{ x: 3228, y: 3217 }],
       results: { ...resultsFor(2, 1), far: result([{ x: 1000, y: 3217 }]) },
     })
-    const map = await loaded(container)
+    await loaded(container)
     await waitFor(() => expect(pins(container)).toHaveLength(3))
-    const closeZoom = Number(map.dataset.zoom)
+    const closeZoom = Number(mapOf(container).dataset.zoom)
     vi.spyOn(Date, 'now').mockReturnValue(start + 5000)
-    await waitFor(() => expect(Number(map.dataset.zoom)).toBeLessThan(closeZoom), { timeout: 5000 })
+    await waitFor(() => expect(Number(mapOf(container).dataset.zoom)).toBeLessThan(closeZoom), {
+      timeout: 5000,
+    })
   }, 8000)
 
   it('shows everyone’s pins with five who pinned several', async () => {
