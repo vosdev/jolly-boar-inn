@@ -579,7 +579,7 @@ def test_a_hosts_unnamed_question_may_be_asked_by_an_npc_with_no_questions_yet(
     for seed in range(20):
         rounds = select(PACKS, _custom(16), settings, random.Random(seed))
         faces |= set(_faces(rounds))
-    assert faces == set(selection.RANDOM_EVENTS)
+    assert faces == set(selection.HOST_FACES)
 
 
 # --- rooms stored before the frequency setting ----------------------------------------------

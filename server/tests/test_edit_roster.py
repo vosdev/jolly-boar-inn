@@ -77,6 +77,18 @@ def test_the_pixel_hunt_pack_follows_the_roster(repo: dict[str, Path]) -> None:
     assert third["answer_id"] not in {q["payload"]["answer_id"] for q in after}
 
 
+def test_certers_questions_follow_the_roster(repo: dict[str, Path]) -> None:
+    path = repo["packs"] / "random_events" / "certer.json"
+    before = json.loads(path.read_text())["questions"]
+    second, third = (q["payload"] for q in before[1:3])
+    renames = [{"id": second["answer_id"], "name": "Renamed item"}]
+    assert run(repo, {"renames": renames, "removes": [third["answer_id"]]}) == 0
+    after = json.loads(path.read_text())["questions"]
+    assert len(after) == len(before) - 1
+    assert after[1]["payload"]["subject"] == {"name": "Renamed item"}
+    assert third["answer_id"] not in {q["payload"]["answer_id"] for q in after}
+
+
 def test_an_empty_export_changes_nothing(repo: dict[str, Path]) -> None:
     text = repo["roster"].read_text()
     assert run(repo, {"renames": [], "removes": []}) == 0

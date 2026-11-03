@@ -10,7 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as api from '../lib/api'
 import { exportText, importText, type CustomQuestion } from '../lib/customQuestions'
 import { profile } from '../lib/profile'
-import { RANDOM_EVENTS } from '../lib/randomEvents'
+import { ASKERS } from '../lib/randomEvents'
 import { BANK_MAX, loadBank, saveBank, type Banked } from '../lib/savedQuestions'
 import Create from '../routes/Create.svelte'
 
@@ -317,8 +317,9 @@ describe('CustomQuestions', () => {
     const faces = within(askers(editor())).getAllByRole('radio')
     expect(faces.map((face) => face.getAttribute('aria-label'))).toEqual([
       'A random NPC',
-      ...RANDOM_EVENTS.map((npc) => npc.name),
+      ...ASKERS.map((npc) => npc.name),
     ])
+    expect(faces.map((face) => face.getAttribute('aria-label'))).not.toContain('Certer')
     expect(faces[0]).toHaveProperty('checked', true)
     await click(editor(), 'Cancel')
 

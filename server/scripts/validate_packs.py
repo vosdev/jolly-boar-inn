@@ -5,8 +5,8 @@ contradicts the stored facts, a ``mode`` this build does not play or a ``type`` 
 disagrees with its mode's, and duplicate ids within or across packs. For random events it
 also fails an NPC's file that is not named after a roster id, a question in one that names
 its own NPC, and a question anywhere else that names one (``app/questions/packs.py``). A
-question in a ``pictured`` mode must picture its own roster item, with a detail picture in
-``data/assets.json``.
+question that is its picture (a ``pictured`` mode's, or Certer's) must picture its own roster
+item, with a detail picture in ``data/assets.json``.
 
 Usage (from ``server/``)::
 
@@ -20,19 +20,18 @@ from pathlib import Path
 from add_detail_pictures import has_picture
 from fetch_assets import MANIFEST, load_manifest
 
-from app.modes import MODES
+from app.modes import needs_picture
 from app.questions.packs import EVENTS_DIR, Pack, PackError, load_packs
 
 DEFAULT_DIR = Path(__file__).resolve().parents[2] / "data" / "packs"
 
 
 def picture_errors(packs: Iterable[Pack], manifest: dict[str, str]) -> list[str]:
-    """Each question of a ``pictured`` mode that does not show its own item's detail picture."""
+    """Each question that is its picture but does not show its own item's detail picture."""
     errors = []
     for pack in packs:
         for question in pack.questions:
-            mode = MODES.get(question["mode"])
-            if mode is None or not mode.pictured:
+            if not needs_picture(question):
                 continue
             payload = question["payload"]
             answer = payload.get("answer_id")

@@ -9,7 +9,7 @@
    *
    * It adds no markup of its own around the pair, only what every mode shows the same way:
    * a pack question's `picture` under the stem (large, in a mode whose `picture` says so, and
-   * its shadow or its build-up until the reveal when the question is picked from the list; on
+   * its shadow or its build-up (Pixel Hunt's, or any of Certer's) until the reveal when the question is picked from the list; on
    * the buttons it is the render among look-alikes), and after the view the note for somebody who
    * cannot answer and the reveal's `explanation` where the author gave one. A mode with no stem, which is `more_less`, renders exactly
    * the view it rendered before stems existed, with nothing in between to shift a pixel.
@@ -32,7 +32,8 @@
    * (`explain` false).
    *
    * `frame` lays the two halves out: it gets the stem and the answers as snippets, which
-   * is how the stage puts one on the scroll and the other under the line. The answers are
+   * is how the stage puts one on the scroll and the other under the line, and the picture
+   * alone, for a frame that types the prompt itself instead of the stem: an event's card. The answers are
    * null for a question with nothing to answer on, whose fallback is then the stem. With
    * no frame they simply follow each other, which is a random event's card. A question
    * that throws keeps its frame, with the fallback for a stem, so the stage and whatever
@@ -44,6 +45,7 @@
   import { MODES } from '../../lib/modes'
   import type { Build } from '../../lib/pixelHunt'
   import type { OpenQuestion, PlayerResult } from '../../lib/protocol'
+  import { randomEventFor } from '../../lib/randomEvents'
   import { room } from '../../lib/stores'
   import { viewFor } from './index'
   import type { StemTiming } from './props'
@@ -79,7 +81,7 @@
     shown?: number[]
     /** Show the reveal's `explanation` under the view. */
     explain?: boolean
-    frame?: Snippet<[Snippet, Snippet | null]>
+    frame?: Snippet<[Snippet, Snippet | null, Snippet | null]>
   } = $props()
 
   const pair = $derived(viewFor(question.type, question.mode))
@@ -92,7 +94,10 @@
       ? data.explanation
       : null,
   )
-  const picture = $derived(MODES[question.mode]?.picture)
+  const sketched = $derived(
+    question.random_event !== null && randomEventFor(question.random_event).sketches === true,
+  )
+  const picture = $derived(sketched ? 'build' : MODES[question.mode]?.picture)
   const pictured = $derived(picture !== undefined)
   const withheld = $derived(picture === 'reveal' && !revealed)
   const listed = $derived(question.type === 'pick_from_list')
@@ -105,6 +110,7 @@
           index: question.index,
           answerableAt: question.answerable_at ?? question.opened_at,
           endsAt: question.ends_at,
+          sketch: sketched,
         }
       : null,
   )
@@ -136,6 +142,12 @@
     {#if Stem !== null}
       <Stem {data} {revealed} {timing} {shown} />
     {/if}
+    {@render figure()}
+  {/if}
+{/snippet}
+
+{#snippet figure()}
+  {#if View !== null}
     <QuestionPicture
       name={withheld ? null : question.picture}
       url={withheld ? null : pictureUrl}
@@ -195,14 +207,14 @@
 {#key question.question_id}
   <svelte:boundary onerror={(error) => console.error('The question could not be drawn:', error)}>
     {#if frame}
-      {@render frame(stem, View === null ? null : answers)}
+      {@render frame(stem, View === null ? null : answers, figure)}
     {:else}
       {@render stem()}
       {@render answers()}
     {/if}
     {#snippet failed()}
       {#if frame}
-        {@render frame(broken, null)}
+        {@render frame(broken, null, null)}
       {:else}
         {@render broken()}
       {/if}

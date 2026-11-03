@@ -70,6 +70,7 @@ def test_on_the_create_form_gets_its_pace(on: TestClient) -> None:
         "number_slider",
         "ordering",
         "pick_all_that_apply",
+        "pick_from_list",
     ]
     assert entry["questions"] == {"default": 10, "min": 1, "max": 20}
 

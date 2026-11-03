@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.243.0',
+    date: '2026-11-03',
+    text: 'Certer joins the random events: name the item he sketches, and the sooner you do, the more points you get.',
+  },
+  {
     version: '0.242.0',
     date: '2026-11-03',
     text: 'The footer counts every question in the game. Click it to see how many each round and each random event has.',

@@ -762,6 +762,31 @@ describe('Pixel Hunt’s picture', () => {
   })
 })
 
+describe('Certer’s picture', () => {
+  const VIEW_ITEM = { prompt: 'What is this item?', vocab: 'items' }
+  const asked = (mode: string): OpenQuestion => ({
+    ...open('pick_from_list', mode, VIEW_ITEM),
+    picture: 'feedc0de.png',
+    random_event: 'certer',
+  })
+
+  it('builds up on a canvas in any round, where an event is otherwise drawn as it is', () => {
+    for (const mode of ['random_event', 'random_events_only']) {
+      render(Question, { question: asked(mode), yourValue: null, onAnswer })
+      const frame = document.querySelector('.picture.large .frame.building')!
+      expect(frame.querySelector('img')!.getAttribute('src')).toBe('/pictures/feedc0de.png')
+      expect(frame.querySelector('canvas')).toBeTruthy()
+      cleanup()
+    }
+    render(Question, {
+      question: { ...asked('random_event'), random_event: 'reldo' },
+      yourValue: null,
+      onAnswer,
+    })
+    expect(document.querySelector('canvas, .building')).toBeNull()
+  })
+})
+
 describe('Who’s That NPC?’s render', () => {
   const VIEW_RENDER = {
     prompt: "Who's that NPC?",

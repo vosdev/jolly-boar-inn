@@ -16,7 +16,7 @@
 
 import { problems as matchingProblems, type MatchingQuestion } from './matching'
 import type { EventFrequency, OpenQuestion } from './protocol'
-import { RANDOM_EVENTS, randomEventFor } from './randomEvents'
+import { ASKERS, randomEventFor } from './randomEvents'
 import { check, codePoints, envelopeProperty, field, fields, type Problem } from './questionSchema'
 import { defaultScale, middle, onTrack, type Scale } from './slider'
 
@@ -53,7 +53,7 @@ export const HOST_TYPE_LABELS: Record<HostQuestion['type'], string> = {
 }
 
 const ENVELOPE_KEYS = ['type', 'payload', 'random_event']
-const ROSTER = new Set(RANDOM_EVENTS.map((npc) => npc.id))
+const ROSTER = new Set(ASKERS.map((npc) => npc.id))
 
 function isCustomType(value: unknown): value is CustomType {
   return (CUSTOM_TYPES as readonly unknown[]).includes(value)

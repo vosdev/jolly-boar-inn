@@ -20,7 +20,7 @@ import {
   withinFor,
   type CustomQuestion,
 } from './customQuestions'
-import { RANDOM_EVENTS } from './randomEvents'
+import { ASKERS } from './randomEvents'
 
 const CHOICE: CustomQuestion = {
   type: 'multiple_choice',
@@ -371,9 +371,13 @@ describe('export and import', () => {
     })
   })
 
-  it('takes an id from every NPC on the roster', () => {
-    const all = RANDOM_EVENTS.map((npc) => ({ ...CHOICE, random_event: npc.id }))
+  it('takes an id from every NPC who may ask', () => {
+    const all = ASKERS.map((npc) => ({ ...CHOICE, random_event: npc.id }))
     expect(importText(exportText(all)).ok).toBe(true)
+  })
+
+  it('refuses Certer, who only sketches items', () => {
+    expect(importText(exportText([{ ...CHOICE, random_event: 'certer' }])).ok).toBe(false)
   })
 })
 

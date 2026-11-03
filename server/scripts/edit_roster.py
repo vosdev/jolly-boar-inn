@@ -7,7 +7,8 @@ before anything is written, and the packs are loaded against the roster as it wo
 change to an id the roster does not hold, one id changed twice, a name that is no item name,
 or packs that would not load write nothing and name the problem.
 
-The Pixel Hunt pack is rewritten with the roster, as ``gen_pixel_hunt.py`` would. A rename or
+The Pixel Hunt pack and Certer's questions are rewritten with the roster, as
+``gen_pixel_hunt.py`` would. A rename or
 a removal leaves the price pack as it was: run ``make gen-price-questions`` afterwards to
 bring it in line.
 
@@ -109,6 +110,10 @@ def main(argv: list[str]) -> int:
             after, load_manifest(MANIFEST), gen_pixel_hunt.difficulties(hunt)
         )
         changed[hunt] = gen_pixel_hunt.render(pack)
+    certer = args.packs_dir / "random_events" / f"{gen_pixel_hunt.CERTER}.json"
+    if certer.is_file():
+        events = gen_pixel_hunt.generate_certer(after, load_manifest(MANIFEST))
+        changed[certer] = gen_pixel_hunt.render(events)
     trouble = check_packs(args.packs_dir, changed, rendered)
     if trouble:
         for line in trouble:

@@ -1,7 +1,7 @@
 {
   "name": "jolly-boar-inn-client",
   "private": true,
-  "version": "0.242.0",
+  "version": "0.243.0",
   "license": "AGPL-3.0-only",
   "type": "module",
   "scripts": {

@@ -22,7 +22,7 @@ from jsonschema import Draft202012Validator, FormatChecker
 from app.modes import MODES
 from app.questions import text
 from app.questions.types import TYPES
-from app.random_events import RANDOM_EVENTS
+from app.random_events import BUILT_UP, RANDOM_EVENTS
 
 SCHEMA_PATH = Path(__file__).resolve().parents[3] / "schema" / "question.schema.json"
 
@@ -152,7 +152,8 @@ _ROUND_ONLY = frozenset({"more_less", "price_is_right", "map_pin"})
 
 
 def event_errors(question: dict[str, Any]) -> list[str]:
-    """A ``random_event`` where no NPC may ask, missing where one must, or off the roster.
+    """A ``random_event`` where no NPC may ask, missing where one must, off the roster, or
+    Certer on anything but a picture.
 
     The field names who interrupts a round with this question, and only a question that is
     an event can say that: a host's, which may name its NPC or leave it to the draw, and an
@@ -173,6 +174,10 @@ def event_errors(question: dict[str, Any]) -> list[str]:
         ]
     if npc not in RANDOM_EVENTS:
         return [f"$.random_event: {npc!r} is not on the roster (app/random_events.py)"]
+    if npc in BUILT_UP and (
+        question["type"] != "pick_from_list" or "image" not in question["payload"]
+    ):
+        return [f"$.random_event: {npc!r} asks only for a picture to be named from the list"]
     return []
 
 

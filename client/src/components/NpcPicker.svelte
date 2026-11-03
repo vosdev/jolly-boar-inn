@@ -5,7 +5,7 @@
    */
   import { tick } from 'svelte'
 
-  import { RANDOM_EVENTS, STRANGER, randomEventFor } from '../lib/randomEvents'
+  import { ASKERS, STRANGER, randomEventFor } from '../lib/randomEvents'
   import NpcFace from './NpcFace.svelte'
 
   let {
@@ -24,7 +24,7 @@
   const id = $props.id()
   // A player comes with a topic, not a name, so the select reads by theme, and NPCs sharing
   // one sit together.
-  const BY_THEME = [...RANDOM_EVENTS].sort(
+  const BY_THEME = [...ASKERS].sort(
     (a, b) => a.theme.localeCompare(b.theme, 'en') || a.name.localeCompare(b.name, 'en'),
   )
   const picked = $derived(
@@ -78,7 +78,7 @@
         <NpcFace npc={STRANGER} />
       </label>
     {/if}
-    {#each RANDOM_EVENTS as npc (npc.id)}
+    {#each ASKERS as npc (npc.id)}
       <label class="npc" title="{npc.name}: {npc.theme}">
         <input
           type="radio"
