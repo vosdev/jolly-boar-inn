@@ -148,7 +148,7 @@ def mode_errors(question: dict[str, Any]) -> list[str]:
 # whole question, would show nothing while the NPC holds it. Until each has a stem that
 # works outside its round, a host or NPC pack writing one would set a question nobody can
 # answer.
-_ROUND_ONLY = frozenset({"more_less", "price_is_right"})
+_ROUND_ONLY = frozenset({"more_less", "price_is_right", "map_pin"})
 
 
 def event_errors(question: dict[str, Any]) -> list[str]:

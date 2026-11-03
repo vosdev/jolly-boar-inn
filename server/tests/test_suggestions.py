@@ -868,11 +868,88 @@ def test_know_your_content_creator_takes_a_number(client: TestClient) -> None:
 def test_the_form_offers_the_modes_the_server_takes() -> None:
     source = client_source.read("lib/suggestions.ts")
     offered = {"random_event"}
-    for name in ("CHOICE_ROUNDS", "ORDERING_ROUNDS", "NAMED_ROUNDS", "VERSE_ROUNDS"):
+    names = ("CHOICE_ROUNDS", "ORDERING_ROUNDS", "NAMED_ROUNDS", "VERSE_ROUNDS", "MAP_ROUNDS")
+    for name in names:
         rounds = re.search(rf"const {name} = \[([^\]]*)\]", source)
         assert rounds is not None
         offered |= set(re.findall(r"'([a-z_]+)'", rounds.group(1)))
     assert offered == set(QUESTION_MODES)
+
+
+FALADOR = {"name": "Falador", "min_x": 2940, "max_x": 3060, "min_y": 3310, "max_y": 3400}
+PLACE = {
+    "kind": "question",
+    "content": {
+        "type": "map_pin",
+        "mode": "mark_the_map",
+        "wiki": "https://oldschool.runescape.wiki/w/Falador",
+        "difficulty": "easy",
+        "payload": {"prompt": "Where is Falador?", "targets": [FALADOR]},
+    },
+    "credit": "AFKFisher",
+    "credit_shown": False,
+}
+
+
+def _place(**payload: Any) -> dict[str, Any]:
+    return _with(PLACE, payload={**PLACE["content"]["payload"], **payload})
+
+
+def test_a_place_waits_in_the_queue_until_its_round_is_built(client: TestClient) -> None:
+    approve(client, suggest(client, _place(reach=150)))
+    [row] = queue(client, "approved")["suggestions"]
+    assert row["content"]["payload"]["reach"] == 150
+    assert row["playable"] is False
+
+
+@pytest.mark.parametrize(
+    "bad",
+    [
+        {"targets": [{**FALADOR, "max_x": 2945}]},
+        {"targets": [FALADOR, {**FALADOR, "name": "Elsewhere", "min_x": 3100, "max_x": 3200}]},
+        {"reach": 49},
+        {"reach": 201},
+        {"reach": True},
+        {"bounds": {"min_x": 2900, "max_x": 3100, "min_y": 3300, "max_y": 3500}},
+        {"image": "item:1"},
+    ],
+)
+def test_a_place_is_one_box_a_fair_reach_and_nothing_else(
+    client: TestClient, bad: dict[str, Any]
+) -> None:
+    assert client.post("/api/suggestions", json=_place(**bad)).status_code == 422
+
+
+def test_a_place_needs_its_wiki_page_and_takes_no_explanation(client: TestClient) -> None:
+    linked = _with(PLACE, source_url="https://example.com/falador")
+    del linked["content"]["wiki"]
+    assert client.post("/api/suggestions", json=linked).status_code == 422
+    assert client.post("/api/suggestions", json=_place(explanation="A city.")).status_code == 422
+
+
+@pytest.mark.parametrize("mode", [None, "random_event", "bestiary"])
+def test_only_a_map_round_takes_a_place(client: TestClient, mode: str | None) -> None:
+    content = deepcopy(PLACE["content"])
+    del content["difficulty"]
+    content.pop("mode")
+    if mode is not None:
+        content["mode"] = mode
+    if mode == "random_event":
+        content["random_event"] = "bob"
+    response = client.post("/api/suggestions", json={**PLACE, "content": content})
+    assert response.status_code == 422
+
+
+@pytest.mark.parametrize(("pin", "points"), [((3000, 3350), 1000), ((3110, 3350), 500)])
+def test_trying_a_place_grades_a_pin(client: TestClient, pin: tuple[int, int], points: int) -> None:
+    value = [{"x": pin[0], "y": pin[1]}]
+    response = client.post(
+        "/api/suggestions/try", json={"content": PLACE["content"], "value": value}
+    )
+    assert response.status_code == 200, response.text
+    tried = response.json()
+    assert "targets" not in tried["view"]
+    assert tried["result"]["points"] == points
 
 
 # --- the limit ------------------------------------------------------------------------

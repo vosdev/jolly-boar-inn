@@ -36,6 +36,10 @@
    * reveal. The TV keeps the stage without a bubble: the host says its ask line, then its
    * reveal line, at the sheet's foot, but there are no points, pin or confetti, since the
    * TV answers nothing.
+   *
+   * A `map_pin` question's answers are the world map, which fills the stage (`StageView`).
+   * The TV shows no map while players pin, like any other answers; its reveal has the map
+   * with the panel beside it.
    */
   import { untrack, type Snippet } from 'svelte'
   import { get } from 'svelte/store'
@@ -95,6 +99,8 @@
     children?: Snippet
   } = $props()
 
+  const pinned = $derived(question.type === 'map_pin')
+  const onMap = $derived(pinned && (!tv || reveal !== null))
   const host = $derived(hostOf(question.mode))
   const yours = $derived(!tv && question.you_can_answer)
   const lines = $derived(
@@ -180,8 +186,12 @@
     bubble={tv ? null : reveal === null && yourValue !== null ? 'dim' : 'on'}
     award={reveal === null || tv ? NO_AWARD : awardFor(result)}
     {tv}
+    map={onMap ? (reveal === null ? 'open' : 'reveal') : null}
   >
-    {#if tv}
+    {#if onMap}
+      {@render answers?.()}
+      {#if tv}{@render tvPanel(null)}{:else}{@render children?.()}{/if}
+    {:else if tv}
       {@render tvPanel(answers)}
     {:else if (answers !== null && !stemOnly) || children}
       <section class="panel answers">
@@ -230,9 +240,13 @@
   {#if reveal !== null}
     <PointsSlot {result} canAnswer={question.you_can_answer} />
   {/if}
-  <section class="panel answers">
-    {#if answers === null}{@render stem()}{:else}{@render answers()}{/if}
-  </section>
+  {#if pinned && answers !== null}
+    <div class="beside-tv answers">{@render answers()}</div>
+  {:else}
+    <section class="panel answers">
+      {#if answers === null}{@render stem()}{:else}{@render answers()}{/if}
+    </section>
+  {/if}
   {#if reveal === null && yourValue !== null}
     <p class="host-line">{lines.waiting}</p>
   {/if}
@@ -319,6 +333,12 @@
     .answers {
       padding: calc(0.5rem - var(--border-give));
     }
+  }
+
+  /* All the phone has while the room's TV shows the question. */
+  .beside-tv {
+    height: calc(100dvh - 8rem);
+    padding: 0;
   }
 
   /* The stage's width without the stage, so the answers sit where they would under it. */

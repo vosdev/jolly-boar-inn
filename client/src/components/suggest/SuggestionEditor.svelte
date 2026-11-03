@@ -12,7 +12,8 @@
    * since it exists only once imported. A shadow of an NPC the game already asks about is
    * refused before it is sent, given the list beside the editor. A Forgetful Bard question is a
    * verse and its item, from the list or typed if the list lacks it; the item fills in its wiki
-   * page, and the preview's reveal has no picture, which a room alone may name. An item is only a name, since the import script finds its id; nothing
+   * page, and the preview's reveal has no picture, which a room alone may name. A place on the
+   * map is a name, a box and a reach, and the operator alone may reword what its round asks. An item is only a name, since the import script finds its id; nothing
    * on the wiki is needed to check one. Beside it the roster, searchable, so nobody writes
    * up an item the game already has; its credit is kept but cannot be shown.
    *
@@ -24,7 +25,11 @@
   import { get } from 'svelte/store'
 
   import type { CustomQuestion, CustomType } from '../../lib/customQuestions'
+  import { boundsOf } from '../../lib/pins'
+  import type { PinTarget } from '../../lib/pins'
   import { fieldHints } from '../../lib/placeholders'
+  import type { MapBounds } from '../../lib/map'
+  import { DEFAULT_REACH } from '../../lib/mapBox'
   import { NAME_MAX } from '../../lib/names'
   import type { MatchingQuestion } from '../../lib/matching'
   import type { OrderingQuestion } from '../../lib/ordering'
@@ -45,6 +50,8 @@
     NO_ROUND,
     npcNameProblem,
     pictureItemProblem,
+    placeProblem,
+    placePrompt,
     questionPreview,
     sourceProblems,
     stageMode,
@@ -66,6 +73,7 @@
   import CustomQuestionForm from '../CustomQuestionForm.svelte'
   import ItemPicker from './ItemPicker.svelte'
   import MatchingForm from '../MatchingForm.svelte'
+  import PlaceField from './PlaceField.svelte'
   import OrderingForm from '../OrderingForm.svelte'
   import Segmented from '../Segmented.svelte'
   import SimilarQuestions from './SimilarQuestions.svelte'
@@ -124,6 +132,11 @@
   )
   // svelte-ignore state_referenced_locally
   let verse = $state(choice.verse ? ((start?.payload?.prompt as string | undefined) ?? '') : '')
+  const startPlace = (start?.payload?.targets as PinTarget[] | undefined)?.[0]
+  let placeName = $state(startPlace?.name ?? '')
+  let box = $state<MapBounds | null>(startPlace === undefined ? null : boundsOf(startPlace))
+  let reach = $state((start?.payload?.reach as number | undefined) ?? DEFAULT_REACH)
+  let asks = $state(startPlace === undefined ? '' : ((start?.payload?.prompt as string) ?? ''))
   let attempted = $state(false)
   let roster = $state<readonly VocabEntry[] | 'loading' | 'failed'>('loading')
   let rosterQuery = $state('')
@@ -139,7 +152,10 @@
   const customTypes = $derived(
     choice.types.filter(
       (type): type is CustomType =>
-        type !== 'ordering' && type !== 'matching' && type !== 'pick_from_list',
+        type !== 'ordering' &&
+        type !== 'matching' &&
+        type !== 'pick_from_list' &&
+        type !== 'map_pin',
     ),
   )
   // The type the form opened on, and the one picked since. A round may sort, match and ask,
@@ -176,7 +192,10 @@
   }
   // svelte-ignore state_referenced_locally
   const question: CustomQuestion | undefined =
-    start?.type === 'ordering' || start?.type === 'matching' || start?.type === 'pick_from_list'
+    start?.type === 'ordering' ||
+    start?.type === 'matching' ||
+    start?.type === 'pick_from_list' ||
+    start?.type === 'map_pin'
       ? undefined
       : start?.type === undefined
         ? roundPrompt === undefined
@@ -192,7 +211,8 @@
       current === undefined ||
       current === 'ordering' ||
       current === 'matching' ||
-      current === 'pick_from_list'
+      current === 'pick_from_list' ||
+      current === 'map_pin'
       ? question
       : { type: current, payload: prompted({}) },
   )
@@ -242,12 +262,42 @@
   const naming = $derived(
     (choice.named === true || choice.verse === true) && current === 'pick_from_list',
   )
+  const placing = $derived(current === 'map_pin')
+  const placeError = $derived(placeProblem(placeName))
+  const boxError = $derived(box === null ? 'Tap the map to mark the place.' : null)
+  const askedText = $derived(initial === undefined ? placePrompt(placeName) : asks.trim())
+  const askError = $derived(askedText === '' ? 'Required: what the round asks.' : null)
+  const placeDone = $derived(placeError === null && boxError === null && askError === null)
+  const placeQuestion = $derived<QuestionContent>({
+    type: 'map_pin',
+    mode: choice.id,
+    payload: {
+      prompt: askedText,
+      targets:
+        box === null
+          ? []
+          : [
+              {
+                name: placeName.trim(),
+                min_x: box.minX,
+                max_x: box.maxX,
+                min_y: box.minY,
+                max_y: box.maxY,
+              },
+            ],
+      ...(reach === DEFAULT_REACH ? {} : { reach }),
+    },
+  })
   const similarTo = $derived<QuestionContent | undefined>(
-    naming
-      ? npcError === null
-        ? npcQuestion
+    placing
+      ? placeDone
+        ? placeQuestion
         : undefined
-      : drafted && { ...drafted, ...(choice.id === NO_ROUND ? {} : { mode: choice.id }) },
+      : naming
+        ? npcError === null
+          ? npcQuestion
+          : undefined
+        : drafted && { ...drafted, ...(choice.id === NO_ROUND ? {} : { mode: choice.id }) },
   )
   const itemError = $derived(itemProblem({ name }, typeof roster === 'string' ? [] : roster))
   const rosterFound = $derived(typeof roster === 'string' ? [] : search(roster, rosterQuery))
@@ -268,9 +318,11 @@
       questionDone:
         choice.kind === 'item'
           ? itemError === null
-          : naming
-            ? npcError === null
-            : formProgress.questionDone,
+          : placing
+            ? placeDone
+            : naming
+              ? npcError === null
+              : formProgress.questionDone,
       difficultyDone: !tiered || difficulty !== undefined,
       extrasFilled:
         formProgress.extrasFilled || (Boolean(choice.pictureItem) && pictureItem.trim() !== ''),
@@ -325,6 +377,25 @@
       return
     }
     send({ ...npcQuestion, ...givenLinks(), ...(difficulty !== undefined ? { difficulty } : {}) })
+  }
+
+  function savePlace(): void {
+    attempted = true
+    if (
+      creditError !== null ||
+      !sourcePasses ||
+      !placeDone ||
+      (tiered && difficulty === undefined)
+    ) {
+      return
+    }
+    send({ ...placeQuestion, ...givenLinks(), ...(difficulty !== undefined ? { difficulty } : {}) })
+  }
+
+  // The place's page fills in as its name does, until the player writes one of their own.
+  function namePlace(next: string): void {
+    if (wiki.trim() === '' || wiki === itemPage(placeName)) wiki = itemPage(next)
+    placeName = next
   }
 
   // The item's page fills in until the player writes one of their own.
@@ -559,6 +630,55 @@
       </section>
     </div>
   </div>
+{:else if placing}
+  <div class="editor surface place" role="group" aria-labelledby="{id}-title">
+    <SuggestSteps {steps} />
+    <div class="layout stacks">
+      <div class="fields">
+        <h3 id="{id}-title">{choice.label}</h3>
+        <StepCard number={1} step={steps[0]!}>
+          <div class="field">
+            <label for="{id}-place">Place, as the wiki spells it</label>
+            <input
+              id="{id}-place"
+              type="text"
+              value={placeName}
+              oninput={(event) => namePlace(event.currentTarget.value)}
+            />
+            {@render problem(placeError, attempted)}
+          </div>
+          {#if initial !== undefined}
+            <div class="field">
+              <label for="{id}-asks">What the round asks</label>
+              <input id="{id}-asks" type="text" bind:value={asks} />
+              {@render problem(askError, attempted)}
+            </div>
+          {/if}
+          <PlaceField
+            {box}
+            {reach}
+            name={placeName}
+            onbox={(next) => (box = next)}
+            onreach={(next) => (reach = next)}
+          />
+          {@render problem(boxError, attempted)}
+        </StepCard>
+        {@render stepDifficultyCard()}
+        <StepCard number={sourceStepIndex + 1} step={steps[sourceStepIndex]!}>
+          {@render wikiField(attempted)}
+        </StepCard>
+        <StepCard number={creditStepIndex + 1} step={steps[creditStepIndex]!}>
+          {@render creditFields(attempted)}
+        </StepCard>
+        {@render similar()}
+        {@render buttons(savePlace)}
+      </div>
+      <section class="preview" aria-label="Preview">
+        <p class="note">What players will see</p>
+        <TryPreview content={similarTo} question={questionPreview(placeQuestion)} {hero} />
+      </section>
+    </div>
+  </div>
 {:else if choice.kind === 'question' && sorts}
   <OrderingForm
     question={ordering}
@@ -721,6 +841,22 @@
     grid-template-columns: 3fr 2fr;
     gap: 1.25rem;
     align-items: start;
+  }
+
+  /* The step line's labels never wrap, so this holds them to the width there is. */
+  .place {
+    container-type: inline-size;
+  }
+
+  /* A map too narrow to find anything on is no use: it stands over the preview until both fit. */
+  .layout.stacks {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  @container (min-width: 46rem) {
+    .layout.stacks {
+      grid-template-columns: 3fr 2fr;
+    }
   }
 
   .fields {

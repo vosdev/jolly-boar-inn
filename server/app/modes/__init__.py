@@ -185,8 +185,16 @@ def round_modes() -> list[Mode]:
     return [mode for mode in MODES.values() if mode.is_round]
 
 
+# Beside the asset ids in ``pictures``: the world map is what a map question draws on, and
+# has to be on the instance the way a picture does. No asset id looks like it.
+TILES = "map:tiles"
+
+
 def drawable(question: dict[str, Any], pictures: Collection[str]) -> bool:
-    """Whether a room may draw ``question``: in a ``pictured`` mode, only with its picture."""
+    """Whether a room may draw ``question``: in a ``pictured`` mode, only with its picture,
+    and on the map only with the tiles."""
+    if question.get("type") == "map_pin" and TILES not in pictures:
+        return False
     mode = MODES.get(question["mode"])
     return mode is None or not mode.pictured or question["payload"].get("image") in pictures
 

@@ -12,8 +12,9 @@ Three rounds need their own rule. Odd One Out always asks the same thing, so its
 the question, compared as a set so a shuffle is no disguise. Who's That NPC? asks the same
 too, and its NPC is the whole question: the same NPC is 100, another 0. The Forgetful Bard's
 verses differ, but an item with a verse is worth flagging, so the same item is 100 and two
-items compare as any question does. A pack question names its answer by ``answer_id``; a
-suggestion only by name until the import finds its id.
+items compare as any question does. A place in a map round is 100 for the same name or a box
+that overlaps, since a place asked twice under two names is still one place. A pack question
+names its answer by ``answer_id``; a suggestion only by name until the import finds its id.
 
 Questions of different types share nothing but the prompt, so it alone decides.
 """
@@ -24,6 +25,7 @@ from typing import Any
 
 from app.questions import vocab
 from app.questions.normalize import normalize
+from app.questions.types.map_pin import overlap
 
 PROMPT_WEIGHT = 0.7
 # A warning, not a verdict: low enough to catch a reworded duplicate, high enough that a
@@ -33,6 +35,7 @@ TOP = 3
 OPTIONS_MODES = frozenset({"odd_one_out"})
 NPC_MODE = "whos_that_npc"
 ITEM_MODES = frozenset({"forgetful_bard"})
+MAP_TYPE = "map_pin"
 
 
 @dataclass(frozen=True)
@@ -86,6 +89,9 @@ def _answers(type_: str, payload: dict[str, Any]) -> tuple[frozenset[Any], str]:
     if type_ == "pick_from_list":
         name = vocab.fold(_subject_name(payload))
         return frozenset({name}), name
+    if type_ == MAP_TYPE:
+        names = [normalize(target["name"]) for target in payload["targets"]]
+        return frozenset(names), " ".join(names)
     return frozenset(), ""
 
 
@@ -110,6 +116,8 @@ def features(question: dict[str, Any]) -> Features:
         image = payload.get("image")
         right = vocab.fold(payload["options"][payload["answer_index"]])
         subject = (int(image.removeprefix("npc:")) if image else None, right)
+    elif type_ == MAP_TYPE:
+        subject = tuple(payload["targets"])
     return Features(
         type=type_,
         mode=question.get("mode"),
@@ -130,11 +138,19 @@ def _same_subject(a: tuple[Any, str], b: tuple[Any, str]) -> bool:
     return a[1] == b[1]
 
 
+def _same_place(a: Features, b: Features) -> bool:
+    return bool(a.answers & b.answers) or any(
+        overlap(first, second) for first in a.subject for second in b.subject
+    )
+
+
 def score(a: Features, b: Features) -> int:
     """How alike two questions are, from 0 to 100."""
     if a.mode == b.mode == NPC_MODE:
         return 100 if _same_subject(a.subject, b.subject) else 0
     if a.mode == b.mode and a.mode in ITEM_MODES and _same_subject(a.subject, b.subject):
+        return 100
+    if a.mode == b.mode and a.type == b.type == MAP_TYPE and _same_place(a, b):
         return 100
     if a.mode == b.mode and a.mode in OPTIONS_MODES:
         union = a.options | b.options

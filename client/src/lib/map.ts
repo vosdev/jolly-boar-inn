@@ -42,6 +42,20 @@ export function flipRow(row: number): number {
   return -row - 1
 }
 
+/** Lumbridge, on land, so its tile is on disk wherever the map is. */
+const LAND: WorldPoint = { x: 3222, y: 3218 }
+
+/** Whether this server has the map: a dev server answers a missing file with a page, so this loads it. */
+export function tilesLoad(): Promise<boolean> {
+  const { x, row } = tileAt(LAND, LOWEST_ZOOM)
+  return new Promise((done) => {
+    const tile = new Image()
+    tile.onload = () => done(true)
+    tile.onerror = () => done(false)
+    tile.src = tileUrl(LOWEST_ZOOM, x, row)
+  })
+}
+
 /** The tile holding a game tile, at a zoom. */
 export function tileAt(point: WorldPoint, zoom: number): { x: number; row: number } {
   const units = TILE_SIZE / 2 ** zoom
@@ -56,4 +70,34 @@ export function toLatLng(point: WorldPoint): [number, number] {
 /** The game tile under a point on the map. */
 export function toWorld(latLng: { lat: number; lng: number }): WorldPoint {
   return { x: Math.floor(latLng.lng), y: Math.floor(latLng.lat) }
+}
+
+/** The tile nearest `point` that lies inside `area`, whose top and right edges are outside it. */
+export function clampTile(point: WorldPoint, area: MapBounds): WorldPoint {
+  return {
+    x: Math.min(Math.max(point.x, area.minX), area.maxX - 1),
+    y: Math.min(Math.max(point.y, area.minY), area.maxY - 1),
+  }
+}
+
+/** The rectangle round `points`, `margin` tiles wider on every side. */
+export function around(points: readonly WorldPoint[], margin: number): MapBounds {
+  const xs = points.map((point) => point.x)
+  const ys = points.map((point) => point.y)
+  return {
+    minX: Math.min(...xs) - margin,
+    maxX: Math.max(...xs) + margin,
+    minY: Math.min(...ys) - margin,
+    maxY: Math.max(...ys) + margin,
+  }
+}
+
+/** Whether `area` lies wholly inside `outer`. */
+export function within(area: MapBounds, outer: MapBounds): boolean {
+  return (
+    area.minX >= outer.minX &&
+    area.maxX <= outer.maxX &&
+    area.minY >= outer.minY &&
+    area.maxY <= outer.maxY
+  )
 }

@@ -17,6 +17,7 @@ import type { CustomQuestion, CustomType, FormWording } from './customQuestions'
 import { CUSTOM_TYPES, TYPE_LABELS, previewOf } from './customQuestions'
 import { pastGames } from './history'
 import { WIKI_URL } from './links'
+import { DEFAULT_REACH } from './mapBox'
 import { HOUSE, MODES, UPCOMING_MODES } from './modes'
 import { nameProblem } from './names'
 import {
@@ -25,8 +26,9 @@ import {
   type MatchingQuestion,
 } from './matching'
 import { answerLine, previewOf as orderingPreview, type OrderingQuestion } from './ordering'
+import type { PinTarget } from './pins'
 import type { OpenQuestion, PlayerResult } from './protocol'
-import { codePoints, envelopeProperty, field, limit } from './questionSchema'
+import { codePoints, definition, envelopeProperty, field, limit } from './questionSchema'
 import { RANDOM_EVENTS } from './randomEvents'
 import type { ReportChoice } from './reports'
 import { fold, words, type VocabEntry } from './vocab'
@@ -43,16 +45,17 @@ export type SuggestionStatus = 'pending' | 'approved' | 'rejected' | 'imported'
 
 /**
  * The types a suggestion may be: Create's, an ordering for the rounds that sort and the NPCs,
- * a matching for the rounds that match, text fields only, and a pick from the list for
- * Who's That NPC?.
+ * a matching for the rounds that match, text fields only, a pick from the list for
+ * Who's That NPC? and a pin on the map for the rounds that ask for a place.
  */
-export type SuggestedType = CustomType | 'ordering' | 'matching' | 'pick_from_list'
+export type SuggestedType = CustomType | 'ordering' | 'matching' | 'pick_from_list' | 'map_pin'
 
 export const SUGGESTED_TYPE_LABELS: Record<SuggestedType, string> = {
   ...TYPE_LABELS,
   ordering: 'Put in order',
   matching: 'Match them up',
   pick_from_list: 'Pick from the list',
+  map_pin: 'Pin on the map',
 }
 
 export interface QuestionContent {
@@ -106,6 +109,10 @@ export function questionPreview(content: QuestionContent): OpenQuestion {
       type: 'pick_from_list',
       view: { prompt: content.payload.prompt },
     }
+  }
+  if (content.type === 'map_pin') {
+    const open = previewOf({ type: 'multiple_choice', payload: {} }, mode)
+    return { ...open, type: 'map_pin', view: { prompt: content.payload.prompt, pins: 1 } }
   }
   return previewOf(content as CustomQuestion, mode === 'random_event' ? undefined : mode)
 }
@@ -190,6 +197,8 @@ export interface Choice {
   named?: boolean
   /** Whether a question is a verse and the item it describes: `VERSE_MODES` on the server. */
   verse?: boolean
+  /** Whether a question is a place on the world map, so this server needs its tiles. */
+  map?: boolean
   /** What the type picker calls a type, where the round's word says more than the type's. */
   typeLabels?: Partial<Record<SuggestedType, string>>
 }
@@ -308,7 +317,7 @@ const ROUND_WORDING: Record<string, FormWording> = {
 }
 
 /** Rounds whose pack holds every question to its wiki page: `WIKI_MODES` on the server. */
-const WIKI_ROUNDS = ['guess_examine', 'whos_that_npc']
+const WIKI_ROUNDS = ['guess_examine', 'whos_that_npc', 'mark_the_map']
 
 /** Rounds whose questions may name an item to picture: `PICTURE_ITEM_MODES` on the server. */
 const PICTURE_ITEM_ROUNDS = ['drop_table', 'minigame_madness']
@@ -317,7 +326,12 @@ const PICTURE_ITEM_ROUNDS = ['drop_table', 'minigame_madness']
 const QUOTE_ROUNDS = ['who_said_that', 'know_your_content_creator', 'uris_unravelling']
 
 /** Rounds whose questions carry no explanation: `NO_EXPLANATION_MODES` on the server. */
-export const NO_EXPLANATION_ROUNDS = ['guess_examine', 'whos_that_npc', 'forgetful_bard']
+export const NO_EXPLANATION_ROUNDS = [
+  'guess_examine',
+  'whos_that_npc',
+  'forgetful_bard',
+  'mark_the_map',
+]
 
 /** Rounds whose questions may carry an intro, an NPC's line before the prompt: `INTRO_MODES` on the server. */
 export const INTRO_ROUNDS = ['random_event']
@@ -327,6 +341,9 @@ const NAMED_ROUNDS = ['whos_that_npc']
 
 /** Rounds whose question is a verse about an item: `VERSE_MODES` on the server. */
 const VERSE_ROUNDS = ['forgetful_bard']
+
+/** Rounds that ask for a place, set on the world map. */
+const MAP_ROUNDS = ['mark_the_map']
 
 /** Rounds that sort: `ordering` questions, the form with its tie boxes. */
 const ORDERING_ROUNDS = ['sort_it_out', 'release_order']
@@ -402,6 +419,19 @@ export const CHOICES: readonly Choice[] = [
       types: ['pick_from_list'],
       explanation: !NO_EXPLANATION_ROUNDS.includes(mode.id),
       verse: true,
+    })),
+  ...MAP_ROUNDS.map(choiceRound)
+    .filter((mode) => mode !== undefined)
+    .map((mode): Choice => ({
+      id: mode.id,
+      kind: 'question',
+      label: mode.label,
+      hint: 'A place players should be able to find.',
+      host: mode.host,
+      types: ['map_pin'],
+      explanation: !NO_EXPLANATION_ROUNDS.includes(mode.id),
+      wikiOnly: WIKI_ROUNDS.includes(mode.id),
+      map: true,
     })),
   ...ORDERING_ROUNDS.map(choiceRound)
     .filter((mode) => mode !== undefined)
@@ -599,6 +629,18 @@ export function itemPage(name: string): string {
   return trimmed === '' ? '' : `${WIKI_URL}/w/${encodeURI(trimmed.replaceAll(' ', '_'))}`
 }
 
+/** What a place's round asks, from the name a player gives it. */
+export function placePrompt(name: string): string {
+  return name.trim() === '' ? '' : `Where is ${name.trim()}?`
+}
+
+/** The longest name a target takes: the schema's. */
+const PLACE_MAX = limit(definition('short_text'), 'maxLength') ?? 0
+
+export function placeProblem(name: string): string | null {
+  return textProblem(name, PLACE_MAX, 'the place’s name')
+}
+
 /** The item a question pictures, which it need not name. */
 export function pictureItemProblem(name: string): string | null {
   return codePoints(name.trim()) > ITEM_NAME_MAX ? `At most ${ITEM_NAME_MAX} characters.` : null
@@ -721,6 +763,13 @@ export function answerOf(suggestion: Pick<SuggestionBody, 'kind' | 'content'>): 
     return (payload.answer_indices as number[]).map((index) => options[index] ?? '').join(' / ')
   }
   if (type === 'free_text') return (payload.accepted as string[]).join(' / ')
+  if (type === 'map_pin') {
+    const [place] = payload.targets as PinTarget[]
+    if (place === undefined) return ''
+    const box = `x ${place.min_x}–${place.max_x}, y ${place.min_y}–${place.max_y}`
+    const reach = payload.reach ?? DEFAULT_REACH
+    return `${place.name} (${box}, reach ${String(reach)})`
+  }
   return [String(payload.answer), payload.unit].filter((part) => part !== undefined).join(' ')
 }
 

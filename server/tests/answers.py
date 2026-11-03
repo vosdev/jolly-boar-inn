@@ -9,7 +9,14 @@ from collections.abc import Callable
 from typing import Any
 
 from app.questions import normalize, vocab
-from app.questions.types import matching, multiple_choice, ordering, pick_all_that_apply, slider
+from app.questions.types import (
+    map_pin,
+    matching,
+    multiple_choice,
+    ordering,
+    pick_all_that_apply,
+    slider,
+)
 from app.questions.types.free_text import MAX_LENGTH
 
 
@@ -73,12 +80,21 @@ def _far_bound(payload: dict[str, Any]) -> int:
     return high if slider.middle(low, high, payload["scale"]) > payload["answer"] else low
 
 
+def _other_side_of_the_map(payload: dict[str, Any]) -> list[dict[str, int]]:
+    area = payload.get("bounds", map_pin.SURFACE)
+    middle = (area["min_x"] + area["max_x"]) / 2
+    west = all(target["min_x"] > middle for target in payload["targets"])
+    x = area["min_x"] if west else area["max_x"] - 1
+    return [{"x": x, "y": area["min_y"]} for _ in payload["targets"]]
+
+
 _RIGHT: dict[str, Callable[[dict[str, Any]], Any]] = {
     "more_less": lambda payload: payload["answer_index"],
     "price_is_right": lambda payload: payload["value"],
     "multiple_choice": lambda payload: multiple_choice.reveal(payload)["answer_index"],
     "pick_from_list": lambda payload: payload["answer_id"],
     "closest_number": lambda payload: payload["answer"],
+    "map_pin": lambda payload: [{"x": t["min_x"], "y": t["min_y"]} for t in payload["targets"]],
     "number_slider": lambda payload: payload["answer"],
     "free_text": lambda payload: payload["accepted"][0],
     "pick_all_that_apply": lambda payload: pick_all_that_apply.reveal(payload)["answer_indices"],
@@ -93,6 +109,7 @@ _WRONG: dict[str, Callable[[dict[str, Any]], Any]] = {
     "multiple_choice": _another_shown_option,
     "pick_from_list": _another_entry,
     "closest_number": lambda payload: payload["answer"] + payload.get("within", 0) + 1,
+    "map_pin": _other_side_of_the_map,
     "number_slider": _far_bound,
     "free_text": _nothing_like_it,
     "pick_all_that_apply": _only_wrong,

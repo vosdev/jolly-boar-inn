@@ -175,6 +175,10 @@ export function packAnswer(question: PackQuestion): string {
       return matchingLine(payload)
     case 'free_text':
       return (payload.accepted as string[]).join(' / ')
+    case 'map_pin': {
+      const targets = payload.targets as { name: string }[]
+      return targets.map((target) => target.name).join(', ')
+    }
     case 'closest_number':
       return [str(payload.answer), str(payload.unit)].filter((part) => part !== '').join(' ')
     case 'number_slider': {

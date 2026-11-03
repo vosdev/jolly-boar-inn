@@ -52,6 +52,7 @@ from app.http.ratelimit import (
     TRIES_PER_HOUR,
     RateLimiter,
 )
+from app.map import tile_picture
 from app.pets import assign_missing_pets, load_pickable_pets
 from app.pictures import load_pictures
 from app.questions import vocab as vocabularies
@@ -197,7 +198,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         pets=load_pickable_pets(),
         pictures=load_pictures(
             client=Path(settings.client_pictures or app.state.client_dist / "pictures")
-        ),
+        )
+        | tile_picture(client=Path(settings.client_map or app.state.client_dist / "map")),
     )
     app.state.pool = None
     app.state.instance_lock = None

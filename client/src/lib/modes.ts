@@ -1826,7 +1826,14 @@ export const MODES: Record<string, Mode> = {
  * belongs deleted. A host here is never on the random-event roster: that face means an
  * interruption.
  */
-export const UPCOMING_MODES: { id: string; label: string; hint: string; host: string }[] = [
+export const UPCOMING_MODES: {
+  id: string
+  label: string
+  hint: string
+  host: string
+  /** For a round whose suggestions are previewed before it ships. */
+  stem?: StemId
+}[] = [
   {
     id: 'release_order',
     label: 'Release Order',
@@ -1844,6 +1851,13 @@ export const UPCOMING_MODES: { id: string; label: string; hint: string; host: st
     label: 'Minimap Guesser',
     hint: 'Where in the name of Gielinor is that?',
     host: 'captain_errdo',
+  },
+  {
+    id: 'mark_the_map',
+    label: 'Mark the Map',
+    hint: 'Hatius names a place. Show him where it is.',
+    host: 'hatius_cosaintus',
+    stem: 'text',
   },
   {
     id: 'scrying_pool',

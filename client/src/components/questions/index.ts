@@ -19,7 +19,7 @@
 
 import type { Component } from 'svelte'
 
-import { MODES, type StemId } from '../../lib/modes'
+import { MODES, UPCOMING_MODES, type StemId } from '../../lib/modes'
 import type { Line } from '../../lib/typing.svelte'
 import type { StemProps, TypeViewProps } from './props'
 import AssetStem, { lines as assetLines } from './stems/AssetStem.svelte'
@@ -31,6 +31,7 @@ import QuoteStem, { lines as quoteLines } from './stems/QuoteStem.svelte'
 import TextStem, { lines as textLines } from './stems/TextStem.svelte'
 import ClosestNumber from './types/ClosestNumber.svelte'
 import FreeText from './types/FreeText.svelte'
+import MapPin from './types/MapPin.svelte'
 import Matching from './types/Matching.svelte'
 import MoreLess from './types/MoreLess.svelte'
 import MultipleChoice from './types/MultipleChoice.svelte'
@@ -51,6 +52,7 @@ export const TYPE_VIEWS: Record<string, Component<TypeViewProps>> = {
   pick_all_that_apply: PickAllThatApply,
   ordering: Ordering,
   matching: Matching,
+  map_pin: MapPin,
 }
 
 // Keyed on `StemId` rather than `string`, so naming a stem in `lib/modes.ts` that has no
@@ -75,12 +77,16 @@ const STEM_LINES: Record<StemId, (data: Record<string, unknown>) => Line[]> = {
   board: boardLines,
 }
 
+function stemOf(mode: string): StemId | null {
+  return MODES[mode]?.stem ?? UPCOMING_MODES.find((entry) => entry.id === mode)?.stem ?? null
+}
+
 /**
  * The lines a mode's stem types onto the scroll, in order, which its `shown` counts. The
  * server counts the same lines to time the hold (`server/app/rooms/hold.py`).
  */
 export function stemLines(mode: string, data: Record<string, unknown>): Line[] {
-  const stem = MODES[mode]?.stem ?? null
+  const stem = stemOf(mode)
   return stem === null ? [] : STEM_LINES[stem](data)
 }
 
@@ -90,7 +96,7 @@ export interface QuestionPair {
 }
 
 export function viewFor(type: string, mode: string): QuestionPair {
-  const stem = MODES[mode]?.stem ?? null
+  const stem = stemOf(mode)
   return {
     stem: stem === null ? null : STEMS[stem],
     view: TYPE_VIEWS[type] ?? null,

@@ -72,6 +72,10 @@
     Want your name here?
     <a class="link" href="/suggest" target="_blank" rel="noopener">Suggest one →</a>
   </p>
+  <p class="map-credit">
+    The world map is rendered from the game cache with RuneLite's cache library, from the archive at
+    OpenRS2.
+  </p>
 
   <h3>The OSRS Wiki</h3>
   <p>

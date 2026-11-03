@@ -49,7 +49,7 @@ Routes: `/`, `/create`, `/r/:code` (the room with a session, Join without), `/r/
 `/history/:code/:stamp` (a finished game from this browser, `stamp` its `finished_at` as UTC
 `YYMMDDHHMM`), `/admin` and its tabs `/admin/suggestions`, `/reports`, `/questions` and `/roster` (the
 operator's view, section 10), linked from Reldo's box on Home once this
-browser holds the admin token, `/suggest` and `/report` (section 11), linked once it has finished a game, and `/daily` (section 7). `/dev/map` shows the map under `pnpm dev` only. The credits are a sheet from the footer.
+browser holds the admin token, `/suggest` and `/report` (section 11), linked once it has finished a game, and `/daily` (section 7). `/dev/map` plays `map_pin` on made-up players under `pnpm dev` only. The credits are a sheet from the footer.
 `/how-to-play` and `/how-to-play/:view` (a mode's name as a slug, or `random-events`) are drawn by Home.
 The retired `/r/:code/admin` resolves like `/r/:code`, because whoever holds that link knows the code.
 
@@ -119,7 +119,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
   At `run`: `multiple_choice` 10 + 2/option and 4 + 0.5/option, `pick_all_that_apply` 10 + 3 and
   4 + 1, `ordering` and `matching` 10 + 5 and 4 + 2 per entry or field, `price_is_right` 15 and 6,
   `more_less` 10 and 5, `pick_from_list` 25 and 6, `free_text` 20 and 7, `closest_number` 20 and 8,
-  `number_slider` 15 and 8.
+  `number_slider` 15 and 8, `map_pin` 20 + 10 and 8 + 2 per pin.
   `name_wrong_answers` adds 1 s to every reveal after the pace, for the names.
 - A game's minutes (`rooms/duration.py`) are a ceiling: every question's full answer and reveal,
   15 s per splash, standings between rounds. Create multiplies each round by its mode's `seconds`
@@ -198,6 +198,7 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 | `pick_all_that_apply` | distinct shown positions, sorted, at least one; exactly `picks` if set | right picks ÷ options right or picked |
 | `ordering` | shown positions, first end first: all, or `picks` of them | per place: 1 for its rank; with `picks`, ½ for another picked one |
 | `matching` | a distinct shown option position per field, in field order | right fields ÷ fields |
+| `map_pin` | a list of `{x, y}` in game tiles, one per target, inside `bounds` or the surface | mean of each pin's credit, at the pairing that scores best (section 8) |
 
 - Free text is NFKC-normalised, lowercased, stripped of punctuation and whitespace-collapsed, then
   matched within `max_distance` of an accepted answer. Levenshtein runs only inside that band, so it
@@ -221,6 +222,11 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 - `number_slider` stores integers. `check()` rejects `min` ≥ `max`, a log `min` below 1, a log
   `min`, `max` or `answer` off the three-figure grid, and an `answer` on an end or on the middle
   where the slider starts (half rounded up).
+- `map_pin` is `targets` (a `name` and a box of tiles, at least 10 across; six at most, one pin
+  each), optional `bounds`, a rectangle the map stops at, and optional `reach`. The open view has `pins`, the count, and never a
+  target. It plays in rounds only: `drawable` needs the tiles (`TILES` among `pictures`, from
+  `CLIENT_MAP` or the client), so a pool with no tiles is empty, and an event has no pool to empty.
+  Above five pinned players a several-pin map shows only your own, and the TV only the targets.
 - `pick_all_that_apply` stores sorted `answer_indices` and an optional `picks`, shown open. `check()`
   rejects no option right, and a `picks` that is not their count.
 - `pick_from_list` answers through one strict WAI-ARIA combobox. Typing only searches, by word
@@ -250,6 +256,7 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   the NPCs and a question with no round; a suggestion's fields are names only, and `/admin` adds icons.
 - Every round on Create takes suggestions, the price rounds and Pixel Hunt as items and Random Events Only as the
   NPCs' questions; a test fails on a new round that does neither. Not-yet-built image modes are not on Create.
+- `/suggest` offers `map_pin` for Mark the Map only, with its card shown once a tile loads: a place's name, one box and a `reach` of 50 to 200 on `MapView`, whose `grips` keep their markers through a drag. The prompt is `Where is <name>?`; the queue may reword it.
 
 `select(packs, custom, settings, rng)` fixes a room's questions at `start_game`, from the settings
 at that moment. Until then a lobby's `total`, `events`, `rounds` and `estimated_seconds` come from
@@ -548,7 +555,7 @@ from taking the lock. `grade` returns credit; `scoring.py` turns it into points 
 | `SCORING` | Points | Types |
 |---|---|---|
 | `SPEED` | `round(bucket points × credit)` | `more_less`, `price_is_right`, `number_slider`, `multiple_choice`, `free_text`, `pick_all_that_apply`, `ordering`, `matching` |
-| `ACCURACY` | `round(1000 × credit)` | `closest_number` |
+| `ACCURACY` | `round(1000 × credit)` | `closest_number`, `map_pin` |
 | `STEP` | `round(step points × credit)` | `pick_from_list` in a mode with `steps` |
 
 | Speed bucket | Fraction of the question's seconds | Points |
@@ -569,6 +576,11 @@ from taking the lock. `grade` returns credit; `scoring.py` turns it into points 
 Closest number: each guess against the answer alone, speed not counting. Exact is 1.0; within
 `within` (the answer's unit, shown while open) 0.75 falling linearly to 0.25; else 0. No `within`
 is exact only. Editors offer 0/5/10/25% of the answer, whole and at least 1 for a whole answer.
+
+Map pin: 1.0 inside the target's box, then a straight line from its edge to 0 at `reach` tiles: the
+question's own, else 100, or with `bounds` a fifth of their longer side up to 100. The client repeats
+the pairing (`lib/pins.ts`) to draw each pin's line: the server cannot send it in `value`, which is
+echoed while the question is open. `mapPins.fixture.json` holds both to the same answers.
 
 Slider (`price_is_right`): 1.0 for a guess that rounds to the price at two figures, then falling
 linearly from that band's edge to 0 at a quarter of the log width; the reveal ticks every guess.
@@ -786,7 +798,7 @@ key into them, so cleanup leaves it.
   or an `item` (a name not on the roster).
   A Who's That NPC? shadow's payload is its fixed prompt and `subject.name`, an NPC not on its
   list (`NAMED_MODES`); a render's right option names its NPC, and it has no `image` (`RENDER_MODES`).
-  A Forgetful Bard payload is a verse and `subject.name`, a plain item on the list or not, which the verse may not name (`VERSE_MODES`). A question but an NPC's (`NO_DIFFICULTY_MODES`) may carry a `difficulty`;
+  A Forgetful Bard payload is a verse and `subject.name`, a plain item on the list or not, which the verse may not name (`VERSE_MODES`). A place for Mark the Map is `prompt`, one target and a `reach`, nothing else (`_place_errors`), with a `wiki`. A question but an NPC's (`NO_DIFFICULTY_MODES`) may carry a `difficulty`;
   `/suggest` requires picking one, loading with the toggle unselected. Each has a `credit`
   held to the name rules and `credit_shown`, never true for an item. Pending, approved,
   rejected or imported. A round not built yet takes questions; they wait in approved. The client offers the form after a finished game; 10 an hour
@@ -794,7 +806,7 @@ key into them, so cleanup leaves it.
 - `app/similar.py` scores a question against another, 0–100: 0.7 × the trigram Dice of the
   normalised prompts (with quote) + 0.3 × the answers' (1 when equal; any accepted free-text
   spelling); prompts alone across types; Odd One Out by option-set overlap; Who's That NPC? 100
-  for the same NPC, shadow or render, else 0; The Forgetful Bard 100 for the same item, else as usual. `POST /api/suggestions/similar` takes a question as `POST
+  for the same NPC, shadow or render, else 0; The Forgetful Bard 100 for the same item, else as usual; a `map_pin` in the same round 100 for the same name or an overlapping box, else as usual. `POST /api/suggestions/similar` takes a question as `POST
   /api/suggestions` does, minus the link, and returns up to 3 pack questions (every pack mode but
   the price ones) at 60 or more as `{mode, label, score}`, never a suggestion; 120 an hour per
   address (`SIMILAR_PER_HOUR`). `/suggest` asks 800 ms after the prompt or answer changes.
@@ -849,7 +861,7 @@ Right until it does (More/Less keeps `sample.json`'s five, which `live_packs` dr
   which becomes `image`. A named NPC takes the first infobox row's id on its page (one
   `infobox_monster` query for the file, one `infobox_npc` for the rest), joins `popular-npcs.json`
   and gets its question filled in; a render's becomes its `image` and joins no list. A verse's item takes its roster id, or joins the roster as a suggested item does, and becomes `image`. Missing `assets.json` entries are added: the NPC's picture, the
-  item's detail image and icon. One refused entry, or packs that would not load, writes nothing.
+  item's detail image and icon. A generated pack never takes a suggestion: its mode's go in `<mode>_suggested.json`. One refused entry, or packs that would not load, writes nothing.
 - `make edit-packs FILE=…` applies an export of question changes: an edit replaces its question
   in place, keeping the file's key order, and recomputes its id; a delete removes it. A change to
   an id the packs no longer hold or in a generated pack, or packs that would not load, writes nothing.

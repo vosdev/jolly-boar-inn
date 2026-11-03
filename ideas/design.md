@@ -463,6 +463,12 @@ in display tabular numerals and the box's ink:
 - A suggested question whose player asked to be named ends the tally with "Question by Name",
   muted and off the scroll, so the reveal reads the same without it.
 
+**The map.** `map_pin`'s answers are the stage: the map fills it, the sheet on it at the top left,
+the bubble at the bottom left, Lock in at the bottom right. Your pet is your pin. Stacked, the sheet
+crosses the top and the host waits for the reveal. The reveal opens close on the target's box for 4 s,
+then pulls back to fit every pin, so the worst lands last: far pins are named first, the furthest
+in `--bad`, and the table ranks them all. The TV shows no map until the reveal.
+
 ## 11. Standings
 
 Standings appear between rounds and at the end, never between questions, in the `standings` phase

@@ -12,7 +12,8 @@ A player who has finished a game may suggest one of two kinds of content:
   list or one for the import script to add, which it may repeat, since an item may have several
   verses. A round not built yet takes them too, so its pack is ready when it opens;
   such a suggestion waits in the queue until it is. A player who cannot place a question may
-  send it with no mode: the operator picks its round before approving it.
+  send it with no mode: the operator picks its round before approving it. A place for Mark
+  the Map is one box and perhaps a ``reach``, on the whole map, with no picture.
 - ``item``: an item name for the roster (``data/popular-items.json``) that is not on it yet.
   The import script finds its id, so a player needs to know no more than the name.
 
@@ -139,6 +140,7 @@ QUESTION_MODES: dict[str, frozenset[str]] = {
     "sort_it_out": frozenset({"ordering"}),
     "release_order": frozenset({"ordering"}),
     "whos_that_npc": frozenset({"pick_from_list", "multiple_choice"}),
+    "mark_the_map": frozenset({"map_pin"}),
 }
 
 # Rounds whose prompt may be a list, one entry a line.
@@ -152,7 +154,9 @@ FIXED_PROMPTS = {"odd_one_out": "Which one doesn't belong?", "whos_that_npc": "W
 
 # An examine line is its own joke, and an NPC's name is its own answer: a line after either
 # only repeats it.
-NO_EXPLANATION_MODES = frozenset({"guess_examine", "whos_that_npc", "forgetful_bard"})
+NO_EXPLANATION_MODES = frozenset(
+    {"guess_examine", "whos_that_npc", "forgetful_bard", "mark_the_map"}
+)
 
 # The intro is an NPC's line before the question, so only an NPC's question takes one.
 INTRO_MODES = frozenset({"random_event"})
@@ -164,7 +168,7 @@ TAGS = {
     ("whos_that_npc", "multiple_choice"): ["render"],
 }
 # Rounds whose pack holds every question to the wiki page its author checked.
-WIKI_MODES = frozenset({"guess_examine", "whos_that_npc"})
+WIKI_MODES = frozenset({"guess_examine", "whos_that_npc", "mark_the_map"})
 # Rounds whose answer a player names, knowing no id: a ``pick_from_list`` payload is the
 # prompt and ``subject.name``, and the import script finds the id, fills in the rest and adds
 # the name to the round's list.
@@ -177,6 +181,11 @@ RENDER_MODES = frozenset({"whos_that_npc"})
 NPC_NAME_MAX = 80
 # The longest item names on the wiki are about 50 characters.
 ITEM_NAME_MAX = 80
+
+# A suggested place is one box on the whole map, and a reach near the default: past these the
+# round's points stop meaning much from one question to the next.
+PLACE_KEYS = frozenset({"prompt", "targets", "reach"})
+PLACE_REACH = (50, 200)
 
 # What a question with no round may be: Create's types, an ordering and a matching, as most
 # rounds take them. No NPC, intro, quote or fixed prompt, which only a round gives.
@@ -287,7 +296,9 @@ def _question_errors(content: dict[str, Any], sourced: bool) -> list[str]:
         return [f"$.payload.intro: only {', '.join(sorted(INTRO_MODES))} show an intro"]
     if "explanation" in content["payload"] and mode in NO_EXPLANATION_MODES:
         return [f"$.payload.explanation: {mode!r} shows no explanation"]
-    found = _icon_errors(content["type"], content["payload"])
+    found = _icon_errors(content["type"], content["payload"]) + _place_errors(
+        content["type"], content["payload"]
+    )
     if found:
         return found
     if "picture_item" in content:
@@ -330,6 +341,20 @@ def _icon_errors(type_: str, payload: dict[str, Any]) -> list[str]:
         for index, field in enumerate(fields)
         if isinstance(field, dict) and "icon" in field
     ]
+
+
+def _place_errors(type_: str, payload: dict[str, Any]) -> list[str]:
+    if type_ != "map_pin":
+        return []
+    extra = sorted(payload.keys() - PLACE_KEYS)
+    if extra:
+        return [f"$.payload.{key}: a suggested place has none" for key in extra]
+    targets, reach = payload.get("targets"), payload.get("reach", PLACE_REACH[0])
+    if not isinstance(targets, list) or len(targets) != 1:
+        return ["$.payload.targets: a suggestion is one place"]
+    if type(reach) is not int or not PLACE_REACH[0] <= reach <= PLACE_REACH[1]:
+        return [f"$.payload.reach: {PLACE_REACH[0]} to {PLACE_REACH[1]} tiles"]
+    return []
 
 
 def _named_errors(mode: str, payload: dict[str, Any]) -> list[str]:

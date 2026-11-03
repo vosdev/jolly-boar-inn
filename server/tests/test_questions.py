@@ -27,6 +27,7 @@ from app.questions.types import (
     TYPES,
     closest_number,
     free_text,
+    map_pin,
     matching,
     more_less,
     multiple_choice,
@@ -549,6 +550,7 @@ def test_registry_has_every_shipped_type() -> None:
         "pick_all_that_apply": pick_all_that_apply,
         "ordering": ordering,
         "matching": matching,
+        "map_pin": map_pin,
     }
     for module in TYPES.values():
         for name in ("client_view", "reveal", "grade", "parse_value", "check"):

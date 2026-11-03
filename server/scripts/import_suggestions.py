@@ -151,8 +151,21 @@ def credited(entry: dict[str, Any], where: str, plan: Plan) -> dict[str, Any] | 
     return {"credit": name, "credit_shown": True} if shown else {"credit": name}
 
 
+def generated_modes(plan: Plan, packs_dir: Path) -> set[str]:
+    """The modes with a generated pack."""
+    return {
+        question["mode"]
+        for path, data in plan.packs.items()
+        if path.parent == packs_dir and "generated_at" in data
+        for question in data["questions"]
+    }
+
+
 def pack_for(mode: str, npc: str | None, packs_dir: Path, plan: Plan) -> dict[str, Any]:
-    """The pack file a question of ``mode`` goes in, loaded into ``plan`` on first use."""
+    """The pack file a question of ``mode`` goes in, loaded into ``plan`` on first use.
+
+    Never a generated pack, whose next run would drop it: that mode's go in a file of their own.
+    """
     if mode == EVENT_MODE:
         path = packs_dir / EVENTS_DIR / f"{npc}.json"
         empty = {"pack": EVENTS_DIR, "random_event": npc, "questions": []}
@@ -160,10 +173,13 @@ def pack_for(mode: str, npc: str | None, packs_dir: Path, plan: Plan) -> dict[st
         holding = [
             path
             for path, data in plan.packs.items()
-            if path.parent == packs_dir and any(q["mode"] == mode for q in data["questions"])
+            if path.parent == packs_dir
+            and "generated_at" not in data
+            and any(q["mode"] == mode for q in data["questions"])
         ]
-        path = holding[0] if holding else packs_dir / f"{mode}.json"
-        empty = {"pack": mode, "questions": []}
+        name = mode if mode not in generated_modes(plan, packs_dir) else f"{mode}_suggested"
+        path = holding[0] if holding else packs_dir / f"{name}.json"
+        empty = {"pack": name, "questions": []}
     return plan.packs.setdefault(path, empty)
 
 

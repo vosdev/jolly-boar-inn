@@ -48,6 +48,9 @@
   style:--play-padding={padding === null
     ? null
     : `${padding.top}px ${padding.side}px ${padding.bottom}px`}
+  style:--stage-height={fit === null || padding === null
+    ? null
+    : `${fit.height - padding.top - padding.bottom}px`}
 >
   <div class="play" class:revealing class:final>
     <div class="stage-side" data-fit-stage>
@@ -164,7 +167,7 @@
     max-width: var(--stage-wide);
   }
 
-  .fitted :global(.stage.speaks .stage-row) {
+  .fitted :global(.stage.speaks:not(.map) .stage-row) {
     --scroll-text: 1.5;
     --scroll-scale: 1.25;
   }

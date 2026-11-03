@@ -1,0 +1,252 @@
+[
+  {
+    "about": "one pin inside the box",
+    "targets": [
+      {
+        "name": "A",
+        "min_x": 2000,
+        "max_x": 2040,
+        "min_y": 3000,
+        "max_y": 3080
+      }
+    ],
+    "pins": [
+      {
+        "x": 2010,
+        "y": 3070
+      }
+    ],
+    "pairing": [0],
+    "credit": 1.0,
+    "scored_reach": 100
+  },
+  {
+    "about": "on the edge of the box",
+    "targets": [
+      {
+        "name": "A",
+        "min_x": 2000,
+        "max_x": 2040,
+        "min_y": 3000,
+        "max_y": 3080
+      }
+    ],
+    "pins": [
+      {
+        "x": 2040,
+        "y": 3000
+      }
+    ],
+    "pairing": [0],
+    "credit": 1.0,
+    "scored_reach": 100
+  },
+  {
+    "about": "fifty tiles outside",
+    "targets": [
+      {
+        "name": "A",
+        "min_x": 2000,
+        "max_x": 2040,
+        "min_y": 3000,
+        "max_y": 3080
+      }
+    ],
+    "pins": [
+      {
+        "x": 2090,
+        "y": 3050
+      }
+    ],
+    "pairing": [0],
+    "credit": 0.5,
+    "scored_reach": 100
+  },
+  {
+    "about": "past the reach scores nothing",
+    "targets": [
+      {
+        "name": "A",
+        "min_x": 2000,
+        "max_x": 2040,
+        "min_y": 3000,
+        "max_y": 3080
+      }
+    ],
+    "pins": [
+      {
+        "x": 2300,
+        "y": 3050
+      }
+    ],
+    "pairing": [0],
+    "credit": 0.0,
+    "scored_reach": 100
+  },
+  {
+    "about": "off a corner",
+    "targets": [
+      {
+        "name": "A",
+        "min_x": 2000,
+        "max_x": 2040,
+        "min_y": 3000,
+        "max_y": 3080
+      }
+    ],
+    "pins": [
+      {
+        "x": 2070,
+        "y": 3120
+      }
+    ],
+    "pairing": [0],
+    "credit": 0.5,
+    "scored_reach": 100
+  },
+  {
+    "about": "two pins swapped",
+    "targets": [
+      {
+        "name": "A",
+        "min_x": 2000,
+        "max_x": 2040,
+        "min_y": 3000,
+        "max_y": 3040
+      },
+      {
+        "name": "B",
+        "min_x": 2500,
+        "max_x": 2540,
+        "min_y": 3000,
+        "max_y": 3040
+      }
+    ],
+    "pins": [
+      {
+        "x": 2510,
+        "y": 3010
+      },
+      {
+        "x": 2010,
+        "y": 3010
+      }
+    ],
+    "pairing": [1, 0],
+    "credit": 1.0,
+    "scored_reach": 100
+  },
+  {
+    "about": "nearest first would strand the second pin",
+    "targets": [
+      {
+        "name": "A",
+        "min_x": 2000,
+        "max_x": 2010,
+        "min_y": 3000,
+        "max_y": 3010
+      },
+      {
+        "name": "B",
+        "min_x": 2040,
+        "max_x": 2050,
+        "min_y": 3000,
+        "max_y": 3010
+      }
+    ],
+    "pins": [
+      {
+        "x": 2024,
+        "y": 3005
+      },
+      {
+        "x": 1960,
+        "y": 3005
+      }
+    ],
+    "pairing": [1, 0],
+    "credit": 0.72,
+    "scored_reach": 100
+  },
+  {
+    "about": "a region shortens the reach",
+    "targets": [
+      {
+        "name": "A",
+        "min_x": 3200,
+        "max_x": 3220,
+        "min_y": 2900,
+        "max_y": 2920
+      }
+    ],
+    "pins": [
+      {
+        "x": 3250,
+        "y": 2910
+      }
+    ],
+    "bounds": {
+      "min_x": 3100,
+      "max_x": 3400,
+      "min_y": 2800,
+      "max_y": 3100
+    },
+    "pairing": [0],
+    "credit": 0.5,
+    "scored_reach": 60
+  },
+  {
+    "about": "a question sets its own reach",
+    "targets": [
+      {
+        "name": "A",
+        "min_x": 2000,
+        "max_x": 2040,
+        "min_y": 3000,
+        "max_y": 3080
+      }
+    ],
+    "pins": [
+      {
+        "x": 2240,
+        "y": 3050
+      }
+    ],
+    "reach": 400,
+    "pairing": [0],
+    "credit": 0.5,
+    "scored_reach": 400
+  },
+  {
+    "about": "all out of reach pair by distance",
+    "targets": [
+      {
+        "name": "A",
+        "min_x": 2000,
+        "max_x": 2010,
+        "min_y": 3000,
+        "max_y": 3010
+      },
+      {
+        "name": "B",
+        "min_x": 3000,
+        "max_x": 3010,
+        "min_y": 3000,
+        "max_y": 3010
+      }
+    ],
+    "pins": [
+      {
+        "x": 2800,
+        "y": 3005
+      },
+      {
+        "x": 2200,
+        "y": 3005
+      }
+    ],
+    "pairing": [1, 0],
+    "credit": 0.0,
+    "scored_reach": 100
+  }
+]

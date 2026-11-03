@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 
 from app.config import REPO_ROOT
+from app.modes import TILES
 from app.static import CLIENT_DIST
 
 PIN = REPO_ROOT / "data" / "map.json"
@@ -20,3 +21,8 @@ def has_tiles(pin: Path = PIN, client: Path = CLIENT_DIST / "map") -> bool:
     """Whether the pinned tileset is in the client, whole."""
     cache_id = json.loads(pin.read_text(encoding="utf-8"))["cache_id"]
     return (client / str(cache_id) / LAYER / MANIFEST).is_file()
+
+
+def tile_picture(pin: Path = PIN, client: Path = CLIENT_DIST / "map") -> dict[str, str]:
+    """What the instance's pictures gain from the tiles: without them, no map question is drawn."""
+    return {TILES: LAYER} if has_tiles(pin, client) else {}

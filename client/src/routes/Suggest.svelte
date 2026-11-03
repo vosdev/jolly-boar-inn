@@ -8,7 +8,7 @@
    * player at the limit is told before writing a question rather than after. Built for a
    * computer: writing a question is desk work, not something done at the pub table. So the
    * pack's questions for the card stand open beside the editor there, and wait folded up
-   * under it on a phone.
+   * under it on a phone. A place on the map is offered only once this server's map has loaded.
    */
   import { onMount } from 'svelte'
   import { hero, heroes } from 'virtual:branding'
@@ -16,6 +16,7 @@
   import ExistingQuestions from '../components/suggest/ExistingQuestions.svelte'
   import SuggestionEditor from '../components/suggest/SuggestionEditor.svelte'
   import { ApiFailure, getSuggestionAllowance, sendSuggestion } from '../lib/api'
+  import { tilesLoad } from '../lib/map'
   import { HOUSE } from '../lib/modes'
   import { npcArt } from '../lib/npcs'
   import {
@@ -46,6 +47,8 @@
   let asker = $state('')
   /** The shadows' labels in Who's That NPC?: the NPCs on the list, already asked about. */
   let asked = $state<readonly string[]>([])
+  let mapped = $state(false)
+  const offered = $derived(CHOICES.filter((option) => mapped || option.map !== true))
   const existing = $derived(choice === null ? null : existingMode(choice))
   /** Whether the list starts open: beside the editor, at the width `.writing` sets it there. */
   let beside = $state(false)
@@ -65,6 +68,7 @@
 
   onMount(() => {
     if (!allowed) return
+    void tilesLoad().then((found) => (mapped = found))
     void checkAllowance().then((ok) => {
       if (ok) view = 'pick'
     })
@@ -150,7 +154,7 @@
       <section class="panel" in:routeIn out:routeOut>
         <h2>What would you like to suggest?</h2>
         <ul class="choices">
-          {#each CHOICES as option (option.id)}
+          {#each offered as option (option.id)}
             {@const art =
               option.host === HOUSE.id && heroArt !== null
                 ? { url: heroArt, cut: 'hero' }

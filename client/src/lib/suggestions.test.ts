@@ -2,10 +2,13 @@
 
 import { beforeEach, describe, expect, it } from 'vitest'
 
+import { stemLines } from '../components/questions/index'
 import { savePastGame } from './history'
 import {
   CHOICES,
   answerOf,
+  placeProblem,
+  placePrompt,
   choiceOf,
   creditProblem,
   existingMode,
@@ -102,6 +105,7 @@ describe('the choices', () => {
       'slayer_master',
       'whos_that_npc',
       'forgetful_bard',
+      'mark_the_map',
       'sort_it_out',
       'release_order',
       'no_round',
@@ -123,6 +127,7 @@ describe('the choices', () => {
     expect(CHOICES.filter((c) => c.wikiOnly).map((c) => c.id)).toEqual([
       'guess_examine',
       'whos_that_npc',
+      'mark_the_map',
     ])
     const npc = CHOICES.find((c) => c.id === 'whos_that_npc')
     expect([npc?.types, npc?.host, npc?.prompt, npc?.named]).toEqual([
@@ -178,7 +183,7 @@ describe('the choices', () => {
     const quoting = CHOICES.filter((c) => c.quote).map((c) => c.id)
     expect(quoting).toEqual(['who_said_that', 'know_your_content_creator', 'uris_unravelling'])
     const silent = CHOICES.filter((c) => c.explanation === false).map((c) => c.id)
-    expect(silent).toEqual(['guess_examine', 'whos_that_npc', 'forgetful_bard'])
+    expect(silent).toEqual(['guess_examine', 'whos_that_npc', 'forgetful_bard', 'mark_the_map'])
     const release = CHOICES.find((c) => c.id === 'release_order')
     expect(release?.types).toEqual(['ordering'])
     expect(release?.host).toBe('aris')
@@ -234,6 +239,47 @@ describe('the choices', () => {
     )
     expect(hostOf('question', { ...QUESTION, mode: 'random_event' })).toBe('sandwich_lady')
     expect(hostOf('item', { name: 'Abyssal whip' })).toBe('grand_exchange_clerk')
+  })
+})
+
+describe('a place on the map', () => {
+  const place: QuestionContent = {
+    type: 'map_pin',
+    mode: 'mark_the_map',
+    payload: {
+      prompt: 'Where is Falador?',
+      targets: [{ name: 'Falador', min_x: 2940, max_x: 3060, min_y: 3310, max_y: 3400 }],
+      reach: 150,
+    },
+  }
+
+  it('is offered only for a map round, never to a question with no round', () => {
+    expect(roundsFor('map_pin').map((choice) => choice.id)).toEqual(['mark_the_map'])
+    expect(CHOICES.find((c) => c.id === NO_ROUND)?.types).not.toContain('map_pin')
+    expect(CHOICES.find((c) => c.id === 'random_event')?.types).not.toContain('map_pin')
+  })
+
+  it('reads in the queue as its name, box and reach', () => {
+    expect(answerOf({ kind: 'question', content: place })).toBe(
+      'Falador (x 2940–3060, y 3310–3400, reach 150)',
+    )
+  })
+
+  it('previews one pin and no target', () => {
+    expect(questionPreview(place).view).toEqual({ prompt: 'Where is Falador?', pins: 1 })
+  })
+
+  it('prints its prompt on the stage before its round ships', () => {
+    expect(JSON.stringify(stemLines('mark_the_map', questionPreview(place).view))).toContain(
+      'Where is Falador?',
+    )
+  })
+
+  it('asks after the name it was given', () => {
+    expect(placePrompt('  Falador ')).toBe('Where is Falador?')
+    expect(placePrompt(' ')).toBe('')
+    expect(placeProblem(' ')).toBe('Required: the place’s name.')
+    expect(placeProblem('Falador')).toBeNull()
   })
 })
 
@@ -487,7 +533,13 @@ describe('similar questions', () => {
 describe('steps in the suggestion form', () => {
   it('offers Extras only to question choices that have an intro, picture item, or explanation', () => {
     const withoutExtras = CHOICES.filter((c) => !hasExtras(c)).map((c) => c.id)
-    expect(withoutExtras).toEqual(['item', 'guess_examine', 'whos_that_npc', 'forgetful_bard'])
+    expect(withoutExtras).toEqual([
+      'item',
+      'guess_examine',
+      'whos_that_npc',
+      'forgetful_bard',
+      'mark_the_map',
+    ])
   })
 
   it('builds five steps for a round with extras, and marks missing steps on submit', () => {

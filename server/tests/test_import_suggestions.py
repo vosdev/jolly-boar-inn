@@ -3,6 +3,7 @@
 import json
 import shutil
 import sys
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlsplit
@@ -11,6 +12,7 @@ import pytest
 
 from app import suggestions
 from app.config import REPO_ROOT
+from app.modes import MODES, Mode
 from app.questions import schema
 from app.questions.types import number_slider
 from app.suggestions import QUESTION_MODES
@@ -471,6 +473,63 @@ def test_a_round_not_built_yet_is_refused(
     unbuilt = {k: v for k, v in QUESTION.items() if k != "random_event"} | {"mode": "zoom_quiz"}
     assert run(repo, {"questions": [unbuilt]}) == 1
     assert "not a round this build plays" in capsys.readouterr().err
+
+
+PLACE = {
+    "type": "map_pin",
+    "payload": {
+        "prompt": "Where is Falador?",
+        "targets": [
+            {"name": "Falador", "min_x": 2940, "max_x": 3060, "min_y": 3310, "max_y": 3400}
+        ],
+        "reach": 150,
+    },
+    "mode": "mark_the_map",
+    "wiki": "https://oldschool.runescape.wiki/w/Falador",
+    "credit": "AFKFisher",
+    "credit_shown": True,
+}
+
+
+@pytest.fixture
+def map_round(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setitem(MODES, "mark_the_map", Mode("mark_the_map", frozenset({"map_pin"})))
+
+
+@pytest.mark.usefixtures("map_round")
+def test_a_place_lands_in_a_pack_that_loads_and_only_once(repo: dict[str, Path]) -> None:
+    assert run(repo, {"questions": [PLACE]}) == 0
+    stored = json.loads((repo["packs"] / "mark_the_map.json").read_text())["questions"]
+    assert [q["payload"]["reach"] for q in stored] == [150]
+    assert stored[0]["credit"] == "AFKFisher"
+    assert stored[0]["difficulty"] == "medium"
+    assert loads(repo)
+    before = snapshot(repo)
+    assert run(repo, {"questions": [PLACE]}) == 0
+    assert snapshot(repo) == before
+
+
+@pytest.mark.usefixtures("map_round")
+def test_a_place_never_goes_in_a_generated_pack(repo: dict[str, Path]) -> None:
+    question = {k: v for k, v in PLACE.items() if not k.startswith("credit")}
+    other = deepcopy(question)
+    other["payload"] = {
+        "prompt": "Where is Varrock?",
+        "targets": [
+            {"name": "Varrock", "min_x": 3170, "max_x": 3300, "min_y": 3370, "max_y": 3510}
+        ],
+    }
+    made = suggestions.question_envelope({**other, "difficulty": "medium"})
+    generated = {"pack": "mark_the_map", "generated_at": "2026-11-02", "questions": [made]}
+    pack = repo["packs"] / "mark_the_map.json"
+    pack.write_text(json.dumps(generated))
+    before = pack.read_text()
+    assert run(repo, {"questions": [PLACE]}) == 0
+    assert pack.read_text() == before
+    written = json.loads((repo["packs"] / "mark_the_map_suggested.json").read_text())
+    assert [q["payload"]["prompt"] for q in written["questions"]] == ["Where is Falador?"]
+    assert "generated_at" not in written
+    assert loads(repo)
 
 
 def test_an_untradeable_item_takes_its_id_from_the_wiki(repo: dict[str, Path]) -> None:

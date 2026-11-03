@@ -15,6 +15,8 @@ from fastapi.testclient import TestClient
 from app import main
 from app.config import Settings
 from app.main import create_app
+from app.map import LAYER, MANIFEST, PIN
+from app.modes import TILES
 from app.pictures import load_pictures
 from tests.conftest import stub_mode
 from tests.game_api import Game, reseat
@@ -196,3 +198,19 @@ def test_a_dev_server_names_the_pictures_vite_serves(
     with TestClient(built), TestClient(dev):
         assert built.state.rooms.pictures == {}
         assert dev.state.rooms.pictures == {"item:4151": WHIP}
+
+
+def test_the_dev_server_finds_the_tiles_where_vite_serves_them(
+    settings: Settings, dist: Path, tmp_path: Path
+) -> None:
+    """``make gen-map`` writes to ``client/public``, which no build has copied yet."""
+    public = tmp_path / "public" / "map"
+    cache_id = json.loads(PIN.read_text(encoding="utf-8"))["cache_id"]
+    layer = public / str(cache_id) / LAYER
+    layer.mkdir(parents=True)
+    (layer / MANIFEST).write_text("{}")
+    built = create_app(settings, dist)
+    dev = create_app(settings.model_copy(update={"client_map": str(public)}), dist)
+    with TestClient(built), TestClient(dev):
+        assert TILES not in built.state.rooms.pictures
+        assert TILES in dev.state.rooms.pictures

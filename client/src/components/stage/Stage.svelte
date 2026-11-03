@@ -39,6 +39,7 @@
     within?: number
     tv?: boolean
     wide?: boolean
+    map?: 'open' | 'reveal' | null
     bubble?: Bubble | null
   } = $props()
 
