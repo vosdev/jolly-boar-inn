@@ -15,6 +15,7 @@ from app import reports
 from app.config import Settings
 from app.http.ratelimit import REPORTS_PER_HOUR, RateLimiter
 from app.main import create_app
+from app.modes import TILES
 from app.questions.packs import load_packs, mode_questions
 from tests.conftest import BASE
 from tests.packs import PACKS_DIR
@@ -61,6 +62,7 @@ def offline(settings: Settings, dist: Path) -> Iterator[TestClient]:
     with TestClient(create_app(configured, dist)) as client:
         images = {q["payload"].get("image") for q in mode_questions(PACKS, "pixel_hunt")}
         client.app.state.rooms.pictures = {asset: "0000000000000000.png" for asset in images}
+        client.app.state.rooms.pictures[TILES] = "clean"
         yield client
 
 
@@ -131,6 +133,7 @@ WHAT_PLAYERS_READ = {
     "tales_of_gielinor": _prompt,
     "uris_unravelling": _prompt,
     "slayer_master": _prompt,
+    "mark_the_map": _prompt,
     "odd_one_out": lambda q: ", ".join(q["payload"]["options"]),
     "pixel_hunt": lambda q: q["payload"]["subject"]["name"],
     "whos_that_npc": lambda q: (

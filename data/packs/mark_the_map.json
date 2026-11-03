@@ -1,0 +1,3883 @@
+{
+  "pack": "mark_the_map",
+  "questions": [
+    {
+      "id": "q_049395bb9cb1a395",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Agility Pyramid?",
+        "targets": [
+          {
+            "name": "Agility Pyramid",
+            "min_x": 3338,
+            "max_x": 3386,
+            "min_y": 2824,
+            "max_y": 2862
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Agility_Pyramid",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_375ff50565cb1ddf",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Al Kharid?",
+        "targets": [
+          {
+            "name": "Al Kharid",
+            "min_x": 3266,
+            "max_x": 3330,
+            "min_y": 3140,
+            "max_y": 3215
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Al_Kharid",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_55611bac5db0210a",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Al Kharid Palace?",
+        "targets": [
+          {
+            "name": "Al Kharid Palace",
+            "min_x": 3282,
+            "max_x": 3304,
+            "min_y": 3157,
+            "max_y": 3179
+          }
+        ],
+        "view": {
+          "min_x": 3215,
+          "max_x": 3365,
+          "min_y": 3105,
+          "max_y": 3255
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Al_Kharid_Palace",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_96df1fecbf624bf8",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Al Kharid bank?",
+        "targets": [
+          {
+            "name": "Al Kharid bank",
+            "min_x": 3264,
+            "max_x": 3274,
+            "min_y": 3160,
+            "max_y": 3174
+          }
+        ],
+        "view": {
+          "min_x": 3207,
+          "max_x": 3357,
+          "min_y": 3103,
+          "max_y": 3253
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Al_Kharid_bank",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_7c1db46da7222a03",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Al Kharid mine?",
+        "targets": [
+          {
+            "name": "Al Kharid mine",
+            "min_x": 3286,
+            "max_x": 3310,
+            "min_y": 3272,
+            "max_y": 3320
+          }
+        ],
+        "view": {
+          "min_x": 3219,
+          "max_x": 3369,
+          "min_y": 3150,
+          "max_y": 3340
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Al_Kharid_mine",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_72ae74b929eb8aa8",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Aldarin?",
+        "targets": [
+          {
+            "name": "Aldarin",
+            "min_x": 1350,
+            "max_x": 1445,
+            "min_y": 2900,
+            "max_y": 2985
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Aldarin",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_7ae32fe1b3f9992f",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Ancient Pyramid?",
+        "targets": [
+          {
+            "name": "Ancient Pyramid",
+            "min_x": 3217,
+            "max_x": 3247,
+            "min_y": 2883,
+            "max_y": 2915
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Ancient_Pyramid",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_101c37c3f50e9953",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Arceuus?",
+        "targets": [
+          {
+            "name": "Arceuus",
+            "min_x": 1575,
+            "max_x": 1770,
+            "min_y": 3715,
+            "max_y": 3880
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Arceuus",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_4cf3314f87c94eb3",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Arceuus Library?",
+        "targets": [
+          {
+            "name": "Arceuus Library",
+            "min_x": 1606,
+            "max_x": 1660,
+            "min_y": 3783,
+            "max_y": 3833
+          }
+        ],
+        "view": {
+          "min_x": 1581,
+          "max_x": 1775,
+          "min_y": 3725,
+          "max_y": 3875
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Arceuus_Library",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_7dd9f7b886d147a2",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Ardougne?",
+        "targets": [
+          {
+            "name": "Ardougne",
+            "min_x": 2459,
+            "max_x": 2690,
+            "min_y": 3255,
+            "max_y": 3345
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Ardougne",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_c17700cc604751c0",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Ardougne Castle?",
+        "targets": [
+          {
+            "name": "Ardougne Castle",
+            "min_x": 2565,
+            "max_x": 2594,
+            "min_y": 3277,
+            "max_y": 3307
+          }
+        ],
+        "view": {
+          "min_x": 2495,
+          "max_x": 2645,
+          "min_y": 3225,
+          "max_y": 3375
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Ardougne_Castle",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_6e6827859fc0a6df",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Ardougne Market?",
+        "targets": [
+          {
+            "name": "Ardougne Market",
+            "min_x": 2645,
+            "max_x": 2667,
+            "min_y": 3292,
+            "max_y": 3314
+          }
+        ],
+        "view": {
+          "min_x": 2495,
+          "max_x": 2695,
+          "min_y": 3225,
+          "max_y": 3375
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Ardougne_Market",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_70c112b346bc7c7d",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Ardougne Monastery?",
+        "targets": [
+          {
+            "name": "Ardougne Monastery",
+            "min_x": 2591,
+            "max_x": 2622,
+            "min_y": 3204,
+            "max_y": 3219
+          }
+        ],
+        "view": {
+          "min_x": 2495,
+          "max_x": 2647,
+          "min_y": 3179,
+          "max_y": 3375
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Ardougne_Monastery",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_bdeb4499dec0f1cf",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Ardougne Zoo?",
+        "targets": [
+          {
+            "name": "Ardougne Zoo",
+            "min_x": 2600,
+            "max_x": 2630,
+            "min_y": 3263,
+            "max_y": 3285
+          }
+        ],
+        "view": {
+          "min_x": 2495,
+          "max_x": 2650,
+          "min_y": 3225,
+          "max_y": 3375
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Ardougne_Zoo",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_272e8843ab0dafc6",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Ardougne north bank?",
+        "targets": [
+          {
+            "name": "Ardougne north bank",
+            "min_x": 2612,
+            "max_x": 2622,
+            "min_y": 3328,
+            "max_y": 3338
+          }
+        ],
+        "view": {
+          "min_x": 2495,
+          "max_x": 2647,
+          "min_y": 3225,
+          "max_y": 3375
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Ardougne_north_bank",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_5e217ed822c9c4d1",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Ardougne south bank?",
+        "targets": [
+          {
+            "name": "Ardougne south bank",
+            "min_x": 2649,
+            "max_x": 2659,
+            "min_y": 3279,
+            "max_y": 3289
+          }
+        ],
+        "view": {
+          "min_x": 2495,
+          "max_x": 2684,
+          "min_y": 3225,
+          "max_y": 3375
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Ardougne_south_bank",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_2675ca0c605a2db9",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Banana plantation?",
+        "targets": [
+          {
+            "name": "Banana plantation",
+            "min_x": 2900,
+            "max_x": 2932,
+            "min_y": 3155,
+            "max_y": 3180
+          }
+        ],
+        "view": {
+          "min_x": 2836,
+          "max_x": 2986,
+          "min_y": 3087,
+          "max_y": 3237
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Banana_plantation",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_e64310ea86b1d658",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is the Bandit Camp in the desert?",
+        "targets": [
+          {
+            "name": "Bandit Camp",
+            "min_x": 3155,
+            "max_x": 3192,
+            "min_y": 2965,
+            "max_y": 2995
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Bandit_Camp_(Kharidian_Desert)",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_da1be44fb46b7260",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is the Bandit Camp in the Wilderness?",
+        "targets": [
+          {
+            "name": "Bandit Camp",
+            "min_x": 3018,
+            "max_x": 3058,
+            "min_y": 3683,
+            "max_y": 3715
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Bandit_Camp_(Wilderness)",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_47a7a7dc2ea70540",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Barbarian Outpost?",
+        "targets": [
+          {
+            "name": "Barbarian Outpost",
+            "min_x": 2526,
+            "max_x": 2560,
+            "min_y": 3543,
+            "max_y": 3580
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Barbarian_Outpost",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_4fe6ef5e0e8dcbad",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Barbarian Village?",
+        "targets": [
+          {
+            "name": "Barbarian Village",
+            "min_x": 3068,
+            "max_x": 3098,
+            "min_y": 3405,
+            "max_y": 3452
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Barbarian_Village",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_b412ca85708162ca",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Barrows?",
+        "targets": [
+          {
+            "name": "Barrows",
+            "min_x": 3548,
+            "max_x": 3584,
+            "min_y": 3266,
+            "max_y": 3310
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Barrows",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_692ebf540b45d947",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Baxtorian Falls?",
+        "targets": [
+          {
+            "name": "Baxtorian Falls",
+            "min_x": 2495,
+            "max_x": 2530,
+            "min_y": 3455,
+            "max_y": 3500
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Baxtorian_Falls",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_6c48c84af756891d",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Black Knights' Fortress?",
+        "targets": [
+          {
+            "name": "Black Knights' Fortress",
+            "min_x": 3007,
+            "max_x": 3033,
+            "min_y": 3505,
+            "max_y": 3522
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Black_Knights%27_Fortress_(location)",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_d551484c7a60e606",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Brimhaven?",
+        "targets": [
+          {
+            "name": "Brimhaven",
+            "min_x": 2730,
+            "max_x": 2815,
+            "min_y": 3150,
+            "max_y": 3230
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Brimhaven",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_868ff614db70fd95",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Burgh de Rott?",
+        "targets": [
+          {
+            "name": "Burgh de Rott",
+            "min_x": 3478,
+            "max_x": 3532,
+            "min_y": 3197,
+            "max_y": 3245
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Burgh_de_Rott",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_3c357da39f80286c",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Burthorpe?",
+        "targets": [
+          {
+            "name": "Burthorpe",
+            "min_x": 2835,
+            "max_x": 2935,
+            "min_y": 3520,
+            "max_y": 3580
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Burthorpe",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_3d2ded51bcf15388",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Camelot?",
+        "targets": [
+          {
+            "name": "Camelot",
+            "min_x": 2743,
+            "max_x": 2777,
+            "min_y": 3483,
+            "max_y": 3519
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Camelot",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_92d66f06648ff40b",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Canifis?",
+        "targets": [
+          {
+            "name": "Canifis",
+            "min_x": 3467,
+            "max_x": 3518,
+            "min_y": 3465,
+            "max_y": 3510
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Canifis",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_bdba4018e7fb8131",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Canifis bank?",
+        "targets": [
+          {
+            "name": "Canifis bank",
+            "min_x": 3508,
+            "max_x": 3518,
+            "min_y": 3474,
+            "max_y": 3484
+          }
+        ],
+        "view": {
+          "min_x": 3428,
+          "max_x": 3578,
+          "min_y": 3409,
+          "max_y": 3559
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Canifis_bank",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_7ce67601c4b4f4f8",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Castle Wars?",
+        "targets": [
+          {
+            "name": "Castle Wars",
+            "min_x": 2366,
+            "max_x": 2445,
+            "min_y": 3075,
+            "max_y": 3137
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Castle_Wars",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_cb5e34d4e3123173",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Catherby?",
+        "targets": [
+          {
+            "name": "Catherby",
+            "min_x": 2795,
+            "max_x": 2862,
+            "min_y": 3425,
+            "max_y": 3475
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Catherby",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_bc11a1da6b8d1896",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Catherby bank?",
+        "targets": [
+          {
+            "name": "Catherby bank",
+            "min_x": 2804,
+            "max_x": 2814,
+            "min_y": 3437,
+            "max_y": 3447
+          }
+        ],
+        "view": {
+          "min_x": 2737,
+          "max_x": 2887,
+          "min_y": 3368,
+          "max_y": 3518
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Catherby_bank",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_37d95dde2811626c",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Champions' Guild?",
+        "targets": [
+          {
+            "name": "Champions' Guild",
+            "min_x": 3186,
+            "max_x": 3196,
+            "min_y": 3352,
+            "max_y": 3362
+          }
+        ],
+        "view": {
+          "min_x": 3135,
+          "max_x": 3285,
+          "min_y": 3327,
+          "max_y": 3498
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Champions%27_Guild",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_a8caf2ef4d9b7901",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is the Chaos Temple in the Wilderness?",
+        "targets": [
+          {
+            "name": "Chaos Temple",
+            "min_x": 3235,
+            "max_x": 3245,
+            "min_y": 3603,
+            "max_y": 3613
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Chaos_Temple_(Wilderness)",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_6fffc6412411dbf1",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Civitas illa Fortis?",
+        "targets": [
+          {
+            "name": "Civitas illa Fortis",
+            "min_x": 1615,
+            "max_x": 1792,
+            "min_y": 3075,
+            "max_y": 3195
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Civitas_illa_Fortis",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_5459de03cfb74495",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Clock Tower?",
+        "targets": [
+          {
+            "name": "Clock Tower",
+            "min_x": 2564,
+            "max_x": 2574,
+            "min_y": 3233,
+            "max_y": 3255
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Clock_Tower_(building)",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_e981dba9bb75bc6c",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Cooks' Guild?",
+        "targets": [
+          {
+            "name": "Cooks' Guild",
+            "min_x": 3138,
+            "max_x": 3149,
+            "min_y": 3444,
+            "max_y": 3454
+          }
+        ],
+        "view": {
+          "min_x": 3112,
+          "max_x": 3262,
+          "min_y": 3373,
+          "max_y": 3523
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Cooks%27_Guild",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_5acb2cad87d01d17",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Corsair Cove?",
+        "targets": [
+          {
+            "name": "Corsair Cove",
+            "min_x": 2540,
+            "max_x": 2592,
+            "min_y": 2840,
+            "max_y": 2880
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Corsair_Cove",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_fb87ba8bc84883b6",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Crafting Guild?",
+        "targets": [
+          {
+            "name": "Crafting Guild",
+            "min_x": 2927,
+            "max_x": 2937,
+            "min_y": 3276,
+            "max_y": 3286
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Crafting_Guild",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_c232c267a871c7e4",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Crandor?",
+        "targets": [
+          {
+            "name": "Crandor",
+            "min_x": 2812,
+            "max_x": 2862,
+            "min_y": 3235,
+            "max_y": 3310
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Crandor",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_7e46b8703e53e189",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Dark Warriors' Fortress?",
+        "targets": [
+          {
+            "name": "Dark Warriors' Fortress",
+            "min_x": 3014,
+            "max_x": 3041,
+            "min_y": 3617,
+            "max_y": 3645
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Dark_Warriors%27_Fortress",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_6d6e67bbdbc4092d",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Dark Wizards' Tower?",
+        "targets": [
+          {
+            "name": "Dark Wizards' Tower",
+            "min_x": 2904,
+            "max_x": 2914,
+            "min_y": 3330,
+            "max_y": 3340
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Dark_Wizards%27_Tower",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_79f40079fe205fa7",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Darkmeyer?",
+        "targets": [
+          {
+            "name": "Darkmeyer",
+            "min_x": 3525,
+            "max_x": 3670,
+            "min_y": 3333,
+            "max_y": 3400
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Darkmeyer",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_ee0977807606b65d",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Death Plateau?",
+        "targets": [
+          {
+            "name": "Death Plateau",
+            "min_x": 2842,
+            "max_x": 2890,
+            "min_y": 3578,
+            "max_y": 3606
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Death_Plateau_(location)",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_ad3f65ecb7ece2d9",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Digsite?",
+        "targets": [
+          {
+            "name": "Digsite",
+            "min_x": 3330,
+            "max_x": 3380,
+            "min_y": 3395,
+            "max_y": 3445
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Digsite",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_d63cfd3144bac498",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Draynor Manor?",
+        "targets": [
+          {
+            "name": "Draynor Manor",
+            "min_x": 3083,
+            "max_x": 3130,
+            "min_y": 3329,
+            "max_y": 3388
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Draynor_Manor",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_2d5ea4cc70ae89b5",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Draynor Village?",
+        "targets": [
+          {
+            "name": "Draynor Village",
+            "min_x": 3075,
+            "max_x": 3115,
+            "min_y": 3238,
+            "max_y": 3285
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Draynor_Village",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_3941900b0c1fc4f5",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Draynor bank?",
+        "targets": [
+          {
+            "name": "Draynor bank",
+            "min_x": 3088,
+            "max_x": 3098,
+            "min_y": 3238,
+            "max_y": 3248
+          }
+        ],
+        "view": {
+          "min_x": 3023,
+          "max_x": 3173,
+          "min_y": 3179,
+          "max_y": 3329
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Draynor_bank",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_875ff394da47b6f2",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Duel Arena?",
+        "targets": [
+          {
+            "name": "Duel Arena",
+            "min_x": 3327,
+            "max_x": 3390,
+            "min_y": 3204,
+            "max_y": 3265
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Duel_Arena",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_02583bb371d77ac3",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Eagles' Peak?",
+        "targets": [
+          {
+            "name": "Eagles' Peak",
+            "min_x": 2300,
+            "max_x": 2360,
+            "min_y": 3460,
+            "max_y": 3530
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Eagles%27_Peak_(mountain)",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_9f09347d18542d45",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Ectofuntus?",
+        "targets": [
+          {
+            "name": "Ectofuntus",
+            "min_x": 3655,
+            "max_x": 3665,
+            "min_y": 3515,
+            "max_y": 3525
+          }
+        ],
+        "view": {
+          "min_x": 3604,
+          "max_x": 3754,
+          "min_y": 3418,
+          "max_y": 3568
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Ectofuntus",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_44108d1f70e5f8ba",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Edgeville?",
+        "targets": [
+          {
+            "name": "Edgeville",
+            "min_x": 3062,
+            "max_x": 3125,
+            "min_y": 3462,
+            "max_y": 3520
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Edgeville",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_3f6fbbf447576f66",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Edgeville Monastery?",
+        "targets": [
+          {
+            "name": "Edgeville Monastery",
+            "min_x": 3042,
+            "max_x": 3062,
+            "min_y": 3480,
+            "max_y": 3500
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Edgeville_Monastery",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_1baf2a312559acb0",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Edgeville bank?",
+        "targets": [
+          {
+            "name": "Edgeville bank",
+            "min_x": 3090,
+            "max_x": 3100,
+            "min_y": 3488,
+            "max_y": 3500
+          }
+        ],
+        "view": {
+          "min_x": 3005,
+          "max_x": 3155,
+          "min_y": 3417,
+          "max_y": 3567
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Edgeville_bank",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_e1bfcb7219448a60",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Entrana?",
+        "targets": [
+          {
+            "name": "Entrana",
+            "min_x": 2800,
+            "max_x": 2870,
+            "min_y": 3326,
+            "max_y": 3393
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Entrana",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_b8554b6318c0c3f7",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Falador?",
+        "targets": [
+          {
+            "name": "Falador",
+            "min_x": 2935,
+            "max_x": 3066,
+            "min_y": 3309,
+            "max_y": 3395
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Falador",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_227ec60e4521e78e",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Falador Park?",
+        "targets": [
+          {
+            "name": "Falador Park",
+            "min_x": 2981,
+            "max_x": 3032,
+            "min_y": 3367,
+            "max_y": 3392
+          }
+        ],
+        "view": {
+          "min_x": 2910,
+          "max_x": 3091,
+          "min_y": 3277,
+          "max_y": 3427
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Falador_Park",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_40d950664dcd65f0",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Falador east bank?",
+        "targets": [
+          {
+            "name": "Falador east bank",
+            "min_x": 3009,
+            "max_x": 3022,
+            "min_y": 3351,
+            "max_y": 3361
+          }
+        ],
+        "view": {
+          "min_x": 2910,
+          "max_x": 3091,
+          "min_y": 3277,
+          "max_y": 3427
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Falador_east_bank",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_9c0bc6fbf26e287b",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Falador west bank?",
+        "targets": [
+          {
+            "name": "Falador west bank",
+            "min_x": 2942,
+            "max_x": 2952,
+            "min_y": 3359,
+            "max_y": 3374
+          }
+        ],
+        "view": {
+          "min_x": 2910,
+          "max_x": 3091,
+          "min_y": 3277,
+          "max_y": 3427
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Falador_west_bank",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_91cf3773c32fa9aa",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Farming Guild?",
+        "targets": [
+          {
+            "name": "Farming Guild",
+            "min_x": 1222,
+            "max_x": 1274,
+            "min_y": 3714,
+            "max_y": 3764
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Farming_Guild",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_72f8e1f63be03497",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Feldip Hunter area?",
+        "targets": [
+          {
+            "name": "Feldip Hunter area",
+            "min_x": 2500,
+            "max_x": 2616,
+            "min_y": 2880,
+            "max_y": 2942
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Feldip_Hunter_area",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_32e215f04a2db1a8",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Fenkenstrain's Castle?",
+        "targets": [
+          {
+            "name": "Fenkenstrain's Castle",
+            "min_x": 3539,
+            "max_x": 3559,
+            "min_y": 3540,
+            "max_y": 3560
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Fenkenstrain%27s_Castle",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_d0f3b21be90160d3",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Ferox Enclave?",
+        "targets": [
+          {
+            "name": "Ferox Enclave",
+            "min_x": 3118,
+            "max_x": 3158,
+            "min_y": 3605,
+            "max_y": 3648
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Ferox_Enclave",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_71b2c7febd751be7",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Fight Arena?",
+        "targets": [
+          {
+            "name": "Fight Arena",
+            "min_x": 2575,
+            "max_x": 2625,
+            "min_y": 3140,
+            "max_y": 3190
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Fight_Arena_(location)",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_4d47bca671b5d2d1",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Fishing Guild?",
+        "targets": [
+          {
+            "name": "Fishing Guild",
+            "min_x": 2583,
+            "max_x": 2620,
+            "min_y": 3393,
+            "max_y": 3447
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Fishing_Guild",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_f5a0fe345aa98914",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Fossil Island?",
+        "targets": [
+          {
+            "name": "Fossil Island",
+            "min_x": 3636,
+            "max_x": 3842,
+            "min_y": 3680,
+            "max_y": 3900
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Fossil_Island",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_244a428327d37609",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Fossil Island Volcano?",
+        "targets": [
+          {
+            "name": "Fossil Island Volcano",
+            "min_x": 3745,
+            "max_x": 3840,
+            "min_y": 3735,
+            "max_y": 3835
+          }
+        ],
+        "view": {
+          "min_x": 3655,
+          "max_x": 3860,
+          "min_y": 3715,
+          "max_y": 3882
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Fossil_Island_Volcano",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_b8f348c6857a80b8",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Fred's farm?",
+        "targets": [
+          {
+            "name": "Fred's farm",
+            "min_x": 3168,
+            "max_x": 3218,
+            "min_y": 3256,
+            "max_y": 3308
+          }
+        ],
+        "view": {
+          "min_x": 3116,
+          "max_x": 3266,
+          "min_y": 3170,
+          "max_y": 3333
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Fred%27s_farm",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_33097b0b9ec37c63",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Gnome Stronghold Agility Course?",
+        "targets": [
+          {
+            "name": "Gnome Stronghold Agility Course",
+            "min_x": 2465,
+            "max_x": 2491,
+            "min_y": 3412,
+            "max_y": 3440
+          }
+        ],
+        "view": {
+          "min_x": 2375,
+          "max_x": 2525,
+          "min_y": 3379,
+          "max_y": 3529
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Gnome_Stronghold_Agility_Course",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_cd897d0d1c1e09c2",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Grand Exchange?",
+        "targets": [
+          {
+            "name": "Grand Exchange",
+            "min_x": 3145,
+            "max_x": 3185,
+            "min_y": 3467,
+            "max_y": 3507
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Grand_Exchange",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_2b7a396058b5b96a",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Grand Tree?",
+        "targets": [
+          {
+            "name": "Grand Tree",
+            "min_x": 2456,
+            "max_x": 2476,
+            "min_y": 3482,
+            "max_y": 3502
+          }
+        ],
+        "view": {
+          "min_x": 2371,
+          "max_x": 2521,
+          "min_y": 3394,
+          "max_y": 3544
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Grand_Tree",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_a97b0be87690ad00",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Gu'Tanoth?",
+        "targets": [
+          {
+            "name": "Gu'Tanoth",
+            "min_x": 2497,
+            "max_x": 2550,
+            "min_y": 3010,
+            "max_y": 3063
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Gu%27Tanoth",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_71f2aca1736706fd",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Heroes' Guild?",
+        "targets": [
+          {
+            "name": "Heroes' Guild",
+            "min_x": 2888,
+            "max_x": 2898,
+            "min_y": 3505,
+            "max_y": 3515
+          }
+        ],
+        "view": {
+          "min_x": 2797,
+          "max_x": 2947,
+          "min_y": 3462,
+          "max_y": 3612
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Heroes%27_Guild",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_6c428b0f8dfaba7d",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Hosidius?",
+        "targets": [
+          {
+            "name": "Hosidius",
+            "min_x": 1700,
+            "max_x": 1830,
+            "min_y": 3500,
+            "max_y": 3640
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Hosidius",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_bd2a6d8de9f2b2ac",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Hunter Guild?",
+        "targets": [
+          {
+            "name": "Hunter Guild",
+            "min_x": 1538,
+            "max_x": 1572,
+            "min_y": 3030,
+            "max_y": 3064
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Hunter_Guild",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_47122f536a28fbc0",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Ice Mountain?",
+        "targets": [
+          {
+            "name": "Ice Mountain",
+            "min_x": 2990,
+            "max_x": 3025,
+            "min_y": 3460,
+            "max_y": 3518
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Ice_Mountain",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_aeb7a3304e92c790",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Isle of Souls?",
+        "targets": [
+          {
+            "name": "Isle of Souls",
+            "min_x": 2093,
+            "max_x": 2338,
+            "min_y": 2770,
+            "max_y": 3005
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Isle_of_Souls",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_3f23ed64fce4c625",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Jalsavrah Pyramid?",
+        "targets": [
+          {
+            "name": "Jalsavrah Pyramid",
+            "min_x": 3284,
+            "max_x": 3306,
+            "min_y": 2758,
+            "max_y": 2782
+          }
+        ],
+        "view": {
+          "min_x": 3221,
+          "max_x": 3371,
+          "min_y": 2712,
+          "max_y": 2862
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Jalsavrah_Pyramid",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_8ae6ac89a6ea1b00",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Jatizso?",
+        "targets": [
+          {
+            "name": "Jatizso",
+            "min_x": 2370,
+            "max_x": 2430,
+            "min_y": 3778,
+            "max_y": 3835
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Jatizso",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_3596eb6879b06248",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Karamja Volcano?",
+        "targets": [
+          {
+            "name": "Karamja Volcano",
+            "min_x": 2820,
+            "max_x": 2875,
+            "min_y": 3150,
+            "max_y": 3203
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Karamja_Volcano",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_99cc9144cac19f50",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Kharazi Jungle?",
+        "targets": [
+          {
+            "name": "Kharazi Jungle",
+            "min_x": 2760,
+            "max_x": 2980,
+            "min_y": 2880,
+            "max_y": 2942
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Kharazi_Jungle",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_691470ff8815c83d",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Kourend Castle?",
+        "targets": [
+          {
+            "name": "Kourend Castle",
+            "min_x": 1592,
+            "max_x": 1656,
+            "min_y": 3655,
+            "max_y": 3700
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Kourend_Castle",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_a1d8f2ad37a71894",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Lava Maze?",
+        "targets": [
+          {
+            "name": "Lava Maze",
+            "min_x": 3037,
+            "max_x": 3128,
+            "min_y": 3818,
+            "max_y": 3885
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Lava_Maze",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_e1c197c34c34721f",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Legends' Guild?",
+        "targets": [
+          {
+            "name": "Legends' Guild",
+            "min_x": 2719,
+            "max_x": 2739,
+            "min_y": 3350,
+            "max_y": 3387
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Legends%27_Guild",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_cc4ea60bc6744bc7",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Lighthouse?",
+        "targets": [
+          {
+            "name": "Lighthouse",
+            "min_x": 2499,
+            "max_x": 2519,
+            "min_y": 3631,
+            "max_y": 3651
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Lighthouse",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_c80213d6a714cd2b",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Lletya?",
+        "targets": [
+          {
+            "name": "Lletya",
+            "min_x": 2318,
+            "max_x": 2358,
+            "min_y": 3148,
+            "max_y": 3190
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Lletya",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_701d0fe158a5e62a",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Lovakengj?",
+        "targets": [
+          {
+            "name": "Lovakengj",
+            "min_x": 1430,
+            "max_x": 1560,
+            "min_y": 3730,
+            "max_y": 3850
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Lovakengj",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_6ee8e0a4fcd667e7",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Lumber Yard?",
+        "targets": [
+          {
+            "name": "Lumber Yard",
+            "min_x": 3293,
+            "max_x": 3326,
+            "min_y": 3492,
+            "max_y": 3518
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Lumber_Yard",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_161ef4a59f37d65d",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Lumbridge?",
+        "targets": [
+          {
+            "name": "Lumbridge",
+            "min_x": 3185,
+            "max_x": 3255,
+            "min_y": 3195,
+            "max_y": 3262
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Lumbridge",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_fdba99fc93b27090",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Lumbridge Castle?",
+        "targets": [
+          {
+            "name": "Lumbridge Castle",
+            "min_x": 3199,
+            "max_x": 3231,
+            "min_y": 3201,
+            "max_y": 3237
+          }
+        ],
+        "view": {
+          "min_x": 3122,
+          "max_x": 3272,
+          "min_y": 3145,
+          "max_y": 3295
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Lumbridge_Castle",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_237aa1206df0afc9",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Lumbridge Graveyard?",
+        "targets": [
+          {
+            "name": "Lumbridge Graveyard",
+            "min_x": 3240,
+            "max_x": 3250,
+            "min_y": 3195,
+            "max_y": 3205
+          }
+        ],
+        "view": {
+          "min_x": 3132,
+          "max_x": 3282,
+          "min_y": 3145,
+          "max_y": 3295
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Lumbridge_Graveyard",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_0982d1f052f9f0ac",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Lumbridge Swamp?",
+        "targets": [
+          {
+            "name": "Lumbridge Swamp",
+            "min_x": 3133,
+            "max_x": 3255,
+            "min_y": 3137,
+            "max_y": 3216
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Lumbridge_Swamp",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_d1902fe51418eab1",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Lumbridge church?",
+        "targets": [
+          {
+            "name": "Lumbridge church",
+            "min_x": 3238,
+            "max_x": 3248,
+            "min_y": 3204,
+            "max_y": 3216
+          }
+        ],
+        "view": {
+          "min_x": 3131,
+          "max_x": 3281,
+          "min_y": 3145,
+          "max_y": 3295
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Lumbridge_church",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_7d5f45031a8194a3",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Lunar Isle?",
+        "targets": [
+          {
+            "name": "Lunar Isle",
+            "min_x": 2050,
+            "max_x": 2170,
+            "min_y": 3845,
+            "max_y": 3955
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Lunar_Isle",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_26765dfe6a0909d1",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Mage Arena?",
+        "targets": [
+          {
+            "name": "Mage Arena",
+            "min_x": 3082,
+            "max_x": 3129,
+            "min_y": 3912,
+            "max_y": 3955
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Mage_Arena",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_c165c9cb1425df2e",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Meiyerditch?",
+        "targets": [
+          {
+            "name": "Meiyerditch",
+            "min_x": 3587,
+            "max_x": 3648,
+            "min_y": 3180,
+            "max_y": 3330
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Meiyerditch",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_aff8dcb3447b65aa",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Melzar's Maze?",
+        "targets": [
+          {
+            "name": "Melzar's Maze",
+            "min_x": 2927,
+            "max_x": 2937,
+            "min_y": 3242,
+            "max_y": 3252
+          }
+        ],
+        "view": {
+          "min_x": 2874,
+          "max_x": 3024,
+          "min_y": 3151,
+          "max_y": 3301
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Melzar%27s_Maze",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_50302d5f470beea9",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Menaphos?",
+        "targets": [
+          {
+            "name": "Menaphos",
+            "min_x": 3140,
+            "max_x": 3270,
+            "min_y": 2660,
+            "max_y": 2810
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Menaphos",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_ba7534165b77747d",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Miscellania?",
+        "targets": [
+          {
+            "name": "Miscellania",
+            "min_x": 2495,
+            "max_x": 2572,
+            "min_y": 3840,
+            "max_y": 3902
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Miscellania",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_863c6f6828eee622",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Mort Myre Swamp?",
+        "targets": [
+          {
+            "name": "Mort Myre Swamp",
+            "min_x": 3400,
+            "max_x": 3518,
+            "min_y": 3320,
+            "max_y": 3465
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Mort_Myre_Swamp",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_6fb130be74110d3b",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Mort'ton?",
+        "targets": [
+          {
+            "name": "Mort'ton",
+            "min_x": 3460,
+            "max_x": 3513,
+            "min_y": 3262,
+            "max_y": 3305
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Mort%27ton",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_bb47b2622af4b186",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Mos Le'Harmless?",
+        "targets": [
+          {
+            "name": "Mos Le'Harmless",
+            "min_x": 3646,
+            "max_x": 3850,
+            "min_y": 2932,
+            "max_y": 3071
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Mos_Le%27Harmless",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_42f3cde143797b51",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Mount Karuulm?",
+        "targets": [
+          {
+            "name": "Mount Karuulm",
+            "min_x": 1250,
+            "max_x": 1350,
+            "min_y": 3780,
+            "max_y": 3855
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Mount_Karuulm",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_c619db363a7e8950",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Mount Quidamortem?",
+        "targets": [
+          {
+            "name": "Mount Quidamortem",
+            "min_x": 1210,
+            "max_x": 1290,
+            "min_y": 3510,
+            "max_y": 3597
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Mount_Quidamortem",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_d562c749a7591e7e",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Mourner Headquarters?",
+        "targets": [
+          {
+            "name": "Mourner Headquarters",
+            "min_x": 2540,
+            "max_x": 2557,
+            "min_y": 3319,
+            "max_y": 3334
+          }
+        ],
+        "view": {
+          "min_x": 2495,
+          "max_x": 2645,
+          "min_y": 3225,
+          "max_y": 3375
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Mourner_Headquarters",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_07943b0d78d7fcee",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Mudskipper Point?",
+        "targets": [
+          {
+            "name": "Mudskipper Point",
+            "min_x": 2978,
+            "max_x": 3015,
+            "min_y": 3105,
+            "max_y": 3150
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Mudskipper_Point",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_a073d14eb70103e4",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Musa Point?",
+        "targets": [
+          {
+            "name": "Musa Point",
+            "min_x": 2880,
+            "max_x": 2960,
+            "min_y": 3140,
+            "max_y": 3185
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Musa_Point",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_1da77c92641acf3a",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Museum Camp?",
+        "targets": [
+          {
+            "name": "Museum Camp",
+            "min_x": 3720,
+            "max_x": 3760,
+            "min_y": 3795,
+            "max_y": 3830
+          }
+        ],
+        "view": {
+          "min_x": 3655,
+          "max_x": 3805,
+          "min_y": 3732,
+          "max_y": 3882
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Museum_Camp",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_1570a3a4f2f1ebd1",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Myths' Guild?",
+        "targets": [
+          {
+            "name": "Myths' Guild",
+            "min_x": 2440,
+            "max_x": 2472,
+            "min_y": 2820,
+            "max_y": 2868
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Myths%27_Guild",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_bd8c75679561f8ca",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Nardah?",
+        "targets": [
+          {
+            "name": "Nardah",
+            "min_x": 3400,
+            "max_x": 3452,
+            "min_y": 2890,
+            "max_y": 2940
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Nardah",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_fe64959257b736ae",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Neitiznot?",
+        "targets": [
+          {
+            "name": "Neitiznot",
+            "min_x": 2307,
+            "max_x": 2368,
+            "min_y": 3780,
+            "max_y": 3842
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Neitiznot",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_e89e0f908b0a24e5",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Observatory?",
+        "targets": [
+          {
+            "name": "Observatory",
+            "min_x": 2433,
+            "max_x": 2449,
+            "min_y": 3154,
+            "max_y": 3170
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Observatory",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_f2e2e2e26ff56bbc",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Paterdomus Temple?",
+        "targets": [
+          {
+            "name": "Paterdomus Temple",
+            "min_x": 3406,
+            "max_x": 3426,
+            "min_y": 3477,
+            "max_y": 3497
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Paterdomus_Temple",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_07bc79a4c5205da2",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Pest Control?",
+        "targets": [
+          {
+            "name": "Pest Control",
+            "min_x": 2625,
+            "max_x": 2690,
+            "min_y": 2563,
+            "max_y": 2680
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Pest_Control",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_d1e5b9620045442d",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Pirates' Cove?",
+        "targets": [
+          {
+            "name": "Pirates' Cove",
+            "min_x": 2180,
+            "max_x": 2230,
+            "min_y": 3785,
+            "max_y": 3840
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Pirates%27_Cove",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_801cdf1c312c0f2d",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Piscatoris Fishing Colony?",
+        "targets": [
+          {
+            "name": "Piscatoris Fishing Colony",
+            "min_x": 2308,
+            "max_x": 2350,
+            "min_y": 3658,
+            "max_y": 3702
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Piscatoris_Fishing_Colony",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_54f88a192ab82bad",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Pollnivneach?",
+        "targets": [
+          {
+            "name": "Pollnivneach",
+            "min_x": 3340,
+            "max_x": 3380,
+            "min_y": 2945,
+            "max_y": 3010
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Pollnivneach",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_eadd58b7f57e4a7c",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Port Khazard?",
+        "targets": [
+          {
+            "name": "Port Khazard",
+            "min_x": 2625,
+            "max_x": 2685,
+            "min_y": 3135,
+            "max_y": 3182
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Port_Khazard",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_130544c7873fbf89",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Port Phasmatys?",
+        "targets": [
+          {
+            "name": "Port Phasmatys",
+            "min_x": 3652,
+            "max_x": 3711,
+            "min_y": 3458,
+            "max_y": 3515
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Port_Phasmatys",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_9c754463c3969a32",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Port Piscarilius?",
+        "targets": [
+          {
+            "name": "Port Piscarilius",
+            "min_x": 1740,
+            "max_x": 1855,
+            "min_y": 3680,
+            "max_y": 3815
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Port_Piscarilius",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_840a576951c03c30",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Port Sarim?",
+        "targets": [
+          {
+            "name": "Port Sarim",
+            "min_x": 3005,
+            "max_x": 3058,
+            "min_y": 3172,
+            "max_y": 3265
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Port_Sarim",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_30e20aece5caa681",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Quetzacalli Gorge?",
+        "targets": [
+          {
+            "name": "Quetzacalli Gorge",
+            "min_x": 1495,
+            "max_x": 1515,
+            "min_y": 3222,
+            "max_y": 3242
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Quetzacalli_Gorge",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_1aea61d86960ef33",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Ranging Guild?",
+        "targets": [
+          {
+            "name": "Ranging Guild",
+            "min_x": 2651,
+            "max_x": 2686,
+            "min_y": 3411,
+            "max_y": 3446
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Ranging_Guild",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_422885e531fa1808",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Rellekka?",
+        "targets": [
+          {
+            "name": "Rellekka",
+            "min_x": 2600,
+            "max_x": 2706,
+            "min_y": 3643,
+            "max_y": 3717
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Rellekka",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_6dd1d0042a130636",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is the Wilderness Resource Area?",
+        "targets": [
+          {
+            "name": "Resource Area",
+            "min_x": 3174,
+            "max_x": 3196,
+            "min_y": 3923,
+            "max_y": 3945
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Resource_Area",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_0d18fa13ce746a2c",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Rimmington?",
+        "targets": [
+          {
+            "name": "Rimmington",
+            "min_x": 2906,
+            "max_x": 2991,
+            "min_y": 3188,
+            "max_y": 3263
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Rimmington",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_eadf716dcabb6f41",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Rimmington mine?",
+        "targets": [
+          {
+            "name": "Rimmington mine",
+            "min_x": 2968,
+            "max_x": 2988,
+            "min_y": 3229,
+            "max_y": 3249
+          }
+        ],
+        "view": {
+          "min_x": 2874,
+          "max_x": 3024,
+          "min_y": 3151,
+          "max_y": 3301
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Rimmington_mine",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_b560079962c61dea",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Rogues' Castle?",
+        "targets": [
+          {
+            "name": "Rogues' Castle",
+            "min_x": 3276,
+            "max_x": 3296,
+            "min_y": 3923,
+            "max_y": 3943
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Rogues%27_Castle",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_e5f11c3760d7b691",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Seers' Village?",
+        "targets": [
+          {
+            "name": "Seers' Village",
+            "min_x": 2685,
+            "max_x": 2735,
+            "min_y": 3460,
+            "max_y": 3510
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Seers%27_Village",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_92b0891795a34eb5",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Seers' Village bank?",
+        "targets": [
+          {
+            "name": "Seers' Village bank",
+            "min_x": 2718,
+            "max_x": 2732,
+            "min_y": 3485,
+            "max_y": 3499
+          }
+        ],
+        "view": {
+          "min_x": 2635,
+          "max_x": 2785,
+          "min_y": 3410,
+          "max_y": 3560
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Seers%27_Village_bank",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_4381756607f0bf1a",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Shantay Pass?",
+        "targets": [
+          {
+            "name": "Shantay Pass",
+            "min_x": 3294,
+            "max_x": 3314,
+            "min_y": 3113,
+            "max_y": 3133
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Shantay_Pass",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_b1dba0ca13927d60",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Shayzien?",
+        "targets": [
+          {
+            "name": "Shayzien",
+            "min_x": 1465,
+            "max_x": 1580,
+            "min_y": 3530,
+            "max_y": 3650
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Shayzien",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_49060e351c5a90c8",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Shilo Village?",
+        "targets": [
+          {
+            "name": "Shilo Village",
+            "min_x": 2824,
+            "max_x": 2874,
+            "min_y": 2947,
+            "max_y": 2997
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Shilo_Village_(location)",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_7badff4a27403f94",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Sophanem?",
+        "targets": [
+          {
+            "name": "Sophanem",
+            "min_x": 3275,
+            "max_x": 3325,
+            "min_y": 2750,
+            "max_y": 2810
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Sophanem",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_401c0b12c279b1fb",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is South-east Varrock mine?",
+        "targets": [
+          {
+            "name": "South-east Varrock mine",
+            "min_x": 3282,
+            "max_x": 3292,
+            "min_y": 3360,
+            "max_y": 3370
+          }
+        ],
+        "view": {
+          "min_x": 3160,
+          "max_x": 3317,
+          "min_y": 3335,
+          "max_y": 3498
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/South-east_Varrock_mine",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_017b0e61f3bbfed3",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is South-west Varrock mine?",
+        "targets": [
+          {
+            "name": "South-west Varrock mine",
+            "min_x": 3172,
+            "max_x": 3182,
+            "min_y": 3365,
+            "max_y": 3375
+          }
+        ],
+        "view": {
+          "min_x": 3129,
+          "max_x": 3279,
+          "min_y": 3340,
+          "max_y": 3498
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/South-west_Varrock_mine",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_a04a75a2ab95b5f6",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Sunset Coast?",
+        "targets": [
+          {
+            "name": "Sunset Coast",
+            "min_x": 1500,
+            "max_x": 1545,
+            "min_y": 2965,
+            "max_y": 3002
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Sunset_Coast",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_a7f1005bc5c20ede",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Tai Bwo Wannai?",
+        "targets": [
+          {
+            "name": "Tai Bwo Wannai",
+            "min_x": 2770,
+            "max_x": 2820,
+            "min_y": 3040,
+            "max_y": 3090
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Tai_Bwo_Wannai",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_d0fa1ab9e2cc2942",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Taverley?",
+        "targets": [
+          {
+            "name": "Taverley",
+            "min_x": 2875,
+            "max_x": 2940,
+            "min_y": 3415,
+            "max_y": 3490
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Taverley",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_adaac9dae17b8e18",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Tempoross Cove?",
+        "targets": [
+          {
+            "name": "Tempoross Cove",
+            "min_x": 3008,
+            "max_x": 3050,
+            "min_y": 2825,
+            "max_y": 2878
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Tempoross_Cove",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_d975399227a9ec94",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Tree Gnome Stronghold?",
+        "targets": [
+          {
+            "name": "Tree Gnome Stronghold",
+            "min_x": 2365,
+            "max_x": 2500,
+            "min_y": 3380,
+            "max_y": 3530
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Tree_Gnome_Stronghold",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_928e47e5197bb4b9",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Tree Gnome Village?",
+        "targets": [
+          {
+            "name": "Tree Gnome Village",
+            "min_x": 2494,
+            "max_x": 2557,
+            "min_y": 3140,
+            "max_y": 3195
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Tree_Gnome_Village_(location)",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_5aaee2ba909cbd26",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Troll Stronghold?",
+        "targets": [
+          {
+            "name": "Troll Stronghold",
+            "min_x": 2815,
+            "max_x": 2865,
+            "min_y": 3655,
+            "max_y": 3712
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Troll_Stronghold_(location)",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_33932149a598605b",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Trollheim?",
+        "targets": [
+          {
+            "name": "Trollheim",
+            "min_x": 2830,
+            "max_x": 2935,
+            "min_y": 3610,
+            "max_y": 3730
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Trollheim",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_f7c81fd3d031aa77",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Tutorial Island?",
+        "targets": [
+          {
+            "name": "Tutorial Island",
+            "min_x": 3055,
+            "max_x": 3150,
+            "min_y": 3055,
+            "max_y": 3145
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Tutorial_Island",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_a4fa84195e3e1ef2",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Varrock?",
+        "targets": [
+          {
+            "name": "Varrock",
+            "min_x": 3175,
+            "max_x": 3285,
+            "min_y": 3380,
+            "max_y": 3505
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Varrock",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_ffe1cb76ac92a529",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Varrock Museum?",
+        "targets": [
+          {
+            "name": "Varrock Museum",
+            "min_x": 3252,
+            "max_x": 3268,
+            "min_y": 3442,
+            "max_y": 3456
+          }
+        ],
+        "view": {
+          "min_x": 3152,
+          "max_x": 3302,
+          "min_y": 3373,
+          "max_y": 3523
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Varrock_Museum",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_a7f33fe13f3e7975",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Varrock Palace?",
+        "targets": [
+          {
+            "name": "Varrock Palace",
+            "min_x": 3199,
+            "max_x": 3232,
+            "min_y": 3458,
+            "max_y": 3500
+          }
+        ],
+        "view": {
+          "min_x": 3135,
+          "max_x": 3285,
+          "min_y": 3379,
+          "max_y": 3529
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Varrock_Palace",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_066af045285c37d1",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Varrock Square?",
+        "targets": [
+          {
+            "name": "Varrock Square",
+            "min_x": 3203,
+            "max_x": 3223,
+            "min_y": 3419,
+            "max_y": 3439
+          }
+        ],
+        "view": {
+          "min_x": 3135,
+          "max_x": 3285,
+          "min_y": 3371,
+          "max_y": 3521
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Varrock_Square",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_cf849d68fb27b251",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Varrock east bank?",
+        "targets": [
+          {
+            "name": "Varrock east bank",
+            "min_x": 3249,
+            "max_x": 3259,
+            "min_y": 3415,
+            "max_y": 3425
+          }
+        ],
+        "view": {
+          "min_x": 3147,
+          "max_x": 3297,
+          "min_y": 3369,
+          "max_y": 3519
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Varrock_east_bank",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_0ffe74f61625add5",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Varrock west bank?",
+        "targets": [
+          {
+            "name": "Varrock west bank",
+            "min_x": 3180,
+            "max_x": 3190,
+            "min_y": 3432,
+            "max_y": 3448
+          }
+        ],
+        "view": {
+          "min_x": 3133,
+          "max_x": 3283,
+          "min_y": 3373,
+          "max_y": 3523
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Varrock_west_bank",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_73cc7bbd14f743c4",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Ver Sinhaza?",
+        "targets": [
+          {
+            "name": "Ver Sinhaza",
+            "min_x": 3640,
+            "max_x": 3710,
+            "min_y": 3195,
+            "max_y": 3240
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Ver_Sinhaza",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_f082b22654104001",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Warriors' Guild?",
+        "targets": [
+          {
+            "name": "Warriors' Guild",
+            "min_x": 2838,
+            "max_x": 2877,
+            "min_y": 3534,
+            "max_y": 3557
+          }
+        ],
+        "view": {
+          "min_x": 2792,
+          "max_x": 2942,
+          "min_y": 3469,
+          "max_y": 3619
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Warriors%27_Guild",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_d78f4741710cd585",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Watchtower?",
+        "targets": [
+          {
+            "name": "Watchtower",
+            "min_x": 2542,
+            "max_x": 2552,
+            "min_y": 3110,
+            "max_y": 3120
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Watchtower_(building)",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_7f53c1f464564bd5",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Waterbirth Island?",
+        "targets": [
+          {
+            "name": "Waterbirth Island",
+            "min_x": 2498,
+            "max_x": 2556,
+            "min_y": 3713,
+            "max_y": 3771
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Waterbirth_Island",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_3d436afa7324870c",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Weiss?",
+        "targets": [
+          {
+            "name": "Weiss",
+            "min_x": 2835,
+            "max_x": 2920,
+            "min_y": 3900,
+            "max_y": 3970
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Weiss",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_87cb0dad1b905916",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is West Ardougne?",
+        "targets": [
+          {
+            "name": "West Ardougne",
+            "min_x": 2459,
+            "max_x": 2558,
+            "min_y": 3264,
+            "max_y": 3336
+          }
+        ],
+        "view": {
+          "min_x": 2439,
+          "max_x": 2645,
+          "min_y": 3225,
+          "max_y": 3375
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/West_Ardougne",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_70ef1230f5de2498",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is White Knights' Castle?",
+        "targets": [
+          {
+            "name": "White Knights' Castle",
+            "min_x": 2955,
+            "max_x": 3005,
+            "min_y": 3325,
+            "max_y": 3362
+          }
+        ],
+        "view": {
+          "min_x": 2910,
+          "max_x": 3091,
+          "min_y": 3277,
+          "max_y": 3427
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/White_Knights%27_Castle",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_815a46badfa941f9",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is White Wolf Mountain?",
+        "targets": [
+          {
+            "name": "White Wolf Mountain",
+            "min_x": 2815,
+            "max_x": 2875,
+            "min_y": 3440,
+            "max_y": 3512
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/White_Wolf_Mountain",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_e51fc0ee3fe7d3cd",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Wilderness Agility Course?",
+        "targets": [
+          {
+            "name": "Wilderness Agility Course",
+            "min_x": 2989,
+            "max_x": 3008,
+            "min_y": 3930,
+            "max_y": 3968
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Wilderness_Agility_Course",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_3c0d9c1ba74c4328",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Wintertodt Camp?",
+        "targets": [
+          {
+            "name": "Wintertodt Camp",
+            "min_x": 1620,
+            "max_x": 1640,
+            "min_y": 3928,
+            "max_y": 3948
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Wintertodt_Camp",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_09c472b27c311758",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Witch's house?",
+        "targets": [
+          {
+            "name": "Witch's house",
+            "min_x": 2900,
+            "max_x": 2938,
+            "min_y": 3459,
+            "max_y": 3477
+          }
+        ],
+        "view": {
+          "min_x": 2844,
+          "max_x": 2994,
+          "min_y": 3387,
+          "max_y": 3537
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Witch%27s_house_(location)",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_d7bac31b6bce89f3",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Witchaven?",
+        "targets": [
+          {
+            "name": "Witchaven",
+            "min_x": 2700,
+            "max_x": 2740,
+            "min_y": 3265,
+            "max_y": 3300
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Witchaven",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_207b36a71090b40f",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Wizards' Guild?",
+        "targets": [
+          {
+            "name": "Wizards' Guild",
+            "min_x": 2585,
+            "max_x": 2597,
+            "min_y": 3082,
+            "max_y": 3094
+          }
+        ],
+        "view": {
+          "min_x": 2502,
+          "max_x": 2652,
+          "min_y": 3015,
+          "max_y": 3165
+        },
+        "reach": 50
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Wizards%27_Guild",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_053d4004f3dbabcc",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Wizards' Tower?",
+        "targets": [
+          {
+            "name": "Wizards' Tower",
+            "min_x": 3094,
+            "max_x": 3121,
+            "min_y": 3148,
+            "max_y": 3176
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Wizards%27_Tower",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_991cdc54311e170b",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Woodcutting Guild?",
+        "targets": [
+          {
+            "name": "Woodcutting Guild",
+            "min_x": 1563,
+            "max_x": 1658,
+            "min_y": 3472,
+            "max_y": 3519
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Woodcutting_Guild",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_1b4c09f06d34c4ea",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Yanille?",
+        "targets": [
+          {
+            "name": "Yanille",
+            "min_x": 2532,
+            "max_x": 2622,
+            "min_y": 3068,
+            "max_y": 3112
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Yanille",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_d98df2220a92a2df",
+      "type": "map_pin",
+      "mode": "mark_the_map",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is Zul-Andra?",
+        "targets": [
+          {
+            "name": "Zul-Andra",
+            "min_x": 2180,
+            "max_x": 2215,
+            "min_y": 3045,
+            "max_y": 3075
+          }
+        ]
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Zul-Andra",
+      "difficulty": "medium"
+    }
+  ]
+}

@@ -304,6 +304,17 @@
 
     "map_tile_x": { "type": "integer", "minimum": 768, "maximum": 4095 },
     "map_tile_y": { "type": "integer", "minimum": 1792, "maximum": 4351 },
+    "map_area": {
+      "type": "object",
+      "required": ["min_x", "max_x", "min_y", "max_y"],
+      "additionalProperties": false,
+      "properties": {
+        "min_x": { "$ref": "#/$defs/map_tile_x" },
+        "max_x": { "$ref": "#/$defs/map_tile_x" },
+        "min_y": { "$ref": "#/$defs/map_tile_y" },
+        "max_y": { "$ref": "#/$defs/map_tile_y" }
+      }
+    },
     "map_pin": {
       "type": "object",
       "required": ["prompt", "targets"],
@@ -332,16 +343,10 @@
           "$comment": "Tiles outside a target where a pin's credit reaches 0; left out, the type's default.",
           "type": "integer", "minimum": 10, "maximum": 3000
         },
-        "bounds": {
-          "type": "object",
-          "required": ["min_x", "max_x", "min_y", "max_y"],
-          "additionalProperties": false,
-          "properties": {
-            "min_x": { "$ref": "#/$defs/map_tile_x" },
-            "max_x": { "$ref": "#/$defs/map_tile_x" },
-            "min_y": { "$ref": "#/$defs/map_tile_y" },
-            "max_y": { "$ref": "#/$defs/map_tile_y" }
-          }
+        "bounds": { "$ref": "#/$defs/map_area" },
+        "view": {
+          "$comment": "Where the map opens while the question is open; the rest stays a pan away.",
+          "$ref": "#/$defs/map_area"
         },
         "explanation": { "type": "string", "maxLength": 300 }
       }

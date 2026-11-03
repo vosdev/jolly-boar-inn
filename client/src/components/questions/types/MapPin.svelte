@@ -3,7 +3,7 @@
    * `map_pin`: place one pin per target on the world map, then lock them in.
    *
    * `data` arrives in the two shapes `questions/types/map_pin.py` sends: while open the prompt,
-   * `pins` and `bounds`; after close the same plus `targets` and the `reach` that scored them.
+   * `pins`, `bounds` and `view`; after close the same plus `targets` and the `reach` that scored them.
    *
    * Your pet is your pin from the first tap. Until Lock in the pins are this browser's alone,
    * and whatever is down when the question nearly ends goes then, the last pin repeated if some
@@ -49,6 +49,7 @@
   interface Data {
     pins: number
     bounds?: WireBounds
+    view?: WireBounds
     /** Reveal only. */
     targets?: PinTarget[]
     /** Reveal only. */
@@ -78,6 +79,9 @@
   const count = $derived(q.pins)
   const bounds: MapBounds | undefined = $derived(
     q.bounds === undefined ? undefined : boundsOf(q.bounds),
+  )
+  const opening: MapBounds | undefined = $derived(
+    q.view === undefined ? undefined : boundsOf(q.view),
   )
   const reach = $derived(q.reach ?? 1)
   const targets = $derived(q.targets ?? [])
@@ -255,6 +259,7 @@
 <div class="pin-map" role="group" aria-label="World map">
   <MapView
     {bounds}
+    {opening}
     {markers}
     {lines}
     {areas}

@@ -43,6 +43,16 @@ def test_the_open_view_has_the_pin_count_and_no_target() -> None:
     assert view == {"prompt": "Pin both.", "bounds": DESERT, "pins": 2}
 
 
+def test_the_open_view_says_where_the_map_opens() -> None:
+    view = map_pin.client_view({**ONE, "view": DESERT})
+    assert view == {"prompt": "Where is Port Sarim?", "view": DESERT, "pins": 1}
+
+
+def test_a_pin_outside_the_view_still_counts() -> None:
+    assert map_pin.parse_value({**ONE, "view": DESERT}, [{"x": 3030, "y": 3220}]) is not None
+    assert points({**ONE, "view": DESERT}, [{"x": 3030, "y": 3220}]) == 1000
+
+
 def test_the_reveal_has_every_target() -> None:
     assert map_pin.reveal(TWO)["targets"] == [SARIM, VARROCK]
 
@@ -154,6 +164,8 @@ def test_pairing_finds_the_best_assignment_not_the_nearest_first() -> None:
     [
         ({**ONE, "bounds": DESERT}, "outside the bounds"),
         ({**ONE, "bounds": {**DESERT, "max_x": DESERT["min_x"]}}, "holds no tile"),
+        ({**ONE, "view": {**DESERT, "max_y": DESERT["min_y"]}}, "view: "),
+        ({**ONE, "bounds": DESERT, "view": {**DESERT, "max_x": 3500}}, "opens outside"),
         ({"prompt": "Two.", "targets": [SARIM, {**SARIM, "name": "Sarim"}]}, "overlaps"),
         (
             {"prompt": "Two.", "targets": [SARIM, {**VARROCK, "name": SARIM["name"]}]},

@@ -156,6 +156,8 @@ MODES: dict[str, Mode] = {
             }
         ),
     ),
+    # One place to pin on the whole surface, scored on distance alone.
+    "mark_the_map": Mode(id="mark_the_map", types=frozenset({"map_pin"})),
     # The NPCs' questions as a round, to test them in a row. Off unless the instance says so.
     "random_events_only": Mode(
         id="random_events_only",

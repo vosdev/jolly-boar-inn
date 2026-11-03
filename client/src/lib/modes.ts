@@ -1602,6 +1602,83 @@ export const MODES: Record<string, Mode> = {
     },
     stem: 'text',
   },
+  mark_the_map: {
+    id: 'mark_the_map',
+    label: 'Mark the Map',
+    hint: 'Arr, ye a pirate? Show me where the treasure be.',
+    host: { id: 'bill_teach', name: 'Bill Teach' },
+    greeting: 'Ahoy, landlubber! Fetch me map and a pin.',
+    blurb:
+      'I need places to plunder, and you know the land. Help me find the places and I will share the loot with ye.',
+    ask: [
+      'Where be this one, matey?',
+      'Mark me the next place to plunder.',
+      'Find this one and the loot is half yours.',
+      'X marks the spot. Where does the X go?',
+    ],
+    waiting: [
+      'Take yer time. The loot is not going anywhere.',
+      'Still looking? Try the other side of the map.',
+      'Hurry, before the Brimhaven crew gets there first.',
+      'No peeking at the world map, ye scallywag.',
+    ],
+    pace: {
+      quick: [
+        'Quick! Ye must have raided it yesterday.',
+        'Fast! Faster than a ship with the wind behind it.',
+        'Quick as a cutlass, matey!',
+      ],
+      middling: [
+        'Steady as she goes.',
+        'A fair pace for a landlubber.',
+        'No rush. The guards are still asleep.',
+      ],
+      late: [
+        'Just in time! We were about to set sail.',
+        'Just in time, like the last boat from Port Sarim.',
+        'Just in time, ye barnacle.',
+      ],
+      early: [
+        'Early! Ye barely let me finish the name.',
+        'So early! Have ye plundered it before?',
+        'Answered early! A born navigator.',
+      ],
+      later: [
+        'Ye took yer time. A careful buccaneer.',
+        'Ye searched every corner. The crew grew bored.',
+        'Slow and sure. The tide waits for no pirate.',
+      ],
+    },
+    reveal: [
+      'Let us see where ye dug.',
+      'Now, where be the real spot?',
+      'Out comes me treasure map.',
+      'Here be the spot.',
+    ],
+    verdict: {
+      right: [
+        'Right on the X! Ye have earned yer share.',
+        'Spot on! A true pirate.',
+        'Exactly there. Break out the rum!',
+      ],
+      partial: [
+        'Close! Just a short dig from the loot.',
+        'Nearly. Ye can see it from there, at least.',
+        'Not far off. Walk a few more paces.',
+      ],
+      wrong: [
+        'Arr, that be the wrong side of Gielinor.',
+        'No, no. Ye would dig there for a month.',
+        'Wrong! Walk the plank, ye bilge rat.',
+      ],
+      missed: [
+        'No pin? Lost at sea already?',
+        'Nothing? The map does not bite.',
+        'No pin at all. No pin, no plunder.',
+      ],
+    },
+    stem: 'text',
+  },
   random_events_only: {
     id: 'random_events_only',
     label: 'Random Events Only',
@@ -1831,8 +1908,6 @@ export const UPCOMING_MODES: {
   label: string
   hint: string
   host: string
-  /** For a round whose suggestions are previewed before it ships. */
-  stem?: StemId
 }[] = [
   {
     id: 'release_order',
@@ -1851,13 +1926,6 @@ export const UPCOMING_MODES: {
     label: 'Minimap Guesser',
     hint: 'Where in the name of Gielinor is that?',
     host: 'captain_errdo',
-  },
-  {
-    id: 'mark_the_map',
-    label: 'Mark the Map',
-    hint: 'Hatius names a place. Show him where it is.',
-    host: 'hatius_cosaintus',
-    stem: 'text',
   },
   {
     id: 'scrying_pool',
