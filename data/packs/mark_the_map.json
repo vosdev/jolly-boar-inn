@@ -72,34 +72,6 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_da31412578e1997b",
-      "type": "map_pin",
-      "mode": "mark_the_map",
-      "source": "pack",
-      "tags": [],
-      "payload": {
-        "prompt": "Where is Al Kharid Rooftop Course?",
-        "targets": [
-          {
-            "name": "Al Kharid Rooftop Course",
-            "min_x": 3266,
-            "max_x": 3320,
-            "min_y": 3160,
-            "max_y": 3198
-          }
-        ],
-        "view": {
-          "min_x": 3209,
-          "max_x": 3359,
-          "min_y": 3113,
-          "max_y": 3263
-        },
-        "reach": 50
-      },
-      "wiki": "https://oldschool.runescape.wiki/w/Al_Kharid_Rooftop_Course",
-      "difficulty": "medium"
-    },
-    {
       "id": "q_96df1fecbf624bf8",
       "type": "map_pin",
       "mode": "mark_the_map",
@@ -349,34 +321,6 @@
         "reach": 50
       },
       "wiki": "https://oldschool.runescape.wiki/w/Ardougne_Monastery",
-      "difficulty": "medium"
-    },
-    {
-      "id": "q_398e445f21eafafb",
-      "type": "map_pin",
-      "mode": "mark_the_map",
-      "source": "pack",
-      "tags": [],
-      "payload": {
-        "prompt": "Where is Ardougne Rooftop Course?",
-        "targets": [
-          {
-            "name": "Ardougne Rooftop Course",
-            "min_x": 2650,
-            "max_x": 2676,
-            "min_y": 3292,
-            "max_y": 3320
-          }
-        ],
-        "view": {
-          "min_x": 2495,
-          "max_x": 2703,
-          "min_y": 3225,
-          "max_y": 3375
-        },
-        "reach": 50
-      },
-      "wiki": "https://oldschool.runescape.wiki/w/Ardougne_Rooftop_Course",
       "difficulty": "medium"
     },
     {
@@ -741,34 +685,6 @@
         ]
       },
       "wiki": "https://oldschool.runescape.wiki/w/Canifis",
-      "difficulty": "medium"
-    },
-    {
-      "id": "q_c2ea9743b29c53f7",
-      "type": "map_pin",
-      "mode": "mark_the_map",
-      "source": "pack",
-      "tags": [],
-      "payload": {
-        "prompt": "Where is Canifis Rooftop Course?",
-        "targets": [
-          {
-            "name": "Canifis Rooftop Course",
-            "min_x": 3466,
-            "max_x": 3512,
-            "min_y": 3468,
-            "max_y": 3508
-          }
-        ],
-        "view": {
-          "min_x": 3425,
-          "max_x": 3575,
-          "min_y": 3413,
-          "max_y": 3563
-        },
-        "reach": 50
-      },
-      "wiki": "https://oldschool.runescape.wiki/w/Canifis_Rooftop_Course",
       "difficulty": "medium"
     },
     {
@@ -1199,34 +1115,6 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_667e1739baf07946",
-      "type": "map_pin",
-      "mode": "mark_the_map",
-      "source": "pack",
-      "tags": [],
-      "payload": {
-        "prompt": "Where is Draynor Village Rooftop Course?",
-        "targets": [
-          {
-            "name": "Draynor Village Rooftop Course",
-            "min_x": 3085,
-            "max_x": 3104,
-            "min_y": 3255,
-            "max_y": 3282
-          }
-        ],
-        "view": {
-          "min_x": 3028,
-          "max_x": 3178,
-          "min_y": 3197,
-          "max_y": 3347
-        },
-        "reach": 50
-      },
-      "wiki": "https://oldschool.runescape.wiki/w/Draynor_Village_Rooftop_Course",
-      "difficulty": "medium"
-    },
-    {
       "id": "q_3941900b0c1fc4f5",
       "type": "map_pin",
       "mode": "mark_the_map",
@@ -1463,34 +1351,6 @@
       },
       "wiki": "https://oldschool.runescape.wiki/w/Falador_Park",
       "difficulty": "easy"
-    },
-    {
-      "id": "q_211a289b6e329bfb",
-      "type": "map_pin",
-      "mode": "mark_the_map",
-      "source": "pack",
-      "tags": [],
-      "payload": {
-        "prompt": "Where is Falador Rooftop Course?",
-        "targets": [
-          {
-            "name": "Falador Rooftop Course",
-            "min_x": 3005,
-            "max_x": 3051,
-            "min_y": 3335,
-            "max_y": 3370
-          }
-        ],
-        "view": {
-          "min_x": 2910,
-          "max_x": 3091,
-          "min_y": 3277,
-          "max_y": 3427
-        },
-        "reach": 50
-      },
-      "wiki": "https://oldschool.runescape.wiki/w/Falador_Rooftop_Course",
-      "difficulty": "medium"
     },
     {
       "id": "q_40d950664dcd65f0",
@@ -2851,34 +2711,6 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_029d159a754eb72a",
-      "type": "map_pin",
-      "mode": "mark_the_map",
-      "source": "pack",
-      "tags": [],
-      "payload": {
-        "prompt": "Where is Pollnivneach Rooftop Course?",
-        "targets": [
-          {
-            "name": "Pollnivneach Rooftop Course",
-            "min_x": 3345,
-            "max_x": 3375,
-            "min_y": 2955,
-            "max_y": 3000
-          }
-        ],
-        "view": {
-          "min_x": 3282,
-          "max_x": 3432,
-          "min_y": 2896,
-          "max_y": 3046
-        },
-        "reach": 50
-      },
-      "wiki": "https://oldschool.runescape.wiki/w/Pollnivneach_Rooftop_Course",
-      "difficulty": "medium"
-    },
-    {
       "id": "q_eadd58b7f57e4a7c",
       "type": "map_pin",
       "mode": "mark_the_map",
@@ -3026,34 +2858,6 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_7250185ca1974176",
-      "type": "map_pin",
-      "mode": "mark_the_map",
-      "source": "pack",
-      "tags": [],
-      "payload": {
-        "prompt": "Where is Rellekka Rooftop Course?",
-        "targets": [
-          {
-            "name": "Rellekka Rooftop Course",
-            "min_x": 2618,
-            "max_x": 2656,
-            "min_y": 3650,
-            "max_y": 3685
-          }
-        ],
-        "view": {
-          "min_x": 2577,
-          "max_x": 2727,
-          "min_y": 3602,
-          "max_y": 3752
-        },
-        "reach": 50
-      },
-      "wiki": "https://oldschool.runescape.wiki/w/Rellekka_Rooftop_Course",
-      "difficulty": "medium"
-    },
-    {
       "id": "q_6dd1d0042a130636",
       "type": "map_pin",
       "mode": "mark_the_map",
@@ -3163,34 +2967,6 @@
         ]
       },
       "wiki": "https://oldschool.runescape.wiki/w/Seers%27_Village",
-      "difficulty": "medium"
-    },
-    {
-      "id": "q_dacf9b14f4253e31",
-      "type": "map_pin",
-      "mode": "mark_the_map",
-      "source": "pack",
-      "tags": [],
-      "payload": {
-        "prompt": "Where is Seers' Village Rooftop Course?",
-        "targets": [
-          {
-            "name": "Seers' Village Rooftop Course",
-            "min_x": 2697,
-            "max_x": 2733,
-            "min_y": 3460,
-            "max_y": 3498
-          }
-        ],
-        "view": {
-          "min_x": 2635,
-          "max_x": 2785,
-          "min_y": 3410,
-          "max_y": 3560
-        },
-        "reach": 50
-      },
-      "wiki": "https://oldschool.runescape.wiki/w/Seers%27_Village_Rooftop_Course",
       "difficulty": "medium"
     },
     {
@@ -3626,34 +3402,6 @@
       },
       "wiki": "https://oldschool.runescape.wiki/w/Varrock_Palace",
       "difficulty": "easy"
-    },
-    {
-      "id": "q_91c0aaea1f94c6a5",
-      "type": "map_pin",
-      "mode": "mark_the_map",
-      "source": "pack",
-      "tags": [],
-      "payload": {
-        "prompt": "Where is Varrock Rooftop Course?",
-        "targets": [
-          {
-            "name": "Varrock Rooftop Course",
-            "min_x": 3190,
-            "max_x": 3240,
-            "min_y": 3394,
-            "max_y": 3420
-          }
-        ],
-        "view": {
-          "min_x": 3135,
-          "max_x": 3285,
-          "min_y": 3366,
-          "max_y": 3516
-        },
-        "reach": 50
-      },
-      "wiki": "https://oldschool.runescape.wiki/w/Varrock_Rooftop_Course",
-      "difficulty": "medium"
     },
     {
       "id": "q_066af045285c37d1",
