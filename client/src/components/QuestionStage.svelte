@@ -12,7 +12,7 @@
    * The host stands above the sheet and speaks throughout: its ask line types in its bubble
    * before the stem types on the sheet, once we have answered its waiting line shows, dimmed,
    * picked by how fast `answer_ack` says we were once it arrives, and on the reveal a line reacting to how we did and the explanation, while what we earned
-   * goes on a chip on the box's name row and anything we scored pins the ribbon. Somebody the
+   * goes on a chip on the box's name row and anything we scored pins the rosette. Somebody the
    * question was never theirs to answer gets the room's reveal line and no chip. Who is in
    * goes to the room's table. A random event draws its own stage, with its NPC speaking.
    *

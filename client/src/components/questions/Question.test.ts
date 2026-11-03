@@ -11,9 +11,6 @@ import { cleanup, render, screen, waitFor } from '@testing-library/svelte'
 import { createRawSnippet, type Component } from 'svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import ribbon from '../../assets/stage/ribbon.svg'
-import bountySkull2 from '../../assets/sprites/bounty-skull-2.svg'
-import bountySkull5 from '../../assets/sprites/bounty-skull-5.svg'
 import { serverNow } from '../../lib/clock'
 import type { OpenQuestion, PlayerResult, Scoring } from '../../lib/protocol'
 import { MODES, pickLines } from '../../lib/modes'
@@ -818,20 +815,19 @@ describe('the pin', () => {
     expect(award()!.querySelector('.confetti')).toBeNull()
   })
 
-  it("is the inn's ribbon without a theme of its own, and the Wilderness's skull for the points", () => {
-    const pin = () => award()!.querySelector('img.pin')!.getAttribute('src')
+  it("is the inn's star rosette, and the Wilderness's skull rosette whatever the points", () => {
+    const mark = () => award()!.querySelector<SVGElement>('svg.rosette')!.dataset.mark
     revealed({ value: 0, correct: false, credit: 0.9, points: 300 })
-    expect(pin()).toBe(ribbon)
+    expect(mark()).toBe('star')
     cleanup()
 
     document.documentElement.dataset.theme = 'wilderness'
     try {
       revealed({ value: 0, correct: false, credit: 0.4, points: 300 })
-      expect(pin()).toBe(bountySkull2)
-      expect(award()!.classList.contains('sprite')).toBe(true)
+      expect(mark()).toBe('skull')
       cleanup()
       revealed({ value: 0, correct: true, credit: 1, points: 850 })
-      expect(pin()).toBe(bountySkull5)
+      expect(mark()).toBe('skull')
     } finally {
       delete document.documentElement.dataset.theme
     }

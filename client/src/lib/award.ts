@@ -3,22 +3,9 @@
  *
  * Any answer worth points earns a pin: right, partial credit or a graded guess. Only full
  * credit throws confetti as well, so a near miss is marked without being celebrated like a
- * hit. `+0`, and no answer at all, get nothing. What the pin is depends on the theme, and in
- * the Wilderness on the points too.
+ * hit. `+0`, and no answer at all, get nothing. The pin is a rosette in the theme's colours.
  */
 
-import ribbonUrl from '../assets/stage/ribbon.svg'
-import bountySkull1 from '../assets/sprites/bounty-skull-1.svg'
-import bountySkull2 from '../assets/sprites/bounty-skull-2.svg'
-import bountySkull3 from '../assets/sprites/bounty-skull-3.svg'
-import bountySkull4 from '../assets/sprites/bounty-skull-4.svg'
-import bountySkull5 from '../assets/sprites/bounty-skull-5.svg'
-import crystalShard from '../assets/sprites/crystal-shard.svg'
-import monkey from '../assets/sprites/monkey.svg'
-import cosmicRune from '../assets/sprites/cosmic-rune.svg'
-import snelm from '../assets/sprites/snelm.svg'
-import superKebab from '../assets/sprites/super-kebab.svg'
-import tokkul from '../assets/sprites/tokkul.svg'
 import type { Verdict } from './modes'
 import type { PlayerResult } from './protocol'
 
@@ -46,44 +33,10 @@ export function verdictFor(result: PlayerResult | null, canAnswer: boolean): Ver
   return result.points > 0 ? 'partial' : 'wrong'
 }
 
-/** The picture pinned to the sheet; a `sprite` is a game sprite, drawn at twice its pixels. */
-export interface Pin {
-  url: string
-  sprite: boolean
-}
+/** The mark at the rosette's heart. */
+export type Pin = 'star' | 'skull'
 
-const RIBBON: Pin = { url: ribbonUrl, sprite: false }
-
-const sprite = (url: string): Pin => ({ url, sprite: true })
-
-/** The Bounty Hunter's skull for the points, its tiers rising from bronze through iron, green and blue to red. */
-function bountySkull(points: number): string {
-  if (points >= 800) return bountySkull5
-  if (points >= 600) return bountySkull4
-  if (points >= 400) return bountySkull3
-  if (points >= 200) return bountySkull2
-  return bountySkull1
-}
-
-/** The pin for an award of `points` under `theme`; a theme with none of its own keeps the ribbon. */
-export function pinFor(theme: string, points: number): Pin {
-  switch (theme) {
-    case 'pollnivneach':
-      return sprite(superKebab)
-    case 'tzhaar':
-      return sprite(tokkul)
-    case 'wilderness':
-      return sprite(bountySkull(points))
-    case 'jungle':
-      return sprite(monkey)
-    case 'gauntlet':
-    case 'corrupted_gauntlet':
-      return sprite(crystalShard)
-    case 'morytania':
-      return sprite(snelm)
-    case 'zanaris':
-      return sprite(cosmicRune)
-    default:
-      return RIBBON
-  }
+/** The mark `theme`'s rosette carries: the Wilderness's skull, else the inn's star. */
+export function pinFor(theme: string): Pin {
+  return theme === 'wilderness' ? 'skull' : 'star'
 }

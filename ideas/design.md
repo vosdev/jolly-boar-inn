@@ -301,11 +301,9 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
   you answer, the waiting line shows in the bubble, dimmed to 60%; on a phone while the TV
   has the stage, alone under the answers. Names show whole. Otherwise as §12.
 - **Any answer that scores** pins the theme's pin on the sheet's bottom edge, 65% across: right,
-  partial credit or a graded guess alike. `jolly` and `party_room` pin a red rosette ribbon,
-  `pollnivneach` a super kebab, `tzhaar` Tokkul, `jungle` a Monkey Madness monkey, both Gauntlets a
-  crystal shard, `morytania` a pointed snelm, `zanaris` a cosmic rune, and `wilderness` the Bounty Hunter skull for the
-  points: bronze under 200, then iron, green and blue, red from 800. A game sprite is drawn at
-  twice its pixels, centred on the edge. Full credit alone adds a burst of confetti (900 ms) in
+  partial credit or a graded guess alike. It is the same rosette in every theme, so it always
+  reads as a prize, painted in the theme's `--rosette-*` tokens; `wilderness` swaps the star at
+  its heart for a skull. Full credit alone adds a burst of confetti (900 ms) in
   the theme's gem colours. `+0` gets nothing.
 - **The sheet** is an original inline SVG and CSS component in layer 8's tokens. An `<img>` could
   not read the theme's custom properties (§13). The knobs are fixed pieces; a roll stretches only
@@ -583,7 +581,7 @@ The theme must be set before first paint, and `script-src 'self'` forbids an inl
 | Item icons | Wiki inventory icons, `make fetch-assets` | No, fetched; without one the name stands alone |
 | Speedrunning trophies | Game renders, `make fetch-assets` | No, fetched; placeholders ship |
 | Clue scroll font | RuneStar/fonts, Quill 8 | **Yes**, 21 KB, with a note beside it |
-| Pins, the poster's skull | Wiki sprites, as SVGs pixel for pixel | **Yes**, `assets/sprites/`, with a note beside it |
+| The poster's skull, floor props | Wiki sprites, as SVGs pixel for pixel | **Yes**, `assets/sprites/`, with a note beside it |
 | Hosts and event NPCs | Wiki chatheads (§8), `make fetch-assets` | No, fetched; the boar is committed |
 | Pet art | Wiki chatheads and inventory icons, `make fetch-assets` | No, fetched; a pet with no file shows the boar |
 | Theme emblems | Wiki item icons, `make fetch-assets` | No, fetched; inline placeholder marks |

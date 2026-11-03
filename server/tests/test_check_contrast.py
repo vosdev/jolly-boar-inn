@@ -198,6 +198,11 @@ def test_a_missing_token_fails(css: str) -> None:
     assert not any("wilderness: --gem-zenyte" in line for line in check.check(broken))
 
 
+def test_a_rosette_token_is_required(css: str) -> None:
+    broken = css.replace("  --rosette-petal: #b3261e;\n", "", 1)
+    assert any("jolly: --rosette-petal is not defined" in line for line in check.check(broken))
+
+
 def test_a_token_that_is_not_a_colour_fails(css: str) -> None:
     broken = _swap(css, "wilderness", "--ok", "rebeccapurple")
     assert any("not a hex colour" in line for line in check.check(broken))

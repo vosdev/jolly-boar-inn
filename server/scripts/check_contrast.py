@@ -90,8 +90,13 @@ SHAPE = (
 TEXTURE = ("--texture-panel", "--texture-bg")
 SCROLL = ("--scroll-paper", "--scroll-edge", "--scroll-ink", "--scroll-muted", "--silhouette")
 TILE = ("--tile-dark", "--tile-seam")
+ROSETTE = tuple(
+    f"--rosette-{part}{shade}"
+    for part in ("petal", "tail", "tip", "heart")
+    for shade in ("", "-dark")
+)
 
-COLOUR_TOKENS = SURFACE + BRAND + VERDICT + SEMANTIC + GEMS + GEM_INK + SCROLL + TILE
+COLOUR_TOKENS = SURFACE + BRAND + VERDICT + SEMANTIC + GEMS + GEM_INK + SCROLL + TILE + ROSETTE
 REQUIRED_TOKENS = COLOUR_TOKENS + SHAPE + TEXTURE + ("--scroll-facet-light",)
 
 TEXT_RATIO = 4.5

@@ -1,6 +1,6 @@
 # Game sprites
 
-The stage's pins, the Wilderness poster's skull and what lies on the Jungle and Pollnivneach
+The Wilderness poster's skull and what lies on the Jungle and Pollnivneach
 floors. Each SVG is the in-game sprite from the
 [OSRS Wiki](https://oldschool.runescape.wiki/), pixel for pixel: one `<path>` per colour, made
 of one-pixel-high runs, so it renders exactly as the PNG did at 1×. The sprites are © Jagex Ltd
@@ -9,15 +9,8 @@ section covers it.
 
 | File | Wiki image |
 |---|---|
-| `super-kebab.svg` | `Super_kebab.png` |
-| `tokkul.svg` | `Tokkul.png` |
-| `monkey.svg` | `Monkey_(Monkey_Madness_I).png` |
-| `crystal-shard.svg` | `Crystal_shard_1.png` |
-| `snelm.svg` | `Pointed_bruise_blue_snelm.png` |
-| `cosmic-rune.svg` | `Cosmic_rune.png` |
 | `fairy-ring.svg` | `Fairy_ring.png`, a render: cropped below its butterflies, 250px wide, 48 colours |
 | `skull.svg` | `Skull.png` |
-| `bounty-skull-1.svg` … `bounty-skull-5.svg` | `Skull_(Bounty_Hunter)_icon_(1).png` … `(5).png` |
 | `banana.svg`, `red-banana.svg`, `monkey-nuts.svg`, `pineapple.svg` | `Banana.png`, `Red_banana.png`, `Monkey_nuts.png`, `Pineapple.png` |
 | `coconut.svg`, `half-coconut.svg`, `waterskin.svg`, `animal-skull.svg` | `Coconut.png`, `Half_coconut.png`, `Waterskin(4).png`, `Animal_skull.png` |
 | `cactus.svg`, `kharidian-cactus.svg`, `rocks.svg` | `Cactus_(grown).png`, `Kharidian_cactus_(Healthy).png`, `Sandstone_rocks.png` ¹ |
