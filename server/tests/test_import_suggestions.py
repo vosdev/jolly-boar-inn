@@ -500,9 +500,9 @@ def map_round(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_a_place_lands_in_a_pack_that_loads_and_only_once(repo: dict[str, Path]) -> None:
     assert run(repo, {"questions": [PLACE]}) == 0
     stored = json.loads((repo["packs"] / "mark_the_map.json").read_text())["questions"]
-    assert [q["payload"]["reach"] for q in stored] == [150]
-    assert stored[0]["credit"] == "AFKFisher"
-    assert stored[0]["difficulty"] == "medium"
+    [placed] = [q for q in stored if q.get("credit") == "AFKFisher"]
+    assert placed["payload"]["reach"] == 150
+    assert placed["difficulty"] == "medium"
     assert loads(repo)
     before = snapshot(repo)
     assert run(repo, {"questions": [PLACE]}) == 0

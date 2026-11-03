@@ -19,7 +19,7 @@
 
 import type { Component } from 'svelte'
 
-import { MODES, UPCOMING_MODES, type StemId } from '../../lib/modes'
+import { MODES, type StemId } from '../../lib/modes'
 import type { Line } from '../../lib/typing.svelte'
 import type { StemProps, TypeViewProps } from './props'
 import AssetStem, { lines as assetLines } from './stems/AssetStem.svelte'
@@ -78,7 +78,7 @@ const STEM_LINES: Record<StemId, (data: Record<string, unknown>) => Line[]> = {
 }
 
 function stemOf(mode: string): StemId | null {
-  return MODES[mode]?.stem ?? UPCOMING_MODES.find((entry) => entry.id === mode)?.stem ?? null
+  return MODES[mode]?.stem ?? null
 }
 
 /**

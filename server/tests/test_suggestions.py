@@ -895,11 +895,11 @@ def _place(**payload: Any) -> dict[str, Any]:
     return _with(PLACE, payload={**PLACE["content"]["payload"], **payload})
 
 
-def test_a_place_waits_in_the_queue_until_its_round_is_built(client: TestClient) -> None:
+def test_an_approved_place_is_playable(client: TestClient) -> None:
     approve(client, suggest(client, _place(reach=150)))
     [row] = queue(client, "approved")["suggestions"]
     assert row["content"]["payload"]["reach"] == 150
-    assert row["playable"] is False
+    assert row["playable"] is True
 
 
 @pytest.mark.parametrize(

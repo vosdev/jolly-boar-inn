@@ -38,7 +38,7 @@ server/app/modes/, questions/      Mode and MODES; schema, packs, vocab, normali
 server/app/ws/, http/              handler, protocol, schema, outbox; one module per route or middleware
 server/scripts/                    wiki, gen_price_questions, import_suggestions, edit_packs,
                                    edit_roster, rehash_questions, fetch_assets, build_pictures,
-                                   build_logo, gen_map, map_render/ (Java),
+                                   build_logo, gen_map, map_render/ (Java), gen_locations,
                                    validate_packs, check_contrast, smoke_ws, loadtest
 client/src/lib/                    api, ws, protocol, stores, session, history, profile, modes, …
 client/src/routes/, components/    Home, Create, Join, Room, Daily, History, Admin, Suggest, Report; TopBar, …
@@ -148,6 +148,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 | `tales_of_gielinor` | Tales of Gielinor | Bestiary's seven types | hand-written | done, hosted by the Wise Old Man, who is therefore off the roster |
 | `uris_unravelling` | Uri's Unravelling | Bestiary's seven types, `extra_answer` 5 | hand-written | done: a clue is `multiple_choice`, its text the `quote`, never `free_text`; no map or coordinate clues |
 | `slayer_master` | Slayer Master | Bestiary's seven types | hand-written | done: how to fight a monster; what it is stays in Bestiary |
+| `mark_the_map` | Mark the Map | `map_pin`, one pin on the whole surface | hand-written, drafted once by `gen_locations.py` | done, hosted by Hatius Cosaintus |
 | `minimap_guesser`, `name_that_spell` | Minimap Guesser, Name that spell | undecided | | Images (minimap), Sound (spell) |
 
 Create lists the unbuilt ones from `UPCOMING_MODES` in `lib/modes.ts`.
@@ -898,6 +899,8 @@ Right until it does (More/Less keeps `sample.json`'s five, which `live_packs` dr
   It is built in `.map/` and moved in whole with its `manifest.json`, whose presence is
   `app.map.has_tiles()`, so a stopped run serves nothing and a complete tileset sends no request.
   `/map/` is immutable because a new cache is a new URL. The client enlarges zoom 2 up to zoom 5.
+- `scripts/gen_locations.py` drafted Mark the Map's pack once from the infobox maps of the pages in
+  `Category:Locations`, and refuses to overwrite it: the owner edits it by hand since.
 - `make logo` is the owner's tool: it traces the fetched `logo/` sources into a boar per theme in
   `branding/boar/`, git-ignored like them. A selfhoster brings their own logo instead.
 

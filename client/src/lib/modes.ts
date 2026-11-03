@@ -1602,6 +1602,83 @@ export const MODES: Record<string, Mode> = {
     },
     stem: 'text',
   },
+  mark_the_map: {
+    id: 'mark_the_map',
+    label: 'Mark the Map',
+    hint: 'Hatius names a place. Show him where it is.',
+    host: { id: 'hatius_cosaintus', name: 'Hatius Cosaintus' },
+    greeting: 'Ah, a fellow explorer! Pull up a chair and a map.',
+    blurb:
+      'I have walked every corner of Gielinor. I name a place, and you put your pin where it is.',
+    ask: [
+      'Now then, where might this be?',
+      'Find this one for me, explorer.',
+      'Here is a place worth a visit.',
+      'Pin this one on the map.',
+    ],
+    waiting: [
+      'Take your time. Gielinor is a big place.',
+      'Still looking? Try over the next hill.',
+      'I once got lost in Lumbridge. It happens.',
+      'No peeking at the world map, now.',
+    ],
+    pace: {
+      quick: [
+        'Quick! You must have been there yesterday.',
+        'Fast! Not even a teleport is that quick.',
+        'Quick! A true explorer knows the way.',
+      ],
+      middling: [
+        'A steady stroll. No need to run.',
+        'At a fair walking pace, explorer.',
+        'Steady. Mind your run energy.',
+      ],
+      late: [
+        'Just in time! I was rolling the map up.',
+        'Just in time, like the last boat from Port Sarim.',
+        'Just in time. It is a big world.',
+      ],
+      early: [
+        'Early! You barely let me finish the name.',
+        'So early! Did you not need to look?',
+        'Answered early! Someone has done their diary.',
+      ],
+      later: [
+        'You took your time. A careful explorer.',
+        'You searched every corner. Very thorough.',
+        'Slow and sure, the explorer’s way.',
+      ],
+    },
+    reveal: [
+      'Let us see where you ended up.',
+      'Now, where is it really?',
+      'Out comes my map.',
+      'Here is the spot.',
+    ],
+    verdict: {
+      right: [
+        'Right on the spot! You have earned a ring.',
+        'Spot on! A true explorer.',
+        'Exactly there. I could not have done better.',
+      ],
+      partial: [
+        'Close! Just a short walk away.',
+        'Nearly. Right corner of the map, at least.',
+        'Not far off. Keep exploring.',
+      ],
+      wrong: [
+        'Oh dear. That is the wrong side of Gielinor.',
+        'No, no. You would be lost out there.',
+        'Wrong! Perhaps take a guide next time.',
+      ],
+      missed: [
+        'No pin? Lost already?',
+        'Nothing? The map does not bite.',
+        'No pin at all. Even a guess gets you closer.',
+      ],
+    },
+    stem: 'text',
+  },
   random_events_only: {
     id: 'random_events_only',
     label: 'Random Events Only',
@@ -1831,8 +1908,6 @@ export const UPCOMING_MODES: {
   label: string
   hint: string
   host: string
-  /** For a round whose suggestions are previewed before it ships. */
-  stem?: StemId
 }[] = [
   {
     id: 'release_order',
@@ -1851,13 +1926,6 @@ export const UPCOMING_MODES: {
     label: 'Minimap Guesser',
     hint: 'Where in the name of Gielinor is that?',
     host: 'captain_errdo',
-  },
-  {
-    id: 'mark_the_map',
-    label: 'Mark the Map',
-    hint: 'Hatius names a place. Show him where it is.',
-    host: 'hatius_cosaintus',
-    stem: 'text',
   },
   {
     id: 'scrying_pool',

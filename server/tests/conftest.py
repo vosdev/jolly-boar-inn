@@ -16,7 +16,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from app.config import REPO_ROOT, Settings
 from app.db import _init_connection, create_pool, run_migrations
 from app.main import create_app
-from app.modes import MODES, Mode
+from app.modes import MODES, TILES, Mode
 from app.questions.packs import Pack
 from app.rooms import loop
 from app.ws import handler as ws_handler
@@ -249,7 +249,8 @@ def stub_mode(
 
 @pytest.fixture
 def pictures(app: FastAPI, client: TestClient) -> dict[str, str]:
-    """Every pack question's picture, as though ``build_pictures.py`` had copied them all."""
+    """Every pack question's picture, as though ``build_pictures.py`` had copied them all,
+    and the map's tiles."""
     images = {
         q["payload"]["image"]
         for pack in app.state.packs
@@ -257,6 +258,7 @@ def pictures(app: FastAPI, client: TestClient) -> dict[str, str]:
         if "image" in q["payload"]
     }
     app.state.rooms.pictures = {asset: f"{n:016x}.png" for n, asset in enumerate(sorted(images))}
+    app.state.rooms.pictures[TILES] = "clean"
     return dict(app.state.rooms.pictures)
 
 

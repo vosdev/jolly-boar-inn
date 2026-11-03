@@ -167,6 +167,22 @@ describe('MapPin', () => {
     expect(screen.getByText('40 tiles')).toBeTruthy()
   })
 
+  it('says how far each pin landed from the place', async () => {
+    const east = (tiles: number) => [{ x: SARIM.max_x + tiles, y: 3220 }]
+    const { container } = setup({
+      data: { prompt: 'Where is Port Sarim?', pins: 1, targets: [SARIM], reach: 100 },
+      revealed: true,
+      yourValue: east(20),
+      results: { p0: result(east(20)), p1: result(east(50)), p2: result(east(150)) },
+    })
+    await loaded(container)
+    await waitFor(() => expect(pins(container)).toHaveLength(3))
+    expect(container.querySelectorAll('.map-line')).toHaveLength(3)
+    for (const distance of ['20 tiles', '50 tiles', '150 tiles']) {
+      expect(screen.getByText(distance)).toBeTruthy()
+    }
+  })
+
   it('starts close on the answer and pulls back to fit every pin', async () => {
     const start = Date.now()
     const { container } = setup({
