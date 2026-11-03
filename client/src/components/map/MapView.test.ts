@@ -60,6 +60,24 @@ describe('MapView', () => {
     expect(north).toBeLessThanOrEqual(4352)
   })
 
+  it('opens close on an opening and keeps the rest of the surface', async () => {
+    const zoomOf = async (props: Record<string, unknown>) => {
+      const { container, unmount } = render(MapView, props)
+      const map = container.querySelector<HTMLElement>('.map')!
+      await waitFor(() => expect(map.dataset.zoom).toBeDefined())
+      const found = {
+        zoom: Number(map.dataset.zoom),
+        masked: !!container.querySelector('.map-outside'),
+      }
+      unmount()
+      return found
+    }
+    const wide = await zoomOf({})
+    const close = await zoomOf({ opening: REGION })
+    expect(close.zoom).toBeGreaterThan(wide.zoom)
+    expect(close.masked).toBe(false)
+  })
+
   it('never asks for a zoom it has no tiles for', async () => {
     const { container } = render(MapView, { bounds: { ...REGION, maxX: 2810, maxY: 3110 } })
     await waitFor(() => expect(tiles(container).length).toBeGreaterThan(0))

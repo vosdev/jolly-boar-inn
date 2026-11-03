@@ -78,6 +78,7 @@
 
   let {
     bounds,
+    opening: opensOn,
     markers = [],
     lines = [],
     areas = [],
@@ -90,6 +91,8 @@
     ongrip,
   }: {
     bounds?: MapBounds
+    /** Where the map opens, whole, without keeping the player there. */
+    opening?: MapBounds
     markers?: readonly MapMarker[]
     lines?: readonly MapLine[]
     areas?: readonly MapArea[]
@@ -347,7 +350,7 @@
     void Promise.all([loaded, sized]).then(([[{ default: L }]]) => {
       if (gone) return
       const limit: LatLngBounds = L.latLngBounds(corners(bounds ?? SURFACE))
-      const opening = L.latLngBounds(corners(bounds ?? PLAY_AREA))
+      const opening = L.latLngBounds(corners(opensOn ?? bounds ?? PLAY_AREA))
 
       const shown = L.map(host, {
         crs: L.CRS.Simple,
@@ -365,8 +368,8 @@
 
       const fit = () => shown.setMinZoom(shown.getBoundsZoom(limit))
       fit()
-      // A region shows whole. The surface fills the frame, cropping ocean instead of adding it.
-      const filled = shown.getBoundsZoom(opening, bounds === undefined)
+      // A region or an opening shows whole. The surface fills the frame, cropping ocean instead.
+      const filled = shown.getBoundsZoom(opening, bounds === undefined && opensOn === undefined)
       shown.setView(opening.getCenter(), filled, { animate: false })
 
       const tiles = new L.TileLayer('', {

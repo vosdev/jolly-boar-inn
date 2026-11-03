@@ -148,7 +148,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 | `tales_of_gielinor` | Tales of Gielinor | Bestiary's seven types | hand-written | done, hosted by the Wise Old Man, who is therefore off the roster |
 | `uris_unravelling` | Uri's Unravelling | Bestiary's seven types, `extra_answer` 5 | hand-written | done: a clue is `multiple_choice`, its text the `quote`, never `free_text`; no map or coordinate clues |
 | `slayer_master` | Slayer Master | Bestiary's seven types | hand-written | done: how to fight a monster; what it is stays in Bestiary |
-| `mark_the_map` | Mark the Map | `map_pin`, one pin on the whole surface | hand-written, drafted once by `gen_locations.py` | done, hosted by Hatius Cosaintus |
+| `mark_the_map` | Mark the Map | `map_pin`, one pin on the whole surface | hand-written, drafted once by `gen_locations.py` | done, hosted by Hatius Cosaintus; a place inside a town opens on both (`view`) with `reach` 50 |
 | `minimap_guesser`, `name_that_spell` | Minimap Guesser, Name that spell | undecided | | Images (minimap), Sound (spell) |
 
 Create lists the unbuilt ones from `UPCOMING_MODES` in `lib/modes.ts`.
@@ -224,7 +224,7 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   `min`, `max` or `answer` off the three-figure grid, and an `answer` on an end or on the middle
   where the slider starts (half rounded up).
 - `map_pin` is `targets` (a `name` and a box of tiles, at least 10 across; six at most, one pin
-  each), optional `bounds`, a rectangle the map stops at, and optional `reach`. The open view has `pins`, the count, and never a
+  each), optional `bounds`, a rectangle the map stops at, optional `view`, where it opens with the rest a pan away, and optional `reach`. The open view has `pins`, the count, and never a
   target. It plays in rounds only: `drawable` needs the tiles (`TILES` among `pictures`, from
   `CLIENT_MAP` or the client), so a pool with no tiles is empty, and an event has no pool to empty.
   Above five pinned players a several-pin map shows only your own, and the TV only the targets.

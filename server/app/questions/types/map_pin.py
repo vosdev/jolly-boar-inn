@@ -4,7 +4,7 @@ Payload shape (schema ``$defs/map_pin``)::
 
     {"intro"?: str, "prompt": str, "image"?: asset, "explanation"?: str, "reach"?: int,
      "targets": [{"name": str, "min_x": int, "max_x": int, "min_y": int, "max_y": int}, ...],
-     "bounds"?: {"min_x": int, "max_x": int, "min_y": int, "max_y": int}}
+     "bounds"?: {"min_x": int, "max_x": int, "min_y": int, "max_y": int}, "view"?: <the same>}
 
 A question asks for one pin per target, so the usual question has one target and nothing here
 treats it as a special case. The value is a list of ``{x, y}`` either way.
@@ -21,6 +21,9 @@ who found all three places is not marked down for tapping them in another order.
 repeats this search (``pairPins`` in ``lib/pins.ts``) to draw each pin's line, and does not get
 the pairing from here because the room echoes what ``parse_value`` returns while the question
 is open, so an order that follows the targets would say where they are.
+
+``bounds`` is where the map stops; ``view`` is only where it opens, for a place a player is
+asked to find inside one they already know, and the whole map stays a pan away.
 """
 
 import math
@@ -46,12 +49,13 @@ LEAST_TARGET = 10
 # What ``make gen-map`` renders; the schema holds a stored tile to the same rectangle.
 SURFACE = {"min_x": 768, "max_x": 4096, "min_y": 1792, "max_y": 4352}
 
-_OPEN_KEYS = ("intro", "prompt", "bounds")
+_OPEN_KEYS = ("intro", "prompt", "bounds", "view")
 _PIN_KEYS = {"x", "y"}
 
 
 def client_view(payload: dict[str, Any]) -> dict[str, Any]:
-    """What everyone sees while it is open: the question, the map's region and how many pins."""
+    """What everyone sees while it is open: the question, the map's region and opening, and
+    how many pins."""
     view = {key: payload[key] for key in _OPEN_KEYS if key in payload}
     return {**view, "pins": len(payload["targets"])}
 
@@ -128,10 +132,15 @@ def check(payload: dict[str, Any]) -> list[str]:
     """Consistency: every target is a place of its own, on the map the question shows."""
     problems = []
     bounds = payload.get("bounds")
-    if bounds is not None and not (
-        bounds["min_x"] < bounds["max_x"] and bounds["min_y"] < bounds["max_y"]
-    ):
-        problems.append(f"bounds: {bounds!r} holds no tile")
+    for key in ("bounds", "view"):
+        area = payload.get(key)
+        if area is not None and not (
+            area["min_x"] < area["max_x"] and area["min_y"] < area["max_y"]
+        ):
+            problems.append(f"{key}: {area!r} holds no tile")
+    view = payload.get("view")
+    if view is not None and bounds is not None and not _within(view, bounds):
+        problems.append("view: opens outside the bounds")
     targets = payload["targets"]
     if len({target["name"] for target in targets}) != len(targets):
         problems.append("targets: two share a name, so the reveal could not tell them apart")
@@ -151,10 +160,14 @@ def _target_problems(target: dict[str, Any], bounds: dict[str, int] | None) -> l
         return [f"targets: {name!r} is under {LEAST_TARGET} tiles across"]
     if bounds is None:
         return []
-    corners = (target["min_x"], target["min_y"]), (target["max_x"], target["max_y"])
-    if all(_inside(x, y, bounds) for x, y in corners):
+    if _within(target, bounds):
         return []
     return [f"targets: {name!r} is outside the bounds"]
+
+
+def _within(box: dict[str, Any], area: dict[str, int]) -> bool:
+    corners = (box["min_x"], box["min_y"]), (box["max_x"], box["max_y"])
+    return all(_inside(x, y, area) for x, y in corners)
 
 
 def overlap(first: dict[str, Any], second: dict[str, Any]) -> bool:

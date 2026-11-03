@@ -1,5 +1,6 @@
 """Mark the Map: a place's name, one pin on the whole surface, and its first draft's script."""
 
+import dataclasses
 import json
 import sys
 from pathlib import Path
@@ -39,7 +40,21 @@ def test_it_asks_for_one_pin_on_the_whole_surface() -> None:
         payload = question["payload"]
         assert len(payload["targets"]) == 1
         assert "bounds" not in payload
-        assert payload["prompt"] == f"Where is {payload['targets'][0]['name']}?"
+        assert payload["targets"][0]["name"] in payload["prompt"]
+    prompts = [question["payload"]["prompt"] for question in questions()]
+    assert len(set(prompts)) == len(prompts)
+
+
+def test_a_place_inside_another_opens_on_both_and_is_reached_sooner() -> None:
+    zoomed = [question["payload"] for question in questions() if "view" in question["payload"]]
+    assert zoomed
+    for payload in zoomed:
+        target, view = payload["targets"][0], payload["view"]
+        assert view["min_x"] <= target["min_x"] and target["max_x"] <= view["max_x"]
+        assert view["min_y"] <= target["min_y"] and target["max_y"] <= view["max_y"]
+        assert payload["reach"] == 50
+    whole = [question["payload"] for question in questions() if "view" not in question["payload"]]
+    assert all("reach" not in payload for payload in whole)
 
 
 def test_every_pack_question_passes_check() -> None:
@@ -50,8 +65,9 @@ def test_every_pack_question_passes_check() -> None:
 
 def test_an_open_question_shows_the_name_and_no_coordinates() -> None:
     for question in questions():
-        view = map_pin.client_view(question["payload"])
-        assert view == {"prompt": question["payload"]["prompt"], "pins": 1}
+        payload = question["payload"]
+        opening = {"view": payload["view"]} if "view" in payload else {}
+        assert map_pin.client_view(payload) == {"prompt": payload["prompt"], "pins": 1, **opening}
 
 
 def test_the_server_offers_it_once_it_has_the_tiles(app: FastAPI, client: TestClient) -> None:
@@ -70,11 +86,27 @@ def mapped(app: FastAPI, table: Any) -> Any:
     return table
 
 
+def only(app: FastAPI, zoomed: bool) -> None:
+    """Keep the room's Mark the Map pool to the zoomed questions or to the whole-map ones."""
+    app.state.rooms.packs = [
+        dataclasses.replace(
+            pack,
+            questions=tuple(
+                q
+                for q in pack.questions
+                if q["mode"] != "mark_the_map" or ("view" in q["payload"]) == zoomed
+            ),
+        )
+        for pack in app.state.rooms.packs
+    ]
+
+
 def east_of(target: dict[str, int], tiles: int) -> list[dict[str, int]]:
     return [{"x": target["max_x"] + tiles, "y": (target["min_y"] + target["max_y"]) // 2}]
 
 
-def test_points_are_the_distance_from_the_box_however_late(mapped: Any) -> None:
+def test_points_are_the_distance_from_the_box_however_late(app: FastAPI, mapped: Any) -> None:
+    only(app, zoomed=False)
     game = mapped(
         "Zezima",
         "Woox",
@@ -104,6 +136,23 @@ def test_points_are_the_distance_from_the_box_however_late(mapped: Any) -> None:
     assert points == {"Zezima": 1000, "Woox": 1000, "Lynx": 500, "Durial": 0}
     assert closed["reveal"]["targets"] == [target]
     assert all(len(row["value"]) == 1 for row in closed["results"].values())
+
+
+def test_a_zoomed_question_opens_on_its_view_and_reaches_half_as_far(
+    app: FastAPI, mapped: Any
+) -> None:
+    only(app, zoomed=True)
+    game = mapped("Zezima", "Woox", modes=["mark_the_map"], seconds=30)
+    game.start()
+    payload = game.question(0).payload
+    assert game.opened(0)[0]["question"]["view"]["view"] == payload["view"]
+    target = payload["targets"][0]
+    for seat, tiles in zip(game.players, (25, 50), strict=True):
+        answer_after(game, seat, 0, east_of(target, tiles), 1)
+    closed = game.admin.take("question_closed")
+    by_name = {seat.id: seat.name for seat in game.seats}
+    points = {by_name[pid]: row["points"] for pid, row in closed["results"].items()}
+    assert points == {"Zezima": 500, "Woox": 0}
 
 
 def test_the_script_boxes_a_polygon_and_a_point() -> None:
