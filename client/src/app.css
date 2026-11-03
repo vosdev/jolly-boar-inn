@@ -148,6 +148,18 @@
   --tile-dark: #4a3519;
   --tile-seam: #4a3519;
 
+  /* The rosette pinned for an answer that scores: its petals, the tails under them, the
+     tails' tips and the button at its heart, each in a light and a dark shade. In
+     the Wilderness the heart is the skull's button and the dark shade the skull. */
+  --rosette-petal: #b3261e;
+  --rosette-petal-dark: #8f1c16;
+  --rosette-tail: #b3261e;
+  --rosette-tail-dark: #8a1a14;
+  --rosette-tip: #f2c230;
+  --rosette-tip-dark: #d9a41c;
+  --rosette-heart: #f4c531;
+  --rosette-heart-dark: #d8a21e;
+
   color-scheme: light;
 }
 
@@ -217,6 +229,15 @@
   --tile-dark: #8f6a35;
   --tile-seam: #8f6a35;
 
+  --rosette-petal: #2f5fa8;
+  --rosette-petal-dark: #24477f;
+  --rosette-tail: #2f3f7a;
+  --rosette-tail-dark: #24305e;
+  --rosette-tip: #f2c230;
+  --rosette-tip-dark: #d9a41c;
+  --rosette-heart: #f4c531;
+  --rosette-heart-dark: #d8a21e;
+
   color-scheme: light;
 }
 
@@ -280,6 +301,15 @@
   --silhouette: #efe8df;
   --tile-dark: #262221;
   --tile-seam: #262221;
+
+  --rosette-petal: #c8302a;
+  --rosette-petal-dark: #8f1c16;
+  --rosette-tail: #c8302a;
+  --rosette-tail-dark: #8f1c16;
+  --rosette-tip: #efe8df;
+  --rosette-tip-dark: #cbc1b5;
+  --rosette-heart: #1d1a19;
+  --rosette-heart-dark: #efe8df;
 
   color-scheme: dark;
 }
@@ -348,6 +378,15 @@
   --silhouette: #23263a;
   --tile-dark: #273f6a;
   --tile-seam: #273f6a;
+
+  --rosette-petal: #3f5f99;
+  --rosette-petal-dark: #2c4677;
+  --rosette-tail: #d8262a;
+  --rosette-tail-dark: #a51b1f;
+  --rosette-tip: #f2c230;
+  --rosette-tip-dark: #d9a41c;
+  --rosette-heart: #f4c531;
+  --rosette-heart-dark: #d8a21e;
 
   color-scheme: light;
 }
@@ -418,6 +457,15 @@
   --tile-dark: #0c0605;
   --tile-seam: #ff6a1a;
 
+  --rosette-petal: #e8561a;
+  --rosette-petal-dark: #b3380e;
+  --rosette-tail: #e8561a;
+  --rosette-tail-dark: #b3380e;
+  --rosette-tip: #ffd04a;
+  --rosette-tip-dark: #ff9a2e;
+  --rosette-heart: #2a1e1a;
+  --rosette-heart-dark: #1a1210;
+
   color-scheme: dark;
 }
 
@@ -484,6 +532,15 @@
   --silhouette: #2a2210;
   --tile-dark: #3a4515;
   --tile-seam: #3a4515;
+
+  --rosette-petal: #3f8a2e;
+  --rosette-petal-dark: #2e6a2c;
+  --rosette-tail: #3f8a2e;
+  --rosette-tail-dark: #2e6a2c;
+  --rosette-tip: #f2d24a;
+  --rosette-tip-dark: #d1a92a;
+  --rosette-heart: #f2d24a;
+  --rosette-heart-dark: #d1a92a;
 
   color-scheme: light;
 }
@@ -552,6 +609,15 @@
   --tile-dark: #0b1618;
   --tile-seam: #1ac8d8;
 
+  --rosette-petal: #6fd8e0;
+  --rosette-petal-dark: #2fa8b4;
+  --rosette-tail: #2a8a8a;
+  --rosette-tail-dark: #1f6e70;
+  --rosette-tip: #bff3f3;
+  --rosette-tip-dark: #8fe3e6;
+  --rosette-heart: #e9ffff;
+  --rosette-heart-dark: #bff3f3;
+
   color-scheme: dark;
 }
 
@@ -618,6 +684,15 @@
   --tile-dark: #1a0808;
   --tile-seam: #e2483e;
 
+  --rosette-petal: #e2483e;
+  --rosette-petal-dark: #a8302a;
+  --rosette-tail: #8a241e;
+  --rosette-tail-dark: #6e1a16;
+  --rosette-tip: #ffd0c8;
+  --rosette-tip-dark: #e0705e;
+  --rosette-heart: #ffe4de;
+  --rosette-heart-dark: #f0a090;
+
   color-scheme: dark;
 }
 
@@ -682,6 +757,15 @@
   --silhouette: #1c201d;
   --tile-dark: #22362f;
   --tile-seam: #22362f;
+
+  --rosette-petal: #6a4a9a;
+  --rosette-petal-dark: #4a3072;
+  --rosette-tail: #2f463f;
+  --rosette-tail-dark: #1b2a26;
+  --rosette-tip: #8a1424;
+  --rosette-tip-dark: #5e0c18;
+  --rosette-heart: #e4ece2;
+  --rosette-heart-dark: #b9c2b6;
 
   color-scheme: dark;
 }
@@ -748,6 +832,15 @@
   --silhouette: #04161b;
   --tile-dark: #25596a;
   --tile-seam: #25596a;
+
+  --rosette-petal: #5b3a9a;
+  --rosette-petal-dark: #45297a;
+  --rosette-tail: #5b3a9a;
+  --rosette-tail-dark: #45297a;
+  --rosette-tip: #a6e2f0;
+  --rosette-tip-dark: #7ccce0;
+  --rosette-heart: #e9ffff;
+  --rosette-heart-dark: #a6e2f0;
 
   color-scheme: light;
 }

@@ -1,5 +1,5 @@
 <script lang="ts">
-  /** A burst of confetti from the middle of whatever it sits in: a full-credit ribbon, first place's trophy. */
+  /** A burst of confetti from the middle of whatever it sits in: a full-credit rosette, first place's trophy. */
   const FLAKES = [...Array(16).keys()]
 </script>
 

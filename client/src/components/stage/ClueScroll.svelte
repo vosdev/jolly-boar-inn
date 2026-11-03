@@ -26,6 +26,7 @@
   import { NO_AWARD, pinFor, type Award } from '../../lib/award'
   import { ART, BUNTING_HEIGHT, buntingLayout, type Sheet } from '../../lib/sheet'
   import Confetti from './Confetti.svelte'
+  import Rosette from './Rosette.svelte'
 
   let {
     award = NO_AWARD,
@@ -35,12 +36,12 @@
   }: {
     award?: Award
     sheet?: Sheet
-    /** The page's theme, which picks the pin. */
+    /** The page's theme, which picks the rosette's mark. */
     theme?: string
     children: Snippet
   } = $props()
 
-  const pin = $derived(pinFor(theme, award.points))
+  const pin = $derived(pinFor(theme))
 
   let buntingWidth = $state(0)
   let buntingHeight = $state(0)
@@ -247,8 +248,8 @@
     {/if}
     {#if award.kind !== 'none'}
       <!-- Hidden from a screen reader: the points slot has already said the verdict. -->
-      <div class="award" class:sprite={pin.sprite} aria-hidden="true" data-award={award.kind}>
-        <img class="pin" src={pin.url} alt="" draggable="false" />
+      <div class="award" aria-hidden="true" data-award={award.kind}>
+        <span class="pin"><Rosette mark={pin} /></span>
         {#if award.kind === 'confetti'}
           <Confetti />
         {/if}
@@ -844,21 +845,6 @@
     filter: drop-shadow(0 2px 0 rgb(0 0 0 / 0.3));
     transform-origin: 50% 30%;
     animation: pin 200ms ease-out;
-  }
-
-  /* A game sprite at twice its pixels, centred on the edge rather than hanging below it. */
-  .award.sprite {
-    bottom: 0;
-    width: auto;
-    height: auto;
-    transform: translate(-50%, 55%);
-  }
-
-  .sprite .pin {
-    width: auto;
-    height: auto;
-    scale: calc(2 * var(--k));
-    transform-origin: 50% 50%;
   }
 
   @keyframes pin {
