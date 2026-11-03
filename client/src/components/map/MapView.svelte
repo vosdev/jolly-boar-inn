@@ -6,9 +6,9 @@
    *
    * A `keep` view hands its map on to a `keep` view mounting in the same turn, which takes it
    * over as it stands rather than building one and loading its tiles again: a question's map
-   * stays up into its reveal and into the next map question. A `fresh` view taking one over
-   * is a new question: what stood on the map fades with the old words and the view glides to
-   * the opening.
+   * stays up into its reveal and into the next map question. What stood on it fades with the
+   * old words, and the view glides to the new `frame`, or for a `fresh` view, a new question,
+   * to the opening.
    *
    * What stands on the map comes in as data: `markers`, `lines` and `areas`. Each change redraws
    * its whole layer, since a reveal sets them once and a player moves one pin at a time. `grips`
@@ -109,7 +109,7 @@
     opening?: MapBounds
     /** Hands the map on, and takes one over, rather than building it each time. */
     keep?: boolean
-    /** A new question on a map taken over: clear it, and glide to the opening. */
+    /** A new question on a map taken over: glide to the opening. */
     fresh?: boolean
     markers?: readonly MapMarker[]
     lines?: readonly MapLine[]
@@ -140,6 +140,8 @@
   const held = new Map<string, Marker>()
   let dragged: string | null = null
   let framed = false
+  /** A map taken over glides into its first frame, rather than jumping to it. */
+  let gliding = false
 
   function tagFor(marker: MapMarker): HTMLElement | null {
     if (marker.title === undefined) return null
@@ -319,14 +321,19 @@
   $effect(() => {
     if (live === null || frame === null) return
     const { top, right, bottom, left } = inset
-    const animate = framed && !reducedMotion()
-    live.map.fitBounds(corners(frame), {
-      paddingTopLeft: [left, top],
-      paddingBottomRight: [right, bottom],
-      animate,
-      duration: 1,
-    })
+    const fitting = {
+      paddingTopLeft: [left, top] as [number, number],
+      paddingBottomRight: [right, bottom] as [number, number],
+    }
+    // Leaflet's animated fit jumps on a big change of zoom, which a map taken over makes.
+    if (gliding && !reducedMotion()) {
+      live.map.flyToBounds(corners(frame), { ...fitting, duration: GLIDE_S })
+    } else {
+      const animate = framed && !reducedMotion()
+      live.map.fitBounds(corners(frame), { ...fitting, animate, duration: 1 })
+    }
     framed = true
+    gliding = false
   })
 
   function corners(area: MapBounds): [[number, number], [number, number]] {
@@ -461,7 +468,8 @@
       } else if (fresh) {
         map.flyTo(opening.getCenter(), filled, { duration: GLIDE_S })
       }
-      clearAway(kept, kept.groups, fresh && !reducedMotion())
+      clearAway(kept, kept.groups, !reducedMotion())
+      gliding = taken !== null
 
       map.on('click', pickAt)
       map.on('zoomend', settle)

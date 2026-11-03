@@ -6,6 +6,8 @@
 import { render, waitFor } from '@testing-library/svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import L from 'leaflet'
+
 import pin from '../../../../data/map.json'
 import type { MapBounds } from '../../lib/map'
 import MapView from './MapView.svelte'
@@ -157,12 +159,22 @@ describe('MapView', () => {
       await waitFor(() => expect(next.container.textContent).not.toContain('Lumbridge'))
     })
 
-    it('clears what stood on it at once for its own reveal', async () => {
+    it('fades what stood on it into its own reveal, and glides into the reveal’s frame', async () => {
+      const glide = vi.spyOn(L.Map.prototype, 'flyToBounds')
       const first = await shown({ areas: [{ box: PLACE, name: 'Lumbridge' }] })
       await waitFor(() => expect(first.container.querySelector('.map-name')).not.toBeNull())
+      const name = first.container.querySelector('.map-name')!
       first.unmount()
-      const next = await shown({})
-      expect(next.container.textContent).not.toContain('Lumbridge')
+      await shown({ frame: PLACE })
+      expect(name.closest('.leaving')).not.toBeNull()
+      await waitFor(() => expect(glide).toHaveBeenCalled())
+    })
+
+    it('jumps into a frame on a map of its own', async () => {
+      const glide = vi.spyOn(L.Map.prototype, 'fitBounds')
+      await shown({ keep: false, frame: PLACE })
+      await waitFor(() => expect(glide).toHaveBeenCalled())
+      expect(glide.mock.calls[0]![1]).toMatchObject({ animate: false })
     })
 
     it('takes on the new view’s bounds', async () => {
