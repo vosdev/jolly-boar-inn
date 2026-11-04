@@ -1,6 +1,6 @@
 """Getting into a room: ``create``, ``join``, and the join requests of an invite-only one.
 
-Token flow (section 7 of ideas/architecture.md): a session token is
+Token flow ("Identity and security" in ideas/architecture.md): a session token is
 ``secrets.token_urlsafe(32)`` and only its sha256 hex is stored. The plaintext is
 returned to its owner exactly once, by ``create`` or ``join``, and never logged. There
 is no second kind of token: a room's creator is its first admin, and further admins are

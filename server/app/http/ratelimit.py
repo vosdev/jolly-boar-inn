@@ -1,11 +1,11 @@
 """In-memory per-address limiters: at most ``limit`` hits per window.
 
-Nine of them: room creation, free codes for the create page, joins, join failures
-reported, suggestions, checks for similar questions, suggestion tries, reports, and lookups
-of rooms that turn out not to exist. The last is what keeps the room list private. The live
-codes are a few of a few hundred words, and every request that names a room answers whether
-it exists, so an address that keeps asking for rooms that are not there is scanning and is
-refused for a while.
+Room creation, free codes for the create page, joins, join failures reported,
+suggestions, checks for similar questions, suggestion tries, reports, websocket connects,
+and lookups of rooms that turn out not to exist. The last is what keeps the room list
+private. The live codes are a few of a few hundred words, and every request that names a
+room answers whether it exists, so an address that keeps asking for rooms that are not
+there is scanning and is refused for a while.
 """
 
 import ipaddress
@@ -42,6 +42,11 @@ REPORTS_PER_HOUR = 3
 # Daily starts per address, refreshes and resumes aside: a household on one address plays a
 # few each, and a private window is a new start.
 DAILIES_PER_HOUR = 10
+# Each connect welcomes the socket under the room lock and can tell everyone else; a phone
+# waking from sleep a few times a minute stays far below these, a reconnect loop does not.
+CONNECTS_PER_SESSION = 10
+CONNECTS_PER_ADDRESS = 30
+CONNECTS_WINDOW = timedelta(minutes=1)
 
 
 class RateLimited(ApiError):

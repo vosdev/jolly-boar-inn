@@ -1,4 +1,4 @@
-"""Points for one graded answer: section 6 of ideas/architecture.md.
+"""Points for one graded answer: "Scoring" in ideas/architecture.md.
 
 Pure functions, no room state and no I/O, so this table is the only thing to read when
 the numbers are argued about.

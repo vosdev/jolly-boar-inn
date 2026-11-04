@@ -334,7 +334,7 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
     async def _recover(self, room: Room) -> None:
         """Pick a ``playing`` room that left memory mid-game back up, in ``reveal``.
 
-        Section 3's restart rules. A question with ``shown_at`` set and ``closed_at`` null
+        "Reconnect and restart"'s rules. A question with ``shown_at`` set and ``closed_at`` null
         was open when the process died, so it is closed now and voided, ungraded: that is
         the "a crash costs the open question at most" guarantee. Its answers keep their
         null ``points`` and are worth nothing to anybody.
@@ -463,7 +463,7 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
     # --- Removal --------------------------------------------------------------------
 
     async def purge_expired(self) -> int:
-        """Section 4's ``any → deleted``: delete every room past its ``expires_at``, and
+        """ "Room lifecycle"'s ``any → deleted``: delete every room past its ``expires_at``, and
         every finished room past its grace (``FINISHED_ROOM_GRACE_MINUTES``).
 
         ``on delete cascade`` takes the players, questions and answers with it. The rooms
@@ -543,7 +543,7 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
         """An admin removes their room: the row goes now, cascade and all.
 
         Authenticated by the session token in the request body, exactly as a websocket
-        ``hello`` is (section 7): the caller has to be a player in this room, and an
+        ``hello`` is ("Identity and security"): the caller has to be a player in this room, and an
         admin of it. The creator is the room's first admin, so their own session opens
         this door the moment the room exists; a promoted admin has the same reach as
         they do over everything else, and so over this too.
@@ -647,7 +647,9 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
 
         Returns the player and the socket's outbox, which is where the handler's own
         replies go. Last device wins: a socket already attached for that player is closed
-        with 4000. Everyone else hears the player connect.
+        with 4000. Everyone else hears the player connect, unless it only replaced their
+        socket and changed nothing they can see, and hears a new ``answer_count`` if it
+        moved the open question's.
 
         A ``welcome`` that cannot be delivered fails like any other send: the outbox
         closes the socket with 1011 and detaches it again.
@@ -669,6 +671,8 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
                     raise
                 room.awaiting_player = False
             before = room.view()
+            players_before = room.player_views()
+            count_before = _counted(room)
             previous = room.sockets.get(player.id)
             outbox = Outbox(ws, lambda: self.disconnect(code, player.id, ws))
             room.sockets[player.id] = outbox
@@ -712,7 +716,11 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
                 # Behind whatever it still had queued, so nothing it was owed is cut off.
                 if previous.close(CLOSE_REPLACED, "connected from another device"):
                     metrics.WS_DISCONNECTS.labels(reason="replaced").inc()
-            update = self._players_updated(room, before, exclude=player.id)
+            if room.view() == before and room.player_views() == players_before:
+                update = Broadcast([])
+            else:
+                update = self._players_updated(room, before, exclude=player.id)
+            update.targets += _count_moved(room, count_before, exclude=player.id).targets
         self._broadcast(update)
         return player, outbox
 
@@ -731,6 +739,7 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
             if outbox is None or outbox.ws is not ws:
                 return
             before = room.view()
+            count_before = _counted(room)
             del room.sockets[player_id]
             outbox.close(1000, "disconnected")
             player = room.players.get(player_id)
@@ -742,12 +751,13 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
             _recount_splash(room, self.clock())
             _close_if_everyone_answered(room)
             update = self._players_updated(room, before)
+            update.targets += _count_moved(room, count_before).targets
         self._broadcast(update)
 
     # --- Game loop ------------------------------------------------------------------
 
     async def start_game(self, code: str, by: Player) -> None:
-        """``lobby → playing``, then open question 0 (section 4).
+        """``lobby → playing``, then open question 0 ("Room lifecycle").
 
         The timer task is created only after ``room_updated`` is queued, so nobody can see
         ``question_open`` before they know the game has started.
@@ -808,7 +818,7 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
         self._start_timer(room, 0)
 
     async def rematch(self, code: str, by: Player) -> None:
-        """``finished → lobby`` for another game at the same table (section 7).
+        """``finished → lobby`` for another game at the same table ("Room lifecycle").
 
         The finished game's questions go, and its answers with them: ``question_stats``
         already has what they added, and each browser filed the final standings. What
@@ -958,12 +968,8 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
             question.answers[player.id] = Submitted(value=value, received_at=received_at, band=band)
             _close_if_everyone_answered(room)
             count = _answer_count(room, question)
-            counted = AnswerCount(
-                question_id=question_id,
-                answered=count[0],
-                of=count[1],
-                waiting=_waiting(room, question),
-            )
+            counted = _counted(room)
+            assert counted is not None  # the question this answer went to is open
             others = Broadcast.to_all(room, counted.model_dump(mode="json"), exclude=player.id)
         self._broadcast(others)
         return how, band, count
@@ -1071,6 +1077,7 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
                 raise BadState("an admin cannot be kicked")
             async with pool.acquire() as conn:
                 await conn.execute("delete from players where id = $1", player_id)
+            count_before = _counted(room)
             del room.players[player_id]
             room.totals.pop(player_id, None)
             for question in room.questions:
@@ -1079,6 +1086,7 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
             _recount_splash(room, self.clock())
             _close_if_everyone_answered(room)
             update = self._room_updated(room)
+            update.targets += _count_moved(room, count_before).targets
         if socket is not None:
             if socket.close(CLOSE_KICKED, "removed from the room"):
                 metrics.WS_DISCONNECTS.labels(reason="kicked").inc()
@@ -1092,3 +1100,26 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
             for outbox in room.sockets.values():
                 outbox.cancel()
         await asyncio.gather(*timers, return_exceptions=True)
+
+
+def _counted(room: Room) -> AnswerCount | None:
+    """The open question's ``answer_count``, or ``None`` with none open. Lock held."""
+    question = room.open_question()
+    if question is None:
+        return None
+    answered, of = _answer_count(room, question)
+    return AnswerCount(
+        question_id=str(question.id), answered=answered, of=of, waiting=_waiting(room, question)
+    )
+
+
+def _count_moved(room: Room, before: AnswerCount | None, exclude: UUID | None = None) -> Broadcast:
+    """``answer_count`` to everyone but ``exclude`` if it changed since ``before``. Lock held.
+
+    A connect, a disconnect or a kick can move the count and who is waiting as much as an
+    answer can, and without this the room would show the old count until the next answer.
+    """
+    after = _counted(room)
+    if after is None or after == before:
+        return Broadcast([])
+    return Broadcast.to_all(room, after.model_dump(mode="json"), exclude)

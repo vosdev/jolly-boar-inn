@@ -19,7 +19,12 @@ from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from app.config import REPO_ROOT, Settings
 from app.http.bodylimit import MAX_BODY
-from app.http.ratelimit import RateLimiter, client_key
+from app.http.ratelimit import (
+    CONNECTS_PER_ADDRESS,
+    CONNECTS_PER_SESSION,
+    RateLimiter,
+    client_key,
+)
 from app.main import create_app
 from app.ws import handler as ws_handler
 from app.ws.handler import MAX_FRAME, RATE_BURST, TokenBucket
@@ -70,6 +75,32 @@ def test_a_flood_of_messages_is_closed_with_1008_after_the_burst(client: TestCli
                 pongs += ws.receive_json()["t"] == "pong"
         assert info.value.code == 1008
         assert pongs <= RATE_BURST
+
+
+def test_a_session_connecting_too_often_is_closed_with_1008_and_changes_nothing(
+    client: TestClient, lobby
+) -> None:
+    """A reconnect loop is refused before it can replace the socket that is still up."""
+    session = lobby["player"]["session"]
+    for _ in range(CONNECTS_PER_SESSION - 1):
+        with client.websocket_connect(f"/ws/{lobby['code']}") as ws:
+            hello(ws, session)
+    with client.websocket_connect(f"/ws/{lobby['code']}") as kept:
+        hello(kept, session)
+        with client.websocket_connect(f"/ws/{lobby['code']}") as refused:
+            refused.send_json({"t": "hello", "session": session})
+            assert closed_with(refused) == 1008
+        assert until_pong(kept) == []
+
+
+def test_an_address_connecting_too_often_is_closed_with_1008(client: TestClient, lobby) -> None:
+    for attempt in range(CONNECTS_PER_ADDRESS):
+        with client.websocket_connect(f"/ws/{lobby['code']}") as ws:
+            ws.send_json({"t": "hello", "session": f"not-a-session-{attempt}"})
+            assert closed_with(ws, drain=True) == 4001
+    with client.websocket_connect(f"/ws/{lobby['code']}") as ws:
+        ws.send_json({"t": "hello", "session": lobby["player"]["session"]})
+        assert closed_with(ws) == 1008
 
 
 def test_a_burst_of_ready_taps_reaches_the_room_at_most_a_burst_of_times(

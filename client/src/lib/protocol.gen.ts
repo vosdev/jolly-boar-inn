@@ -421,7 +421,7 @@ export interface PlayerView {
 }
 /**
  * What every socket sees while a question is open: `client_view` only, never the
- * answer or the raw payload (section 3, "What the server withholds from the admin").
+ * answer or the raw payload ("Websocket protocol", "What the server withholds").
  */
 export interface OpenQuestion {
   /**
@@ -554,14 +554,13 @@ export interface AnswerAck {
   of: number
 }
 /**
- * Somebody else has answered the open question: how many have, of how many can, and who
- * is still to.
+ * The open question's count moved: how many have answered, of how many can, and who is
+ * still to. Sent on another player's answer, connect, disconnect or kick.
  *
  * Never what: the waiting state shows "4 of 6 answered" and the TV the players still
  * thinking, nothing a player could read an answer off. `of` is every connected
  * player allowed to answer plus anyone who answered and has since dropped, so the count
- * never reads more than the total. A disconnect does not send a fresh count; the next
- * answer does.
+ * never reads more than the total.
  */
 export interface AnswerCount {
   t: 'answer_count'

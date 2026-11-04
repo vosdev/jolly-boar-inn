@@ -119,7 +119,7 @@ async def _count_round_finished(
 
 
 async def _void_question(conn: asyncpg.Connection, question: RoomQuestion, at: datetime) -> None:
-    """Write ``open → voided`` (section 4): the question closes at ``at``, graded nothing.
+    """Write ``open → voided`` ("Room lifecycle"): the question closes at ``at``, graded nothing.
 
     Both ways in are a question nobody gets to score: ``end_game``, and a restart that
     found it open. Answers already in the table stay exactly as they arrived, with
@@ -170,7 +170,7 @@ async def _fetch_questions(conn: asyncpg.Connection, room_id: UUID) -> list[Room
 async def _fetch_totals(
     conn: asyncpg.Connection, room_id: UUID, round_start: int
 ) -> dict[UUID, Totals]:
-    """Every player's score straight from the ``answers`` table (section 5), and the part
+    """Every player's score straight from the ``answers`` table ("Scoring"), and the part
     of it from the round starting at position ``round_start``.
 
     This query is the source of truth for standings; the in-memory copy is only ever

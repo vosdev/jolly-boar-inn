@@ -1,6 +1,6 @@
 """Room codes: a random word from ``data/room-words.json``, uppercased.
 
-Section 7 of ideas/architecture.md: retry on a unique violation up to
+"Identity and security" in ideas/architecture.md: retry on a unique violation up to
 ``PLAIN_ATTEMPTS`` times, then append two random digits. ``allocate`` runs that loop
 against an insert callback so the retry policy is testable without a database.
 

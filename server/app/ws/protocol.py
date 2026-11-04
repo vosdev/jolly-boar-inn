@@ -1,4 +1,4 @@
-"""Websocket messages from section 3 of ideas/architecture.md, both directions.
+"""Websocket messages from "Websocket protocol" in ideas/architecture.md, both directions.
 
 Every frame is a JSON object with a ``t`` discriminator. ``parse_client_message`` turns a
 decoded frame into one of the client models; the server builds its models in
@@ -189,7 +189,7 @@ class TeamStanding(_Message):
 
 class OpenQuestion(_Message):
     """What every socket sees while a question is open: ``client_view`` only, never the
-    answer or the raw payload (section 3, "What the server withholds from the admin")."""
+    answer or the raw payload ("Websocket protocol", "What the server withholds")."""
 
     question_id: str
     """The ``questions`` row id, never the content id: that one hashes the answer."""
@@ -474,14 +474,13 @@ class AnswerAck(_Message):
 
 
 class AnswerCount(_Message):
-    """Somebody else has answered the open question: how many have, of how many can, and who
-    is still to.
+    """The open question's count moved: how many have answered, of how many can, and who is
+    still to. Sent on another player's answer, connect, disconnect or kick.
 
     Never what: the waiting state shows "4 of 6 answered" and the TV the players still
     thinking, nothing a player could read an answer off. ``of`` is every connected
     player allowed to answer plus anyone who answered and has since dropped, so the count
-    never reads more than the total. A disconnect does not send a fresh count; the next
-    answer does.
+    never reads more than the total.
     """
 
     t: Literal["answer_count"] = "answer_count"

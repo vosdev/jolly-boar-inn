@@ -55,13 +55,14 @@ The retired `/r/:code/admin` resolves like `/r/:code`, because whoever holds tha
 
 ## 2. Room state
 
-`RoomManager` (`rooms/state.py`, with `joins`, `lobby` and `loop`) owns every room. Handlers call it.
+`RoomManager` (`rooms/state.py`, with `joins`, `lobby`, `loop` and `daily_room`) owns every room. Handlers call it.
 Nothing else writes `rooms`, `players`, `questions` or `answers` after creation.
 
-`RoomManager` methods: `get` (rehydrates, section 9), `create`, `join`, `connect`, `disconnect`,
-`set_profile`, `set_ready`, `set_editing`, `start_game`, `submit_answer`, `skip(phase, index)`,
-`rotate_key`, `request_join`, `poll_request`, `cancel_request`, `decide_request`, `promote`, `kick`,
-`end_game`, `rematch`, `delete`, `purge_expired`, `evict`. A `Room` holds `players`, `requests`,
+`RoomManager` methods: `get` (rehydrates, section 9), `get_listed`, `create`, `start_daily`, `join`,
+`connect`, `disconnect`, `set_profile`, `set_ready`, `set_editing`, `set_team`, `move_team`,
+`set_teams`, `set_settings`, `set_questions`, `set_tv`, `start_game`, `submit_answer`,
+`skip(phase, index)`, `end_round`, `rotate_key`, `request_join`, `poll_request`, `cancel_request`,
+`decide_request`, `promote`, `kick`, `end_game`, `rematch`, `delete`, `purge_expired`, `evict`. A `Room` holds `players`, `requests`,
 `questions`, `totals`, `current_index`, `phase`, `next_at` (wall clock) with `next_mono`
 (monotonic), `sockets` (one `Outbox` each), `timer`, the `advance` and `rescheduled` events, and
 `lock`.
@@ -365,7 +366,7 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 | `players_updated` | `players` | A ready, team, editing, connect or disconnect that changed players only. |
 | `question_open` | `question` | A question opens. |
 | `answer_ack` | `question_id`, `scoring`, `band`, `answered`, `of` | Answer committed. Never correctness. |
-| `answer_count` | `question_id`, `answered`, `of`, `waiting` | Someone else answered. Who is still to, never what. |
+| `answer_count` | `question_id`, `answered`, `of`, `waiting` | Another player's answer, connect, disconnect or kick moved the count. Who is still to, never what. |
 | `question_closed` | `question_id`, `reveal`, `picture`, `results`, `unanswered`, `standings`, `team_standings`, `next_at`, `reveal_seconds`, `suggested_by`? | Closed. `unanswered`: connected players who could answer and did not. `next_at` ends the reveal, the last one's too. `reveal_seconds` is its length, null in a daily room. `suggested_by` is a shown `credit`. |
 | `game_finished` | `standings`, `team_standings` | Final. `team_standings` is null outside a team game. |
 | `pong` | `server_time` | Reply to `ping`. |
@@ -436,7 +437,7 @@ What the server withholds. The admin is a player with a flag; there is no admin 
 | 4003 | kicked | stops |
 | 4004 | unknown, expired or deleted room; no `error` frame | stops |
 | 4008 | protocol error, after an `error` frame | stops |
-| 1008 | no `hello` in 10 s, over 10 messages a second after a burst of 20, or rate limited | reconnects |
+| 1008 | no `hello` in 10 s, over 10 messages a second after a burst of 20, over 10 connects a minute per session or 30 per address, or rate limited | reconnects |
 | 1009 | a frame over 64 KiB | reconnects |
 | 1011 | a send failed or timed out, or the server failed a connect or command | reconnects |
 | 1012 | the room left memory; the reconnect rehydrates it | reconnects |
@@ -494,7 +495,8 @@ one question a round, with one `player` and settings `run`, early close, no name
   question opens on the player's first `hello`; no splash, no standings, no Past party games entry.
 - The reveal has no countdown: Next, in the answer panel, is the player's `skip`, and the server moves on after 300 s. No table column or timer `n/m` tab; the bar counts questions.
 
-One task per room runs `_run_questions(room, index, resume_at)`:
+One task per room runs `_run_questions(room, index, resume_at, standings_after)`, the last an
+`end_round`'s standings:
 
 ```
 (segment start) splash ─ready countdown / skip─▶ open ─timer / all answered / skip─▶ reveal

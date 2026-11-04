@@ -1,4 +1,5 @@
-"""How long a question holds the floor before its answers appear (architecture section 6).
+"""How long a question holds the floor before its answers appear ("Websocket protocol" in
+ideas/architecture.md).
 
 The client types the host's ask line, then every line on the clue scroll, at one pace and
 keeps the answers back until it is done, so the server holds the clock until then: the

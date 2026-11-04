@@ -306,6 +306,52 @@ def test_everyone_else_hears_the_answer_count(game) -> None:
     assert second.kinds.count("answer_count") == 1
 
 
+def test_a_disconnect_owing_an_answer_sends_the_others_a_lower_count(game) -> None:
+    game.start()
+    game.opened(0)
+    first, second, third = game.seats
+    game.answer(first, 0, game.right(0))
+    first.take("answer_ack")
+    third.ws.close()
+    for seat in (first, second):
+        count = reply(seat, lambda m: m["t"] == "answer_count" and m["of"] == 2)
+        assert (count["answered"], count["waiting"]) == (1, [second.id])
+
+
+def test_a_reconnect_owing_an_answer_is_waited_for_again(game, client) -> None:
+    game.start()
+    game.opened(0)
+    first, second, third = game.seats
+    third.ws.close()
+    reply(first, lambda m: m["t"] == "answer_count" and m["of"] == 2)
+    with client.websocket_connect(f"/ws/{game.code}") as ws:
+        reseat(third, ws).take("welcome")
+        count = reply(first, lambda m: m["t"] == "answer_count" and m["of"] == 3)
+        assert count["waiting"] == [first.id, second.id, third.id]
+
+
+def test_a_kick_sends_the_new_count(game) -> None:
+    game.start()
+    game.opened(0)
+    first, second, third = game.seats
+    game.answer(third, 0, game.right(0))
+    third.take("answer_ack")
+    first.take("answer_count")
+    first.send(t="kick", player_id=third.id)
+    count = reply(first, lambda m: m["t"] == "answer_count")
+    assert (count["answered"], count["of"], count["waiting"]) == (0, 2, [first.id, second.id])
+
+
+def test_a_replacement_connect_that_changes_nothing_broadcasts_nothing(game, client) -> None:
+    first, second, third = game.seats
+    first.settle()
+    with client.websocket_connect(f"/ws/{game.code}") as ws:
+        reseat(third, ws).take("welcome")
+        first.seen.clear()
+        first.settle()
+        assert first.kinds == ["pong"]
+
+
 def test_a_second_answer_is_already_answered(game) -> None:
     """One answer per player per question."""
     game.start()

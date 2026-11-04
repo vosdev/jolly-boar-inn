@@ -1,4 +1,5 @@
-"""``rooms.settings`` (section 4 of ideas/architecture.md): set in the lobby, fixed at the start.
+"""``rooms.settings`` ("Room lifecycle" in ideas/architecture.md): set in the lobby, fixed
+at the start.
 
 A room plays one round per game mode: pick three modes and the room is three rounds long.
 Each mode carries its own ``questions`` (``ModeSettings``), defaulting to what the mode
@@ -13,7 +14,7 @@ the settings mentions it.
 
 Two models, one shape. ``RoomSettings`` is what a room *is*: the field types, the
 supported modes, and the little the game loop cannot work without. ``NewRoomSettings``
-adds the ranges section 4 gives, which are the per-mode ``Bounds`` plus a cap on the room
+adds the ranges "Room lifecycle" gives, which are the per-mode ``Bounds`` plus a cap on the room
 as a whole, because those are a policy about what a host may ask for and the only place
 that policy belongs is where the request comes in.
 
@@ -337,7 +338,7 @@ def _check_cap(settings: RoomSettings) -> None:
 
 
 class NewRoomSettings(RoomSettings):
-    """What ``POST /api/rooms`` accepts: section 4's ranges, checked on the way in."""
+    """What ``POST /api/rooms`` accepts: "Room lifecycle"'s ranges, checked on the way in."""
 
     # A new room shuffles unless its host numbers the rounds; a stored one says which.
     mode_order: Literal["listed", "random"] = "random"
