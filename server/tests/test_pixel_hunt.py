@@ -159,9 +159,24 @@ def test_a_round_with_no_pictures_is_not_offered_or_drawn() -> None:
 
 def test_only_a_pictured_mode_needs_its_picture() -> None:
     npc = {"mode": "whos_that_npc", "payload": {"image": "npc:8058"}}
-    assert drawable(npc, ())
+    assert not drawable(npc, ())
+    assert drawable(npc, {"npc:8058"})
+    assert drawable({"mode": "guess_examine", "payload": {"image": "item:4151"}}, ())
     assert not drawable({"mode": "pixel_hunt", "payload": {"image": "item:4151"}}, ())
     assert drawable({"mode": "pixel_hunt", "payload": {"image": "item:4151"}}, {"item:4151"})
+
+
+def test_whos_that_npc_is_offered_only_with_its_pictures(client: TestClient) -> None:
+    """Every question only asks "Who's that NPC?": without the picture there is no question."""
+
+    def listed() -> bool:
+        return "whos_that_npc" in {mode["id"] for mode in client.get("/api/modes").json()}
+
+    assert not listed()
+    rooms = client.app.state.rooms  # type: ignore[attr-defined]
+    npcs = [q for pack in rooms.packs for q in pack.questions if q["mode"] == "whos_that_npc"]
+    rooms.pictures = {q["payload"]["image"]: "0123456789abcdef.png" for q in npcs}
+    assert listed()
 
 
 def test_the_server_offers_pixel_hunt_once_it_has_the_pictures(client: TestClient) -> None:

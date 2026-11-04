@@ -94,7 +94,7 @@ steps=None, pictured=False, picture_at_reveal=False, extra_answer=0)` in `modes/
   the `Settings` flag that offers the mode; off, or with an empty pool, `/api/modes` omits it and
   `POST /api/rooms` is a 403 `mode_not_offered`. A stored room keeps playing it. `options` holds a
   round's `multiple_choice` questions to fewer options than the schema's two to six; `mode_errors`
-  refuses the rest. `steps` and `pictured` are Pixel Hunt's (sections 8 and 12); `BUILT_UP` in `random_events.py` gives Certer both. `picture_at_reveal` keeps a question's `picture` off the open view. `extra_answer` adds seconds to a question's answer time, before the pace, for a round that takes longer to read.
+  refuses the rest. `steps` is Pixel Hunt's and `pictured` Pixel Hunt's and Who's That NPC?'s (sections 8 and 12); `BUILT_UP` in `random_events.py` gives Certer both. `picture_at_reveal` keeps a question's `picture` off the open view. `extra_answer` adds seconds to a question's answer time, before the pace, for a round that takes longer to read.
 
 Each module in `questions/types/` exports:
 
@@ -231,7 +231,8 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   `CLIENT_MAP` or the client), so a pool with no tiles is empty, and an event has no pool to empty.
   Above five pinned players a several-pin map shows only your own, and the TV only the targets.
 - `pick_all_that_apply` stores sorted `answer_indices` and an optional `picks`, shown open. `check()`
-  rejects no option right, and a `picks` that is not their count.
+  rejects no option right, and a `picks` that is not their count. Every option right is allowed
+  (owner's call); ticking all then earns only the right share.
 - `pick_from_list` answers through one strict WAI-ARIA combobox. Typing only searches, by word
   prefix, ignoring case and accents. Only a selected entry can be submitted, with its own button;
   the mode, not the payload, sets its `steps` (section 8).

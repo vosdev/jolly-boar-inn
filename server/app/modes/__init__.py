@@ -80,7 +80,7 @@ MODES: dict[str, Mode] = {
             }
         ),
     ),
-    "odd_one_out": Mode(id="odd_one_out", types=frozenset({"multiple_choice"})),
+    "odd_one_out": Mode(id="odd_one_out", types=frozenset({"multiple_choice"}), options=(4, 6)),
     "minigame_madness": Mode(
         id="minigame_madness",
         types=frozenset(
@@ -95,9 +95,12 @@ MODES: dict[str, Mode] = {
             }
         ),
     ),
-    # A shadow picked from the list, or a render among look-alikes on the buttons.
+    # A shadow picked from the list, or a render among look-alikes on the buttons. The
+    # question only asks "Who's that NPC?", so without its picture there is nothing to answer.
     "whos_that_npc": Mode(
-        id="whos_that_npc", types=frozenset({"pick_from_list", "multiple_choice"})
+        id="whos_that_npc",
+        types=frozenset({"pick_from_list", "multiple_choice"}),
+        pictured=True,
     ),
     # An item's picture builds up for 17 of the 25 seconds, then stays whole.
     "pixel_hunt": Mode(
