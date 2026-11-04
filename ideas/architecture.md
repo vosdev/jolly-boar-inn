@@ -438,7 +438,7 @@ What the server withholds. The admin is a player with a flag; there is no admin 
 | 4008 | protocol error, after an `error` frame | stops |
 | 1008 | no `hello` in 10 s, over 10 messages a second after a burst of 20, or rate limited | reconnects |
 | 1009 | a frame over 64 KiB | reconnects |
-| 1011 | a send failed or timed out, or the database was down on connect | reconnects |
+| 1011 | a send failed or timed out, or the server failed a connect or command | reconnects |
 | 1012 | the room left memory; the reconnect rehydrates it | reconnects |
 
 `GET /api/vocab/{name}` serves `items` (`popular-items.json`) and `npcs` (`popular-npcs.json`,

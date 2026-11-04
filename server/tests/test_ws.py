@@ -8,11 +8,13 @@ Plus section 3: join over HTTP is a ``room_updated`` trigger, ``ping``/``pong``,
 """
 
 import asyncio
+import json
+import logging
 import time
 from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Any
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import pytest
 from fastapi import FastAPI
@@ -20,7 +22,7 @@ from fastapi.testclient import TestClient
 
 from app.config import REPO_ROOT
 from app.rooms import codes
-from app.rooms.models import Room
+from app.rooms.models import Player, Room
 from app.rooms.state import RoomManager
 from app.ws import handler as ws_handler
 from app.ws import protocol
@@ -380,6 +382,62 @@ async def test_handler_send_and_close_survive_a_vanished_client() -> None:
     pong = protocol.Pong(server_time=datetime.now(UTC))
     assert await ws_handler._send(ws, pong) is False  # type: ignore[arg-type]
     await ws_handler._close(ws, 4008, "protocol error")  # type: ignore[arg-type]
+
+
+class ScriptedSocket(FlakySocket):
+    """A client that sends ``frames``, then leaves."""
+
+    def __init__(self, frames: list[dict[str, Any]]) -> None:
+        super().__init__()
+        self.frames = [{"type": "websocket.receive", "text": json.dumps(f)} for f in frames]
+
+    async def receive(self) -> dict[str, Any]:
+        if self.frames:
+            return self.frames.pop(0)
+        return {"type": "websocket.disconnect", "code": 1000}
+
+
+async def test_a_socket_already_closing_dispatches_nothing_more() -> None:
+    """A frame from a socket that was replaced or kicked is not run as that player."""
+    ran: list[str] = []
+
+    class Manager:
+        async def set_ready(self, *args: Any) -> None:
+            ran.append("set_ready")
+
+    player = Player(
+        id=uuid4(),
+        display_name="Zezima",
+        role="player",
+        joined_at=datetime.now(UTC),
+        session_hash="",
+    )
+    ws = ScriptedSocket([{"t": "ready", "ready": True}])
+    outbox = Outbox(ws, on_failed=_never)
+    outbox.close(4000, "connected from another device")
+    await ws_handler._serve(ws, outbox, Manager(), "CODE", player)  # type: ignore[arg-type]
+    await asyncio.wait_for(outbox.finished(), 1)
+    assert ran == []
+    assert ws.closed_with == 4000
+
+
+def test_a_command_that_fails_unexpectedly_closes_1011_and_logs_the_room(
+    app: FastAPI, client: TestClient, lobby, monkeypatch, caplog
+) -> None:
+    """A database blip mid-command closes so the client reconnects, and says which room."""
+
+    async def broken(*args: Any) -> None:
+        raise ConnectionResetError("the database went away")
+
+    monkeypatch.setattr(app.state.rooms, "set_ready", broken)
+    code = lobby["code"]
+    with caplog.at_level(logging.ERROR, logger="app.ws"):
+        with client.websocket_connect(f"/ws/{code}") as ws:
+            hello(ws, lobby["player"]["session"])
+            ws.send_json({"t": "ready", "ready": True})
+            assert closed_with(ws) == 1011
+    assert code in caplog.text
+    assert "the database went away" in caplog.text
 
 
 def test_failed_welcome_still_closes_the_replaced_socket(

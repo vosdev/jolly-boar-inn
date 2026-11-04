@@ -3,14 +3,17 @@
 Close codes (section 3): ``4001`` bad ``hello``, ``4004`` unknown or expired room, ``4008``
 any protocol error after the handshake, each after a single ``error`` message where the
 protocol has a code for it. ``1008`` for no ``hello`` within ``HELLO_TIMEOUT``, a socket
-over its message rate or an address over its budget of rooms not found, and ``1009`` for
-a frame over ``MAX_FRAME``: the client reconnects after both. ``4000`` (replaced by a
-newer socket) and ``1012`` (room left memory) come from the manager.
+over its message rate or an address over its budget of rooms not found, ``1009`` for a
+frame over ``MAX_FRAME``, and ``1011`` for a call that failed on our side: the client
+reconnects after these. ``4000`` (replaced by a newer socket) and ``1012`` (room left
+memory) come from the manager.
 
 Every message after the handshake is one ``RoomManager`` call. A call that raises
 ``ApiError`` becomes a single ``error`` frame and the socket stays open: a rejected
 message (``not_admin``, ``not_open``, ``already_answered``) is not a protocol error.
-Only a frame we cannot parse closes the socket.
+Only a frame we cannot parse closes the socket, or a call that fails some other way (a
+database blip), which closes it with ``1011`` for the client to reconnect. A socket whose
+outbox is already closing (replaced, kicked, restarted) has its frames dropped.
 
 Commands other than ``answer`` and ``ping`` have no direct reply. What they did reaches
 every client, the sender included, through the broadcasts the manager sends.
@@ -242,6 +245,9 @@ async def _serve(
         except ValidationError as exc:
             _refuse(outbox, "bad_message", _describe(exc), CLOSE_PROTOCOL_ERROR)
             return
+        # Replaced, kicked or restarted: whatever it sends now is no longer the player's.
+        if outbox.closing:
+            return
         if isinstance(message, protocol.Hello):
             reason = "hello is only valid as the first message"
             _refuse(outbox, "bad_hello", reason, CLOSE_PROTOCOL_ERROR)
@@ -256,6 +262,13 @@ async def _serve(
             reply = await _dispatch(manager, code, player, message)
         except ApiError as exc:
             reply = protocol.Error(code=_error_code(exc), message=exc.message)
+        except Exception:
+            # The room's memory is as it was, since every write comes first; a fresh welcome
+            # is what the client needs, so it is closed to reconnect for one.
+            log.exception("room %s: %s from %s failed", code, message.t, player.id)
+            if outbox.close(CLOSE_INTERNAL, "server error, reconnect"):
+                metrics.WS_DISCONNECTS.labels(reason="internal_error").inc()
+            return
         if reply is not None and not outbox.put(reply.model_dump(mode="json")):
             return
 
