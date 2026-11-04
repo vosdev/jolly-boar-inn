@@ -2,25 +2,41 @@
 
 import json
 import time
+import zlib
 from typing import Any
 
 import httpx
 from fastapi.testclient import TestClient
 from starlette.testclient import WebSocketTestSession
 
-from app.rooms.joins import MAX_JOIN_REQUESTS, REQUEST_LIFETIME_SECONDS
+from app.rooms.joins import (
+    MAX_JOIN_REQUESTS,
+    MAX_JOIN_REQUESTS_PER_ADDRESS,
+    REQUEST_LIFETIME_SECONDS,
+)
 from tests.rooms_api import hello, next_of
 from tests.test_invite_links import create_keyed, join, key_of
 
 
-def ask(client: TestClient, code: str, name: str) -> httpx.Response:
-    return client.post(
-        f"/api/rooms/{code}/requests", json={"returning": False, "display_name": name}
-    )
+def ask(client: TestClient, code: str, name: str, address: str | None = None) -> httpx.Response:
+    """Ask as ``name`` from ``address``; by default every name asks from an address of its own.
+
+    The address is swapped on this client's own transport, so the request runs on the
+    event loop the room's timers live on.
+    """
+    address = address or f"10.0.{zlib.crc32(name.encode()) % 250}.{len(name)}"
+    transport = client._transport  # type: ignore[attr-defined]
+    was, transport.client = transport.client, (address, 50000)
+    try:
+        return client.post(
+            f"/api/rooms/{code}/requests", json={"returning": False, "display_name": name}
+        )
+    finally:
+        transport.client = was
 
 
-def ticket(client: TestClient, code: str, name: str) -> str:
-    response = ask(client, code, name)
+def ticket(client: TestClient, code: str, name: str, address: str | None = None) -> str:
+    response = ask(client, code, name, address)
     assert response.status_code == 201, response.text
     return str(response.json()["ticket"])
 
@@ -124,6 +140,24 @@ def test_requests_are_capped_per_room(client: TestClient) -> None:
     response = ask(client, code, "One Too Many")
     assert response.status_code == 409
     assert response.json()["code"] == "requests_full"
+
+
+def test_one_address_holds_at_most_its_share_of_the_requests(client: TestClient) -> None:
+    code, _ = create_keyed(client)
+    for n in range(MAX_JOIN_REQUESTS_PER_ADDRESS):
+        ticket(client, code, f"Guest {n}", "203.0.113.7")
+    response = ask(client, code, "Guest Again", "203.0.113.7")
+    assert response.status_code == 409
+    assert response.json()["code"] == "requests_full"
+
+
+def test_other_addresses_still_get_the_free_places(client: TestClient) -> None:
+    code, _ = create_keyed(client)
+    for n in range(MAX_JOIN_REQUESTS_PER_ADDRESS + 1):
+        ask(client, code, f"Guest {n}", "203.0.113.7")
+    free = MAX_JOIN_REQUESTS - MAX_JOIN_REQUESTS_PER_ADDRESS
+    for n in range(free):
+        ticket(client, code, f"Neighbour {n}", f"198.51.100.{n + 1}")
 
 
 def test_a_name_in_the_room_or_already_asking_is_taken(client: TestClient) -> None:

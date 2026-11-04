@@ -689,7 +689,7 @@ gates `GET /metrics` (OpenMetrics text, fixed-set labels only) by the same rules
   need it. Rotating it is the room lock; there is no other.
 - Without the key, `POST /api/rooms/{code}/requests {display_name, avatar?, returning, theme?, device?, via?}` asks the
   admins instead → `201 {ticket}`, charged as a join and refused for what would refuse one. A
-  request is memory only, at most 5 a room (409 `requests_full`), and its name is taken like a
+  request is memory only, at most 5 a room and 2 an address (409 `requests_full`), and its name is taken like a
   player's. The ticket travels like a session: `.../requests/poll {ticket}` answers `waiting`, or
   `accepted` with a join's `{session, player}`, created only then; 403 `request_denied`; 410
   `request_gone` once withdrawn (`.../requests/cancel`), unpolled for 10 s, or 5 minutes old.
@@ -722,7 +722,7 @@ Limits:
   backstop.
 - Trusted proxies come only from `FORWARDED_ALLOW_IPS`. The first ignored `X-Forwarded-For` logs one
   warning.
-- `/api/*` bodies over 256 KiB get 413. Writes not declared `application/json` get 415, because a
+- `/api/*` bodies over 256 KiB get 413, nested over 64 levels 422 `too_deep`. Writes not declared `application/json` get 415, because a
   cross-site `no-cors` fetch sends an untyped body without a preflight.
 - uvicorn runs `--host "" --ws-max-size 65536 --limit-concurrency 1000 --workers 1`. The empty
   host listens on `0.0.0.0` and, where there is IPv6, `::` too.

@@ -52,6 +52,8 @@ from app.stats import UNREPORTED, Arrival, Metric, bump, joined
 
 # Requests waiting on an admin at once, so somebody guessing codes cannot bury a lobby.
 MAX_JOIN_REQUESTS = 5
+# Of those, held by one address: a couple asking from one home, not a whole queue.
+MAX_JOIN_REQUESTS_PER_ADDRESS = 2
 # Seconds a request outlives its requester's last poll; the waiting page polls every two.
 REQUEST_STALE_SECONDS = 10.0
 # Seconds a request waits for an answer before it lapses and frees its place.
@@ -287,11 +289,13 @@ class Joins:
         avatar: str | None = None,
         returning: bool = False,
         arrival: Arrival = UNREPORTED,
+        address: str = "",
     ) -> str:
         """Ask an invite-only room's admins to let ``display_name`` in. Returns the ticket, once.
 
         Refused up front for whatever would refuse the join itself, so nobody waits on an
-        answer that could never let them in.
+        answer that could never let them in. ``address`` is the requester's rate-limit key;
+        one address holds at most ``MAX_JOIN_REQUESTS_PER_ADDRESS`` of the places.
         """
         code = code.upper()
         name = normalize_name(display_name)
@@ -307,7 +311,8 @@ class Joins:
             taken += [r.display_name for r in room.requests.values()]
             if any(other.casefold() == folded for other in taken):
                 raise NameTaken(f"the name {name!r} is taken in room {code}")
-            if len(room.requests) >= MAX_JOIN_REQUESTS:
+            held = sum(1 for r in room.requests.values() if r.address == address)
+            if len(room.requests) >= MAX_JOIN_REQUESTS or held >= MAX_JOIN_REQUESTS_PER_ADDRESS:
                 raise RequestsFull(f"room {code} has too many requests waiting, try again later")
             request = JoinRequest(
                 id=uuid4(),
@@ -317,6 +322,7 @@ class Joins:
                 returning=returning,
                 arrival=arrival,
                 asked_at=self.clock(),
+                address=address,
             )
             room.requests[request.ticket_hash] = request
             self._expire_request_later(room, request)

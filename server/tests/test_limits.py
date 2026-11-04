@@ -18,7 +18,7 @@ from starlette.websockets import WebSocketDisconnect
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from app.config import REPO_ROOT, Settings
-from app.http.bodylimit import MAX_BODY
+from app.http.bodylimit import MAX_BODY, MAX_DEPTH, nesting
 from app.http.ratelimit import (
     CONNECTS_PER_ADDRESS,
     CONNECTS_PER_SESSION,
@@ -207,6 +207,45 @@ def test_a_body_under_the_cap_reaches_the_route(client: TestClient) -> None:
 
 
 # --- JSON-only writes ---------------------------------------------------------------
+
+
+def _nested(depth: int) -> str:
+    return "[" * depth + "]" * depth
+
+
+@pytest.mark.parametrize(
+    "route",
+    [
+        "/api/stats/join-failure",
+        "/api/rooms",
+        "/api/rooms/{code}/questions",
+        "/api/suggestions",
+        "/api/suggestions/similar",
+        "/api/suggestions/try",
+    ],
+)
+def test_a_body_nested_past_the_cap_is_a_422(client: TestClient, lobby, route: str) -> None:
+    body = '{"reason": ' + _nested(5000) + ', "custom": ' + _nested(5000) + "}"
+    response = client.post(
+        route.format(code=lobby["code"]),
+        content=body,
+        headers={"content-type": "application/json"},
+    )
+    assert response.status_code == 422
+    assert response.json()["code"] == "too_deep"
+
+
+def test_a_422_for_a_value_nested_to_the_cap_is_a_422(client: TestClient) -> None:
+    body = '{"reason": ' + _nested(MAX_DEPTH - 1) + "}"
+    response = client.post(
+        "/api/stats/join-failure", content=body, headers={"content-type": "application/json"}
+    )
+    assert response.status_code == 422
+
+
+def test_nesting_skips_brackets_inside_strings() -> None:
+    assert nesting(b'{"a": "[[[{{\\"[", "b": [[1]]}') == 3
+    assert nesting(b"not json at all") == 0
 
 
 @pytest.mark.parametrize("content_type", [None, "text/plain", "application/x-www-form-urlencoded"])

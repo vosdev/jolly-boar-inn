@@ -152,6 +152,8 @@ class JoinRequest:
     returning: bool
     arrival: Arrival
     asked_at: float  # on the manager's monotonic clock
+    # The requester's rate-limit key, so one address cannot hold every place.
+    address: str = field(repr=False)
     # ``None`` while waiting, then the admin's answer, which the next poll acts on.
     accepted: bool | None = None
     # Drops the request once its requester stops polling or it outlives its lifetime.
