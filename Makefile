@@ -84,7 +84,7 @@ gen-protocol:
 	cd client && pnpm gen:protocol
 
 lint:
-	cd server && uv run ruff check . && uv run ruff format --check .
+	cd server && uv run ruff check . && uv run ruff format --check . && uv run python scripts/check_workflows.py
 	cd client && pnpm lint && pnpm check
 
 # T15: 30 bot players through one room over websockets, asserting no error frames, a p99
