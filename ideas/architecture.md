@@ -365,7 +365,7 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 | `players_updated` | `players` | A ready, team, editing, connect or disconnect that changed players only. |
 | `question_open` | `question` | A question opens. |
 | `answer_ack` | `question_id`, `scoring`, `band`, `answered`, `of` | Answer committed. Never correctness. |
-| `answer_count` | `question_id`, `answered`, `of`, `waiting` | Someone else answered. Who is still to, never what. |
+| `answer_count` | `question_id`, `answered`, `of`, `waiting` | Someone else answered, connected, dropped or was kicked. Who is still to, never what. |
 | `question_closed` | `question_id`, `reveal`, `picture`, `results`, `unanswered`, `standings`, `team_standings`, `next_at`, `reveal_seconds`, `suggested_by`? | Closed. `unanswered`: connected players who could answer and did not. `next_at` ends the reveal, the last one's too. `reveal_seconds` is its length, null in a daily room. `suggested_by` is a shown `credit`. |
 | `game_finished` | `standings`, `team_standings` | Final. `team_standings` is null outside a team game. |
 | `pong` | `server_time` | Reply to `ping`. |
