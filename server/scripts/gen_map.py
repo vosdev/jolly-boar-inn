@@ -36,7 +36,7 @@ CACHE_URL = "https://archive.openrs2.org/caches/runescape/{cache_id}/disk.zip"
 USER_AGENT = "jolly-boar-inn gen-map (https://github.com/vosdev/jolly-boar-inn)"
 TIMEOUT_SECONDS = 60
 RENDERER = Path("/opt/map-render")
-HEAP = "2g"
+HEAP = "1g"
 
 TILE_SIZE = 256
 NATIVE_ZOOM = 2
@@ -80,7 +80,7 @@ def render(cache: Path, squares: Path) -> None:
     subprocess.run(  # noqa: S603
         [  # noqa: S607
             "java",
-            # The world's regions peak near 1.2 GB, and Java's default cap is a quarter of the
+            # The surface peaks near 700 MB, and Java's default cap is a quarter of the
             # host's RAM, which a small server falls short of.
             f"-Xmx{HEAP}",
             "-Djava.awt.headless=true",

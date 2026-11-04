@@ -232,12 +232,12 @@ jobs:
         with:
           path: ${{ runner.temp }}/map-cache
           key: map-${{ hashFiles('data/map.json') }}
-      # The Makefile's 2 GB of free memory plus the JVM's own, with no swap to lean on.
+      # The Makefile's 1.5 GB of free memory, with no swap to lean on.
       - name: Render the map
         run: |
           mkdir -p .map
           cp "$RUNNER_TEMP/map-cache/disk.zip" ".map/disk-$CACHE_ID.zip"
-          docker run --rm --memory 2560m --memory-swap 2560m -u "$(id -u):$(id -g)" \
+          docker run --rm --memory 1536m --memory-swap 1536m -u "$(id -u):$(id -g)" \
             -v "$PWD:/repo" jolly-boar-inn-map:latest python scripts/gen_map.py
           test -f "client/public/map/$CACHE_ID/clean/manifest.json"
 
