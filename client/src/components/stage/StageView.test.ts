@@ -62,3 +62,18 @@ describe('the speaker above the sheet', () => {
     expect(source).not.toMatch(/\.bubble\.(off|dim) \{/)
   })
 })
+
+describe('the pin', () => {
+  it('hangs over the answers, since the sheet row stacks above them', () => {
+    const rule = source.match(/\n {2}\.stage-row \{([^}]*)\}/)?.[1] ?? ''
+    expect(rule).toContain('position: relative')
+    expect(rule).toMatch(/z-index: [1-9]/)
+  })
+})
+
+describe('the map', () => {
+  it('keeps the host on a stacked map while players pin', () => {
+    expect(source).not.toMatch(/\.map\.pinning \.speaker/)
+    expect(source).not.toMatch(/\.stage\.map \.speaker \{[^}]*display: none/)
+  })
+})

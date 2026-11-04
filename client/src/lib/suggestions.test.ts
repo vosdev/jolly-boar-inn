@@ -470,6 +470,14 @@ describe('a question’s round', () => {
     expect(placedIn(event, 'bestiary')).toEqual({ ...QUESTION, mode: 'bestiary' })
     expect(placedIn(QUESTION, NO_ROUND)).toEqual(unplaced)
   })
+
+  it('keeps an intro only for a round that shows one, whose editor can take it out', () => {
+    const intro = { ...QUESTION.payload, intro: 'Gems, adventurer!' }
+    const event = { ...QUESTION, mode: 'random_event', random_event: 'bob', payload: intro }
+    expect(placedIn(event, 'random_event')).toEqual(event)
+    expect(placedIn(event, 'tales_of_gielinor')).toEqual({ ...QUESTION, mode: 'tales_of_gielinor' })
+    expect(placedIn(event, NO_ROUND)).toEqual(unplaced)
+  })
 })
 
 describe('what the game already asks', () => {

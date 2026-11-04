@@ -53,8 +53,7 @@
    *
    * A `map` stage is a question answered on the world map: what goes under the line is the
    * whole stage, as tall as the room leaves it (`--stage-height`), with the sheet on it at the
-   * top left and the speaker at the bottom left. Stacked there is no room for the speaker
-   * until the `reveal`, and on a TV the table stands beside the map.
+   * top left and the speaker at the bottom left. On a TV the table stands beside the map.
    */
   import { onMount, type Snippet } from 'svelte'
 
@@ -167,7 +166,6 @@
   class:wide={tv && wide}
   class:speaks
   class:map={map !== null}
-  class:pinning={map === 'open'}
   bind:this={root}
 >
   {#if speaks}
@@ -381,6 +379,9 @@
     --roll-w: calc(26px * var(--k));
     --finial: calc(22px * var(--k));
     position: relative;
+    /* The sheet's shadow filter traps the pin's own z-index, and the pin hangs over the
+       answers, whose buttons are positioned too. */
+    z-index: 1;
     display: flex;
     align-items: flex-end;
   }
@@ -790,7 +791,7 @@
     width: 22rem;
   }
 
-  /* Stacked: the whole width, and the host only for the reveal, over the foot of the map. */
+  /* Stacked: the whole width, and the host over the foot of the map. */
   @media (max-width: 1023.98px) {
     .stage.map {
       max-width: none;
@@ -810,10 +811,6 @@
       bottom: 0.5rem;
       width: auto;
       min-width: 0;
-    }
-
-    .stage.map.pinning .speaker {
-      display: none;
     }
   }
 

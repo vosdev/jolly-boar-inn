@@ -713,16 +713,18 @@ async def set_status(
 ) -> dict[str, Any]:
     """Approve, reject or reopen one. It must be exported again before it counts as imported.
 
-    A question with no round cannot be approved: no export would ever include it.
+    A question with no round cannot be approved: no export would ever include it. Nor can
+    one the game no longer takes, such as an NPC since taken off the roster.
     """
     if status == "approved":
         current = await pool.fetchrow(
-            "select kind, content from suggestions where id = $1", suggestion
+            "select kind, content, credit_shown from suggestions where id = $1", suggestion
         )
         if current is None:
             raise SuggestionNotFound("no such suggestion")
         if not _placed(current["kind"], current["content"]):
             raise NoRound("pick its round before approving it")
+        check(current["kind"], current["content"], current["credit_shown"])
     row = await pool.fetchrow(
         "update suggestions set status = $2, exported_at = null"
         f" where id = $1 returning {_COLUMNS}",

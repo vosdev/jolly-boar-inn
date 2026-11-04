@@ -5,7 +5,8 @@
    * `data` arrives in the two shapes `questions/types/map_pin.py` sends: while open the prompt,
    * `pins`, `bounds` and `view`; after close the same plus `targets` and the `reach` that scored them.
    *
-   * Your pet is your pin from the first tap. Until Lock in the pins are this browser's alone,
+   * Your pet is your pin from the first tap. Once all are down, Lock in stands over the last one
+   * you placed or moved. Until it is pressed the pins are this browser's alone,
    * and whatever is down when the question nearly ends goes then, the last pin repeated if some
    * were never placed: the server takes a full set or none.
    *
@@ -102,6 +103,8 @@
     room.current.find((player) => player.id === id)?.display_name ?? '?'
 
   let pins = $state<WorldPoint[]>([])
+  /** The pin placed or moved last, which Lock in stands over. */
+  let last = $state(0)
   const sent = $derived(pinsOf(yourValue))
   const movable = $derived(canAnswer && !revealed && sent.length === 0)
   const full = $derived(pins.length === count)
@@ -110,9 +113,16 @@
   function pick(tile: WorldPoint): void {
     if (!movable) return
     const at = clampTile(tile, bounds ?? SURFACE)
-    if (count === 1) pins = [at]
-    else if (!full) pins = [...pins, at]
-    else pins = pins.with(nearestPin(pins, at), at)
+    if (count === 1) {
+      pins = [at]
+      last = 0
+    } else if (!full) {
+      pins = [...pins, at]
+      last = pins.length - 1
+    } else {
+      last = nearestPin(pins, at)
+      pins = pins.with(last, at)
+    }
   }
 
   const pinId = (index: number): string => `pin-${index}`
@@ -120,12 +130,14 @@
   function move(id: string, tile: WorldPoint): void {
     const index = Number(id.slice('pin-'.length))
     pins = pins.with(index, clampTile(tile, bounds ?? SURFACE))
+    last = index
   }
 
   function tap(id: string): void {
     if (!movable || count === 1) return
     const index = Number(id.slice('pin-'.length))
     pins = pins.filter((_, at) => at !== index)
+    last = pins.length - 1
   }
 
   sendBeforeEnd(
@@ -134,17 +146,6 @@
     () => filledPins(pins, count),
     (value) => onAnswer(value as WorldPoint[]),
   )
-
-  const lockHint = $derived.by(() => {
-    if (sent.length > 0) return sent.length === 1 ? 'Pin locked in.' : 'Pins locked in.'
-    if (count === 1) {
-      return full
-        ? 'Pin placed. Drag it, or tap the map to move it.'
-        : 'Tap the map to place your pin.'
-    }
-    if (full) return `All ${count} pins placed. Drag one to move it, or tap one to remove it.`
-    return `${pins.length} of ${count} pins placed. Tap the map for the next one.`
-  })
 
   const rows: PinRow[] = $derived(
     revealed && results != null ? pinRows(results, targets, reach) : [],
@@ -214,6 +215,7 @@
           art: art(me.current?.id),
           tone: 'you' as const,
           movable,
+          action: movable && full && index === last ? 'Lock in' : undefined,
         })),
   )
 
@@ -273,17 +275,8 @@
     onpick={movable ? pick : undefined}
     onmove={move}
     ontap={tap}
+    onaction={() => onAnswer(pins)}
   />
-  {#if !revealed && canAnswer}
-    <div class="lock surface">
-      <span aria-live="polite">{lockHint}</span>
-      {#if movable}
-        <button type="button" class="primary" disabled={!full} onclick={() => onAnswer(pins)}>
-          Lock in
-        </button>
-      {/if}
-    </div>
-  {/if}
 </div>
 
 <style>
@@ -295,37 +288,5 @@
     border: 2px solid var(--line);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
-  }
-
-  .lock {
-    position: absolute;
-    z-index: 1000;
-    right: 0.75rem;
-    bottom: 0.75rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    max-width: calc(100% - 1.5rem);
-    padding: 0.5rem 0.5rem 0.5rem 0.9rem;
-    background: var(--panel);
-    border: 2px solid var(--line);
-    border-radius: var(--radius);
-    font-size: 0.95rem;
-    line-height: 1.25;
-  }
-
-  .lock button {
-    flex: none;
-    min-height: 44px;
-    white-space: nowrap;
-  }
-
-  @container (max-width: 26rem) {
-    .lock {
-      left: 0.5rem;
-      right: 0.5rem;
-      bottom: 0.5rem;
-      justify-content: space-between;
-    }
   }
 </style>

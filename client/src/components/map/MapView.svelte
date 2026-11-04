@@ -60,6 +60,8 @@
     size?: 'small' | 'big'
     /** Can be dragged, which `onmove` hears. */
     movable?: boolean
+    /** A button over the pet, which `onaction` hears. */
+    action?: string
   }
 
   export interface MapLine {
@@ -102,6 +104,7 @@
     onpick,
     onmove,
     ontap,
+    onaction,
     ongrip,
   }: {
     bounds?: MapBounds
@@ -123,6 +126,8 @@
     onmove?: (id: string, tile: WorldPoint) => void
     /** A tap on a marker. */
     ontap?: (id: string) => void
+    /** A press on a marker's `action`. */
+    onaction?: (id: string) => void
     /** A grip dragged, as it goes. */
     ongrip?: (id: string, tile: WorldPoint) => void
   } = $props()
@@ -153,7 +158,22 @@
     return tag
   }
 
-  function pinElement(marker: MapMarker): HTMLElement {
+  function actionButton(
+    L: typeof import('leaflet'),
+    marker: MapMarker,
+    label: string,
+  ): HTMLElement {
+    const button = document.createElement('button')
+    button.type = 'button'
+    button.className = 'primary pin-action'
+    button.textContent = label
+    // A press would otherwise reach the marker as a tap, which takes a pin away, or a drag.
+    L.DomEvent.disableClickPropagation(button)
+    button.addEventListener('click', () => onaction?.(marker.id))
+    return button
+  }
+
+  function pinElement(L: typeof import('leaflet'), marker: MapMarker): HTMLElement {
     const pin = document.createElement('div')
     pin.className = ['pin', marker.tone, marker.size].filter(Boolean).join(' ')
     pin.dataset.id = marker.id
@@ -165,6 +185,7 @@
     pin.append(art, dot)
     const tag = tagFor(marker)
     if (tag !== null) pin.append(tag)
+    if (marker.action !== undefined) pin.append(actionButton(L, marker, marker.action))
     return pin
   }
 
@@ -230,7 +251,7 @@
     const count = shown.length
     shown.forEach((marker, index) => {
       const pin: Marker = L.marker(toLatLng(marker.at), {
-        icon: L.divIcon({ className: 'pin-host', html: pinElement(marker), iconSize: [0, 0] }),
+        icon: L.divIcon({ className: 'pin-host', html: pinElement(L, marker), iconSize: [0, 0] }),
         draggable: marker.movable === true,
         keyboard: marker.movable === true,
         // Dealt furthest first, so the nearest stand on top, and yours over them all.
@@ -634,6 +655,17 @@
   .map :global(.pin.you i) {
     background: var(--accent);
     border-color: var(--accent-ink);
+  }
+
+  .map :global(.pin-action) {
+    position: absolute;
+    left: 0;
+    bottom: calc(var(--pet) + 10px);
+    min-height: 44px;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    pointer-events: auto;
+    box-shadow: var(--shadow);
   }
 
   .map :global(.pin-tag) {

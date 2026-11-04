@@ -149,6 +149,8 @@ def test_a_zoomed_question_opens_on_its_view_and_reaches_half_as_far(
     target = payload["targets"][0]
     for seat, tiles in zip(game.players, (25, 50), strict=True):
         answer_after(game, seat, 0, east_of(target, tiles), 1)
+    # The admin may answer too, so the question would otherwise wait out its timer.
+    game.skip()
     closed = game.admin.take("question_closed")
     by_name = {seat.id: seat.name for seat in game.seats}
     points = {by_name[pid]: row["points"] for pid, row in closed["results"].items()}
