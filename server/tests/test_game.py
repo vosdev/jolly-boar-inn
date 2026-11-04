@@ -306,6 +306,49 @@ def test_everyone_else_hears_the_answer_count(game) -> None:
     assert second.kinds.count("answer_count") == 1
 
 
+def test_a_drop_and_a_reconnect_move_the_count(game) -> None:
+    """Somebody leaving or coming back mid-question changes "of" and who is waited on."""
+    game.start()
+    game.opened(0)
+    admin, zezima, woox = game.seats
+    woox.ws.close()
+    assert admin.take("answer_count") == {
+        "t": "answer_count",
+        "question_id": str(game.question(0).id),
+        "answered": 0,
+        "of": 2,
+        "waiting": [admin.id, zezima.id],
+    }
+    with game.client.websocket_connect(f"/ws/{game.code}") as ws:
+        back = reseat(woox, ws)
+        back.take("welcome")
+        count = admin.take("answer_count")
+        assert (count["of"], count["waiting"]) == (3, [admin.id, zezima.id, woox.id])
+        zezima.take("answer_count")  # Woox's drop
+        assert zezima.take("answer_count") == count
+        back.settle()
+        assert "answer_count" not in back.kinds  # its welcome has the count already
+
+
+def test_a_kick_mid_question_moves_the_count(game) -> None:
+    game.start()
+    game.opened(0)
+    admin, zezima, woox = game.seats
+    game.answer(woox, 0, game.right(0))
+    woox.take("answer_ack")
+    admin.take("answer_count")
+    admin.send(t="kick", player_id=woox.id)
+    count = admin.take("answer_count")
+    assert (count["answered"], count["of"], count["waiting"]) == (0, 2, [admin.id, zezima.id])
+
+
+def test_a_drop_outside_an_open_question_sends_no_count(game) -> None:
+    game.seats[2].ws.close()
+    game.admin.take("players_updated")
+    game.admin.settle()
+    assert "answer_count" not in game.admin.kinds
+
+
 def test_a_second_answer_is_already_answered(game) -> None:
     """One answer per player per question."""
     game.start()

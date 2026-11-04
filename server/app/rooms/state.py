@@ -68,7 +68,9 @@ from app.rooms.loop import (
     Loop,
     _answer_count,
     _close_if_everyone_answered,
+    _counted,
     _recount_splash,
+    _recounted,
     _round_under_way,
     _stop_timer,
     _waiting,
@@ -668,7 +670,7 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
                     self.rooms.pop(code, None)
                     raise
                 room.awaiting_player = False
-            before = room.view()
+            before, counted = room.view(), _counted(room)
             previous = room.sockets.get(player.id)
             outbox = Outbox(ws, lambda: self.disconnect(code, player.id, ws))
             room.sockets[player.id] = outbox
@@ -713,7 +715,9 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
                 if previous.close(CLOSE_REPLACED, "connected from another device"):
                     metrics.WS_DISCONNECTS.labels(reason="replaced").inc()
             update = self._players_updated(room, before, exclude=player.id)
+            recount = _recounted(room, counted, exclude=player.id)
         self._broadcast(update)
+        self._broadcast(recount)
         return player, outbox
 
     async def disconnect(self, code: str, player_id: UUID, ws: WebSocket) -> None:
@@ -730,7 +734,7 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
             outbox = room.sockets.get(player_id)
             if outbox is None or outbox.ws is not ws:
                 return
-            before = room.view()
+            before, counted = room.view(), _counted(room)
             del room.sockets[player_id]
             outbox.close(1000, "disconnected")
             player = room.players.get(player_id)
@@ -742,7 +746,9 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
             _recount_splash(room, self.clock())
             _close_if_everyone_answered(room)
             update = self._players_updated(room, before)
+            recount = _recounted(room, counted)
         self._broadcast(update)
+        self._broadcast(recount)
 
     # --- Game loop ------------------------------------------------------------------
 
@@ -1069,6 +1075,7 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
                 raise BadState("there is no such player in this room")
             if target.role == "admin":
                 raise BadState("an admin cannot be kicked")
+            counted = _counted(room)
             async with pool.acquire() as conn:
                 await conn.execute("delete from players where id = $1", player_id)
             del room.players[player_id]
@@ -1079,10 +1086,12 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
             _recount_splash(room, self.clock())
             _close_if_everyone_answered(room)
             update = self._room_updated(room)
+            recount = _recounted(room, counted)
         if socket is not None:
             if socket.close(CLOSE_KICKED, "removed from the room"):
                 metrics.WS_DISCONNECTS.labels(reason="kicked").inc()
         self._broadcast(update)
+        self._broadcast(recount)
 
     async def shutdown(self) -> None:
         """Cancel every room's timer task and wait for them. The lifespan calls this."""

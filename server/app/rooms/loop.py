@@ -43,7 +43,14 @@ from app.rooms.queries import (
     _void_question,
 )
 from app.stats import Metric, bump, duration_bucket
-from app.ws.protocol import GameFinished, PlayerResult, QuestionClosed, QuestionOpen, Segment
+from app.ws.protocol import (
+    AnswerCount,
+    GameFinished,
+    PlayerResult,
+    QuestionClosed,
+    QuestionOpen,
+    Segment,
+)
 
 log = logging.getLogger("app.rooms")
 # Seconds the reveal waits once everyone has answered early, so the last tap is seen to land
@@ -104,6 +111,26 @@ def _waiting(room: Room, question: RoomQuestion) -> list[str]:
         for pid in room.sockets
         if room.can_answer(question, pid) and pid not in question.answers
     ]
+
+
+def _counted(room: Room) -> AnswerCount | None:
+    """The open question's ``answer_count``, or ``None`` with none open. Lock held."""
+    question = room.open_question()
+    if question is None:
+        return None
+    answered, of = _answer_count(room, question)
+    return AnswerCount(
+        question_id=str(question.id), answered=answered, of=of, waiting=_waiting(room, question)
+    )
+
+
+def _recounted(room: Room, before: AnswerCount | None, exclude: UUID | None = None) -> Broadcast:
+    """``answer_count`` to everyone but ``exclude`` if a connect, drop or kick moved it from
+    ``before``: nothing else would tell them until the next answer. Lock held."""
+    after = _counted(room)
+    if after is None or after == before:
+        return Broadcast([])
+    return Broadcast.to_all(room, after.model_dump(mode="json"), exclude)
 
 
 def _recount_splash(room: Room, now: float, unready: bool = False) -> None:

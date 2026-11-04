@@ -480,13 +480,16 @@ export function roundsFor(type: SuggestedType): Choice[] {
 }
 
 /**
- * A question as it opens in `round`'s editor. Only an NPC's question keeps its NPC; the rest
- * is left as written, so what the round refuses is the server's to say.
+ * A question as it opens in `round`'s editor. Only an NPC's question keeps its NPC, and only
+ * a round that shows an intro keeps it, since no other editor has a field to take it out. The
+ * rest is left as written, so what the round refuses is the server's to say.
  */
 export function placedIn(content: QuestionContent, round: string): QuestionContent {
-  const { mode: _mode, random_event: npc, ...rest } = content
+  const { mode: _mode, random_event: npc, payload, ...rest } = content
+  const { intro: _intro, ...plain } = payload
   return {
     ...rest,
+    payload: INTRO_ROUNDS.includes(round) ? payload : plain,
     ...(round === NO_ROUND ? {} : { mode: round }),
     ...(round === 'random_event' && npc !== undefined ? { random_event: npc } : {}),
   }

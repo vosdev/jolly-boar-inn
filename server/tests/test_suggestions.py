@@ -1315,6 +1315,21 @@ def test_a_question_is_approved_and_exported_only_once_it_has_a_round(client: Te
     assert (question["mode"], question["random_event"]) == ("random_event", "bob")
 
 
+def test_a_question_the_game_no_longer_takes_is_not_approved(client: TestClient, db) -> None:
+    suggestion = suggest(client, EVENT)
+    # Sent while the Wise Old Man was still on the roster, before he got his own round.
+    db(
+        "update suggestions set content = jsonb_set(content, '{random_event}', '\"wise_old_man\"')"
+        " where id = $1",
+        UUID(suggestion),
+    )
+    refused = _status(client, suggestion, "approved")
+    assert refused.status_code == 422, refused.text
+    assert refused.json()["code"] == "bad_suggestion"
+    assert "wise_old_man" in refused.json()["message"]
+    assert queue(client)["counts"]["approved"] == 0
+
+
 def test_an_approved_question_keeps_its_round(client: TestClient) -> None:
     suggestion = suggest(client, EXAMINE)
     approve(client, suggestion)
