@@ -1,6 +1,6 @@
 [project]
 name = "jolly-boar-inn"
-version = "0.245.0"
+version = "0.245.1"
 description = "Jolly Boar Inn Quiz Night server"
 requires-python = ">=3.14"
 license = "AGPL-3.0-only"
@@ -22,6 +22,7 @@ dev = [
     "httpx>=0.27",
     "pytest-timeout>=2.4.0",
     "pytest-xdist>=3.6",
+    "pyyaml>=6",
 ]
 # The data scripts' own packages (`docker-compose.data.yml`): never in the runtime image.
 data = [
