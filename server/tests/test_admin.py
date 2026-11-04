@@ -267,14 +267,30 @@ def strings_in(value: Any) -> Iterator[str]:
             yield from strings_in(v)
 
 
-def test_no_admin_payload_names_anyone_or_holds_a_question_or_answer(
-    app: FastAPI, client: TestClient, table
-) -> None:
+def leaks(live: dict[str, Any], history: dict[str, Any], secrets_: set[str]) -> list[str]:
+    """The secrets the admin payloads show, leaving out room codes and counter keys."""
+    # A code is a word from the room-word list, which may also name an item in a question.
+    rooms = [{k: v for k, v in room.items() if k != "code"} for room in live["rooms"]]
+    # A counter's key is only ever a value from a fixed set, which ``test_stats.py`` checks,
+    # and one may equal an answer without being it: event frequency "less" and the answer
+    # "less" to a More or Less question.
+    counts = [{k: v for k, v in c.items() if k != "key"} for c in history["counts"]]
+    payloads = [{**live, "rooms": rooms}, {**history, "counts": counts}]
+    text = json.dumps(payloads)
+    # A short secret only counts as a whole value: "more" may be an answer and part of a mode.
+    shown = set(strings_in(payloads))
+    return sorted(s for s in secrets_ if s in shown or (len(s) >= 8 and s in text))
+
+
+def admin_view(
+    app: FastAPI, client: TestClient, table, answer: str
+) -> tuple[dict[str, Any], dict[str, Any], set[str]]:
+    """Two rooms mid-game: the admin's live and history payloads, and every secret."""
     custom = {
         "type": "multiple_choice",
         "payload": {
             "prompt": "Which clanmate fell asleep at Vorkath?",
-            "options": ["Snoozebert", "Nodwell", "Yawnsley"],
+            "options": [answer, "Nodwell", "Yawnsley"],
             "answer_index": 0,
         },
     }
@@ -307,14 +323,7 @@ def test_no_admin_payload_names_anyone_or_holds_a_question_or_answer(
     game.answer(game.players[0], 0, game.right(0))
     game.players[0].take("answer_ack")
 
-    payloads = [get(client, path) for path in ROUTES]
-    # A counter's key is only ever a value from a fixed set, which ``test_stats.py`` checks,
-    # and one may equal an answer without being it: event frequency "less" and the answer
-    # "less" to a More or Less question.
-    live, history = payloads
-    counts = [{k: v for k, v in c.items() if k != "key"} for c in history["counts"]]
-    unkeyed = [live, {**history, "counts": counts}]
-    text = json.dumps(unkeyed)
+    live, history = [get(client, path) for path in ROUTES]
     secrets_ = {"Lynx Titan", "Zezima", "Woox", created.json()["session"]}
     for room in app.state.rooms.rooms.values():
         for player in room.players.values():
@@ -326,10 +335,14 @@ def test_no_admin_payload_names_anyone_or_holds_a_question_or_answer(
             secrets_ |= {s for s in strings_in(payload) if len(s) >= 4}
     secrets_ |= {s for s in strings_in(game.right(0)) if len(s) >= 4}
     assert "Which clanmate fell asleep at Vorkath?" in secrets_
-    # A short secret only counts as a whole value: "more" may be an answer and part of a mode.
-    shown = set(strings_in(unkeyed))
-    leaked = sorted(s for s in secrets_ if s in shown or (len(s) >= 8 and s in text))
-    assert leaked == []
+    return live, history, secrets_
+
+
+def test_no_admin_payload_names_anyone_or_holds_a_question_or_answer(
+    app: FastAPI, client: TestClient, table
+) -> None:
+    live, history, secrets_ = admin_view(app, client, table, "Snoozebert")
+    assert leaks(live, history, secrets_) == []
 
     assert set(live) == {"rooms", "sockets"}
     for room in live["rooms"]:
@@ -346,3 +359,17 @@ def test_no_admin_payload_names_anyone_or_holds_a_question_or_answer(
         assert room["round"] is None or set(room["round"]) == {"index", "total", "mode"}
     assert set(history) == {"counts"}
     assert all(set(count) == {"day", "metric", "key", "count"} for count in history["counts"])
+
+
+def test_a_room_code_that_names_an_answer_is_no_leak_but_the_answer_elsewhere_is(
+    app: FastAPI, client: TestClient, table
+) -> None:
+    app.state.rooms.words = ("Emberlight",)
+    live, history, secrets_ = admin_view(app, client, table, "Emberlight")
+    assert "Emberlight" in secrets_
+    assert "Emberlight" in [room["code"] for room in live["rooms"]]
+    assert leaks(live, history, secrets_) == []
+
+    room = live["rooms"][0]
+    leaked = {**live, "rooms": [{**room, "status": "Emberlight"}, *live["rooms"][1:]]}
+    assert leaks(leaked, history, secrets_) == ["Emberlight"]
