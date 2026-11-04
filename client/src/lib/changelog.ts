@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.246.6',
+    date: '2026-11-04',
+    text: 'A flaky connection retries more gently and stops hanging.',
+  },
+  {
     version: '0.246.5',
     date: '2026-11-04',
     text: "Who's That NPC? skips any question missing its picture.",

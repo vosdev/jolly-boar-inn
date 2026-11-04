@@ -626,7 +626,8 @@ without members is left out.
 
 Client (`lib/ws.ts`):
 
-1. On close, retry after `min(8000, 500 × 2^attempt)` ms plus up to 250 ms. `welcome` resets it.
+1. On close, or no `welcome` 10 s after `hello`, retry after `min(8000, 500 × 2^attempt)` ms plus up
+   to 250 ms. A welcomed socket that stays up 10 s resets it.
 2. `welcome` replaces all local state. Timers count against `server_time`, not the local clock.
 3. On `visibilitychange` or `online`, reconnect a closed socket at once, and ping one that claims to
    be open, reconnecting if nothing arrives in 4 s. Phones lie after sleep.

@@ -22,6 +22,7 @@
  */
 
 import type { Scoring } from './protocol'
+import { fnv1a, shuffle } from './seeded'
 
 /** An NPC who presents a round: its art is `lib/npcs.ts`, found by `id`. */
 export interface Host {
@@ -114,20 +115,15 @@ export function pickLines(lines: HostLines, at: Placed, heard: Heard = {}): Spok
   }
 }
 
-/** 0..n-1 in an order fixed by `seed`: a Fisher-Yates shuffle on a string hash. */
+/** 0..n-1 in an order fixed by `seed`: a Fisher-Yates shuffle on a string hash. Over an LCG,
+ * not `mulberry32`, because rooms already in play would see their host lines change. */
 function shuffled(n: number, seed: string): number[] {
-  let state = 2166136261
-  for (const char of seed) state = Math.imul(state ^ char.charCodeAt(0), 16777619) >>> 0
+  let state = fnv1a(seed)
   const next = (): number => {
     state = (Math.imul(state, 1664525) + 1013904223) >>> 0
     return state / 2 ** 32
   }
-  const order = Array.from({ length: n }, (_, i) => i)
-  for (let i = n - 1; i > 0; i--) {
-    const j = Math.floor(next() * (i + 1))
-    ;[order[i], order[j]] = [order[j]!, order[i]!]
-  }
-  return order
+  return shuffle(n, next)
 }
 
 /**

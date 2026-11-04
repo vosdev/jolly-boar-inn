@@ -415,24 +415,30 @@ const OPEN_KEYS: Record<CustomType, string[]> = {
  * `mode` and no NPC, a question of that round.
  */
 export function previewOf(question: CustomQuestion, mode = 'custom'): OpenQuestion {
-  // Fixed times, long past and far ahead: a preview rebuilt on every keystroke must never
-  // land inside the event's hold, or its answers would blink out while the host types.
-  const opened = new Date(0).toISOString()
   const view = Object.fromEntries(
     OPEN_KEYS[question.type]
       .filter((key) => key in question.payload)
       .map((key) => [key, question.payload[key]]),
   )
+  return { ...previewShell(mode, question.random_event ?? ''), type: question.type, view }
+}
+
+/** Everything of a preview's `OpenQuestion` but its `type` and `view`: one question alone. */
+export function previewShell(
+  mode: string,
+  randomEvent: OpenQuestion['random_event'],
+): Omit<OpenQuestion, 'type' | 'view'> {
+  // Fixed times, long past and far ahead: a preview rebuilt on every keystroke must never
+  // land inside the event's hold, or its answers would blink out while the host types.
+  const opened = new Date(0).toISOString()
   return {
     question_id: 'preview',
     index: 0,
     total: 1,
-    type: question.type,
     mode,
     segment: { mode, index: 0, total: 1, start: 0, count: 1 },
-    view,
     picture: null,
-    random_event: question.random_event ?? '',
+    random_event: randomEvent,
     opened_at: opened,
     answerable_at: opened,
     ends_at: new Date(8.64e15).toISOString(),

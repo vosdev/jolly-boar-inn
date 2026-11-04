@@ -10,7 +10,7 @@
  * event's among them: Create's editor keeps its own types.
  */
 
-import { at, unstorable } from './customQuestions'
+import { at, previewShell, unstorable } from './customQuestions'
 import type { OpenQuestion } from './protocol'
 import {
   check,
@@ -264,7 +264,6 @@ export function problems(question: unknown, detailRequired = false): Problem[] {
  * what the server does when its own shuffle lands in order.
  */
 export function previewOf(question: OrderingQuestion, mode: string): OpenQuestion {
-  const opened = new Date(0).toISOString()
   const p = question.payload
   const entries = Array.isArray(p.entries) ? (p.entries as { text?: unknown }[]) : []
   const shown = [...entries.slice(1), ...entries.slice(0, 1)].map((entry) => ({ text: entry.text }))
@@ -272,22 +271,9 @@ export function previewOf(question: OrderingQuestion, mode: string): OpenQuestio
     ['intro', 'prompt', 'ends', 'picks'].filter((key) => key in p).map((key) => [key, p[key]]),
   )
   return {
-    question_id: 'preview',
-    index: 0,
-    total: 1,
+    ...previewShell(mode, question.random_event ?? null),
     type: 'ordering',
-    mode,
-    segment: { mode, index: 0, total: 1, start: 0, count: 1 },
     view: { ...view, entries: shown },
-    picture: null,
-    random_event: question.random_event ?? null,
-    opened_at: opened,
-    answerable_at: opened,
-    ends_at: new Date(8.64e15).toISOString(),
-    you_can_answer: true,
-    answered: 0,
-    of: 0,
-    waiting: [],
   }
 }
 

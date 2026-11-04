@@ -6,7 +6,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { ClientMessage, ServerMessage } from './protocol'
-import { ANSWER_TIMEOUT_MS, PROBE_TIMEOUT_MS, RoomSocket, type ConnectionState } from './ws'
+import {
+  ANSWER_TIMEOUT_MS,
+  PROBE_TIMEOUT_MS,
+  RoomSocket,
+  STABLE_MS,
+  WELCOME_TIMEOUT_MS,
+  type ConnectionState,
+} from './ws'
 
 /** The longest the backoff waits on a first retry: 500 ms plus 250 ms of jitter. */
 const FIRST_RETRY_MS = 750
@@ -91,6 +98,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  vi.restoreAllMocks()
   live.close()
   vi.unstubAllGlobals()
   vi.useRealTimers()
@@ -170,6 +178,47 @@ describe('RoomSocket', () => {
     await vi.advanceTimersByTimeAsync(ANSWER_TIMEOUT_MS * 2)
     expect(FakeSocket.made).toHaveLength(1)
     expect(states.at(-1)).toBe('open')
+  })
+
+  it('backs off further each time a socket is welcomed and dropped within the grace period', async () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+    welcomed().onclose?.({ code: 1011, reason: 'outbox full' })
+    for (const wait of [500, 1000, 2000]) {
+      const made = FakeSocket.made.length
+      await vi.advanceTimersByTimeAsync(wait - 1)
+      expect(FakeSocket.made).toHaveLength(made)
+      await vi.advanceTimersByTimeAsync(1)
+      expect(FakeSocket.made).toHaveLength(made + 1)
+      latest().accept()
+      latest().receive(welcome)
+      latest().onclose?.({ code: 1008, reason: 'connects too often' })
+    }
+  })
+
+  it('starts over at 500 ms once a welcomed socket stays up past the grace period', async () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+    welcomed().onclose?.({ code: 1011, reason: 'outbox full' })
+    await vi.advanceTimersByTimeAsync(500)
+    latest().accept()
+    latest().receive(welcome)
+    await vi.advanceTimersByTimeAsync(STABLE_MS)
+    latest().onclose?.({ code: 1011, reason: 'outbox full' })
+    const made = FakeSocket.made.length
+    await vi.advanceTimersByTimeAsync(500)
+    expect(FakeSocket.made).toHaveLength(made + 1)
+  })
+
+  it('closes and retries a socket that opens but is never welcomed', async () => {
+    live.open()
+    const silent = latest()
+    silent.accept()
+    await vi.advanceTimersByTimeAsync(WELCOME_TIMEOUT_MS - 1)
+    expect(silent.readyState).toBe(FakeSocket.OPEN)
+    await vi.advanceTimersByTimeAsync(1)
+    expect(silent.readyState).toBe(FakeSocket.CLOSED)
+    expect(states.at(-1)).toBe('reconnecting')
+    await vi.advanceTimersByTimeAsync(FIRST_RETRY_MS)
+    expect(FakeSocket.made).toHaveLength(2)
   })
 
   it('reconnects at once when the tab comes back to a socket that is gone', async () => {

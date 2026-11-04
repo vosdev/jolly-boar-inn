@@ -9,7 +9,7 @@
  * icon on a field: a host's question has no pictures, and a player names no asset ids.
  */
 
-import { at, unstorable } from './customQuestions'
+import { at, previewShell, unstorable } from './customQuestions'
 import type { OpenQuestion } from './protocol'
 import {
   check,
@@ -205,7 +205,6 @@ export function problems(question: unknown, icons = false): Problem[] {
  * its own shuffle would leave every option beside its field.
  */
 export function previewOf(question: MatchingQuestion, mode: string): OpenQuestion {
-  const opened = new Date(0).toISOString()
   const p = question.payload
   const stored = Array.isArray(p.fields) ? (p.fields as { text?: unknown }[]) : []
   const options = Array.isArray(p.options) ? (p.options as { text?: unknown }[]) : []
@@ -214,26 +213,13 @@ export function previewOf(question: MatchingQuestion, mode: string): OpenQuestio
     ['intro', 'prompt'].filter((key) => key in p).map((key) => [key, p[key]]),
   )
   return {
-    question_id: 'preview',
-    index: 0,
-    total: 1,
+    ...previewShell(mode, question.random_event ?? null),
     type: 'matching',
-    mode,
-    segment: { mode, index: 0, total: 1, start: 0, count: 1 },
     view: {
       ...view,
       fields: stored.map((entry) => (entry.text === undefined ? {} : { text: entry.text })),
       options: shown,
     },
-    picture: null,
-    random_event: question.random_event ?? null,
-    opened_at: opened,
-    answerable_at: opened,
-    ends_at: new Date(8.64e15).toISOString(),
-    you_can_answer: true,
-    answered: 0,
-    of: 0,
-    waiting: [],
   }
 }
 

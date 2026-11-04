@@ -126,12 +126,19 @@ export const unlocked = writable(
 
 let context: AudioContext | null = null
 
+/** The page's `AudioContext` once unlocked, made on first use: a page unlocked from the
+ * start never sees the gesture `unlock` would have made it in. */
+export function audioContext(): AudioContext | null {
+  if (!get(unlocked) || typeof AudioContext === 'undefined') return null
+  context ??= new AudioContext()
+  return context
+}
+
 function unlock(): void {
-  if (typeof AudioContext !== 'undefined') {
-    context ??= new AudioContext()
-    void context.resume().catch(() => {})
-  }
   unlocked.set(true)
+  void audioContext()
+    ?.resume()
+    .catch(() => {})
   removeEventListener('pointerdown', unlock, true)
   removeEventListener('keydown', unlock, true)
 }
@@ -164,8 +171,9 @@ function buffer(url: string, ctx: AudioContext): Promise<AudioBuffer | null> {
 /** Play an effect once, if Music & effects is on, the page is unlocked and the effect has a file. */
 export function playEffect(effect: Effect): void {
   const url = EFFECTS[`../assets/sounds/${effect}.mp3`]
-  if (url === undefined || context === null || !get(sound).effects || !get(unlocked)) return
-  const ctx = context
+  if (url === undefined || !get(sound).effects) return
+  const ctx = audioContext()
+  if (ctx === null) return
   void buffer(url, ctx).then((decoded) => {
     if (decoded === null) return
     const node = ctx.createBufferSource()

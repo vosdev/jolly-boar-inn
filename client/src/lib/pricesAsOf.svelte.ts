@@ -6,7 +6,7 @@
  * with a new pack. A failed fetch leaves it empty, and the date is simply not shown.
  */
 
-import { getModes } from './api'
+import { loadModes } from './howToPlay'
 
 export const pricesAsOf = $state<{ byMode: Record<string, string> }>({ byMode: {} })
 
@@ -14,7 +14,7 @@ let loading: Promise<void> | null = null
 
 /** Fetch the dates unless this page already has; safe to call from every screen that shows one. */
 export function loadPricesAsOf(): Promise<void> {
-  loading ??= getModes().then(
+  loading ??= loadModes().then(
     (modes) => {
       pricesAsOf.byMode = Object.fromEntries(
         modes.flatMap((mode) => (mode.as_of === null ? [] : [[mode.id, mode.as_of]])),

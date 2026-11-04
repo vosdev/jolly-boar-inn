@@ -249,11 +249,16 @@ export function howToViewOf(
 
 let loading: Promise<ModePacing[]> | null = null
 
-/** `/api/modes`, fetched once per page; a failure is tried again on the next call. */
+/** `/api/modes`, fetched once per page for every caller; a failure is tried again next call. */
 export function loadModes(): Promise<ModePacing[]> {
   loading ??= getModes().catch((failure: unknown) => {
     loading = null
     throw failure
   })
   return loading
+}
+
+/** For tests: forget the list fetched so far. */
+export function clearModesCache(): void {
+  loading = null
 }

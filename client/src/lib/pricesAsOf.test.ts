@@ -28,6 +28,13 @@ describe('pricesAsOf', () => {
     expect(get).toHaveBeenCalledTimes(1)
   })
 
+  it('shares the one fetch of the modes How to play and the create form use', async () => {
+    const { loadModes } = await import('./howToPlay')
+    const { loadPricesAsOf } = await import('./pricesAsOf.svelte')
+    await Promise.all([loadModes(), loadPricesAsOf(), loadModes()])
+    expect(get).toHaveBeenCalledTimes(1)
+  })
+
   it('tries again on the next call after a failed fetch', async () => {
     get.mockRejectedValueOnce(new TypeError('offline'))
     const { loadPricesAsOf, pricesAsOf } = await import('./pricesAsOf.svelte')

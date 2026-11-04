@@ -28,9 +28,10 @@
    */
   import { onMount, untrack } from 'svelte'
 
-  import { ApiFailure, getModes, type ModeBounds, type ModePacing } from '../lib/api'
+  import { ApiFailure, type ModeBounds, type ModePacing } from '../lib/api'
   import { eventSlots, overCap, type HostQuestion } from '../lib/customQuestions'
   import { minutes, plannedSeconds } from '../lib/duration'
+  import { loadModes } from '../lib/howToPlay'
   import { MODES, UPCOMING_MODES, modeLabel } from '../lib/modes'
   import { modeSeed, orderModes } from '../lib/modeOrder'
   import { npcArt } from '../lib/npcs'
@@ -259,7 +260,7 @@
   })
 
   onMount(() => {
-    void getModes().then(
+    void loadModes().then(
       (modes) => (pacing = modes),
       (error: unknown) =>
         (pacingFailure =
