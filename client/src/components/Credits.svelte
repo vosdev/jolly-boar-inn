@@ -30,7 +30,7 @@
     try {
       authors = (await getCredits()).authors
     } catch (error) {
-      failure = error instanceof ApiFailure ? error.message : 'the authors did not load'
+      failure = error instanceof ApiFailure ? error.message : 'Could not load the question authors.'
     }
   })
 </script>
@@ -73,8 +73,8 @@
     <a class="link" href="/suggest" target="_blank" rel="noopener">Suggest one →</a>
   </p>
   <p class="map-credit">
-    The world map is rendered from the game cache with RuneLite's cache library, from the archive at
-    OpenRS2.
+    The world map is rendered from the OSRS game cache using RuneLite's cache library and the
+    OpenRS2 archive.
   </p>
 
   <h3>The OSRS Wiki</h3>
@@ -94,9 +94,8 @@
     and <code>/latest</code> request.
   </p>
   <p>
-    Other assets, such as chatheads and pictures, are a one-time download from the wiki at a rate of
-    1 asset per second; stored locally and served from this game server. The game does not hotlink
-    to the wiki.
+    Other assets, such as chatheads and item icons, are downloaded once at 1 asset per second,
+    stored locally, and served directly by this server. We never hotlink to the wiki.
   </p>
   <p class="note">
     <a class="link" href={WIKI_URL} target="_blank" rel="noopener">oldschool.runescape.wiki</a> · CC BY-NC-SA

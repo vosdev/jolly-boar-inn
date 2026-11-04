@@ -351,7 +351,7 @@ describe('CustomQuestions', () => {
     const asker = () => form.querySelector('.asker')!.textContent!.trim()
     expect(asker()).toBe('Who asks it · A random NPC')
     const bob = within(askers(form)).getByRole('radio', { name: 'Evil Bob' })
-    expect(bob.closest('label')!.title).toBe('Evil Bob: Fishing, and cats')
+    expect(bob.closest('label')!.title).toBe('Evil Bob: Fishing and cats')
     await fireEvent.click(bob)
     expect(asker()).toBe('Who asks it · Evil Bob')
     await click(form, 'Cancel')

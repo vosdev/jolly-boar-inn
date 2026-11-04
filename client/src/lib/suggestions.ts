@@ -311,7 +311,7 @@ const ROUND_OPTIONS: Record<string, readonly [number, number]> = {
 /** Rounds whose form names its fields otherwise: on the buttons, ScapeRune plays questions. */
 const ROUND_WORDING: Record<string, FormWording> = {
   scaperune: {
-    prompt: 'The answer on the board, one entry per line if it is an order',
+    prompt: 'The answer shown on the board (one entry per line for an ordered list)',
     option: 'question',
   },
 }
@@ -426,7 +426,7 @@ export const CHOICES: readonly Choice[] = [
       id: mode.id,
       kind: 'question',
       label: mode.label,
-      hint: 'A place players should be able to find.',
+      hint: 'A place on the world map for players to pin.',
       host: mode.host,
       types: ['map_pin'],
       explanation: !NO_EXPLANATION_ROUNDS.includes(mode.id),

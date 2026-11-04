@@ -1007,7 +1007,7 @@ describe('Lobby', () => {
       }
       await fireEvent.click(god('Saradomin'))
       expect(sent).toEqual([])
-      expect(screen.getByText('Take your ready back to change team.')).toBeTruthy()
+      expect(screen.getByText('Unready first to switch teams.')).toBeTruthy()
     })
 
     it('disables ready while you are teamless, saying to pick a team first', async () => {

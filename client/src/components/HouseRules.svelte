@@ -37,7 +37,7 @@
   </div>
   <div class="fine">
     <Stepper
-      label="Standings between rounds, seconds"
+      label="Standings between rounds (seconds)"
       noun="standings seconds"
       value={standingsSeconds}
       min={0}

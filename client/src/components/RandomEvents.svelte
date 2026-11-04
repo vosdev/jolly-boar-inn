@@ -41,7 +41,7 @@
 
 <section class="panel events" aria-labelledby="{id}-title">
   <h2 id="{id}-title">Random events</h2>
-  <p class="note lead">They barge into a round with a question of their own.</p>
+  <p class="note lead">NPCs drop in mid-round with a question of their own.</p>
 
   <fieldset class="often">
     <legend class="sr">Random events frequency</legend>

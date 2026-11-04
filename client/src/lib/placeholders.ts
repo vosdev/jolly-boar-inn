@@ -5,8 +5,8 @@ export interface FieldHints {
 }
 
 const FALLBACK: FieldHints = {
-  prompt: 'The question as players read it, such as Which skill trains with a tinderbox?',
-  explanation: 'Why the answer is right, per the OSRS Wiki.',
+  prompt: 'e.g. Which skill do you train with a tinderbox?',
+  explanation: 'Optional context shown on the reveal, e.g. why the answer is right.',
 }
 
 const HINTS: Record<string, FieldHints> = {
@@ -19,7 +19,7 @@ const HINTS: Record<string, FieldHints> = {
     explanation: '',
   },
   scaperune: {
-    prompt: 'Zaff, or for an order, one entry per line',
+    prompt: 'e.g. Zaff (or one entry per line for an ordered list)',
     explanation: 'Zaff sells battlestaves. Aubury has the runes and Lowe the bows.',
   },
   odd_one_out: {
@@ -28,11 +28,11 @@ const HINTS: Record<string, FieldHints> = {
   },
   bestiary: {
     prompt: 'What race is General Graardor?',
-    explanation: 'An ourg, and the only known living one, per his OSRS Wiki page.',
+    explanation: 'General Graardor is the last living ourg.',
   },
   drop_table: {
     prompt: 'Which boss drops a Jar of miasma?',
-    explanation: 'Abyssal Sire, through the Unsired it drops, per the OSRS Wiki.',
+    explanation: 'Dropped by the Abyssal Sire via the Unsired.',
   },
   minigame_madness: {
     prompt: 'Which minigame gives the Ash covered tome?',
@@ -40,15 +40,15 @@ const HINTS: Record<string, FieldHints> = {
   },
   tales_of_gielinor: {
     prompt: 'Who gives you the Lost City quest?',
-    explanation: 'A warrior camped in the Lumbridge Swamp, who is looking for Zanaris.',
+    explanation: 'The Warrior camped in Lumbridge Swamp is searching for Zanaris.',
   },
   uris_unravelling: {
-    prompt: 'Which NPC does this anagram name?',
+    prompt: 'Which NPC is this anagram for?',
     explanation: 'Ranael, who runs the skirt shop in Al Kharid.',
   },
   slayer_master: {
     prompt: 'Which item do you need to kill a rockslug?',
-    explanation: 'A bag of salt, used once it is nearly dead, per its OSRS Wiki page.',
+    explanation: 'Rockslugs need a bag of salt to finish them off at low HP.',
   },
   who_said_that: {
     prompt: 'Who said this?',

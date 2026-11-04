@@ -282,7 +282,7 @@
       // most that can be done is to stop listing it.
       forget(room)
       notice = {
-        text: `${room} is off this list. Its host session is not in this browser, so the room itself stays until it expires.`,
+        text: `Removed ${room} from this list. Since its host session isn't saved in this browser, the room itself will close when it expires.`,
         bad: false,
       }
       return
@@ -315,15 +315,15 @@
 
 {#snippet newHere()}
   <p>
-    Ah, a new face. Choose how your table plays, then follow the trail from the first room to the
-    first question.
+    Ah, a new face! Pick how you want to play, then follow the trail from creating a room to
+    answering your first question.
   </p>
 {/snippet}
 
 {#snippet visitors()}
   <p>
-    Some nights the road brings visitors. They barge in mid-round with a question of their own, then
-    go on their way.
+    Just like in Gielinor, random events can pop up mid-round! An NPC drops in with a question of
+    their own, then vanishes again.
   </p>
 {/snippet}
 
@@ -564,13 +564,13 @@
     <h2 id="suggest-heading" class="sr">Talk to Reldo</h2>
     <DialogueBox npc="reldo" name="Reldo" side="right">
       <p>
-        First night here? Play free for all, team against team, or on the sofa with a TV and your
-        phones. It's all possible here!
+        First time at the inn? You can play free for all, team against team, or on the sofa with a
+        TV and your phones.
       </p>
       {#if suggesting || adminToken !== null}
         <p>Know a question we don't ask yet, or spotted a wrong answer or an outdated fact?</p>
       {/if}
-      <p>Something else on your mind? Come and tell us.</p>
+      <p>Got feedback or ideas? Come tell us on Discord!</p>
       <div class="row">
         <button type="button" class="primary" onclick={() => open('overview')}>How to play</button>
         {#if suggesting || adminToken !== null}
@@ -603,7 +603,7 @@
 {#if confirmingPast !== null}
   {@const game = confirmingPast}
   <ConfirmDialog
-    message={`Remove ${game.code} from your past party games? Its hi-scores are not kept anywhere else, and this cannot be undone.`}
+    message={`Remove ${game.code} from your past party games? Its hiscores are only saved in this browser, and this cannot be undone.`}
     confirmLabel="Remove"
     onConfirm={() => removePast(game)}
     onCancel={() => (confirmingPast = null)}
