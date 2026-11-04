@@ -163,8 +163,9 @@ fetch-assets:
 	$(DATA) scripts/fetch_assets.py $(strip $(FETCH_ASSETS_FLAGS))
 
 # Render the surface map from the game cache data/map.json pins into client/public/map/, about
-# 2 minutes and 35 MB. Never part of test or the image build, and never committed: run it before
-# `make image`, which bundles what is on disk. Sends nothing once that cache's tiles are complete.
+# a minute, 35 MB and 2 GB of free memory (swap will do). Never part of test or the image build,
+# and never committed: run it before `make image`, which bundles what is on disk. Sends nothing
+# once that cache's tiles are complete.
 # Change the pin to update the map (ideas/architecture.md, section 12).
 gen-map:
 	$(MAP) scripts/gen_map.py

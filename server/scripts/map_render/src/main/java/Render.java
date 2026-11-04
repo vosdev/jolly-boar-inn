@@ -26,15 +26,15 @@ public final class Render {
             XteaKeyManager keys = new XteaKeyManager();
             keys.loadKeys(new ByteArrayInputStream("[]".getBytes()));
 
-            MapImageDumper dumper = new MapImageDumper(store, keys);
+            // The dumper's own loader, so the world's regions are held once, not twice.
+            RegionLoader regions = new RegionLoader(store, keys);
+            MapImageDumper dumper = new MapImageDumper(store, regions);
             dumper.setRenderIcons(false);
             dumper.setRenderLabels(false);
             // Its disk-backed images are for the whole world at once, not a square at a time.
             dumper.setLowMemory(false);
             dumper.load();
 
-            RegionLoader regions = new RegionLoader(store, keys);
-            regions.loadRegions();
             for (Region region : regions.getRegions()) {
                 int x = region.getRegionX();
                 int y = region.getRegionY();
