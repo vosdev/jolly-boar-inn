@@ -96,7 +96,7 @@
   let { socket }: { socket: RoomSocket } = $props()
 
   function errorMessage(error: unknown): string {
-    return error instanceof ApiFailure ? error.message : 'could not send your questions, try again'
+    return error instanceof ApiFailure ? error.message : 'Could not save your questions. Try again.'
   }
 
   let theme = $state('')
@@ -409,7 +409,7 @@
   function manage(player: PlayerView): void {
     if (player.role === 'tv') {
       asking = {
-        message: `Kick ${player.display_name}, or stop it being the TV?`,
+        message: `Kick ${player.display_name}, or turn off TV mode for them?`,
         label: 'Kick',
         act: () => socket.send({ t: 'kick', player_id: player.id }),
         also: [{ label: 'Not the TV', act: () => setTV(player, false) }],
@@ -745,7 +745,7 @@
                   <button type="button" class="add-team" onclick={addTeam}>Add a team…</button>
                 {/if}
                 {#if youReady}
-                  <p class="hint">Take your ready back to change team.</p>
+                  <p class="hint">Unready first to switch teams.</p>
                 {/if}
               </div>
             {/if}

@@ -128,7 +128,7 @@
       <p class="note">Loading the daily…</p>
     {:else if view.name === 'intro'}
       <h1>Daily #{view.today.number}</h1>
-      <p>Ten questions, the same for everyone today. You get one try.</p>
+      <p>Ten questions, the same for everyone today. You only get one shot!</p>
       <div class="row">
         <button
           type="button"

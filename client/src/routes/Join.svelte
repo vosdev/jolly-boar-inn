@@ -63,7 +63,7 @@
     requests_full: 'Too many people are waiting to be let in. Try again in a minute.',
     room_full: 'The room is full.',
     not_open: 'The game has already started.',
-    name_taken: 'Somebody took that name meanwhile. Ask again.',
+    name_taken: 'Someone just took that name. Try asking again.',
   }
 
   let { code, navigate }: { code: string; navigate: (to: string) => void } = $props()

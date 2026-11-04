@@ -122,7 +122,7 @@
             <img class="face {strangerArt.cut}" src={strangerArt.url} alt="" draggable="false" />
             <span>
               <strong>Random events</strong>
-              <span class="note">Visitors who barge in with a question of their own.</span>
+              <span class="note">NPCs who drop in mid-round with a bonus question.</span>
             </span>
           </button>
         </li>
@@ -136,8 +136,8 @@
     </p>
     <h1 tabindex="-1" bind:this={heading}>Random events</h1>
     <p>
-      Whoever creates a room picks who may visit, on Create's Random events step. Only a game too
-      short for them has none.
+      The host sets how often random events appear under Random events on Create, and can even write
+      questions for specific NPCs to ask.
     </p>
     <ul class="visitors">
       {#each RANDOM_EVENTS as npc (npc.id)}

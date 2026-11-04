@@ -292,7 +292,7 @@ describe('Create', () => {
     await pick(...BOTH)
     await submitted()
     expect((await screen.findByText(/just taken/)).textContent).toBe(
-      'That code was just taken — roll a new one.',
+      'That code was just taken - roll a new one.',
     )
     expect(navigate).not.toHaveBeenCalled()
     expect(screen.getByRole('button', { name: 'Reroll' })).toBeTruthy()

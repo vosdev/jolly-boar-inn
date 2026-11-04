@@ -76,7 +76,7 @@ export interface OrderingWording {
 const GENERIC: OrderingWording = {
   prompt: 'What are they sorted by?',
   ends: ['Lowest', 'Highest'],
-  detail: 'Shown at the reveal, such as Level 20',
+  detail: 'Shown on the reveal, e.g. Level 20',
   detailRequired: false,
 }
 
@@ -197,7 +197,7 @@ function consistency(payload: Record<string, unknown>): Problem[] {
     found.push(
       at(
         'payload.picks',
-        `Only fewer than the ${entries.length} entries can be ordered; leave it to order all.`,
+        `Must be fewer than the ${entries.length} entries, or leave blank to order all of them.`,
       ),
     )
   } else if (typeof picks === 'number' && new Set(ranks.slice(0, picks + 1)).size === 1) {

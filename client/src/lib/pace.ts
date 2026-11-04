@@ -2,8 +2,8 @@ import type { Pace } from './protocol'
 
 /** The create form's choices, slowest first, and how the lobby names the one picked. */
 export const PACES: { value: Pace; label: string; note: string }[] = [
-  { value: 'walk', label: 'Walk', note: 'Take your time for each question and the answer.' },
-  { value: 'run', label: 'Run', note: 'The pace that this game was made for.' },
+  { value: 'walk', label: 'Walk', note: 'Extra time for each question and the reveal.' },
+  { value: 'run', label: 'Run', note: 'The standard pace the game is built around.' },
   { value: 'teleport', label: 'Teleport', note: 'For a room that knows its stuff.' },
 ]
 

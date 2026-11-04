@@ -35,19 +35,19 @@ export const HOW_TO_ROWS: HowToRow[] = [
   {
     types: ['pick_all_that_apply'],
     title: 'Pick all that apply',
-    text: 'Drag every right one into the basket, then press Submit.',
+    text: 'Drag or tap every right answer into the basket, then press Submit.',
     drawing: 'basket',
   },
   {
     types: ['ordering'],
     title: 'Put in order',
-    text: 'Drag them into order between the two ends, then press Submit.',
+    text: 'Drag the answers into order from top to bottom, then press Submit.',
     drawing: 'order',
   },
   {
     types: ['matching'],
     title: 'Match them up',
-    text: 'Drag one answer onto each, then press Submit. Some may be left over.',
+    text: 'Drag the right answer onto each row, then press Submit. Some options may be left over.',
     drawing: 'match',
   },
   {
@@ -59,19 +59,19 @@ export const HOW_TO_ROWS: HowToRow[] = [
   {
     types: ['closest_number'],
     title: 'Closest number',
-    text: 'Type a number, then press Submit. 12500, 1600k and 1.8m all work.',
+    text: 'Type your guess, then press Submit. Shorthand like 12500, 1600k and 1.8m all work.',
     drawing: 'number',
   },
   {
     types: ['price_is_right', 'number_slider'],
     title: 'Slide to your guess',
-    text: 'Slide to your guess, then press Submit. The closer it is, the more it scores.',
+    text: 'Slide to your guess, then press Submit. The closer you are, the more points you score.',
     drawing: 'slider',
   },
   {
     types: ['pick_from_list'],
     title: 'Pick from a list',
-    text: 'Start typing, pick a name from the list, then press Submit.',
+    text: 'Start typing, pick your answer from the list, then press Submit.',
     drawing: 'list',
   },
 ]
@@ -80,7 +80,7 @@ export const SCORING_LINE = 'Quicker and correct answers score more.'
 
 /** A team game scores otherwise, so a room with teams shows this in place of the line above. */
 export const TEAMS_PARAGRAPH =
-  "In a team game everyone picks a team in the lobby. Speed doesn't count: your team scores the average of its members' points."
+  "In a team game, everyone joins a god's team in the lobby. Speed doesn't count - your team scores the average of its members' points."
 
 export type WayId = 'free' | 'teams' | 'sofa'
 
@@ -90,19 +90,19 @@ export const WAYS_TO_PLAY: readonly { id: WayId; title: string; text: string; dr
     {
       id: 'free',
       title: 'Free for all',
-      text: 'Everyone on their own laptop, PC or mobile phone. Everyone scores points for themselves. Quicker and correct answers score more. Up to 50 players.',
+      text: 'Everyone plays on their own computer or phone and scores points for themselves. Quicker, right answers score more. Up to 50 players.',
       drawing: 'A laptop showing a question, with a pet in front of it scoring 820 points.',
     },
     {
       id: 'teams',
       title: 'Team against team',
-      text: "Pick a god in the lobby. Speed doesn't count: your team scores the average of its members' points. Up to 6 teams, up to 50 players total.",
+      text: "Join a god's team in the lobby. Speed doesn't count - your team scores the average of its members' points. Up to 6 teams and 50 players in total.",
       drawing: 'Saradomin and Zamorak side by side, three pets on each, with their team scores.',
     },
     {
       id: 'sofa',
       title: 'On the sofa',
-      text: "Join from the TV and make it the room's TV in the lobby. The TV shows the questions, and everyone else only sees the answers on their phone. Works with either free-for-all or in teams. Up to 50 players, or as many as your sofa fits.",
+      text: "Join from a big screen and make it the room's TV in the lobby. The TV shows the questions while everyone answers on their phones. Works for both free-for-all and teams, for up to 50 players (or as many as your sofa fits).",
       drawing: 'A TV showing a question, with four pets on a sofa below it, each holding a phone.',
     },
   ]
@@ -129,7 +129,7 @@ export const NIGHT_STOPS: readonly NightStop[] = [
     id: 'create',
     label: 'Create a room',
     title: 'Create a room',
-    text: 'Press Create a room on the front page. Whoever creates the room runs it. It stays available for up to 48 hours.',
+    text: 'Click Create a room on the home page. As the host, you run the table, and your room stays open for up to 48 hours.',
     drawing: 'The front page, with Create a room picked out.',
     stamp: { kind: 'item', id: 2347 },
   },
@@ -137,7 +137,7 @@ export const NIGHT_STOPS: readonly NightStop[] = [
     id: 'choose',
     label: 'Modes and settings',
     title: 'Choose your game modes and settings',
-    text: 'Each host runs one round of their own game mode. Set the house rules, and go team against team if you like.',
+    text: 'Pick which hosts will run a round, set the house rules, and choose between free-for-all or teams.',
     drawing: 'Choosing hosts and house rules for the room.',
     stamp: { kind: 'npc', id: 'historian_minas' },
   },
@@ -145,7 +145,7 @@ export const NIGHT_STOPS: readonly NightStop[] = [
     id: 'invite',
     label: 'Invite friends',
     title: 'Invite your friends and clan members',
-    text: 'Send the code or the invite link. Nobody needs an account: they pick a display name and a pet.',
+    text: 'Share the room code or invite link. Nobody needs an account - players just pick a display name and a pet.',
     drawing: 'The lobby with the room code, a Copy invite link button and pets joining.',
     stamp: { kind: 'npc', id: 'postie_pete' },
   },
@@ -153,7 +153,7 @@ export const NIGHT_STOPS: readonly NightStop[] = [
     id: 'ready',
     label: 'Ready up',
     title: 'Ready up to start',
-    text: 'Everyone flips the Ready switch, then whoever created the room presses Start.',
+    text: 'Everyone flips their Ready switch in the lobby, and the host hits Start when the room is set.',
     drawing: 'The Ready and Not ready yet lists, with the Ready switch on and the Start button.',
     stamp: { kind: 'item', id: 1917 },
   },
@@ -161,7 +161,7 @@ export const NIGHT_STOPS: readonly NightStop[] = [
     id: 'splash',
     label: 'Splash screen',
     title: 'Read the splash screen, ready up and enjoy',
-    text: 'Each round opens with its host and what is coming. Read it, ready up, and the questions start.',
+    text: 'Each round opens with a splash screen introducing the host and the rules. Ready up and the questions begin.',
     drawing: 'A splash screen naming the round and its host, starting in 4.',
     stamp: { kind: 'npc', id: 'ali_morrisane' },
   },
@@ -169,7 +169,7 @@ export const NIGHT_STOPS: readonly NightStop[] = [
     id: 'answer',
     label: 'Answer',
     title: 'Answer the questions',
-    text: 'There are eight ways to answer. Anything with a Submit button needs that press before the timer runs out.',
+    text: 'There are eight question types. Whenever you see a Submit button, make sure to press it before the timer runs out!',
     drawing: '',
     stamp: { kind: 'x' },
   },

@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.245.0',
+    date: '2026-11-04',
+    text: 'Replace AI generated wording with human-written text, adding more natural-sounding text.',
+  },
+  {
     version: '0.244.0',
     date: '2026-11-03',
     text: 'Another round: when a game ends, the host can take the same table back to the lobby for a fresh game with new questions.',
@@ -66,7 +71,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.241.0',
     date: '2026-11-03',
-    text: 'Every theme now uses a rosette to indicate you answered well.',
+    text: 'Every theme now uses a rosette to show you answered well.',
   },
   {
     version: '0.240.0',
@@ -81,7 +86,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.238.0',
     date: '2026-11-02',
-    text: 'Suggest places for the map: draw a box round one and choose how far off still earns points.',
+    text: 'You can now suggest places for Mark the Map: draw a box around a spot and choose how far off still scores.',
   },
   {
     version: '0.237.0',
@@ -101,7 +106,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.235.0',
     date: '2026-11-02',
-    text: 'New round, Slayer Master: Konar quo Maten tests your weaknesses, tasks and boss mechanics.',
+    text: 'New round, Slayer Master: Konar quo Maten tests you on monster weaknesses, Slayer tasks and boss mechanics.',
   },
   {
     version: '0.234.0',
@@ -151,12 +156,12 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.227.0',
     date: '2026-11-01',
-    text: 'The daily challenge has the whole room to itself, with Next under your answers and a count of the ten questions.',
+    text: 'The daily challenge now has the stage to itself, with a Next button under your answers and a 1-to-10 counter.',
   },
   {
     version: '0.226.0',
     date: '2026-10-31',
-    text: 'The daily challenge has a panel on the front page, with your score and every daily you played.',
+    text: 'The daily challenge now has its own panel on the home page, showing your scores from every daily you have played.',
   },
   {
     version: '0.225.1',
@@ -171,17 +176,17 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.224.0',
     date: '2026-10-31',
-    text: 'The daily: ten questions, the same for everyone, played alone once a day at /daily.',
+    text: 'Daily Challenge: ten questions a day, the same for everyone, played solo at /daily.',
   },
   {
     version: '0.223.0',
     date: '2026-10-31',
-    text: 'Engine work for upcoming daily challenge function.',
+    text: 'Behind the scenes: groundwork for the daily challenge.',
   },
   {
     version: '0.222.0',
     date: '2026-10-31',
-    text: 'Start in your room and set up the game there, doors shut or with friends watching the rounds arrive.',
+    text: 'Create now opens straight into your lobby: set up the rounds with the doors shut, or let friends watch as you pick.',
   },
   {
     version: '0.221.0',
@@ -206,7 +211,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.219.0',
     date: '2026-10-29',
-    text: 'Your own questions now stay in this browser as a list to pick from: tick the ones each room should ask.',
+    text: 'Questions you write are now saved in your browser, so you can reuse them and tick which ones to include in each room.',
   },
   {
     version: '0.218.1',
@@ -236,17 +241,17 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.215.0',
     date: '2026-10-29',
-    text: 'A picture or file that is missing now fails as missing, instead of showing up as a blank page.',
+    text: 'Missing images and files now return a proper 404 error instead of loading a blank page.',
   },
   {
     version: '0.214.0',
     date: '2026-10-29',
-    text: 'The Sound switches work. With a TV in the room only the TV plays, unless you turn your phone back on.',
+    text: 'Sound effects are here! When a room has a TV, sound plays only on the TV unless you turn it on for your own device.',
   },
   {
     version: '0.213.0',
     date: '2026-10-28',
-    text: 'The admin overview leads with games, players, finish and return rates against the period before.',
+    text: 'The admin overview now compares games, players, completion rates and returning players against the previous period.',
   },
   {
     version: '0.212.0',
@@ -296,7 +301,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.206.0',
     date: '2026-10-28',
-    text: 'Your name opens a wide sheet: name, theme and sound on one side, every pet to pick from on the other.',
+    text: 'Clicking your name opens a wider profile menu: name, theme and sound on one side, and all pets on the other.',
   },
   {
     version: '0.205.1',
@@ -306,7 +311,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.205.0',
     date: '2026-10-28',
-    text: "Behind the scenes: the suggestion queue now shows what sets Who's that NPC? and Odd One Out apart.",
+    text: "Behind the scenes: the suggestion queue now shows all fields for Who's That NPC? and Odd One Out.",
   },
   {
     version: '0.204.0',
@@ -351,7 +356,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.202.0',
     date: '2026-10-28',
-    text: 'The Mysterious Old Man joins the game mode slideshow on Home, and opens how random events work.',
+    text: 'The Mysterious Old Man joins the game mode showcase on the home page to explain how random events work.',
   },
   {
     version: '0.201.1',
@@ -376,17 +381,17 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.199.0',
     date: '2026-10-27',
-    text: 'How to play is now a page on the front: a night at the inn, every game mode and its host, teams and the TV.',
+    text: 'How to play now has its own tab on the home page, covering a night at the inn, every game mode, teams and TV mode.',
   },
   {
     version: '0.198.0',
     date: '2026-10-27',
-    text: "The front page's sheet shows each game mode in turn, with the host who presents it. Click a face to pick one.",
+    text: 'The home page now showcases each game mode and its host in turn. Click any host portrait to jump straight to it.',
   },
   {
     version: '0.197.0',
     date: '2026-10-27',
-    text: "A new front page: the inn's host greets you over one sheet to join or create a room, and Reldo takes your questions.",
+    text: 'A redesigned home page: join or create a room from one main scroll, while Reldo takes your question suggestions.',
   },
   {
     version: '0.196.0',
@@ -406,7 +411,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.194.2',
     date: '2026-10-26',
-    text: 'Who is That NPC? suggestions show a placeholder preview.',
+    text: "Who's That NPC? suggestions show a placeholder preview.",
   },
   {
     version: '0.194.1',
@@ -421,7 +426,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.193.0',
     date: '2026-10-26',
-    text: 'Past games open like the end of a game: the Wise Old Man with the full hiscores, and the room and time up top.',
+    text: 'Past games now open the full end-of-game screen, complete with the Wise Old Man and the final hiscores.',
   },
   {
     version: '0.192.2',
@@ -436,7 +441,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.192.0',
     date: '2026-10-25',
-    text: 'At the final, the Wise Old Man holds up each trophy in his dialogue box as he names the place.',
+    text: 'At the end of a game, the Wise Old Man holds up each trophy in his dialogue box as he announces the winners.',
   },
   {
     version: '0.191.0',
@@ -446,17 +451,17 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.190.0',
     date: '2026-10-25',
-    text: 'The answers on a reveal no longer show "you" twice: your chathead already says it.',
+    text: 'The answer reveal no longer labels you twice when your pet chathead is already shown.',
   },
   {
     version: '0.189.0',
     date: '2026-10-25',
-    text: 'The Ready and Full screen switches no longer sit inside a big circle.',
+    text: 'Cleaner Ready and Full screen toggles in the lobby.',
   },
   {
     version: '0.188.0',
     date: '2026-10-25',
-    text: 'Between rounds, the Next up panel is only as tall as what it says, with the countdown under the round.',
+    text: 'Between rounds, the Next up panel is more compact, with the countdown timer right underneath.',
   },
   {
     version: '0.187.0',
@@ -471,7 +476,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.185.0',
     date: '2026-10-25',
-    text: 'The lobby shows the code on one line and folds long round lists into +N more, and offers full screen in a short window.',
+    text: 'The lobby keeps the room code on one line, folds long round lists into "+N more", and offers full screen on laptops.',
   },
   {
     version: '0.184.1',
@@ -481,27 +486,27 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.184.0',
     date: '2026-10-25',
-    text: "Who's That NPC? pictures now use the room the screen has left, so they fit a laptop and fill a big screen.",
+    text: "Who's That NPC? images now scale to fit the available screen space on both laptops and large monitors.",
   },
   {
     version: '0.183.0',
     date: '2026-10-25',
-    text: 'On a laptop the room steps down a size instead of scrolling, so the question fits.',
+    text: 'On smaller laptop screens, the game view scales down slightly so questions fit without scrolling.',
   },
   {
     version: '0.182.0',
     date: '2026-10-25',
-    text: 'Once you answer, the host notices how quick you were, and says so. Just in time!',
+    text: 'Hosts now react to how quickly you lock in your answer. Just in time!',
   },
   {
     version: '0.181.0',
     date: '2026-10-25',
-    text: "Your points now show in the host's dialogue box, and the host reacts to how you did. The question sheet is shorter.",
+    text: "Your points now appear inside the host's dialogue box alongside their reaction to your answer.",
   },
   {
     version: '0.180.0',
     date: '2026-10-25',
-    text: 'The question sheet drops what the host already says: the mode heading, the Answer in line and the search label.',
+    text: 'Cleaner question scrolls: removed duplicate headings and labels that the host already announces.',
   },
   {
     version: '0.179.0',
@@ -531,17 +536,17 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.175.0',
     date: '2026-10-25',
-    text: 'Hosts now ask each question themselves, in lines that change every time. Random events hand back without a flicker.',
+    text: 'Hosts now introduce each question in their own voice, and random events transition smoothly back to the round.',
   },
   {
     version: '0.174.0',
     date: '2026-10-25',
-    text: 'Hosts and random event NPCs now talk in a dialogue box like the game’s. The timer says what comes next.',
+    text: 'Hosts and random event NPCs now speak in classic OSRS dialogue boxes, and the timer labels what comes next.',
   },
   {
     version: '0.173.0',
     date: '2026-10-25',
-    text: 'In the room, every theme now centres the words on its sheet, the lobby code included.',
+    text: 'Every theme now centres the text on the clue scroll, including the room code in the lobby.',
   },
   {
     version: '0.172.0',
@@ -551,7 +556,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.171.0',
     date: '2026-10-24',
-    text: 'On a computer, the reveal shows who picked each answer, right on the answer.',
+    text: 'On desktop, the reveal shows who picked each option right on the answer button.',
   },
   {
     version: '0.170.0',
@@ -561,7 +566,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.169.0',
     date: '2026-10-24',
-    text: 'Before each round, a row of tonight’s hosts shows how far the night has come, and a large countdown.',
+    text: 'Before each round starts, a row of host portraits shows your progress through the game alongside a countdown.',
   },
   {
     version: '0.168.0',
@@ -581,7 +586,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.165.0',
     date: '2026-10-24',
-    text: 'The host now speaks in a bubble above the question, and a random event’s NPC in one on the right.',
+    text: 'Hosts now speak in a bubble above the clue scroll, while random event NPCs appear on the right.',
   },
   {
     version: '0.164.0',
@@ -596,7 +601,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.162.0',
     date: '2026-10-24',
-    text: 'Rooms fill a laptop or desktop screen: the stage on the left, who is at the table on the right.',
+    text: 'Widescreen layout for desktops and laptops: the stage on the left, and the player list on the right.',
   },
   {
     version: '0.161.1',
@@ -606,32 +611,32 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.161.0',
     date: '2026-10-23',
-    text: 'The TV shows the room code and who is at the table, then every splash and the standings, large.',
+    text: 'TV mode now displays the lobby room code, player list, round splashes and hiscores in a large layout.',
   },
   {
     version: '0.160.0',
     date: '2026-10-23',
-    text: 'The TV shows the question large, with who is still to answer beside it, then the whole reveal.',
+    text: 'TV mode shows each question on the big screen alongside who still needs to answer, followed by the full reveal.',
   },
   {
     version: '0.159.0',
     date: '2026-10-23',
-    text: 'With a TV in the room, phones show only the answers and your points; the question is on the TV.',
+    text: 'When a room has a TV, player phones show only the answer buttons and your score while the TV shows the question.',
   },
   {
     version: '0.158.0',
     date: '2026-10-23',
-    text: "Hosts can make a screen the room's TV from its pet in the lobby, and turn it back.",
+    text: 'Hosts can click any player in the lobby to turn their screen into the room’s TV, or switch them back.',
   },
   {
     version: '0.157.0',
     date: '2026-10-23',
-    text: 'The TV now only watches: it never answers, holds up a round or shows in the standings.',
+    text: 'The TV screen now acts purely as a display: it never answers questions, holds up a round or appears on the hiscores.',
   },
   {
     version: '0.156.0',
     date: '2026-10-23',
-    text: 'A room can now have a TV: one screen that shows the questions to everyone and plays no part.',
+    text: 'Added TV mode: dedicate one screen to showing the questions for the whole room while everyone answers on their phones.',
   },
   {
     version: '0.155.2',
@@ -661,12 +666,12 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.153.0',
     date: '2026-10-23',
-    text: 'Questions players find easier or harder than marked can now move tier, random events’ included.',
+    text: 'Questions that play much easier or harder than their rating can now have their difficulty adjusted.',
   },
   {
     version: '0.152.0',
     date: '2026-10-23',
-    text: 'The inn now keeps how well players do on each question, so we can tune how hard it is.',
+    text: 'The inn now tracks how often each question is answered right, helping us balance difficulty.',
   },
   {
     version: '0.151.3',
@@ -711,12 +716,12 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.147.2',
     date: '2026-10-22',
-    text: 'Drop rates and other estimates now pay near guesses too.',
+    text: 'Drop rate and estimate questions now award near guesses.',
   },
   {
     version: '0.147.1',
     date: '2026-10-22',
-    text: 'Closest number pays exact guesses, and near ones if it says.',
+    text: 'Closest-number questions can award exact or near guesses.',
   },
   {
     version: '0.147.0',
@@ -776,12 +781,12 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.137.0',
     date: '2026-10-21',
-    text: 'In a team game, each answer’s reveal shows how every team did: its players’ middle score on that question.',
+    text: 'In team games, each reveal shows how every team scored by averaging its players’ points on that question.',
   },
   {
     version: '0.136.0',
     date: '2026-10-21',
-    text: 'Team games rank the gods between rounds and at the end, each team’s players under it. Past games names the winners.',
+    text: 'Team games rank the gods between rounds and at the end, listing each team’s players underneath.',
   },
   {
     version: '0.135.0',
@@ -791,7 +796,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.134.0',
     date: '2026-10-21',
-    text: 'Create can now make a team game: turn Teams on and tick two to six gods. How to play explains how teams score.',
+    text: 'You can now create a team game: switch to Teams on Create and pick two to six gods to compete.',
   },
   {
     version: '0.133.0',
@@ -801,7 +806,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.132.0',
     date: '2026-10-21',
-    text: 'Getting ready for team games: there, a right answer is worth the same however long you take.',
+    text: 'Getting ready for team games: in team play, a right answer scores full points regardless of speed.',
   },
   {
     version: '0.131.0',
@@ -826,12 +831,12 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.127.0',
     date: '2026-10-21',
-    text: "What's new lists every version, also those released together in one go.",
+    text: "What's new now lists every release version, including updates shipped together.",
   },
   {
     version: '0.126.0',
     date: '2026-10-21',
-    text: 'Pick all that apply now works like Put in order: drag the right answers into a basket.',
+    text: 'Pick all that apply now lets you drag or tap the right answers into a basket before submitting.',
   },
   {
     version: '0.125.0',
@@ -856,7 +861,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.121.0',
     date: '2026-10-21',
-    text: 'Random events clear the scroll before it slides over, and again before handing it back.',
+    text: 'Smoother transitions when a random event takes over the clue scroll and hands it back.',
   },
   {
     version: '0.120.1',
@@ -1011,7 +1016,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.98.0',
     date: '2026-10-17',
-    text: 'A pack question can show a picture, open and on its reveal.',
+    text: 'Questions can now display an image both while open and on the reveal.',
   },
   {
     version: '0.97.2',
@@ -1146,7 +1151,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.81.0',
     date: '2026-10-13',
-    text: 'Guess the Examine is multiple choice, with four to six names.',
+    text: 'Guess the Examine is now multiple choice, with four to six items to pick from.',
   },
   {
     version: '0.80.3',
@@ -1216,7 +1221,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.73.0',
     date: '2026-10-09',
-    text: 'No changes: the hiscores move up to a minor version.',
+    text: 'Version bump for the Wise Old Man’s hiscores update.',
   },
   {
     version: '0.72.1',
@@ -1246,7 +1251,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.68.0',
     date: '2026-10-09',
-    text: "Each question's time depends on its type and the room's pace.",
+    text: 'Question timers now adjust automatically based on the question type and room pace.',
   },
   {
     version: '0.67.0',
@@ -1266,12 +1271,12 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.65.0',
     date: '2026-10-08',
-    text: 'Know Your Content Creator plays closest number and pick all that apply.',
+    text: 'Know Your Content Creator now includes closest-number and pick-all-that-apply questions.',
   },
   {
     version: '0.64.0',
     date: '2026-10-08',
-    text: 'Bestiary plays pick all that apply.',
+    text: 'Bestiary now includes pick-all-that-apply questions.',
   },
   {
     version: '0.63.2',
@@ -1286,7 +1291,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.63.0',
     date: '2026-10-08',
-    text: 'Drop Table plays pick all that apply and closest number, with new questions from players.',
+    text: 'Drop Table now includes pick-all-that-apply and closest-number questions, plus new player submissions.',
   },
   {
     version: '0.62.1',
@@ -1426,7 +1431,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.45.0',
     date: '2026-10-05',
-    text: 'Sort It Out gets 22 questions, and Bestiary plays put in order.',
+    text: '22 new questions for Sort It Out, plus ordering questions in Bestiary.',
   },
   {
     version: '0.44.0',
@@ -1796,7 +1801,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.6.10',
     date: '2026-09-24',
-    text: 'A room closes when the last player it waits on leaves.',
+    text: 'Rooms close automatically when the last player leaves.',
   },
   {
     version: '0.6.9',

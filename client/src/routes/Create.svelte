@@ -223,10 +223,10 @@
     } catch (error) {
       failure =
         error instanceof ApiFailure && error.code === 'code_taken'
-          ? 'That code was just taken — roll a new one.'
+          ? 'That code was just taken - roll a new one.'
           : error instanceof ApiFailure
             ? error.message
-            : 'could not create the room, try again'
+            : 'Could not create the room. Try again.'
     } finally {
       busy = false
     }
@@ -235,7 +235,8 @@
 
 {#snippet line()}
   <p>
-    The doors stay shut until you open them. Choose the rounds now, or let your friends in first.
+    The doors are shut while you set up. Pick your rounds now, or open the doors first and let your
+    friends watch.
   </p>
 {/snippet}
 
