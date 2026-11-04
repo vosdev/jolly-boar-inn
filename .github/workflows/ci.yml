@@ -53,9 +53,7 @@ jobs:
       - run: uv sync --locked
       - run: uv run ruff check .
       - run: uv run ruff format --check .
-      # -n auto gives only 4 workers on our 4-CPU runners, though the tests mostly wait; 8 ran
-      # the runner out of memory.
-      - run: uv run pytest -n 6
+      - run: uv run pytest
       - run: uv run python scripts/validate_packs.py
       - run: uv run python scripts/check_contrast.py
 
