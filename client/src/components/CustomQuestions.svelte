@@ -31,7 +31,7 @@
 
   let {
     questions = $bindable(),
-    editing = $bindable(),
+    editing = $bindable(false),
     slots,
     frequency,
     atMore,
@@ -76,10 +76,6 @@
   const full = $derived(used >= slots)
   const bankFull = $derived(bank.length >= BANK_MAX)
 
-  $effect(() => {
-    editing = open !== null
-  })
-
   /** Whether the open form is `MatchingForm`: picked in the editor, or the question's type. */
   let matching = $state(false)
   const picker = {
@@ -93,7 +89,7 @@
   function edit(at: number | 'new'): void {
     matching = at !== 'new' && bank[at]?.question.type === 'matching'
     importNote = ''
-    open = at
+    show(at)
   }
 
   /** A new question is ticked while the room has a slot for it, and banked unticked if not. */
@@ -102,7 +98,13 @@
     else if (open !== null) {
       bank = bank.map((entry, i) => (i === open ? { ...entry, question } : entry))
     }
-    open = null
+    show(null)
+  }
+
+  /** Open a form, or close it with `null`, and tell the parent whether one is open. */
+  function show(form: number | 'new' | null): void {
+    open = form
+    editing = form !== null
   }
 
   function toggle(index: number): void {
@@ -181,14 +183,14 @@
       asker="optional"
       {picker}
       onsave={save}
-      oncancel={() => (open = null)}
+      oncancel={() => show(null)}
     />
   {:else}
     <CustomQuestionForm
       question={question?.type === 'matching' ? undefined : question}
       {picker}
       onsave={save}
-      oncancel={() => (open = null)}
+      oncancel={() => show(null)}
     />
   {/if}
 {/snippet}
@@ -267,7 +269,7 @@
       full
       wide
       label={open === 'new' ? 'New question' : 'Edit question'}
-      onclose={() => (open = null)}
+      onclose={() => show(null)}
     >
       <div class="in-sheet">
         {@render editor(open === 'new' ? undefined : bank[open]?.question)}
@@ -310,7 +312,7 @@
     </p>
   {/if}
   {#if importNote !== ''}
-    <p class="note" role="status">{importNote}</p>
+    <p class="note">{importNote}</p>
   {/if}
 
   {#if importErrors.length > 0}

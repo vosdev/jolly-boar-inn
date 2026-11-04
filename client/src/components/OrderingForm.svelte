@@ -34,7 +34,8 @@
     wordingOf,
     type OrderingQuestion,
   } from '../lib/ordering'
-  import { codePoints, field, limit, type Problem } from '../lib/questionSchema'
+  import { QuestionForm } from '../lib/questionForm.svelte'
+  import { codePoints, field, limit } from '../lib/questionSchema'
   import NpcPicker from './NpcPicker.svelte'
   import QuestionStage from './QuestionStage.svelte'
   import RandomEvent from './RandomEvent.svelte'
@@ -120,19 +121,12 @@
   // svelte-ignore state_referenced_locally
   let npc = $state(question?.random_event ?? '')
   $effect(() => onnpc?.(npc))
-  let attempted = $state(false)
   const id = $props.id()
 
   const built = $derived(questionOf(draft))
   const hints = $derived(fieldHints(mode))
   const wording = $derived(wordingOf(mode))
-  const unnamed: Problem = { path: 'random_event', message: 'Pick who asks it.', kind: 'missing' }
-  const found = $derived([
-    ...problems(built, wording.detailRequired),
-    ...(asker === 'required' && npc === '' ? [unnamed] : []),
-  ])
   const asked = $derived(asker === 'required' ? { ...built, random_event: npc } : built)
-  const shown = $derived(attempted ? found : found.filter((problem) => problem.kind === 'limit'))
   const ranks = $derived(ranksOf(draft.entries))
   const pickChoices = $derived(
     Array.from(
@@ -144,31 +138,20 @@
   /** Paths the form has a place for; anything else is listed under the form. */
   const PLACED =
     /^(payload\.(prompt|ends\[\d\]|entries(\[\d+\](\.(text|detail))?)?|picks|explanation)|random_event)$/
-  const unplaced = $derived(
-    shown.filter(
-      (problem) => !PLACED.test(problem.path) && !(intro && problem.path === 'payload.intro'),
-    ),
-  )
-
-  function errorsAt(path: string): string[] {
-    return shown.filter((problem) => problem.path === path).map((problem) => problem.message)
-  }
-
-  const EXTRAS_PATHS = new Set(['payload.intro', 'payload.explanation'])
-  const questionDone = $derived(found.every((problem) => EXTRAS_PATHS.has(problem.path)))
-  const extrasFilled = $derived(
-    (intro && draft.intro.trim() !== '') || draft.explanation.trim() !== '',
-  )
-  const extrasValid = $derived(found.every((problem) => !EXTRAS_PATHS.has(problem.path)))
-
-  $effect(() => ondraft?.(found.length === 0 ? asked : undefined))
-  $effect(() => onprogress?.({ questionDone, extrasFilled, extrasValid }))
-
-  function save(): void {
-    attempted = true
-    const rest = onattempt()
-    if (found.length === 0 && rest) onsave(asked)
-  }
+  const form = new QuestionForm({
+    asked: () => asked,
+    problems: () => problems(built, wording.detailRequired),
+    unnamed: () => asker === 'required' && npc === '',
+    placed: (path) => PLACED.test(path) || (intro && path === 'payload.intro'),
+    extras: new Set(['payload.intro', 'payload.explanation']),
+    extrasFilled: () => (intro && draft.intro.trim() !== '') || draft.explanation.trim() !== '',
+    onattempt: () => onattempt(),
+    onsave: (question) => onsave(question),
+    ondraft: () => ondraft,
+    onprogress: () => onprogress,
+  })
+  const errorsAt = (path: string): string[] => form.errorsAt(path)
+  const save = (): void => form.save()
 
   // Enter in a field would submit Create's form, and with it the room. Here it saves the
   // question instead, as it would in a form of its own.
@@ -355,7 +338,7 @@
   {#if stepExtras}
     {@render introField()}
   {/if}
-  {@render inExtras?.(attempted)}
+  {@render inExtras?.(form.attempted)}
   <div class="field">
     <label for="{id}-explanation">Explanation shown after the question finished.</label>
     <textarea
@@ -393,9 +376,9 @@
         {@render extrasBody()}
       {/if}
 
-      {@render more?.(attempted)}
+      {@render more?.(form.attempted)}
 
-      {#each unplaced as problem (problem.path + problem.message)}
+      {#each form.unplaced as problem (problem.path + problem.message)}
         <p class="error">{problem.path}: {problem.message}</p>
       {/each}
 

@@ -7,7 +7,7 @@
  * scrolls the page. A drag near the window's edge scrolls it. The drop lands on the place
  * or tray nearest the pointer, marked as `data-place` or `data-tray` inside `area`. The
  * handle is a button for the keyboard: Space lifts the row, the arrows move it, Space
- * drops it and Escape puts it back; each move is announced.
+ * drops it and Escape puts it back.
  */
 
 import { tick, untrack } from 'svelte'

@@ -226,12 +226,13 @@
   const CARDS_MAX = 8
   const folded = $derived(cards.length > CARDS_MAX)
   const shown = $derived(folded ? cards.slice(0, CARDS_MAX - 1) : cards)
-  let showAll = $state(false)
+  // Closed again whenever the list folds or unfolds; a tap opens it in between.
+  let showAll = $derived.by(() => {
+    void folded
+    return false
+  })
   let foldButton = $state<HTMLButtonElement | null>(null)
   let foldPopover = $state<HTMLElement | null>(null)
-  $effect(() => {
-    if (!folded) showAll = false
-  })
   $effect(() => {
     if (!showAll) return
     const outside = (event: PointerEvent): void => {
@@ -601,7 +602,7 @@
       {/snippet}
       {#snippet paper()}
         <JoinCode {code} lead="Your friends join with this code">
-          <button type="button" onclick={copy} aria-live="polite">
+          <button type="button" onclick={copy}>
             <Icon name="copy" />
             {copyResult === 'copied'
               ? 'Link copied'

@@ -7,6 +7,7 @@
    * "Something else" heads the list whatever is typed, for a report about no one question.
    * Only a picked entry counts: editing the box after a pick clears it.
    */
+  import { Combobox } from '../../lib/combobox.svelte'
   import type { Picked, ReportChoice } from '../../lib/reports'
   import { search, SHOWN_MAX, type VocabEntry } from '../../lib/vocab'
 
@@ -19,17 +20,12 @@
 
   const OTHER = 'Something else'
   const uid = $props.id()
-  const listId = `${uid}-list`
-  const optionId = (index: number) => `${uid}-option-${index}`
+  const box = new Combobox(uid)
 
   // `search` works on numbered entries, so each choice is numbered by its place in `choices`.
   const entries = $derived<VocabEntry[]>(choices.map((c, index) => ({ id: index, name: c.label })))
 
   let query = $state(picked === 'other' ? OTHER : picked === null ? '' : picked.label)
-  let expanded = $state(false)
-  let active = $state(0)
-  let listbox = $state<HTMLUListElement | null>(null)
-
   const matches = $derived(search(entries, query === OTHER ? '' : query))
   const shown = $derived<Picked[]>([
     'other',
@@ -43,29 +39,16 @@
   function select(entry: Picked): void {
     picked = entry
     query = nameOf(entry)
-    expanded = false
-  }
-
-  function highlight(index: number): void {
-    active = Math.max(0, Math.min(shown.length - 1, index))
-    listbox
-      ?.querySelector(`#${CSS.escape(optionId(active))}`)
-      ?.scrollIntoView?.({ block: 'nearest' })
+    box.expanded = false
   }
 
   function onKeydown(event: KeyboardEvent): void {
-    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-      event.preventDefault()
-      if (!expanded) expanded = true
-      else highlight(active + (event.key === 'ArrowDown' ? 1 : -1))
-    } else if (event.key === 'Enter') {
-      event.preventDefault()
-      const entry = shown[active]
-      if (expanded && entry !== undefined) select(entry)
-    } else if (event.key === 'Escape' && expanded) {
-      event.preventDefault()
-      expanded = false
-    }
+    box.keydown(event, {
+      count: shown.length,
+      open: () => (box.expanded = true),
+      pick: (index) => select(shown[index]!),
+      strict: true,
+    })
   }
 </script>
 
@@ -79,30 +62,36 @@
     spellcheck="false"
     placeholder="Search by a word from the question…"
     aria-autocomplete="list"
-    aria-expanded={expanded}
-    aria-controls={listId}
-    aria-activedescendant={expanded ? optionId(active) : undefined}
+    aria-expanded={box.expanded}
+    aria-controls={box.listId}
+    aria-activedescendant={box.expanded ? box.optionId(box.active) : undefined}
     aria-invalid={problem !== null}
     bind:value={query}
     oninput={() => {
       picked = null
-      active = matches.length > 0 ? 1 : 0
-      expanded = true
+      box.active = matches.length > 0 ? 1 : 0
+      box.expanded = true
     }}
-    onfocus={() => (expanded = true)}
-    onclick={() => (expanded = true)}
-    onblur={() => (expanded = false)}
+    onfocus={() => (box.expanded = true)}
+    onclick={() => (box.expanded = true)}
+    onblur={() => (box.expanded = false)}
     onkeydown={onKeydown}
   />
-  <ul bind:this={listbox} id={listId} role="listbox" aria-label="Questions" hidden={!expanded}>
+  <ul
+    bind:this={box.listbox}
+    id={box.listId}
+    role="listbox"
+    aria-label="Questions"
+    hidden={!box.expanded}
+  >
     {#each shown as entry, index (entry === 'other' ? 'other' : `${index}:${entry?.id}`)}
       <!-- The keys belong to the input, which keeps focus: the combobox pattern. -->
       <!-- svelte-ignore a11y_click_events_have_key_events -->
       <li
-        id={optionId(index)}
+        id={box.optionId(index)}
         role="option"
-        aria-selected={index === active}
-        class:active={index === active}
+        aria-selected={index === box.active}
+        class:active={index === box.active}
         class:other={entry === 'other'}
         onpointerdown={(event) => event.preventDefault()}
         onclick={() => select(entry)}
