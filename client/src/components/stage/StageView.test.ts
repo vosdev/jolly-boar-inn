@@ -70,3 +70,10 @@ describe('the pin', () => {
     expect(rule).toMatch(/z-index: [1-9]/)
   })
 })
+
+describe('the map', () => {
+  it('keeps the host on a stacked map while players pin', () => {
+    expect(source).not.toMatch(/\.map\.pinning \.speaker/)
+    expect(source).not.toMatch(/\.stage\.map \.speaker \{[^}]*display: none/)
+  })
+})

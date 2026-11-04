@@ -71,7 +71,7 @@ async function loaded(container: HTMLElement): Promise<HTMLElement> {
 }
 
 const pins = (container: HTMLElement) => [...container.querySelectorAll<HTMLElement>('.pin')]
-const lockIn = () => screen.getByRole('button', { name: 'Lock in' }) as HTMLButtonElement
+const lockIn = () => document.querySelector<HTMLButtonElement>('button.pin-action')
 
 describe('MapPin', () => {
   beforeEach(() => {
@@ -90,15 +90,16 @@ describe('MapPin', () => {
   it('places a pin on a tap, moves it on the next and locks it in once', async () => {
     const { container, onAnswer } = setup({})
     const map = await loaded(container)
-    expect(lockIn().disabled).toBe(true)
+    expect(lockIn()).toBeNull()
 
     await fireEvent.click(map, { clientX: 300, clientY: 300 })
     await waitFor(() => expect(pins(container)).toHaveLength(1))
     await fireEvent.click(map, { clientX: 400, clientY: 300 })
     await waitFor(() => expect(pins(container)).toHaveLength(1))
-    expect(lockIn().disabled).toBe(false)
+    expect(pins(container)[0]?.contains(lockIn())).toBe(true)
+    expect(lockIn()?.textContent).toBe('Lock in')
 
-    await fireEvent.click(lockIn())
+    await fireEvent.click(lockIn()!)
     expect(onAnswer).toHaveBeenCalledTimes(1)
     const [value] = onAnswer.mock.calls[0] as [{ x: number; y: number }[]]
     expect(value).toHaveLength(1)
@@ -106,19 +107,41 @@ describe('MapPin', () => {
     expect(Number.isInteger(value[0]?.y)).toBe(true)
   })
 
-  it('waits for the last of several pins, and a tap on one takes it away', async () => {
+  it('offers Lock in on the last of several pins, and a tap on one takes it away', async () => {
     const { container } = setup({ data: { prompt: 'Where?', pins: 3 } })
     const map = await loaded(container)
-    for (const x of [200, 300, 400]) {
+    for (const x of [200, 300]) {
       await fireEvent.click(map, { clientX: x, clientY: 300 })
     }
+    await waitFor(() => expect(pins(container)).toHaveLength(2))
+    expect(lockIn()).toBeNull()
+    await fireEvent.click(map, { clientX: 400, clientY: 300 })
     await waitFor(() => expect(pins(container)).toHaveLength(3))
-    expect(lockIn().disabled).toBe(false)
+    expect(pins(container).filter((pin) => pin.contains(lockIn()))).toHaveLength(1)
 
     await fireEvent.click(container.querySelector('.pin-host')!)
     await waitFor(() => expect(pins(container)).toHaveLength(2))
-    expect(lockIn().disabled).toBe(true)
-    expect(screen.getByText(/2 of 3 pins placed/)).toBeTruthy()
+    expect(lockIn()).toBeNull()
+  })
+
+  it('moves Lock in to the pin moved last, and pressing it takes no pin away', async () => {
+    const { container, onAnswer } = setup({ data: { prompt: 'Where?', pins: 2 } })
+    const map = await loaded(container)
+    await fireEvent.click(map, { clientX: 200, clientY: 300 })
+    await fireEvent.click(map, { clientX: 500, clientY: 300 })
+    await waitFor(() => expect(pins(container)).toHaveLength(2))
+    const second = pins(container).find((pin) => pin.contains(lockIn()))?.dataset.id
+
+    await fireEvent.click(map, { clientX: 210, clientY: 300 })
+    await waitFor(() => {
+      const holder = pins(container).find((pin) => pin.contains(lockIn()))
+      expect(holder?.dataset.id).not.toBe(second)
+    })
+
+    await fireEvent.click(lockIn()!)
+    expect(pins(container)).toHaveLength(2)
+    expect(onAnswer).toHaveBeenCalledTimes(1)
+    expect((onAnswer.mock.calls[0] as [unknown[]])[0]).toHaveLength(2)
   })
 
   it('sends a pin not locked in before the question ends', async () => {
@@ -135,8 +158,7 @@ describe('MapPin', () => {
     const map = await loaded(container)
     await waitFor(() => expect(pins(container)).toHaveLength(1))
     await fireEvent.click(map, { clientX: 300, clientY: 300 })
-    expect(screen.queryByRole('button', { name: 'Lock in' })).toBeNull()
-    expect(screen.getByText('Pin locked in.')).toBeTruthy()
+    expect(lockIn()).toBeNull()
     expect(onAnswer).not.toHaveBeenCalled()
   })
 

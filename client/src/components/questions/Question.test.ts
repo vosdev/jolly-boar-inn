@@ -404,12 +404,14 @@ describe('every type on the stage', () => {
   const paper = () => document.querySelector('.paper') as HTMLElement
   const under = () => document.querySelector('.under') as HTMLElement
   const pressable = 'button, input, [role="combobox"]'
+  /** What answers a question: a control, or the map, which has no button until a pin is down. */
+  const answering = 'button, input, .pin-map'
 
   for (const { type, mode, view, reveal } of EVERY_TYPE) {
     it(`puts ${type}'s stem on the scroll and its answers under the line`, async () => {
       const question = { ...open(type, mode), view: view as Record<string, unknown> }
       const { unmount } = render(QuestionStage, { question, yourValue: null, onAnswer })
-      await waitFor(() => expect(under().querySelector('button, input')).toBeTruthy())
+      await waitFor(() => expect(under().querySelector(answering)).toBeTruthy())
       expect(paper().textContent?.trim()).not.toBe('')
       expect(paper().querySelector(pressable)).toBeNull()
       unmount()
@@ -898,7 +900,9 @@ describe('a phone while the TV shows the question', () => {
       }
       render(QuestionStage, { question, yourValue: null, onAnswer, answersOnly: true })
       await waitFor(() =>
-        expect(document.querySelector('.answers button, .answers input')).toBeTruthy(),
+        expect(
+          document.querySelector('.answers button, .answers input, .answers .pin-map'),
+        ).toBeTruthy(),
       )
       nothingStaged()
       const prompt = (view as { prompt?: string }).prompt
