@@ -381,6 +381,9 @@
     --roll-w: calc(26px * var(--k));
     --finial: calc(22px * var(--k));
     position: relative;
+    /* The sheet's shadow filter traps the pin's own z-index, and the pin hangs over the
+       answers, whose buttons are positioned too. */
+    z-index: 1;
     display: flex;
     align-items: flex-end;
   }
