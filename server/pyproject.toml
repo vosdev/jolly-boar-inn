@@ -59,10 +59,9 @@ testpaths = ["tests"]
 # A frame that never comes blocks ``receive_json`` forever; this turns that into a failure
 # that names the test.
 timeout = 60
-# The tests wait on timers and Postgres more than they compute, so they run in parallel, on 8
-# workers however few CPUs the runner has; no more, as each app pool may hold 10 of Postgres's
-# default 100 connections.
-addopts = "-n 8 --dist worksteal"
+# The tests wait on timers and Postgres more than they compute, so they run in parallel; at
+# most 8 workers, as each app pool may hold 10 of Postgres's default 100 connections.
+addopts = "-n auto --maxprocesses 8 --dist worksteal"
 markers = [
     "empty_database: the test database starts with no migrations applied",
 ]
