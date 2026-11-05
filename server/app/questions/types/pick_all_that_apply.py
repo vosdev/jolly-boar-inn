@@ -13,8 +13,9 @@ player must pick, said to them while the question is open, and then it is also h
 are right. Without it, any number from one to all of them may be picked.
 
 Credit is the right picks over every option that is right or picked: the exact set is full
-credit, and each missed right option or extra wrong one costs, so ticking everything pays
-no more than guessing. ``check`` refuses a question where no option is right.
+credit, and each missed right option or extra wrong one costs, so ticking everything earns
+only the share of options that are right. ``check`` refuses a question where no option is
+right, and allows one where every option is: a host or suggester may ask that on purpose.
 """
 
 from typing import Any

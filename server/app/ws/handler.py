@@ -1,12 +1,12 @@
 """``GET /ws/{code}``: parse frames, authenticate the first one, dispatch to ``RoomManager``.
 
-Close codes (section 3): ``4001`` bad ``hello``, ``4004`` unknown or expired room, ``4008``
-any protocol error after the handshake, each after a single ``error`` message where the
-protocol has a code for it. ``1008`` for no ``hello`` within ``HELLO_TIMEOUT``, a socket
-over its message rate or an address over its budget of rooms not found, ``1009`` for a
-frame over ``MAX_FRAME``, and ``1011`` for a call that failed on our side: the client
-reconnects after these. ``4000`` (replaced by a newer socket) and ``1012`` (room left
-memory) come from the manager.
+Close codes ("Websocket protocol"): ``4001`` bad ``hello``, ``4004`` unknown or expired room,
+``4008`` any protocol error after the handshake, each after a single ``error`` message where
+the protocol has a code for it. ``1008`` for no ``hello`` within ``HELLO_TIMEOUT``, a socket
+over its message rate, a session or address connecting too often, or an address over its
+budget of rooms not found, ``1009`` for a frame over ``MAX_FRAME``, and ``1011`` for a call
+that failed on our side: the client reconnects after these. ``4000`` (replaced by a newer
+socket) and ``1012`` (room left memory) come from the manager.
 
 Every message after the handshake is one ``RoomManager`` call. A call that raises
 ``ApiError`` becomes a single ``error`` frame and the socket stays open: a rejected
@@ -35,9 +35,9 @@ from pydantic import ValidationError
 
 from app import metrics
 from app.errors import ApiError
-from app.http.ratelimit import RateLimited, room_lookup
+from app.http.ratelimit import RateLimited, client_key, room_lookup
 from app.rooms.errors import BadSession, RoomExpired, RoomNotFound
-from app.rooms.models import Player
+from app.rooms.models import Player, hash_token
 from app.rooms.state import RoomManager
 from app.ws import protocol
 from app.ws.outbox import Outbox
@@ -63,7 +63,7 @@ HELLO_TIMEOUT = 10.0
 # Per socket, after the handshake. A player tapping as fast as they can stays far below.
 RATE_PER_SECOND = 10.0
 RATE_BURST = 20
-# The ``ApiError.code`` values that are also websocket error codes (section 3). Anything
+# The ``ApiError.code`` values that are also websocket error codes ("Websocket protocol"). Anything
 # else a manager call raises is a room that cannot take the message: ``bad_state``.
 _ERROR_CODES: frozenset[str] = frozenset(get_args(ErrorCode))
 
@@ -158,6 +158,7 @@ async def room_socket(ws: WebSocket, code: str) -> None:
             return
         try:
             host = ws.client.host if ws.client else ""
+            _check_connects(ws, host, hello.session)
             with room_lookup(ws.app.state.lookup_misses, host):
                 player, outbox = await manager.connect(code, hello.session, ws)
         except RateLimited as exc:
@@ -188,6 +189,13 @@ async def room_socket(ws: WebSocket, code: str) -> None:
             # Returning ends the socket, so whatever this handler queued last (an error
             # and its close) has to be written first.
             await outbox.finished()
+
+
+def _check_connects(ws: WebSocket, host: str, session: str) -> None:
+    """Refuse a session or an address that connects too often, before the room is touched."""
+    state = ws.app.state
+    state.session_connects.check(hash_token(session), "this session connects too often")
+    state.connects.check(client_key(host), "too many connects from this address")
 
 
 async def _handshake(ws: WebSocket) -> protocol.Hello | None:

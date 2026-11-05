@@ -115,6 +115,13 @@ def test_credit_is_right_picks_over_right_or_picked(picked: list[int], credit: f
     }
 
 
+def test_ticking_all_six_when_four_are_right_is_not_full_credit() -> None:
+    four = payload(answer_indices=[0, 1, 2, 4])
+    player = uuid4()
+    credit = pick_all_that_apply.grade(four, [Submission(player, [0, 1, 2, 3, 4, 5])])
+    assert credit == {player: pytest.approx(4 / 6)}
+
+
 def test_grade_takes_every_answer_at_once() -> None:
     right, half = uuid4(), uuid4()
     credit = pick_all_that_apply.grade(

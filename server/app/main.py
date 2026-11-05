@@ -40,6 +40,9 @@ from app.http.headers import SecurityHeaders, content_security_policy
 from app.http.jsonbody import JsonBody
 from app.http.metrics import HttpMetrics
 from app.http.ratelimit import (
+    CONNECTS_PER_ADDRESS,
+    CONNECTS_PER_SESSION,
+    CONNECTS_WINDOW,
     DAILIES_PER_HOUR,
     FREE_CODES,
     FREE_CODES_WINDOW,
@@ -284,6 +287,8 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
     app.state.similar = RateLimiter(SIMILAR_PER_HOUR, name="similar")
     app.state.tries = RateLimiter(TRIES_PER_HOUR, name="tries")
     app.state.dailies = RateLimiter(DAILIES_PER_HOUR, name="dailies")
+    app.state.connects = RateLimiter(CONNECTS_PER_ADDRESS, CONNECTS_WINDOW, name="connects")
+    app.state.session_connects = RateLimiter(CONNECTS_PER_SESSION, CONNECTS_WINDOW, name="connects")
     app.add_middleware(JsonBody)  # inside BodyLimit, so an oversized body is a 413 first
     app.add_middleware(BodyLimit)
     app.add_middleware(HttpMetrics)

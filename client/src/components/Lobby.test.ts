@@ -10,6 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { roomShown, type RoomFit } from '../lib/roomFit'
 import { LOBBY_COOLDOWN_MS } from '../lib/cooldown.svelte'
+import { clearModesCache } from '../lib/howToPlay'
 import { npcArt } from '../lib/npcs'
 import type { PlayerView, RoomView } from '../lib/protocol'
 import { applyServerMessage, resetRoom } from '../lib/stores'
@@ -152,6 +153,7 @@ function away(pet: HTMLElement): boolean {
 
 beforeEach(() => {
   sent = []
+  clearModesCache()
 })
 
 describe('Lobby', () => {

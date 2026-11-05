@@ -7,6 +7,7 @@ import pytest
 
 from app.config import REPO_ROOT
 from app.modes import MODES, questions_bounds
+from app.questions import schema
 
 
 def questions() -> list[dict[str, Any]]:
@@ -37,3 +38,14 @@ def test_a_question_shows_four_to_six_names_and_says_what_the_rest_share(
     assert payload["prompt"] == "Which one doesn't belong?"
     assert payload["explanation"].strip() != ""
     assert question["wiki"].startswith("https://oldschool.runescape.wiki/w/")
+
+
+def test_a_three_option_question_is_refused() -> None:
+    """ "Which one doesn't belong" needs a crowd for the odd one to stand out from."""
+    question = dict(questions()[0])
+    payload = dict(question["payload"])
+    payload["options"] = payload["options"][:3]
+    payload["answer_index"] = min(payload["answer_index"], 2)
+    question["payload"] = payload
+    question["id"] = schema.content_id(question)
+    assert schema.errors(question) == ["$.payload.options: 'odd_one_out' offers 4 to 6 options"]

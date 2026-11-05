@@ -34,7 +34,8 @@
     type CustomType,
   } from '../lib/customQuestions'
   import type { FormWording } from '../lib/customQuestions'
-  import { codePoints, field, limit, type Problem } from '../lib/questionSchema'
+  import { QuestionForm } from '../lib/questionForm.svelte'
+  import { codePoints, field, limit } from '../lib/questionSchema'
   import type { Scale } from '../lib/slider'
   import NpcPicker from './NpcPicker.svelte'
   import QuestionStage from './QuestionStage.svelte'
@@ -164,7 +165,6 @@
   const [rangeMin, rangeMax] = optionRange ?? [0, Infinity]
   if (draft.type === 'multiple_choice')
     while (draft.options.length < rangeMin) draft.options.push('')
-  let attempted = $state(false)
   const ranged = $derived(draft.type === 'multiple_choice')
   const schemaMin = $derived(limit(field(choicesOf(draft.type), 'options'), 'minItems') ?? 0)
   const schemaMax = $derived(limit(field(choicesOf(draft.type), 'options'), 'maxItems') ?? 0)
@@ -198,46 +198,29 @@
   function written(n: number): string {
     return n.toLocaleString('en-GB', { maximumFractionDigits: 6 })
   }
-  const unnamed: Problem = { path: 'random_event', message: 'Pick who asks it.', kind: 'missing' }
-  const found = $derived([
-    ...problems(built),
-    ...(asker === 'required' && draft.npc === '' ? [unnamed] : []),
-  ])
-  const shown = $derived(attempted ? found : found.filter((problem) => problem.kind === 'limit'))
-
   /** Paths the form has a place for; anything else is listed under the form. */
   const PLACED =
     /^(payload\.(prompt|quote|options|answer_index|answer_indices|picks|accepted|max_distance|answer|unit|min|max|scale|within|explanation)(\[\d+\])?|random_event)$/
   const showIntro = $derived(pack || intro)
-  const unplaced = $derived(
-    shown.filter(
-      (problem) =>
-        !PLACED.test(problem.path) &&
-        !(showIntro && problem.path === 'payload.intro') &&
-        !(pack && problem.path === 'payload.image'),
-    ),
-  )
-
-  function errorsAt(path: string): string[] {
-    return shown.filter((problem) => problem.path === path).map((problem) => problem.message)
-  }
-
-  const EXTRAS_PATHS = new Set(['payload.intro', 'payload.explanation', 'payload.image'])
-  const questionDone = $derived(found.every((problem) => EXTRAS_PATHS.has(problem.path)))
-  const extrasFilled = $derived(
-    (showIntro && draft.intro.trim() !== '') ||
+  const form = new QuestionForm({
+    asked: () => built,
+    problems: () => problems(built),
+    unnamed: () => asker === 'required' && draft.npc === '',
+    placed: (path) =>
+      PLACED.test(path) ||
+      (showIntro && path === 'payload.intro') ||
+      (pack && path === 'payload.image'),
+    extras: new Set(['payload.intro', 'payload.explanation', 'payload.image']),
+    extrasFilled: () =>
+      (showIntro && draft.intro.trim() !== '') ||
       ((explanation || draft.explanation !== '') && draft.explanation.trim() !== ''),
-  )
-  const extrasValid = $derived(found.every((problem) => !EXTRAS_PATHS.has(problem.path)))
-
-  $effect(() => ondraft?.(found.length === 0 ? built : undefined))
-  $effect(() => onprogress?.({ questionDone, extrasFilled, extrasValid }))
-
-  function save(): void {
-    attempted = true
-    const rest = onattempt()
-    if (found.length === 0 && rest) onsave(built)
-  }
+    onattempt: () => onattempt(),
+    onsave: (question) => onsave(question),
+    ondraft: () => ondraft,
+    onprogress: () => onprogress,
+  })
+  const errorsAt = (path: string): string[] => form.errorsAt(path)
+  const save = (): void => form.save()
 
   // Enter in a field would submit Create's form, and with it the room. Here it saves the
   // question instead, as it would in a form of its own.
@@ -558,7 +541,7 @@
   {#if stepExtras}
     {@render introField()}
   {/if}
-  {@render inExtras?.(attempted)}
+  {@render inExtras?.(form.attempted)}
   {#if explanation || draft.explanation !== ''}
     <div class="field">
       <label for="{id}-explanation">Explanation shown after the question finished.</label>
@@ -598,9 +581,9 @@
         {@render extrasBody()}
       {/if}
 
-      {@render more?.(attempted)}
+      {@render more?.(form.attempted)}
 
-      {#each unplaced as problem (problem.path + problem.message)}
+      {#each form.unplaced as problem (problem.path + problem.message)}
         <p class="error">{problem.path}: {problem.message}</p>
       {/each}
 

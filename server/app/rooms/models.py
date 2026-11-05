@@ -152,6 +152,8 @@ class JoinRequest:
     returning: bool
     arrival: Arrival
     asked_at: float  # on the manager's monotonic clock
+    # The requester's rate-limit key, so one address cannot hold every place.
+    address: str = field(repr=False)
     # ``None`` while waiting, then the admin's answer, which the next poll acts on.
     accepted: bool | None = None
     # Drops the request once its requester stops polling or it outlives its lifetime.
@@ -171,7 +173,7 @@ class JoinRequest:
 class Submitted:
     """One player's answer to one question, in memory.
 
-    ``band`` is fixed at receive time from ``received_at - answerable_at`` (section 6); the
+    ``band`` is fixed at receive time from ``received_at - answerable_at`` ("Scoring"); the
     client never sends a time. It is ``None`` for a question scored on ``ACCURACY``, where
     the clock does not count, and for ``SPEED`` in a team game.
     ``credit``, ``correct`` and ``points`` stay ``None`` until the question closes and
@@ -255,7 +257,7 @@ class RoomQuestion:
 
     @property
     def steps(self) -> Steps | None:
-        """How the question's picture builds up, for ``STEP`` scoring (section 8): Pixel Hunt's,
+        """How the question's picture builds up, for ``STEP`` scoring ("Scoring"): Pixel Hunt's,
         or Certer's wherever he asks. ``None`` turns ``STEP`` into ``SPEED``."""
         return steps_of(self.mode, self.random_event)
 
@@ -523,7 +525,7 @@ class Room:
         return [p.view() for p in self.players.values()]
 
     def standings(self) -> list[Standing]:
-        """Section 6: points desc, then correct answers desc, then ``joined_at`` asc.
+        """ "Scoring": points desc, then correct answers desc, then ``joined_at`` asc.
 
         ``rank`` is dense, so players with the same points *and* the same number of
         correct answers share a rank and the next player is one higher. Join time only
@@ -566,7 +568,7 @@ class Room:
         ]
 
     def team_standings(self) -> list[TeamStanding] | None:
-        """Section 8's team standings from the same ``totals`` as ``standings``; None
+        """ "Scoring"'s team standings from the same ``totals`` as ``standings``; None
         outside a team game."""
         if not self.settings.teams:
             return None
@@ -638,7 +640,7 @@ def _require_admin(player: Player) -> None:
 def _dense_ranks(
     players: Iterable[Player], score: Callable[[Player], tuple[int, int]]
 ) -> list[tuple[Player, int]]:
-    """Section 6's order on ``score``'s points and correct answers, then ``joined_at``;
+    """ "Scoring"'s order on ``score``'s points and correct answers, then ``joined_at``;
     the rank is dense over the score alone."""
     ranked: list[tuple[Player, int]] = []
     rank, previous = 0, None

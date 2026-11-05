@@ -13,6 +13,8 @@
  * is accepted: the server's step scoring is what counts.
  */
 
+import { fnv1a, mulberry32, shuffle } from './seeded'
+
 /** The share of the answer time the picture builds up over: 17 of 25 seconds. */
 export const BUILD_UP = 17 / 25
 
@@ -91,22 +93,10 @@ export function progress(answerableAt: number, endsAt: number, now: number): num
   return Math.min(1, (now - answerableAt) / span)
 }
 
-/** FNV-1a over `text`: the same 32 bits in every browser. */
-function hash(text: string): number {
-  let state = 2166136261
-  for (const char of text) state = Math.imul(state ^ char.charCodeAt(0), 16777619) >>> 0
-  return state
-}
-
 /** The reveals shuffled by the room code, one order per `deck`. */
 function shuffled(room: string, deck: number): Reveal[] {
-  const next = random(hash(`${room.toUpperCase()}:deck:${deck}`))
-  const order = [...REVEALS]
-  for (let i = order.length - 1; i > 0; i--) {
-    const j = Math.floor(next() * (i + 1))
-    ;[order[i], order[j]] = [order[j]!, order[i]!]
-  }
-  return order
+  const next = mulberry32(fnv1a(`${room.toUpperCase()}:deck:${deck}`))
+  return shuffle(REVEALS.length, next).map((index) => REVEALS[index]!)
 }
 
 /**
@@ -135,7 +125,7 @@ export function revealFor(
   const deck = Math.floor(index / REVEALS.length)
   return {
     reveal: sketch ? SKETCH : deal(room, deck)[index % REVEALS.length]!,
-    seed: hash(`${room.toUpperCase()}:${questionId}:seed`),
+    seed: fnv1a(`${room.toUpperCase()}:${questionId}:seed`),
   }
 }
 
@@ -294,17 +284,6 @@ export const PIXELATE: Reveal = {
   },
 }
 
-/** A seeded stream of numbers in [0, 1): mulberry32, the same in every browser. */
-function random(seed: number): () => number {
-  let state = seed >>> 0
-  return () => {
-    state = (state + 0x6d2b79f5) >>> 0
-    let t = Math.imul(state ^ (state >>> 15), 1 | state)
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-  }
-}
-
 function clamp01(value: number): number {
   return Math.min(1, Math.max(0, value))
 }
@@ -399,7 +378,7 @@ export function tileOrder(picture: Picture, seed: number): number[] {
   let cover = coverCache.get(picture.data)
   if (cover === undefined) coverCache.set(picture.data, (cover = tileCover(picture, TILE_GRID)))
   const order = cover.flatMap((share, cell) => (share > TILE_THRESHOLD ? [cell] : []))
-  const next = random(seed)
+  const next = mulberry32(seed)
   for (let i = order.length - 1; i > 0; i--) {
     const j = Math.floor(next() * (i + 1))
     ;[order[i], order[j]] = [order[j]!, order[i]!]
@@ -477,7 +456,7 @@ function neighbours(slot: number): number[] {
  * the one before, and never back where it was one slide ago.
  */
 export function scramble(seed: number): number[] {
-  const next = random(seed)
+  const next = mulberry32(seed)
   const holes = [HOLE]
   for (let slide = 0; slide < PUZZLE_SLIDES; slide++) {
     const at = holes[holes.length - 1]!
@@ -607,7 +586,7 @@ export function lanternRadius(p: number): number {
  * two slow waves whose phases the seed sets, swaying less as the light grows, and a flicker.
  */
 export function lanternLight(p: number, seed: number): { x: number; y: number; radius: number } {
-  const next = random(seed)
+  const next = mulberry32(seed)
   const [wanderX, wanderY, flickerA, flickerB] = [next(), next(), next(), next()].map(
     (share) => share * 2 * Math.PI,
   )

@@ -12,8 +12,10 @@ import {
   getSession,
   isRoomCode,
   normalizeCode,
+  readStored,
   rememberCreated,
   setSession,
+  writeStored,
 } from './session'
 
 beforeEach(() => localStorage.clear())
@@ -64,6 +66,17 @@ describe('createdRooms', () => {
     rememberCreated('Rune', '2099-01-01T00:00:00Z')
     forgetCreated('firecape')
     expect(createdRooms(NOW)).toEqual(['Rune'])
+  })
+})
+
+describe('with storage full', () => {
+  it('reads back a write that failed over an older stored value', () => {
+    localStorage.setItem('jbi:history', 'old')
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('Quota exceeded', 'QuotaExceededError')
+    })
+    writeStored('jbi:history', 'new')
+    expect(readStored('jbi:history')).toBe('new')
   })
 })
 

@@ -55,13 +55,14 @@ The retired `/r/:code/admin` resolves like `/r/:code`, because whoever holds tha
 
 ## 2. Room state
 
-`RoomManager` (`rooms/state.py`, with `joins`, `lobby` and `loop`) owns every room. Handlers call it.
+`RoomManager` (`rooms/state.py`, with `joins`, `lobby`, `loop` and `daily_room`) owns every room. Handlers call it.
 Nothing else writes `rooms`, `players`, `questions` or `answers` after creation.
 
-`RoomManager` methods: `get` (rehydrates, section 9), `create`, `join`, `connect`, `disconnect`,
-`set_profile`, `set_ready`, `set_editing`, `start_game`, `submit_answer`, `skip(phase, index)`,
-`rotate_key`, `request_join`, `poll_request`, `cancel_request`, `decide_request`, `promote`, `kick`,
-`end_game`, `rematch`, `delete`, `purge_expired`, `evict`. A `Room` holds `players`, `requests`,
+`RoomManager` methods: `get` (rehydrates, section 9), `get_listed`, `create`, `start_daily`, `join`,
+`connect`, `disconnect`, `set_profile`, `set_ready`, `set_editing`, `set_team`, `move_team`,
+`set_teams`, `set_settings`, `set_questions`, `set_tv`, `start_game`, `submit_answer`,
+`skip(phase, index)`, `end_round`, `rotate_key`, `request_join`, `poll_request`, `cancel_request`,
+`decide_request`, `promote`, `kick`, `end_game`, `rematch`, `delete`, `purge_expired`, `evict`. A `Room` holds `players`, `requests`,
 `questions`, `totals`, `current_index`, `phase`, `next_at` (wall clock) with `next_mono`
 (monotonic), `sockets` (one `Outbox` each), `timer`, the `advance` and `rescheduled` events, and
 `lock`.
@@ -93,7 +94,7 @@ steps=None, pictured=False, picture_at_reveal=False, extra_answer=0)` in `modes/
   the `Settings` flag that offers the mode; off, or with an empty pool, `/api/modes` omits it and
   `POST /api/rooms` is a 403 `mode_not_offered`. A stored room keeps playing it. `options` holds a
   round's `multiple_choice` questions to fewer options than the schema's two to six; `mode_errors`
-  refuses the rest. `steps` and `pictured` are Pixel Hunt's (sections 8 and 12); `BUILT_UP` in `random_events.py` gives Certer both. `picture_at_reveal` keeps a question's `picture` off the open view. `extra_answer` adds seconds to a question's answer time, before the pace, for a round that takes longer to read.
+  refuses the rest. `steps` is Pixel Hunt's and `pictured` Pixel Hunt's and Who's That NPC?'s (sections 8 and 12); `BUILT_UP` in `random_events.py` gives Certer both. `picture_at_reveal` keeps a question's `picture` off the open view. `extra_answer` adds seconds to a question's answer time, before the pace, for a round that takes longer to read.
 
 Each module in `questions/types/` exports:
 
@@ -230,7 +231,8 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   `CLIENT_MAP` or the client), so a pool with no tiles is empty, and an event has no pool to empty.
   Above five pinned players a several-pin map shows only your own, and the TV only the targets.
 - `pick_all_that_apply` stores sorted `answer_indices` and an optional `picks`, shown open. `check()`
-  rejects no option right, and a `picks` that is not their count.
+  rejects no option right, and a `picks` that is not their count. Every option right is allowed
+  (owner's call); ticking all then earns only the right share.
 - `pick_from_list` answers through one strict WAI-ARIA combobox. Typing only searches, by word
   prefix, ignoring case and accents. Only a selected entry can be submitted, with its own button;
   the mode, not the payload, sets its `steps` (section 8).
@@ -365,7 +367,7 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 | `players_updated` | `players` | A ready, team, editing, connect or disconnect that changed players only. |
 | `question_open` | `question` | A question opens. |
 | `answer_ack` | `question_id`, `scoring`, `band`, `answered`, `of` | Answer committed. Never correctness. |
-| `answer_count` | `question_id`, `answered`, `of`, `waiting` | Someone else answered. Who is still to, never what. |
+| `answer_count` | `question_id`, `answered`, `of`, `waiting` | Another player's answer, connect, disconnect or kick moved the count. Who is still to, never what. |
 | `question_closed` | `question_id`, `reveal`, `picture`, `results`, `unanswered`, `standings`, `team_standings`, `next_at`, `reveal_seconds`, `suggested_by`? | Closed. `unanswered`: connected players who could answer and did not. `next_at` ends the reveal, the last one's too. `reveal_seconds` is its length, null in a daily room. `suggested_by` is a shown `credit`. |
 | `game_finished` | `standings`, `team_standings` | Final. `team_standings` is null outside a team game. |
 | `pong` | `server_time` | Reply to `ping`. |
@@ -436,7 +438,7 @@ What the server withholds. The admin is a player with a flag; there is no admin 
 | 4003 | kicked | stops |
 | 4004 | unknown, expired or deleted room; no `error` frame | stops |
 | 4008 | protocol error, after an `error` frame | stops |
-| 1008 | no `hello` in 10 s, over 10 messages a second after a burst of 20, or rate limited | reconnects |
+| 1008 | no `hello` in 10 s, over 10 messages a second after a burst of 20, over 10 connects a minute per session or 30 per address, or rate limited | reconnects |
 | 1009 | a frame over 64 KiB | reconnects |
 | 1011 | a send failed or timed out, or the server failed a connect or command | reconnects |
 | 1012 | the room left memory; the reconnect rehydrates it | reconnects |
@@ -494,7 +496,8 @@ one question a round, with one `player` and settings `run`, early close, no name
   question opens on the player's first `hello`; no splash, no standings, no Past party games entry.
 - The reveal has no countdown: Next, in the answer panel, is the player's `skip`, and the server moves on after 300 s. No table column or timer `n/m` tab; the bar counts questions.
 
-One task per room runs `_run_questions(room, index, resume_at)`:
+One task per room runs `_run_questions(room, index, resume_at, standings_after)`, the last an
+`end_round`'s standings:
 
 ```
 (segment start) splash ─ready countdown / skip─▶ open ─timer / all answered / skip─▶ reveal
@@ -623,7 +626,8 @@ without members is left out.
 
 Client (`lib/ws.ts`):
 
-1. On close, retry after `min(8000, 500 × 2^attempt)` ms plus up to 250 ms. `welcome` resets it.
+1. On close, or no `welcome` 10 s after `hello`, retry after `min(8000, 500 × 2^attempt)` ms plus up
+   to 250 ms. A welcomed socket that stays up 10 s resets it.
 2. `welcome` replaces all local state. Timers count against `server_time`, not the local clock.
 3. On `visibilitychange` or `online`, reconnect a closed socket at once, and ping one that claims to
    be open, reconnecting if nothing arrives in 4 s. Phones lie after sleep.
@@ -687,7 +691,7 @@ gates `GET /metrics` (OpenMetrics text, fixed-set labels only) by the same rules
   need it. Rotating it is the room lock; there is no other.
 - Without the key, `POST /api/rooms/{code}/requests {display_name, avatar?, returning, theme?, device?, via?}` asks the
   admins instead → `201 {ticket}`, charged as a join and refused for what would refuse one. A
-  request is memory only, at most 5 a room (409 `requests_full`), and its name is taken like a
+  request is memory only, at most 5 a room and 2 an address (409 `requests_full`), and its name is taken like a
   player's. The ticket travels like a session: `.../requests/poll {ticket}` answers `waiting`, or
   `accepted` with a join's `{session, player}`, created only then; 403 `request_denied`; 410
   `request_gone` once withdrawn (`.../requests/cancel`), unpolled for 10 s, or 5 minutes old.
@@ -720,7 +724,7 @@ Limits:
   backstop.
 - Trusted proxies come only from `FORWARDED_ALLOW_IPS`. The first ignored `X-Forwarded-For` logs one
   warning.
-- `/api/*` bodies over 256 KiB get 413. Writes not declared `application/json` get 415, because a
+- `/api/*` bodies over 256 KiB get 413, nested over 64 levels 422 `too_deep`. Writes not declared `application/json` get 415, because a
   cross-site `no-cors` fetch sends an untyped body without a preflight.
 - uvicorn runs `--host "" --ws-max-size 65536 --limit-concurrency 1000 --workers 1`. The empty
   host listens on `0.0.0.0` and, where there is IPv6, `::` too.

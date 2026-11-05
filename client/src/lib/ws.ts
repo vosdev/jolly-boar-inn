@@ -1,9 +1,10 @@
 /**
- * `RoomSocket`: one websocket to one room, with the reconnect flow from section 3 of
- * ideas/architecture.md.
+ * `RoomSocket`: one websocket to one room, with the reconnect flow from "Reconnect and
+ * restart" in ideas/architecture.md.
  *
  *   1. On close or error, wait `min(8000, 500 * 2^attempt)` ms plus 0–250 ms of jitter,
- *      reconnect, send `hello`. The attempt counter resets to 0 after a `welcome`.
+ *      reconnect, send `hello`. No `welcome` within 10 s drops the socket and backs off.
+ *      The attempt counter resets to 0 once a welcomed socket has stayed up 10 s.
  *   2. On `welcome`, the caller replaces all local state with the snapshot.
  *   3. On `visibilitychange` to visible or the `online` event, reconnect immediately if
  *      the socket is not open — phones lock between questions and the backoff timer may
@@ -28,6 +29,10 @@ import type { ClientMessage, ServerMessage } from './protocol'
 
 const PING_INTERVAL_MS = 30_000
 const PONG_TIMEOUT_MS = 10_000
+export const WELCOME_TIMEOUT_MS = 10_000
+/** A welcome alone does not prove the link: the server can welcome a socket and close it
+ * straight after (a full outbox, the connect limit), and resetting then loops at speed. */
+export const STABLE_MS = 10_000
 export const PROBE_TIMEOUT_MS = 4_000
 export const ANSWER_TIMEOUT_MS = 5_000
 const BACKOFF_BASE_MS = 500
@@ -96,6 +101,8 @@ export class RoomSocket {
   #pong: ReturnType<typeof setTimeout> | null = null
   #probe: ReturnType<typeof setTimeout> | null = null
   #answer: ReturnType<typeof setTimeout> | null = null
+  #welcome: ReturnType<typeof setTimeout> | null = null
+  #stable: ReturnType<typeof setTimeout> | null = null
 
   readonly #onVisible = (): void => {
     if (document.visibilityState === 'visible') this.#check()
@@ -166,6 +173,10 @@ export class RoomSocket {
     socket.onopen = () => {
       if (socket !== this.#socket) return
       this.#write({ t: 'hello', session: this.#session })
+      this.#welcome = setTimeout(() => {
+        this.#welcome = null
+        this.#lost('welcome timeout')
+      }, WELCOME_TIMEOUT_MS)
     }
     socket.onmessage = (event: MessageEvent<string>) => {
       if (socket === this.#socket) this.#receive(event.data)
@@ -201,9 +212,12 @@ export class RoomSocket {
     if (message.t === 'answer_ack' || message.t === 'error') {
       this.#clearAnswerTimer()
     } else if (message.t === 'welcome') {
-      this.#attempt = 0 // Section 3 step 1: a welcome is what proves the link works.
       this.#setState('open')
       this.#startHeartbeat()
+      this.#stable = setTimeout(() => {
+        this.#stable = null
+        this.#attempt = 0
+      }, STABLE_MS)
     }
     this.#handlers.onMessage(message)
   }
@@ -277,6 +291,9 @@ export class RoomSocket {
     this.#clearPongTimer()
     this.#clearProbe()
     this.#clearAnswerTimer()
+    for (const timer of [this.#welcome, this.#stable]) if (timer !== null) clearTimeout(timer)
+    this.#welcome = null
+    this.#stable = null
   }
 
   #clearProbe(): void {

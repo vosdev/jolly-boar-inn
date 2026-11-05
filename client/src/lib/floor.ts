@@ -20,6 +20,7 @@ import pineapple from '../assets/sprites/pineapple.svg'
 import redBanana from '../assets/sprites/red-banana.svg'
 import rocks from '../assets/sprites/rocks.svg'
 import waterskin from '../assets/sprites/waterskin.svg'
+import { mulberry32 } from './seeded'
 
 /** The side of one flagstone, matching the squares in `party-floor.svg`. */
 export const TILE = 64
@@ -152,18 +153,6 @@ export function darker(colour: string, share: number): string {
 /** `colour` in the light. */
 export function lighter(colour: string, share: number): string {
   return shade(colour, '#ffffff', share)
-}
-
-/** A small, fast generator; the floor needs scatter, not secrecy. */
-function mulberry32(seed: number): () => number {
-  let state = seed >>> 0
-  return () => {
-    state = (state + 0x6d2b79f5) >>> 0
-    let t = state
-    t = Math.imul(t ^ (t >>> 15), t | 1)
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-  }
 }
 
 function tileSeed(seed: number, column: number, row: number): number {

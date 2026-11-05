@@ -36,8 +36,7 @@
    * after close, which adds `answer_id`, `subject` and an `explanation` that `Question`
    * draws.
    */
-  import { tick } from 'svelte'
-
+  import { Combobox } from '../../../lib/combobox.svelte'
   import { loadVocab, search, SHOWN_MAX, type Vocab, type VocabEntry } from '../../../lib/vocab'
   import AnswerSettled from '../AnswerSettled.svelte'
   import type { TypeViewProps } from '../props'
@@ -56,7 +55,7 @@
 
   const q = $derived(data as unknown as Data)
   const uid = $props.id()
-  const listId = `${uid}-list`
+  const box = new Combobox(uid)
 
   let list = $state<Vocab | null>(null)
   let failed = $state(false)
@@ -84,10 +83,7 @@
 
   let query = $state('')
   let selected = $state<VocabEntry | null>(null)
-  let expanded = $state(false)
-  let active = $state(0)
   let input = $state<HTMLInputElement | null>(null)
-  let listbox = $state<HTMLUListElement | null>(null)
   let maxHeight = $state<number | null>(null)
   let above = $state(false)
 
@@ -95,16 +91,15 @@
   const shown = $derived(matches.slice(0, SHOWN_MAX))
   const answered = $derived(typeof yourValue === 'number' ? yourValue : null)
   const locked = $derived(revealed || !canAnswer || answered !== null)
-  const optionId = (index: number) => `${uid}-option-${index}`
 
   function open(): void {
     if (locked || list === null) return
-    expanded = true
+    box.expanded = true
     fitList()
   }
 
   function close(): void {
-    expanded = false
+    box.expanded = false
   }
 
   function select(entry: VocabEntry): void {
@@ -116,44 +111,20 @@
   function onInput(): void {
     // The box now says something other than the selection, so it is a search again.
     selected = null
-    active = 0
+    box.active = 0
     open()
   }
 
-  async function highlight(index: number): Promise<void> {
-    active = Math.max(0, Math.min(shown.length - 1, index))
-    await tick()
-    listbox?.querySelector(`#${CSS.escape(optionId(active))}`)?.scrollIntoView?.({
-      block: 'nearest',
-    })
-  }
-
   function onKeydown(event: KeyboardEvent): void {
-    switch (event.key) {
-      case 'ArrowDown':
-      case 'ArrowUp':
-        event.preventDefault()
-        if (!expanded) {
-          open()
-          void highlight(selected === null ? 0 : shown.indexOf(selected))
-        } else {
-          void highlight(active + (event.key === 'ArrowDown' ? 1 : -1))
-        }
-        break
-      case 'Enter': {
-        // Enter picks; it never submits. Submitting is the button's job alone.
-        event.preventDefault()
-        const entry = shown[active]
-        if (expanded && entry !== undefined) select(entry)
-        break
-      }
-      case 'Escape':
-        if (expanded) {
-          event.preventDefault()
-          close()
-        }
-        break
-    }
+    box.keydown(event, {
+      count: shown.length,
+      open: () => {
+        open()
+        void box.highlight(selected === null ? 0 : shown.indexOf(selected), shown.length)
+      },
+      pick: (index) => select(shown[index]!),
+      strict: true,
+    })
   }
 
   function onFocus(): void {
@@ -206,7 +177,7 @@
   // moves the box. Either changes the room below it, so both re-measure.
   $effect(() => {
     const viewport = window.visualViewport
-    if (!expanded || viewport === null || viewport === undefined) return
+    if (!box.expanded || viewport === null || viewport === undefined) return
     viewport.addEventListener('resize', fitList)
     viewport.addEventListener('scroll', fitList)
     window.addEventListener('scroll', fitList, { passive: true })
@@ -241,7 +212,7 @@
         aria-label="Search the list"
         aria-autocomplete="list"
         aria-expanded="false"
-        aria-controls={listId}
+        aria-controls={box.listId}
         disabled
       />
     </div>
@@ -277,9 +248,11 @@
         placeholder="Start typing a name…"
         aria-label="Search the list"
         aria-autocomplete="list"
-        aria-expanded={expanded}
-        aria-controls={listId}
-        aria-activedescendant={expanded && shown.length > 0 ? optionId(active) : undefined}
+        aria-expanded={box.expanded}
+        aria-controls={box.listId}
+        aria-activedescendant={box.expanded && shown.length > 0
+          ? box.optionId(box.active)
+          : undefined}
         oninput={onInput}
         onfocus={onFocus}
         onclick={open}
@@ -287,11 +260,11 @@
         onkeydown={onKeydown}
       />
       <ul
-        bind:this={listbox}
-        id={listId}
+        bind:this={box.listbox}
+        id={box.listId}
         role="listbox"
         aria-label="Matches"
-        hidden={!expanded}
+        hidden={!box.expanded}
         class:above
         style:max-height={maxHeight === null ? null : `${maxHeight}px`}
       >
@@ -300,10 +273,10 @@
                combobox pattern, and an option that took focus would close the keyboard. -->
           <!-- svelte-ignore a11y_click_events_have_key_events -->
           <li
-            id={optionId(index)}
+            id={box.optionId(index)}
             role="option"
-            aria-selected={index === active}
-            class:active={index === active}
+            aria-selected={index === box.active}
+            class:active={index === box.active}
             onpointerdown={(event) => event.preventDefault()}
             onclick={() => select(entry)}
           >

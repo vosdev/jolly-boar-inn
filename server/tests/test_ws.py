@@ -457,8 +457,7 @@ def test_failed_welcome_still_closes_the_replaced_socket(
         second = FlakySocket()
         second.alive = False  # the new device is gone before the welcome is written
         call(client, manager.connect, code, session, second)
-        # The new device connecting, then its welcome failing.
-        assert [p["connected"] for p in admin_ws.receive_json()["players"]] == [True, True]
+        # The new device connecting changes nothing the room sees; its welcome failing does.
         update = admin_ws.receive_json()
         assert update["t"] == "players_updated"
         assert [p["connected"] for p in update["players"]] == [True, False]
@@ -485,10 +484,12 @@ def test_replacing_a_stalled_socket_waits_for_nothing(
         started = time.monotonic()
         with client.websocket_connect(f"/ws/{code}") as player_ws:
             hello(player_ws, lobby["player"]["session"])
-            assert admin_ws.receive_json()["t"] == "players_updated"
             assert time.monotonic() - started < 1
             player_ws.send_json({"t": "ping"})
             assert player_ws.receive_json()["t"] == "pong"
+            # A replacement the room cannot see is not broadcast.
+            admin_ws.send_json({"t": "ping"})
+            assert admin_ws.receive_json()["t"] == "pong"
 
 
 def test_kicking_a_stalled_player_waits_for_nothing(

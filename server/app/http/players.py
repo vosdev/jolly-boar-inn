@@ -91,7 +91,12 @@ async def ask_to_join(code: str, body: AskToJoin, request: Request) -> dict[str,
     """
     with joining(request):
         ticket = await manager(request).request_join(
-            code, body.display_name, body.avatar, body.returning, body.arrival()
+            code,
+            body.display_name,
+            body.avatar,
+            body.returning,
+            body.arrival(),
+            client_key(client_host(request)),
         )
     return {"ticket": ticket}
 

@@ -5,7 +5,7 @@ contradicts the stored facts, a ``mode`` this build does not play or a ``type`` 
 disagrees with its mode's, and duplicate ids within or across packs. For random events it
 also fails an NPC's file that is not named after a roster id, a question in one that names
 its own NPC, and a question anywhere else that names one (``app/questions/packs.py``). A
-question that is its picture (a ``pictured`` mode's, or Certer's) must picture its own roster
+question that is an item's picture (Pixel Hunt's, or Certer's) must picture its own roster
 item, with a detail picture in ``data/assets.json``.
 
 Usage (from ``server/``)::
@@ -31,7 +31,8 @@ def picture_errors(packs: Iterable[Pack], manifest: dict[str, str]) -> list[str]
     errors = []
     for pack in packs:
         for question in pack.questions:
-            if not needs_picture(question):
+            # Who's That NPC? is its picture too, but of an NPC, which has no detail picture.
+            if not needs_picture(question) or question["mode"] == "whos_that_npc":
                 continue
             payload = question["payload"]
             answer = payload.get("answer_id")

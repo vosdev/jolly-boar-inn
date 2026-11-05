@@ -60,7 +60,11 @@ def offline(settings: Settings, dist: Path) -> Iterator[TestClient]:
     """No database: everything a report is refused for is decided before one is needed."""
     configured = settings.model_copy(update={"packs_dir": PACKS_DIR, "admin_token": TOKEN})
     with TestClient(create_app(configured, dist)) as client:
-        images = {q["payload"].get("image") for q in mode_questions(PACKS, "pixel_hunt")}
+        images = {
+            q["payload"].get("image")
+            for mode in ("pixel_hunt", "whos_that_npc")
+            for q in mode_questions(PACKS, mode)
+        }
         client.app.state.rooms.pictures = {asset: "0000000000000000.png" for asset in images}
         client.app.state.rooms.pictures[TILES] = "clean"
         yield client

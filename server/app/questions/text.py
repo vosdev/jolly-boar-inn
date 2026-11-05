@@ -19,15 +19,21 @@ def unstorable(text: str) -> str | None:
 def errors(value: Any, path: str = "$") -> list[str]:
     """Every string in a JSON value, keys included, that holds such a character."""
     found: list[str] = []
-    if isinstance(value, str):
-        ch = unstorable(value)
-        if ch is not None:
-            found.append(f"{path}: U+{ord(ch):04X} is not a character that can be stored")
-    elif isinstance(value, dict):
-        for key, item in value.items():
-            found += errors(key, path) if isinstance(key, str) else []
-            found += errors(item, f"{path}.{key}")
-    elif isinstance(value, list):
-        for index, item in enumerate(value):
-            found += errors(item, f"{path}[{index}]")
+    # A stack, not recursion: a value nested deeper than Python's recursion limit is
+    # refused here like any other, rather than raising.
+    stack: list[tuple[Any, str]] = [(value, path)]
+    while stack:
+        item, where = stack.pop()
+        if isinstance(item, str):
+            ch = unstorable(item)
+            if ch is not None:
+                found.append(f"{where}: U+{ord(ch):04X} is not a character that can be stored")
+        elif isinstance(item, dict):
+            for key, child in reversed(item.items()):
+                stack.append((child, f"{where}.{key}"))
+                if isinstance(key, str):
+                    stack.append((key, where))
+        elif isinstance(item, list):
+            for index in range(len(item) - 1, -1, -1):
+                stack.append((item[index], f"{where}[{index}]"))
     return found

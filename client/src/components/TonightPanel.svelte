@@ -28,9 +28,10 @@
    */
   import { onMount, untrack } from 'svelte'
 
-  import { ApiFailure, getModes, type ModeBounds, type ModePacing } from '../lib/api'
+  import { ApiFailure, type ModeBounds, type ModePacing } from '../lib/api'
   import { eventSlots, overCap, type HostQuestion } from '../lib/customQuestions'
   import { minutes, plannedSeconds } from '../lib/duration'
+  import { loadModes } from '../lib/howToPlay'
   import { MODES, UPCOMING_MODES, modeLabel } from '../lib/modes'
   import { modeSeed, orderModes } from '../lib/modeOrder'
   import { npcArt } from '../lib/npcs'
@@ -91,7 +92,12 @@
   let closeWhenAllAnswered = $state(true)
   let nameWrongAnswers = $state(true)
   /** The server draws the rounds unseen, rather than the host picking them. */
-  let surprise = $state(false)
+  // A room that stops hiding its rounds cannot keep them a surprise, so any change of
+  // `hidden` clears it; it is only ever set while hidden.
+  let surprise = $derived.by(() => {
+    void hidden
+    return false
+  })
   let randomCount = $state(4)
   let pickingForMe = $state(false)
   /** The rounds, in the order they will play: one per mode, and the list is the order. */
@@ -204,7 +210,7 @@
 
   function take(from: TonightSettings): void {
     const drawn = from.surprise_modes ?? 0
-    surprise = drawn > 0
+    surprise = hidden && drawn > 0
     if (drawn > 0) randomCount = drawn
     rounds = from.modes ?? []
     modeOrder = from.mode_order
@@ -253,13 +259,8 @@
     onproblems(problem, problem ?? (picked ? tooManyOwn : null))
   })
 
-  // Only a room hiding its rounds can keep them from its host too.
-  $effect(() => {
-    if (!hidden && surprise) surprise = false
-  })
-
   onMount(() => {
-    void getModes().then(
+    void loadModes().then(
       (modes) => (pacing = modes),
       (error: unknown) =>
         (pacingFailure =
@@ -282,7 +283,7 @@
   function pickForMe(count: number, secret: boolean): void {
     pickingForMe = false
     randomCount = count
-    surprise = secret
+    surprise = hidden && secret
     tab = 'rounds'
     if (secret) return
     const shuffled = [...roundModes]

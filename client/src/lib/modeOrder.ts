@@ -5,6 +5,7 @@
  */
 
 import { dropStored, readStored, writeStored } from './session'
+import { fnv1a } from './seeded'
 
 const SEED_KEY = 'jbi:mode-seed'
 
@@ -24,9 +25,7 @@ export function rerollModeSeed(): void {
 }
 
 function rank(seed: string, id: string): number {
-  let state = 2166136261
-  for (const char of `${seed}:${id}`) state = Math.imul(state ^ char.charCodeAt(0), 16777619) >>> 0
-  return state
+  return fnv1a(`${seed}:${id}`)
 }
 
 /** The modes sorted by a hash of seed and id, so a mode added later moves no other. */

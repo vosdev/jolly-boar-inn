@@ -12,7 +12,7 @@
     return result.points > 0 ? 'graded' : 'wrong'
   }
 
-  /** The whole slot in one sentence, for a screen reader: `Room` announces it too. */
+  /** The whole slot in one sentence, for a screen reader reading the slot. */
   export function verdictSentence(
     result: PlayerResult | null,
     canAnswer: boolean,
@@ -52,8 +52,7 @@
    * points. What the slot never carries is the reason for the number: a speed bonus
    * explained mid-reveal is a second thing to read in a beat that is already short.
    *
-   * It is not a live region of its own: one that appears already filled is often never
-   * read, so `Room`'s announcer says the same sentence instead.
+   * It is not a live region: the sentence is there for a screen reader that reads the slot.
    */
 
   let {

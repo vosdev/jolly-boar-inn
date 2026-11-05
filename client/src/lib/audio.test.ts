@@ -133,6 +133,28 @@ describe('unlocking', () => {
     audio.playEffect('splash')
   })
 
+  it('makes its context on first use when the page starts unlocked', async () => {
+    const made = vi.fn()
+    vi.stubGlobal(
+      'AudioContext',
+      class {
+        constructor() {
+          made()
+        }
+      },
+    )
+    vi.stubGlobal('navigator', { ...navigator, userActivation: { hasBeenActive: true } })
+    try {
+      const { audio } = await load()
+      expect(get(audio.unlocked)).toBe(true)
+      expect(audio.audioContext()).not.toBeNull()
+      expect(audio.audioContext()).toBe(audio.audioContext())
+      expect(made).toHaveBeenCalledOnce()
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
   it('says question audio is muted when its switch is off', async () => {
     const { audio } = await load()
     audio.listenForUnlock()

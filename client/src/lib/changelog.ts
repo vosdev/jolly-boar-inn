@@ -44,6 +44,31 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.246.7',
+    date: '2026-11-04',
+    text: 'Pets and item icons no longer flash at the old size.',
+  },
+  {
+    version: '0.246.6',
+    date: '2026-11-04',
+    text: 'A flaky connection retries more gently and stops hanging.',
+  },
+  {
+    version: '0.246.5',
+    date: '2026-11-04',
+    text: "Who's That NPC? skips any question missing its picture.",
+  },
+  {
+    version: '0.246.4',
+    date: '2026-11-04',
+    text: "One address can no longer fill a room's join requests.",
+  },
+  {
+    version: '0.246.3',
+    date: '2026-11-04',
+    text: 'Answer counts update when someone drops or comes back.',
+  },
+  {
     version: '0.246.2',
     date: '2026-11-04',
     text: 'A server hiccup mid-game now reconnects you at once.',

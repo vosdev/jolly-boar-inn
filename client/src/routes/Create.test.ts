@@ -13,6 +13,7 @@ import { get } from 'svelte/store'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '../lib/api'
+import { clearModesCache } from '../lib/howToPlay'
 import { profile } from '../lib/profile'
 import type { ModeSettings } from '../lib/protocol'
 import { createdRooms, rememberCreated, setSession } from '../lib/session'
@@ -52,6 +53,7 @@ vi.mock('../lib/api', async (importOriginal) => {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  clearModesCache()
   localStorage.clear()
   vi.mocked(api.getRoom).mockResolvedValue({ status: 'lobby', players: 1 })
   vi.mocked(api.deleteRoom).mockResolvedValue(undefined)

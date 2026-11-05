@@ -16,7 +16,8 @@ const unstored = new Map<string, string>()
 /** A stored value, or null when there is none or storage refuses. */
 export function readStored(key: string): string | null {
   try {
-    return localStorage.getItem(key) ?? unstored.get(key) ?? null
+    // The page's copy first: it is what a failed write left, newer than what storage holds.
+    return unstored.get(key) ?? localStorage.getItem(key)
   } catch {
     return unstored.get(key) ?? null
   }

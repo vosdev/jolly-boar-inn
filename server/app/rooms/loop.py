@@ -79,7 +79,7 @@ def _everyone_answered(room: Room, question: RoomQuestion) -> bool:
     """Has every connected player who is allowed to score answered this question?
 
     A question nobody may answer (``host_only``) is never "all answered": it runs its
-    full time, as section 4 says it should.
+    full time, as "Room lifecycle" says it should.
     """
     eligible = [pid for pid in room.sockets if room.can_answer(question, pid)]
     return bool(eligible) and all(pid in question.answers for pid in eligible)
@@ -216,7 +216,7 @@ class Loop:
                 room.advance.set()
 
     async def end_game(self, code: str, by: Player) -> None:
-        """Admin: void whatever is open and finish the game (section 4).
+        """Admin: void whatever is open and finish the game ("Room lifecycle").
 
         The voided question keeps its answers but is never graded, so those rows stay at
         ``points = null`` and add nothing to anyone's sum.
@@ -613,7 +613,7 @@ class Loop:
                 got = scoring.settle_credit(question.type, credit.get(pid, 0.0))
                 points = scoring.points_for(how, got, answer.band, question.steps, team=team)
                 # Full marks only. Three of five in the right order scores, and is not
-                # "correct" for the standings tie-break (section 6).
+                # "correct" for the standings tie-break ("Scoring").
                 graded[pid] = (got, got >= 1.0, points)
             reveal = pictured(
                 question.type,
