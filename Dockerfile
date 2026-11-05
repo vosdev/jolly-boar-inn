@@ -80,7 +80,7 @@ RUN --mount=from=builder,source=/usr/local/bin/uv,target=/usr/local/bin/uv \
 # ---- Map: the data stage plus Java, for `make gen-map` alone ------------------
 # Maven only builds the renderer: what it fetches is cached, and the JRE that runs it is
 # Debian's, so the map image stays one layer on top of the data one.
-FROM maven:3.9.16-eclipse-temurin-17 AS map-render
+FROM maven:3.9-eclipse-temurin-26 AS map-render
 WORKDIR /build
 COPY server/scripts/map_render/ ./
 RUN --mount=type=cache,target=/root/.m2 mvn -q -B package
