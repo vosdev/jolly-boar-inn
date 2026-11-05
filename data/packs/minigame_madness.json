@@ -1324,7 +1324,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_dd4571ffe90f9441",
+      "id": "q_130a4bdf84e3ca1e",
       "type": "ordering",
       "mode": "minigame_madness",
       "source": "pack",
@@ -1367,7 +1367,8 @@
             "rank": 5,
             "text": "Mine Zalcano"
           }
-        ]
+        ],
+        "explanation": "Mine tephra, refine it at the furnace, imbue it at the altar, then throw it at Zalcano. When her armour breaks, mine her for big damage."
       }
     },
     {

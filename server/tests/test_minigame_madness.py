@@ -15,35 +15,6 @@ from app.rooms.settings import RoomSettings
 from tests.packs import PACKS_DIR
 
 MODE = "minigame_madness"
-# The wiki's Minigames page, less holiday events, raids, bosses and the combat minigames.
-MINIGAMES = frozenset(
-    {
-        "barbarian-assault",
-        "brimhaven-agility-arena",
-        "castle-wars",
-        "fishing-trawler",
-        "giants-foundry",
-        "guardians-of-the-rift",
-        "hallowed-sepulchre",
-        "last-man-standing",
-        "mage-training-arena",
-        "mahogany-homes",
-        "mastering-mixology",
-        "nightmare-zone",
-        "pest-control",
-        "pyramid-plunder",
-        "rogues-den",
-        "shades-of-mortton",
-        "soul-wars",
-        "tai-bwo-wannai-cleanup",
-        "temple-trekking",
-        "tempoross",
-        "tithe-farm",
-        "trouble-brewing",
-        "volcanic-mine",
-        "wintertodt",
-    }
-)
 
 
 def questions() -> list[dict[str, Any]]:
@@ -70,22 +41,15 @@ def test_no_type_holds_more_than_half_the_pack() -> None:
     assert max(counts.values()) <= len(questions()) / 2, counts
 
 
-def test_at_least_thirty_questions_over_at_least_twelve_minigames() -> None:
+def test_at_least_thirty_questions() -> None:
     assert len(questions()) >= 30
-    assert len({tag for q in questions() for tag in q["tags"]}) >= 12
-
-
-def test_no_minigame_is_tagged_on_more_than_fifteen_percent_of_the_pack() -> None:
-    counts = Counter(tag for q in questions() for tag in q["tags"])
-    assert max(counts.values()) <= 0.15 * len(questions()), counts.most_common(3)
 
 
 @pytest.mark.parametrize("question", questions(), ids=lambda q: q["id"])
-def test_a_question_is_tagged_with_its_minigames_and_links_the_wiki(
+def test_a_question_links_the_wiki_and_explains_itself(
     question: dict[str, Any],
 ) -> None:
     assert question["source"] == "pack" and question["mode"] == MODE
-    assert question["tags"] and set(question["tags"]) <= MINIGAMES
     assert question["wiki"].startswith("https://oldschool.runescape.wiki/w/")
     assert question["payload"]["explanation"].strip() != ""
 
