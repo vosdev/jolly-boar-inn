@@ -256,8 +256,10 @@ def test_an_attempt_started_before_the_rollover_finishes_on_its_own_day(
     quick: FastAPI, client: TestClient, db
 ) -> None:
     manager = client.app.state.rooms  # type: ignore[attr-defined]
-    before = datetime(2026, 11, 2, 7, 59, tzinfo=UTC)
-    after = datetime(2026, 11, 2, 8, 1, tzinfo=UTC)
+    # The next real rollover: rooms expire against the real clock, so a fixed date goes stale.
+    rollover = next_opens(day_of(datetime.now(UTC)))
+    before = rollover - timedelta(minutes=1)
+    after = rollover + timedelta(minutes=1)
     code, session = call(client, manager.start_daily, TOKEN, "Zezima", None, before, lambda: None)
     yesterday = db("select questions from daily_sets where day = $1", day_of(before))
     again, fresh = call(client, manager.start_daily, TOKEN, "Zezima", None, after, lambda: None)

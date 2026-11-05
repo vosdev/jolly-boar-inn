@@ -25,6 +25,7 @@ import type {
 import type { ReportBody, ReportChoices } from './reports'
 import type { Arrival } from './stats'
 import type { QuestionContent, SimilarMatch, SuggestionBody, Trial } from './suggestions'
+import { noteServerVersion } from './version'
 
 export class ApiFailure extends Error {
   readonly status: number
@@ -63,6 +64,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   } catch {
     throw new ApiFailure(0, 'unreachable', 'cannot reach the server')
   }
+  noteServerVersion(response.headers.get('x-app-version'))
   const body: unknown = await response.json().catch(() => null)
   if (!response.ok) {
     const fault = (body ?? {}) as { code?: unknown; message?: unknown }

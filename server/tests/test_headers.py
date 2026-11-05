@@ -7,7 +7,7 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from app.accesslog import StripQueryString
-from app.config import Settings
+from app.config import APP_VERSION, Settings
 from app.main import create_app
 
 
@@ -35,6 +35,17 @@ def test_headers_on_every_response(settings: Settings, dist: Path) -> None:
     assert missing.headers["cache-control"] == "no-store"
     assert page.headers["cache-control"] == "no-cache"  # static keeps its own policy
     assert asset.headers["cache-control"].startswith("public, max-age=31536000")
+
+
+def test_api_responses_name_the_server_version(settings: Settings, dist: Path) -> None:
+    with TestClient(create_app(settings, dist)) as client:
+        api = client.get("/api/health")
+        missing = client.get("/api/nope")
+        page = client.get("/")
+    assert api.headers["x-app-version"] == APP_VERSION
+    assert missing.headers["x-app-version"] == APP_VERSION
+    # The page and its files are cached; a version on them could be an old one.
+    assert "x-app-version" not in page.headers
 
 
 def test_a_faro_receiver_elsewhere_is_allowed_to_take_reports(

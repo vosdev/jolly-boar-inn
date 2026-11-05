@@ -15,6 +15,7 @@ import type { QuestionStats } from './questionStats'
 import type { PackQuestion, QueuedReport, ReportStatus } from './reports'
 import type { RosterChange, RosterItem } from './rosterEdits'
 import type { QueuedSuggestion, SuggestionBody, SuggestionStatus } from './suggestions'
+import { noteServerVersion } from './version'
 
 const TOKEN_KEY = 'jbi:admin'
 
@@ -113,6 +114,7 @@ async function adminRequest<T>(
   } catch {
     throw new ApiFailure(0, 'unreachable', 'cannot reach the server')
   }
+  noteServerVersion(response.headers.get('x-app-version'))
   if (!response.ok) {
     const fault = ((await response.json().catch(() => null)) ?? {}) as {
       code?: unknown
