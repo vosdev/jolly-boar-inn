@@ -122,6 +122,7 @@
   .scroll {
     max-height: min(40dvh, 20rem);
     overflow-y: auto;
+    scrollbar-width: thin;
   }
 
   .authors {

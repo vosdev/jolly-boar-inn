@@ -129,6 +129,8 @@
     inset: 2.5rem 0 auto;
     max-height: 24rem;
     overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface-muted) var(--panel);
     padding: 0.6rem;
     background: var(--panel);
     border: var(--border-width) solid var(--line);

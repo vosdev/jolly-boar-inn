@@ -962,6 +962,11 @@ html[data-team] body::after {
      theme's values down rather than whatever --ink means where they are used. */
   --surface-ink: var(--ink);
   --surface-muted: var(--muted);
+
+  /* Scrollbars stay native and take the muted ink as thumb on the ground they sit on as
+     track: the contrast check already holds the muted inks to 4.5:1 there, in every theme.
+     It inherits, so a surface below resets it for its own ground. */
+  scrollbar-color: var(--bg-muted) var(--bg);
 }
 
 * {
@@ -1029,6 +1034,7 @@ dialog {
   --ink: var(--surface-ink);
   --muted: var(--surface-muted);
   color: var(--ink);
+  scrollbar-color: var(--surface-muted) var(--panel);
 }
 
 /* Controls only take the tokens back: each sets its own colour from them, and a .link

@@ -256,6 +256,8 @@
 
   .scroll {
     overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface-muted) var(--panel-raised);
     border: var(--border-width) solid var(--line);
     border-radius: min(var(--radius), 8px);
     background: var(--panel-raised);

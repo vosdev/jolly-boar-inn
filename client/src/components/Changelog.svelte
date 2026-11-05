@@ -67,6 +67,7 @@
     gap: 0.9rem;
     max-height: min(60dvh, 32rem);
     overflow-y: auto;
+    scrollbar-width: thin;
   }
 
   .patches {

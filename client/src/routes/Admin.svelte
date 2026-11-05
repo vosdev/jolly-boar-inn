@@ -717,6 +717,7 @@
 
   .scroll {
     overflow-x: auto;
+    scrollbar-width: thin;
   }
 
   table {

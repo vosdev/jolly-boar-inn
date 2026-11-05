@@ -467,6 +467,8 @@
     box-sizing: border-box;
     max-height: calc(100dvh - var(--topbar-height) - 1rem);
     overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface-muted) var(--panel-raised);
     overscroll-behavior: contain;
     padding: 1rem;
     color: var(--ink);
