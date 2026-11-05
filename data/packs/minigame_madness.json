@@ -1322,6 +1322,69 @@
       },
       "wiki": "https://oldschool.runescape.wiki/w/Guardians_of_the_Rift",
       "difficulty": "medium"
+    },
+    {
+      "id": "q_dd4571ffe90f9441",
+      "type": "ordering",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Zalcano/Strategies",
+      "difficulty": "medium",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "ends": [
+          "First",
+          "Last"
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "prompt": "Put the steps of the Zalcano fight in order.",
+        "entries": [
+          {
+            "rank": 1,
+            "text": "Mine some tephra"
+          },
+          {
+            "rank": 2,
+            "text": "Refine some tephra"
+          },
+          {
+            "rank": 3,
+            "text": "Imbue some tephra"
+          },
+          {
+            "rank": 4,
+            "text": "Attack Zalcano"
+          },
+          {
+            "rank": 5,
+            "text": "Mine Zalcano"
+          }
+        ]
+      }
+    },
+    {
+      "id": "q_0e792f049af10fdd",
+      "type": "closest_number",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Defender",
+      "difficulty": "easy",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "answer": 8,
+        "prompt": "How many tiers of defenders are dropped by cyclopes in the Warriors’ Guild?",
+        "explanation": "The tiers are bronze, iron, steel, black, mithril, adamant, rune, and finally dragon."
+      }
     }
   ]
 }

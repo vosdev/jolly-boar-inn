@@ -129,6 +129,55 @@
         ],
         "explanation": "The six are Ahrim, Dharok, Guthan, Karil, Torag and Verac. K'ril Tsutsaroth leads Zamorak's army in the God Wars Dungeon, Vorkath is a dragon and torstol is a herb."
       }
+    },
+    {
+      "id": "q_59503f89296b791c",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Servant",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "intro": "We may have chosen wildly different professions, but we are still kin.",
+        "prompt": "What will the demon butler serve when you ask him to make dinner?",
+        "options": [
+          "Pineapple pizza",
+          "Curry",
+          "Chocolate cake",
+          "Shrimps",
+          "Stew"
+        ],
+        "explanation": "The other foods are served by the meek lower-level servants.",
+        "answer_index": 1
+      }
+    },
+    {
+      "id": "q_519086b355249b13",
+      "type": "pick_all_that_apply",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Defender",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "intro": "Private worm, atten-SHUN!",
+        "prompt": "Which defenders have a lower melee strength bonus than the mooleta?",
+        "options": [
+          "Iron defender",
+          "Mithril defender",
+          "Steel defender",
+          "Black defender",
+          "Bronze defender"
+        ],
+        "explanation": "The mooleta has a melee strength bonus of just 1, tied with the steel defender. The bronze and iron defenders offer no melee strength bonus. Every other defender outclasses the mooleta.",
+        "answer_indices": [
+          0,
+          4
+        ]
+      }
     }
   ]
 }

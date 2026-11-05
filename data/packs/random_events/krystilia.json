@@ -132,6 +132,28 @@
           5
         ]
       }
+    },
+    {
+      "id": "q_1489c86698ec9372",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Weave",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "intro": "The last time I contacted Nieve with Astral Contact, she couldn't stop talking about her ridiculous number of relatives.",
+        "prompt": "Who from Nieve's family guards the Morytania Spider Cave?",
+        "options": [
+          "Breive",
+          "Eve",
+          "Hieve",
+          "Weave"
+        ],
+        "explanation": "Each of these family members guards a different Slayer-only area. Weave's name is very fitting for her area.",
+        "answer_index": 3
+      }
     }
   ]
 }

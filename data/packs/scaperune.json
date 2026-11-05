@@ -1334,6 +1334,28 @@
       },
       "wiki": "https://oldschool.runescape.wiki/w/ScapeRune",
       "difficulty": "medium"
+    },
+    {
+      "id": "q_508868d36fa1c111",
+      "type": "multiple_choice",
+      "mode": "scaperune",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Skull_sceptre",
+      "difficulty": "easy",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "prompt": "Skull sceptre",
+        "options": [
+          "What item can be used in free-to-play?",
+          "What item must be charged with big bones?",
+          "What item teleports to the Barbarian outpost?",
+          "What item may hold up to 30 charges?"
+        ],
+        "explanation": "This free-to-play sceptre teleports to Barbarian Village (not the outpost). It holds 10 charges, or up to 26 with the Varrock Diary, and only the imbued version can be recharged, with bone fragments or sceptre pieces.",
+        "answer_index": 0
+      }
     }
   ]
 }

@@ -1059,6 +1059,78 @@
         "explanation": "Song of the Elves is Very Long. The other three are merely Long."
       },
       "difficulty": "hard"
+    },
+    {
+      "id": "q_7ce4646ec33b50fb",
+      "type": "pick_all_that_apply",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Update:Adding_A_New_Skill:_Introducing_Sailing,_Taming_and_Shamanism",
+      "difficulty": "hard",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "prompt": "Which other skills were proposed alongside Sailing in 2023?",
+        "options": [
+          "Warding",
+          "Archaeology",
+          "Summoning",
+          "Taming",
+          "Shamanism"
+        ],
+        "answer_indices": [
+          3,
+          4
+        ]
+      }
+    },
+    {
+      "id": "q_420b97877cdc905d",
+      "type": "pick_all_that_apply",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Quests/List",
+      "difficulty": "medium",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "prompt": "What are the only quests that grant more than 5 quest points upon completion?",
+        "options": [
+          "Legends' Quest",
+          "Recipe for Disaster",
+          "Merlin's Crystal",
+          "One Small Favour",
+          "Dragon Slayer II"
+        ],
+        "explanation": "Recipe for Disaster and Merlin's Crystal grant 10 and 6 quest points, respectively. Every other quest in the game grants up to 5 quest points, regardless of length or difficulty.",
+        "answer_indices": [
+          1,
+          2
+        ]
+      }
+    },
+    {
+      "id": "q_43fb3086fae78e49",
+      "type": "multiple_choice",
+      "mode": "tales_of_gielinor",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Imp_Catcher#Rewards",
+      "difficulty": "easy",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "prompt": "What is the item reward for completing Imp Catcher?",
+        "options": [
+          "Staff of water",
+          "Wizard hat",
+          "Imp-in-a-box",
+          "Amulet of accuracy"
+        ],
+        "answer_index": 3
+      }
     }
   ]
 }

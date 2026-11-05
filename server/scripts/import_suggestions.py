@@ -125,7 +125,7 @@ class SavedTitles:
 
 
 def render_pack(data: dict[str, Any]) -> str:
-    return json.dumps(data, indent=2) + "\n"
+    return json.dumps(data, indent=2, ensure_ascii=False) + "\n"
 
 
 def render_roster(text: str, items: list[dict[str, Any]], key: str = "items") -> str:

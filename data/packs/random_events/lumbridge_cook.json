@@ -124,6 +124,22 @@
         ],
         "answer_index": 2
       }
+    },
+    {
+      "id": "q_c76f868c1ff9034f",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Cooked_moonlight_antelope",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "intro": "The Duke's on a strict diet. I was looking to cook this exotic meal but I can't remember its nutritional value.",
+        "answer": 26,
+        "prompt": "How many hitpoints does a cooked moonlight antelope restore in total?",
+        "explanation": "I remember now: this food restores 14 hitpoints directly when eaten, and another 12 after a delay of several ticks!"
+      }
     }
   ]
 }

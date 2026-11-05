@@ -483,6 +483,103 @@
       },
       "wiki": "https://oldschool.runescape.wiki/w/Slayer_boss",
       "difficulty": "medium"
+    },
+    {
+      "id": "q_df9520ec3258e87e",
+      "type": "multiple_choice",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Witchwood_icon",
+      "difficulty": "medium",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "prompt": "Which monster does the witchwood icon protect you against?",
+        "options": [
+          "Cave horror",
+          "Tree spirit",
+          "Kurask",
+          "Cockatrice",
+          "Banshee",
+          "Sourhog"
+        ],
+        "explanation": "This icon decreases the effectiveness of a cave horror's screams.",
+        "answer_index": 0
+      }
+    },
+    {
+      "id": "q_1c58b5e3d32419e5",
+      "type": "multiple_choice",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Slayer_cape",
+      "difficulty": "medium",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "prompt": "Which monster appears when you do the Slayer skill cape emote?",
+        "options": [
+          "Araxyte",
+          "Nechryael",
+          "Turoth",
+          "Bloodveld"
+        ],
+        "answer_index": 2
+      }
+    },
+    {
+      "id": "q_3a6de273c08609b9",
+      "type": "pick_all_that_apply",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Fremennik_Slayer_Dungeon",
+      "difficulty": "easy",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "prompt": "Select the monsters that can be found in the Fremennik Slayer Dungeon.",
+        "options": [
+          "Dark beasts",
+          "Aberrant spectres",
+          "Dust devils",
+          "Rockslugs",
+          "Waterfiends"
+        ],
+        "answer_indices": [
+          3
+        ]
+      }
+    },
+    {
+      "id": "q_e45417322e31afa1",
+      "type": "pick_all_that_apply",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Boss_Slayer",
+      "difficulty": "medium",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "prompt": "Select the bosses that can be assigned as a boss task by a Slayer master.",
+        "options": [
+          "The Nightmare",
+          "Maggot King",
+          "Barrows brothers",
+          "Moons of Peril",
+          "Chaos Fanatic",
+          "Zulrah"
+        ],
+        "answer_indices": [
+          1,
+          2,
+          4,
+          5
+        ]
+      }
     }
   ]
 }

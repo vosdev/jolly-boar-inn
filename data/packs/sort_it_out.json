@@ -2873,6 +2873,53 @@
         "explanation": "Clay needs water to become soft clay. A lectern in your house turns soft clay and runes into a tablet, which teleports you when you break it."
       },
       "difficulty": "easy"
+    },
+    {
+      "id": "q_4cc4e3197670fa7b",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Elf",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "ends": [
+          "Shortest",
+          "Tallest"
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "prompt": "Sort these races by height.",
+        "entries": [
+          {
+            "rank": 1,
+            "text": "Gnomes"
+          },
+          {
+            "rank": 2,
+            "text": "Dwarves"
+          },
+          {
+            "rank": 3,
+            "text": "Goblins"
+          },
+          {
+            "rank": 4,
+            "text": "Humans"
+          },
+          {
+            "rank": 5,
+            "text": "Elves"
+          }
+        ],
+        "explanation": "Gnomes are the shortest, followed by dwarves, goblins, humans and finally the tall elves!"
+      }
     }
   ]
 }

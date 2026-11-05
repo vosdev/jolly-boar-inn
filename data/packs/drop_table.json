@@ -1534,6 +1534,27 @@
       },
       "wiki": "https://oldschool.runescape.wiki/w/Slayer",
       "difficulty": "medium"
+    },
+    {
+      "id": "q_1c4718f8b1aff004",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Ranger_boots",
+      "difficulty": "easy",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "prompt": "What tier of clue scroll do you have to complete for a chance to receive ranger boots?",
+        "options": [
+          "Medium",
+          "Easy",
+          "Hard",
+          "Elite"
+        ],
+        "answer_index": 0
+      }
     }
   ]
 }
