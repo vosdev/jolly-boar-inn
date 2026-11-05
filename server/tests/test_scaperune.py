@@ -38,10 +38,10 @@ def test_anything_but_four_options_is_refused(options: list[str]) -> None:
     assert mode_errors({**question, "payload": payload})
 
 
-def test_the_pack_holds_sixty_answers_and_some_are_ordered() -> None:
+def test_the_pack_holds_at_least_sixty_different_answers_and_some_are_ordered() -> None:
     pack = questions()
-    assert len(pack) == 60
-    assert len({q["payload"]["prompt"] for q in pack}) == 60
+    assert len(pack) >= 60
+    assert len({q["payload"]["prompt"] for q in pack}) == len(pack)
     assert sum("\n" in q["payload"]["prompt"] for q in pack) >= 10
 
 

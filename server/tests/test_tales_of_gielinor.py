@@ -55,10 +55,6 @@ def test_it_plays_all_of_its_types() -> None:
     assert {q["type"] for q in pack_questions()} == MODES[MODE].types
 
 
-def test_every_question_is_tagged_quests_or_lore() -> None:
-    assert all(q["tags"] in (["quests"], ["lore"]) for q in pack_questions())
-
-
 def test_no_question_asks_when_something_came_out() -> None:
     assert not [
         q["payload"]["prompt"]

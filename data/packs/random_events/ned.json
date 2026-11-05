@@ -119,6 +119,34 @@
         "answer_index": 1,
         "explanation": "The Tempor Tantrum opens at 30 Sailing, the Jubbly Jive at 55 and the Gwenith Glide at 72."
       }
+    },
+    {
+      "id": "q_358bbae149b60667",
+      "type": "pick_all_that_apply",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Shipwright",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "intro": "Ah, that's a mighty fine ship you have there, but it looks like it could do with a little makeover.",
+        "prompt": "Select the ports that have a shipwright, who allows you to customise your boat.",
+        "options": [
+          "Port Roberts",
+          "Port Khazard",
+          "Port Tyras",
+          "Port Sarim",
+          "Port Piscarilius"
+        ],
+        "explanation": "While Port Tyras has a notice board and ledger table, the nearest shipwright from there is in Prifddinas.",
+        "answer_indices": [
+          0,
+          1,
+          3,
+          4
+        ]
+      }
     }
   ]
 }

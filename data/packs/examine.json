@@ -579,6 +579,30 @@
         ],
         "answer_index": 0
       }
+    },
+    {
+      "id": "q_b1deb9c6ff3b0be4",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Elemental_amulet",
+      "difficulty": "easy",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "prompt": "Water, earth, fire, air. The four elements living together in harmony.",
+        "options": [
+          "Elemental amulet",
+          "Elemental talisman",
+          "Ring of the elements",
+          "Elemental tiara",
+          "Giantsoul amulet"
+        ],
+        "answer_index": 0
+      }
     }
   ]
 }

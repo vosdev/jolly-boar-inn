@@ -102,6 +102,34 @@
         "answer_index": 2,
         "explanation": "A cooked karambwan can be eaten in the same tick right after other food. That trick is called combo eating."
       }
+    },
+    {
+      "id": "q_fc2d1c79903b5271",
+      "type": "pick_all_that_apply",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Energy#Energy-restoring_action",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "intro": "Oh dear, you must be tired from all the running around just to avoid me!",
+        "picks": 3,
+        "prompt": "Select the foods that restore run energy when eaten.",
+        "options": [
+          "Dragonfruit pie",
+          "Peach",
+          "Cooked dashing kebbit",
+          "Yellowfin",
+          "Strange fruit",
+          "Chilli potato"
+        ],
+        "answer_indices": [
+          2,
+          3,
+          4
+        ]
+      }
     }
   ]
 }

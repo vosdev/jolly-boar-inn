@@ -818,6 +818,237 @@
         "prompt": "How many different monsters have the Godsword shards on their drop table?",
         "explanation": "Each of the 4 generals and each of their 4 sergeants can drop the Godsword shards!"
       }
+    },
+    {
+      "id": "q_ef04d7be5b32b7a1",
+      "type": "multiple_choice",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Turoth",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "How many legs and/or arms does a Turoth have?",
+        "options": [
+          "5",
+          "3",
+          "2",
+          "4"
+        ],
+        "explanation": "Turoths have a total of three! Two at the front and one at the back.",
+        "answer_index": 1
+      }
+    },
+    {
+      "id": "q_fe6d563ca8786ef5",
+      "type": "number_slider",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Shellbane_gryphon",
+      "difficulty": "medium",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "max": 100,
+        "min": 0,
+        "scale": "linear",
+        "answer": 40,
+        "prompt": "At least how much does your equipment need to weigh (in kg) to counter the Shellbane gryphon's knockback attack?"
+      }
+    },
+    {
+      "id": "q_d47c87863a2f7cca",
+      "type": "free_text",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Corporeal_Beast",
+      "difficulty": "easy",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "prompt": "What is the name of the leaping monster spawned by the Corporeal Beast?",
+        "accepted": [
+          "Dark energy core",
+          "Dark core"
+        ]
+      }
+    },
+    {
+      "id": "q_7c7b8745f3cbc09c",
+      "type": "free_text",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/The_Praying_Mantis",
+      "difficulty": "medium",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "prompt": "What boss is based on a real-life praying mantis?",
+        "accepted": [
+          "Doom of Mokhaiotl",
+          "Doom",
+          "The Doom",
+          "Mokhaiotl",
+          "Ayak",
+          "Osto-Ayak",
+          "Osto"
+        ],
+        "explanation": "The Doom of Mokhaiotl even has a combat achievement called \"The Praying Mantis\"."
+      }
+    },
+    {
+      "id": "q_32eb6ec08e7a1127",
+      "type": "pick_all_that_apply",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Boss",
+      "difficulty": "medium",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "prompt": "Select the bosses that use all three combat styles.",
+        "options": [
+          "Scurrius",
+          "TzTok-Jad",
+          "Vorkath",
+          "Hespori",
+          "The Hueycoatl"
+        ],
+        "explanation": "These bosses can all use magic and ranged attacks. Only Hespori can't attack with melee as well.",
+        "answer_indices": [
+          0,
+          1,
+          2,
+          4
+        ]
+      }
+    },
+    {
+      "id": "q_4e90bec08767bb9b",
+      "type": "free_text",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Marim",
+      "difficulty": "medium",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "prompt": "What is the monkey settlement on Ape Atoll called?",
+        "accepted": [
+          "Marim"
+        ]
+      }
+    },
+    {
+      "id": "q_3cde7c2e8414f91a",
+      "type": "number_slider",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Slayer_task/Greater_demons",
+      "difficulty": "easy",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "max": 16,
+        "min": 0,
+        "scale": "linear",
+        "answer": 2,
+        "prompt": "How many greater demons can be found in the God Wars Dungeon?",
+        "explanation": "Only K'ril Tsutsaroth and his bodyguard Tstanon Karlak are considered greater demons. His other two bodyguards are a black demon and a lesser demon."
+      }
+    },
+    {
+      "id": "q_c5c846a07d4cec96",
+      "type": "free_text",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Mad_Angel",
+      "difficulty": "easy",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "prompt": "What is the name of the weapon held by the Mad Angel?",
+        "accepted": [
+          "Hallowfell"
+        ],
+        "max_distance": 2
+      }
+    },
+    {
+      "id": "q_96b22152e708eb8e",
+      "type": "multiple_choice",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/File:The_Mimic_fight_area.png",
+      "difficulty": "hard",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "prompt": "Which piece of jewellery is seen in the area where the Mimic is fought?",
+        "options": [
+          "Tormented bracelet (or)",
+          "Ring of coins",
+          "Amulet of glory (t)",
+          "3rd age amulet"
+        ],
+        "answer_index": 2
+      }
+    },
+    {
+      "id": "q_9c49f2effc09b4f5",
+      "type": "free_text",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Abyssal_potato",
+      "difficulty": "hard",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "prompt": "What item can be given to Brutus to turn him into a powerful demonic version of himself?",
+        "accepted": [
+          "Abyssal potato",
+          "Abby potato",
+          "Demonic potato",
+          "Red potato"
+        ]
+      }
+    },
+    {
+      "id": "q_64d2076f31d21390",
+      "type": "pick_all_that_apply",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Golem_(attribute)",
+      "difficulty": "medium",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "prompt": "Select the monsters that take additional damage from granite hammers.",
+        "options": [
+          "Mad Angel",
+          "Earth elemental",
+          "Runite golem",
+          "Tekton",
+          "Dawn"
+        ],
+        "explanation": "Granite hammers have improved accuracy and damage against monsters classified as a golem. While the earth elemental and Tekton both appear as golems, they are not actually considered golems.",
+        "answer_indices": [
+          0,
+          2,
+          4
+        ]
+      }
     }
   ]
 }

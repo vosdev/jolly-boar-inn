@@ -150,6 +150,15 @@ def test_an_npc_question_lands_in_its_file_with_its_credit(repo: dict[str, Path]
     assert loads(repo)
 
 
+def test_accents_and_curly_quotes_are_written_as_themselves(repo: dict[str, Path]) -> None:
+    question = deepcopy(QUESTION)
+    question["payload"]["prompt"] = "Who is Veronica’s fiancé?"
+    assert run(repo, {"questions": [question]}) == 0
+    text = (repo["packs"] / "random_events" / "bob.json").read_text(encoding="utf-8")
+    assert "Who is Veronica’s fiancé?" in text
+    assert "\\u" not in text
+
+
 def test_a_quote_and_its_source_url_reach_the_pack_as_they_are(repo: dict[str, Path]) -> None:
     payload = {
         "prompt": "Who said this?",

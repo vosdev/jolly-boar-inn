@@ -116,6 +116,43 @@
         "answer_index": 1,
         "explanation": "In Giants' Foundry, unlocked by Sleeping Giants, you cast and refine giant swords for Kovac."
       }
+    },
+    {
+      "id": "q_b8cef9f7e644ffe9",
+      "type": "number_slider",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Broken_zombie_axe",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "max": 99,
+        "min": 1,
+        "intro": "Mmyum, for the right price I will help you fix anything you want!",
+        "scale": "linear",
+        "answer": 70,
+        "prompt": "What is the required Smithing level to repair a broken zombie axe?"
+      }
+    },
+    {
+      "id": "q_e74fe5564f242d21",
+      "type": "free_text",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Orikalkum",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "intro": "Humans often feel the need to simplify things...",
+        "prompt": "What is the common name for the red-coloured metal orikalkum?",
+        "accepted": [
+          "Dragon",
+          "Dragon metal"
+        ],
+        "explanation": "Why, it's dragon, of course!"
+      }
     }
   ]
 }

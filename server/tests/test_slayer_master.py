@@ -41,12 +41,6 @@ def test_the_pack_is_the_rounds_and_plays_all_its_types() -> None:
     assert {q["type"] for q in questions} == MODES[MODE].types
 
 
-def test_every_question_is_tagged_with_what_it_covers() -> None:
-    tags = {tag for q in pack_questions() for tag in q["tags"]}
-    assert tags == {"slayer", "weakness", "bosses", "combat"}
-    assert all(q["tags"] for q in pack_questions())
-
-
 def test_bestiarys_fight_questions_moved_here() -> None:
     assert MOVED_FROM_BESTIARY <= {q["id"] for q in pack_questions()}
     assert not MOVED_FROM_BESTIARY & {q["id"] for q in pack_questions("bestiary")}

@@ -102,6 +102,49 @@
         "scale": "linear",
         "explanation": "Vengeance is a level 94 Lunar spell that sends 75% of the next hit you take back at the attacker."
       }
+    },
+    {
+      "id": "q_473cf150e1cd1d8a",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Rune_pouch",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "intro": "You sweeties can only hold so many things in your 28-slot inventory. Luckily there are some solutions for that!",
+        "answer": 16000,
+        "prompt": "How many runes of each type can a rune pouch or divine rune pouch hold?"
+      }
+    },
+    {
+      "id": "q_4072b30d458d5d4e",
+      "type": "pick_all_that_apply",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Teleportation_spells",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "intro": "Ah! Don't you love teleportation? I could teleport you off this island right now!",
+        "picks": 3,
+        "prompt": "Which of these teleport spells from the standard spellbook have multiple possible destinations?",
+        "options": [
+          "Trollheim teleport",
+          "Ardougne teleport",
+          "Camelot teleport",
+          "Varrock teleport",
+          "Watchtower teleport"
+        ],
+        "explanation": "The Watchtower, Varrock, and Camelot teleports gain a second teleport option through the achievement diaries.",
+        "answer_indices": [
+          2,
+          3,
+          4
+        ]
+      }
     }
   ]
 }

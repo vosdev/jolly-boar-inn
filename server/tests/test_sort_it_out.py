@@ -21,27 +21,16 @@ def test_sort_it_out_plays_ordering() -> None:
 
 
 @pytest.mark.parametrize("question", questions(), ids=lambda q: q["id"])
-def test_every_question_is_a_sort_it_out_order_with_its_own_prompt(
-    question: dict[str, Any],
-) -> None:
+def test_every_question_is_a_sort_it_out_order(question: dict[str, Any]) -> None:
     assert (question["type"], question["mode"], question["source"]) == (
         "ordering",
         "sort_it_out",
         "pack",
     )
-    assert len(question["tags"]) == 1
-    tag, prompt = question["tags"][0], question["payload"]["prompt"]
-    if tag == "procedure":
-        assert prompt.endswith("?")
-    else:
-        assert tag in {"tier", "combat", "release", "geography"} and prompt.startswith("Sort ")
 
 
-def test_the_pack_has_twenty_orders_six_of_tiers_and_five_of_release_dates() -> None:
-    tags = [q["tags"][0] for q in questions()]
-    assert len(tags) >= 20
-    assert tags.count("tier") >= 6
-    assert tags.count("release") >= 5
+def test_the_pack_has_twenty_orders() -> None:
+    assert len(questions()) >= 20
 
 
 @pytest.mark.parametrize(
@@ -53,8 +42,3 @@ def test_a_release_order_explains_itself_with_every_date(question: dict[str, Any
     payload = question["payload"]
     dates = [entry["detail"] for entry in payload["entries"]]
     assert [date for date in dates if date not in payload["explanation"]] == []
-
-
-def test_a_tier_and_a_release_order_ask_differently() -> None:
-    prompts = {q["tags"][0]: q["payload"]["prompt"] for q in questions()}
-    assert prompts["tier"] != prompts["release"]

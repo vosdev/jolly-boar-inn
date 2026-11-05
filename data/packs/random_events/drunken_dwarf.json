@@ -115,15 +115,41 @@
       "credit_shown": true,
       "payload": {
         "intro": "Suddenly, a chorus of drunken dwarves says \"Ello der!\"",
-        "prompt": "You\u2019ll see seven drunken dwarves on your boat when you taste a bottle of what?",
+        "prompt": "You’ll see seven drunken dwarves on your boat when you taste a bottle of what?",
         "options": [
           "Platinum rum",
           "Crystal clear vodka",
           "Zul-rye beer",
-          "Dwarven wizard\u2019s stout bomb"
+          "Dwarven wizard’s stout bomb"
         ],
         "explanation": "One bottle of platinum rum can be found in a crate just south of Sunbleak Island.",
         "answer_index": 0
+      }
+    },
+    {
+      "id": "q_d0c3f276101a6a8e",
+      "type": "pick_all_that_apply",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Sailing#Temporary_boosts",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "intro": "The sea people! *Hic* Oi saw them drinking something I've never seen before! It was blue! Blue!",
+        "prompt": "Which skills are temporarily boosted when drinking a whirlpool surprise?",
+        "options": [
+          "Agility",
+          "Magic",
+          "Cooking",
+          "Fishing",
+          "Sailing"
+        ],
+        "explanation": "Thish drink is a reward from the first Barracuda Trial. It seemsh to boost Sailing and Cooking but drains Agility!",
+        "answer_indices": [
+          2,
+          4
+        ]
       }
     }
   ]

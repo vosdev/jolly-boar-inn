@@ -131,6 +131,51 @@
         "explanation": "His surname Gontamue is an anagram of Montague, the name of Romeo's family in Romeo and Juliet",
         "answer_index": 1
       }
+    },
+    {
+      "id": "q_0d7f61363a17ba2c",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/The_Gauntlet#Corrupted_Gauntlet",
+      "credit": "TwintigApril",
+      "payload": {
+        "intro": "If you could confirm this scary sounding place for me, I can complete my records.",
+        "prompt": "What area is known as the Red Prison?",
+        "options": [
+          "Corrupted Gauntlet",
+          "Agility training",
+          "Theatre of Blood",
+          "Fight Caves",
+          "Mor Ul Rek",
+          "The Red Keep"
+        ],
+        "explanation": "The Corrupted Gauntlet is known as the Red Prison because it stops many ironmen from progressing into the late game.",
+        "answer_index": 0
+      }
+    },
+    {
+      "id": "q_8861e22e56cb256b",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Civitas_illa_fortis_teleport_(tablet)",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "intro": "The logic in this section of my books seems to be faulty, can you answer me this?",
+        "prompt": "What letter is written on a teleport tablet to Civitas illa Fortis?",
+        "options": [
+          "F",
+          "None",
+          "C",
+          "V"
+        ],
+        "explanation": "The tablet and the related teleport spell depict a sun instead of a letter.",
+        "answer_index": 1
+      }
     }
   ]
 }
