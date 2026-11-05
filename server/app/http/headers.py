@@ -1,7 +1,8 @@
 """Response headers from section 7 of ideas/architecture.md, on every response.
 
 ``Referrer-Policy: no-referrer`` and ``X-Content-Type-Options: nosniff`` everywhere;
-``Cache-Control: no-store`` on ``/api/*`` (static responses keep their own caching).
+``Cache-Control: no-store`` and ``X-App-Version`` on ``/api/*`` (static responses keep their own
+caching), so a tab built from another version finds out on its next call.
 Pure ASGI so it wraps every route, exception handler and the static fallback alike.
 
 No HSTS: TLS terminates at the reverse proxy, and a self-hoster serving plain HTTP on
@@ -12,6 +13,8 @@ from urllib.parse import urlsplit
 
 from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
+
+from app.config import APP_VERSION
 
 
 # The built client loads only hashed files from its own origin and has no inline
@@ -61,6 +64,7 @@ class SecurityHeaders:
                 headers["X-Frame-Options"] = "DENY"
                 if is_api:
                     headers["Cache-Control"] = "no-store"
+                    headers["X-App-Version"] = APP_VERSION
             await send(message)
 
         await self.app(scope, receive, send_with_headers)

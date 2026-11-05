@@ -632,7 +632,9 @@ Client (`lib/ws.ts`):
 3. On `visibilitychange` or `online`, reconnect a closed socket at once, and ping one that claims to
    be open, reconnecting if nothing arrives in 4 s. Phones lie after sleep.
 4. Ping every 30 s. No frame in 10 s closes the socket. So does an `answer` unanswered in 5 s.
-5. A `welcome` with a different `server_version` reloads the page, once per version.
+5. A `welcome` with a different `server_version` reloads the page at once; an API response's
+   different `X-App-Version` (`lib/version.ts`) at the next navigation or tab return. Once per
+   version. A lazy chunk gone after a deploy (`vite:preloadError`) reloads at once, once per build.
 
 Server `connect`: find `sha256(session)` in the room or close 4001. The last device wins: an older
 socket closes with 4000. A disconnect keeps the player and their answers.
@@ -733,7 +735,7 @@ Limits:
 - Display names have no word filter: rooms are closed lobbies. Revisit if public rooms see abuse.
 
 `http/headers.py` sets `Referrer-Policy: no-referrer`, `nosniff`, `X-Frame-Options: DENY`,
-`Cache-Control: no-store` on `/api/*`, and a CSP of `default-src 'none'` widened to `'self'` per
+`Cache-Control: no-store` and `X-App-Version` on `/api/*`, and a CSP of `default-src 'none'` widened to `'self'` per
 directive plus `img-src data:`, with `base-uri`, `form-action` and `frame-ancestors` at `'none'`.
 The build has no inline script or style. The access log drops query strings. There is no HSTS: TLS
 ends at the proxy, and HSTS would lock out a LAN selfhoster on plain HTTP.

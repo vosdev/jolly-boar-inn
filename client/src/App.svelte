@@ -54,6 +54,7 @@
   import { room, you } from './lib/stores'
   import { wearTeam } from './lib/teams'
   import { timerBar } from './lib/timerbar'
+  import { reloadIfNewer } from './lib/version'
 
   type Route =
     | { name: 'home' }
@@ -138,6 +139,7 @@
   /** `state` rides along in `history.state`, for the screen at `to` to read. */
   function navigate(to: string, state: unknown = null): void {
     if (to !== location.pathname) history.pushState(state, '', to)
+    if (reloadIfNewer()) return
     route = resolve(currentPath())
   }
 
@@ -161,6 +163,7 @@
       history.replaceState(null, '', route.name === 'home' ? '/' : `/r/${route.code}`)
     }
     const onPop = (): void => {
+      if (reloadIfNewer()) return
       route = resolve(currentPath())
     }
     addEventListener('popstate', onPop)
