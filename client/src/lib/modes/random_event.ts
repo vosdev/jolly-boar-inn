@@ -1,5 +1,5 @@
 import { HOUSE } from '../house'
-import type { Mode } from '../modes'
+import type { Mode, SuggestCard } from '../modes'
 
 // Never a round either: the NPCs' own questions, each asked by the NPC it was written
 // for (`lib/randomEvents.ts`, `components/RandomEvent.svelte`). Here for its stem.
@@ -72,4 +72,11 @@ export const mode: Mode = {
   },
   // In character, and still a sentence.
   stem: 'text',
+}
+
+export const card: SuggestCard = {
+  place: 1,
+  label: 'A random event question',
+  hint: 'Asked by an NPC in the middle of a round.',
+  host: 'sandwich_lady',
 }

@@ -20,8 +20,8 @@ host's own questions and
 
 A mode's rules are here as data, so no other module keeps a list of mode ids: its stem,
 how players suggest for it (``Suggest``) and how it is reported and compared. Rounds not
-built yet take suggestions from ``UPCOMING``. Copy -- what a mode is called and how it is
-explained -- is not here. It stays on the client, in ``lib/modes/``.
+built yet take suggestions from ``UPCOMING``, or wait in ``PLANNED``. Copy -- what a mode
+is called and how it is explained -- is not here. It stays on the client, in ``lib/modes/``.
 """
 
 from collections.abc import Callable, Collection, Iterable
@@ -197,6 +197,15 @@ UPCOMING: dict[str, Suggest] = {
     "release_order": Suggest(types=frozenset({"ordering"})),
 }
 
+# Rounds still being planned, which take no suggestions yet: the create form shows each as a
+# card to come, after ``UPCOMING``'s, in this order. Their copy is the client's.
+PLANNED: tuple[str, ...] = (
+    "name_that_spell",
+    "minimap_guesser",
+    "scrying_pool",
+    "lost_in_gielinor",
+)
+
 # Every mode a player may write a question for, built or not.
 SUGGESTIBLE: dict[str, Suggest] = {
     **{mode.id: mode.suggest for mode in MODES.values() if mode.suggest is not None},
@@ -338,5 +347,6 @@ _broken = [p for mode in MODES.values() for p in problems(mode)]
 _broken += [f"{key}: filed as {mode.id!r}" for key, mode in MODES.items() if mode.id != key]
 _broken += [p for key, rules in UPCOMING.items() for p in suggest_problems(key, rules)]
 _broken += [f"{key}: upcoming, yet the registry plays it" for key in UPCOMING.keys() & MODES.keys()]
+_broken += [f"{key}: planned, yet built or upcoming" for key in {*PLANNED} & {*MODES, *UPCOMING}]
 if _broken:
     raise RuntimeError("; ".join(_broken))

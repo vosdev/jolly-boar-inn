@@ -10,12 +10,9 @@
  */
 
 import { randomEventFor } from './randomEvents'
+import { suggestRulesOf } from './modeRules'
 import { questionLine, reportHost, type PackQuestion } from './reports'
-import {
-  NO_EXPLANATION_ROUNDS,
-  SUGGESTED_TYPE_LABELS,
-  type QuestionDifficulty,
-} from './suggestions'
+import { SUGGESTED_TYPE_LABELS, type QuestionDifficulty } from './suggestions'
 import { fold } from './vocab'
 
 export type ChangeAction = 'edit' | 'delete'
@@ -46,15 +43,14 @@ export interface QuestionEdit {
   credit_shown?: boolean
 }
 
-/** The rounds whose prompt carries a quotation, as `QUOTE_MODES` on the server. */
-const QUOTE_MODES = new Set(['who_said_that', 'know_your_content_creator'])
-
+/** Whether a question of `mode` may carry a quotation under its prompt. */
 export function showsQuote(mode: string): boolean {
-  return QUOTE_MODES.has(mode)
+  return suggestRulesOf(mode)?.quote ?? false
 }
 
+/** Whether a question of `mode` may carry an explanation. */
 export function showsExplanation(mode: string): boolean {
-  return !NO_EXPLANATION_ROUNDS.includes(mode)
+  return suggestRulesOf(mode)?.explanation ?? true
 }
 
 /** The envelope fields an edit may change, as `question` has them. */

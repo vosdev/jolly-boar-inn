@@ -83,7 +83,6 @@ export const mode: Mode = {
   // The prompt is the same line every time, which the host's ask line says; the picture
   // alone is the question.
   stem: null,
-  picture: 'build',
 }
 
 export const sample: Sample = {
@@ -92,5 +91,4 @@ export const sample: Sample = {
   view: { prompt: 'Which item is this?', vocab: 'items' },
   answer: 4151,
   subject: { name: 'Abyssal whip' },
-  steps: { build: 17, of: 25 },
 }

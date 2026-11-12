@@ -1,5 +1,5 @@
 import type { FormWording } from '../customQuestions'
-import type { Mode } from '../modes'
+import type { Mode, SuggestCard } from '../modes'
 import type { FieldHints } from '../placeholders'
 import type { Sample } from '../samples'
 
@@ -104,10 +104,11 @@ export const sample: Sample = {
     ],
   },
   answer: 0,
-  extra: 12,
 }
 
 export const wording: FormWording = {
   prompt: 'The answer shown on the board (one entry per line for an ordered list)',
   option: 'question',
 }
+
+export const card: SuggestCard = { place: 9 }

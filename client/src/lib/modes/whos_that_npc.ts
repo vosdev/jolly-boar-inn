@@ -1,4 +1,4 @@
-import type { Mode } from '../modes'
+import type { Mode, SuggestCard } from '../modes'
 import type { Sample } from '../samples'
 
 export const mode: Mode = {
@@ -83,7 +83,6 @@ export const mode: Mode = {
   // The prompt is the same line every time, which the host's ask line says; the picture
   // alone is the question.
   stem: null,
-  picture: 'shadow',
 }
 
 export const sample: Sample = {
@@ -93,3 +92,5 @@ export const sample: Sample = {
   answer: 817,
   subject: { name: 'Elvarg' },
 }
+
+export const card: SuggestCard = { place: 13 }

@@ -1,5 +1,6 @@
 """Suggestions: what a player may send, the limit on sending, and the operator's queue."""
 
+import json
 import re
 from collections.abc import Iterator
 from copy import deepcopy
@@ -16,6 +17,7 @@ from app.config import Settings
 from app.http.ratelimit import SUGGESTIONS_PER_HOUR, RateLimiter, client_key
 from app.main import create_app
 from app.modes import round_modes
+from app.modes.rules import MODES_PATH
 from app.questions.submission import Submission
 from app.questions.types import matching, multiple_choice
 from app.rooms import queries
@@ -386,25 +388,28 @@ def test_a_question_needs_a_wiki_page_or_another_source(client: TestClient) -> N
     assert all(r["playable"] for r in rows)
 
 
-def test_the_form_offers_a_quote_only_to_the_rounds_that_show_one() -> None:
+def _read_by_the_form(rule: str) -> set[str]:
+    """The modes whose suggestion rule ``rule`` is set in ``schema/modes.json``, which the form
+    reads it from, once ``lib/suggestions.ts`` is shown to read that rule."""
     source = client_source.read("lib/suggestions.ts")
-    rounds = re.search(r"const QUOTE_ROUNDS = \[([^\]]*)\]", source)
-    assert rounds is not None
-    assert set(re.findall(r"'([a-z_]+)'", rounds.group(1))) == set(QUOTE_MODES)
+    assert re.search(rf"(rules|\))\??\.{rule}\b", source), f"the form does not read {rule}"
+    held = json.loads(MODES_PATH.read_text(encoding="utf-8"))
+    entries = [(m["id"], m["suggest"]) for m in held["modes"]] + [
+        (u["id"], u["suggest"]) for u in held["upcoming"]
+    ]
+    return {mode for mode, rules in entries if rules is not None and rules[rule]}
+
+
+def test_the_form_offers_a_quote_only_to_the_rounds_that_show_one() -> None:
+    assert _read_by_the_form("quote") == set(QUOTE_MODES)
 
 
 def test_the_form_offers_no_explanation_to_the_rounds_that_show_none() -> None:
-    source = client_source.read("lib/suggestions.ts")
-    rounds = re.search(r"const NO_EXPLANATION_ROUNDS = \[([^\]]*)\]", source)
-    assert rounds is not None
-    assert set(re.findall(r"'([a-z_]+)'", rounds.group(1))) == set(NO_EXPLANATION_MODES)
+    assert set(QUESTION_MODES) - _read_by_the_form("explanation") == set(NO_EXPLANATION_MODES)
 
 
 def test_the_form_offers_no_difficulty_to_the_rounds_that_ignore_it() -> None:
-    source = client_source.read("lib/suggestions.ts")
-    rounds = re.search(r"const NO_DIFFICULTY_ROUNDS = \[([^\]]*)\]", source)
-    assert rounds is not None
-    assert set(re.findall(r"'([a-z_]+)'", rounds.group(1))) == set(NO_DIFFICULTY_MODES)
+    assert set(QUESTION_MODES) - _read_by_the_form("difficulty") == set(NO_DIFFICULTY_MODES)
 
 
 def test_an_odd_one_out_question_asks_the_rounds_own_prompt() -> None:
@@ -414,9 +419,11 @@ def test_an_odd_one_out_question_asks_the_rounds_own_prompt() -> None:
 
 
 def test_the_form_holds_the_same_rounds_to_the_same_prompts() -> None:
-    source = client_source.read("lib/suggestions.ts")
-    fixed = re.findall(r"(\w+): \{ text: \"([^\"]*)\", fixed: true \}", source)
-    assert dict(fixed) == FIXED_PROMPTS
+    held = json.loads(MODES_PATH.read_text(encoding="utf-8"))["modes"]
+    fixed = {m["id"]: m["suggest"]["fixed_prompt"] for m in held if m["suggest"] is not None}
+    assert _read_by_the_form("fixed_prompt") == set(FIXED_PROMPTS)
+    assert {mode: fixed[mode] for mode in FIXED_PROMPTS} == FIXED_PROMPTS
+    assert "{ text: rules.fixed_prompt, fixed: true }" in client_source.read("lib/suggestions.ts")
 
 
 def test_a_release_order_suggestion_waits_as_not_playable(client: TestClient) -> None:
@@ -802,10 +809,7 @@ def test_a_minigame_madness_question_names_an_item_to_picture(client: TestClient
 
 
 def test_the_form_offers_a_picture_item_only_to_the_rounds_that_take_one() -> None:
-    source = client_source.read("lib/suggestions.ts")
-    rounds = re.search(r"const PICTURE_ITEM_ROUNDS = \[([^\]]*)\]", source)
-    assert rounds is not None
-    assert set(re.findall(r"'([a-z_]+)'", rounds.group(1))) == set(PICTURE_ITEM_MODES)
+    assert _read_by_the_form("picture_item") == set(PICTURE_ITEM_MODES)
 
 
 # Rounds suggested for on another card: the price rounds and Pixel Hunt play the items players
@@ -866,14 +870,8 @@ def test_know_your_content_creator_takes_a_number(client: TestClient) -> None:
 
 
 def test_the_form_offers_the_modes_the_server_takes() -> None:
-    source = client_source.read("lib/suggestions.ts")
-    offered = {"random_event"}
-    names = ("CHOICE_ROUNDS", "ORDERING_ROUNDS", "NAMED_ROUNDS", "VERSE_ROUNDS", "MAP_ROUNDS")
-    for name in names:
-        rounds = re.search(rf"const {name} = \[([^\]]*)\]", source)
-        assert rounds is not None
-        offered |= set(re.findall(r"'([a-z_]+)'", rounds.group(1)))
-    assert offered == set(QUESTION_MODES)
+    assert "[...SUGGESTIBLE]" in client_source.read("lib/suggestions.ts")
+    assert _read_by_the_form("types") == set(QUESTION_MODES)
 
 
 FALADOR = {"name": "Falador", "min_x": 2940, "max_x": 3060, "min_y": 3310, "max_y": 3400}
@@ -1120,10 +1118,7 @@ def test_an_npc_may_ask_an_ordering_with_an_intro(client: TestClient) -> None:
 
 
 def test_the_form_offers_an_intro_only_to_the_rounds_that_show_one() -> None:
-    source = client_source.read("lib/suggestions.ts")
-    rounds = re.search(r"const INTRO_ROUNDS = \[([^\]]*)\]", source)
-    assert rounds is not None
-    assert set(re.findall(r"'([a-z_]+)'", rounds.group(1))) == set(INTRO_MODES)
+    assert _read_by_the_form("intro") == set(INTRO_MODES)
 
 
 def test_a_sort_it_out_suggestion_exports_with_its_ordering(client: TestClient) -> None:

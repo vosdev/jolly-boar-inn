@@ -11,6 +11,7 @@
  * question. A mixed mode's sample is one of its types.
  */
 
+import { rulesOf } from './modeRules'
 import { modeCopy } from './modes'
 import { npcArt } from './npcs'
 import type { PlayerResult } from './protocol'
@@ -36,7 +37,7 @@ export interface OneAnswerSample extends SampleBase {
   answer: number
   /** More or Less's reveal: each option's value, in the shown order. */
   values?: number[]
-  /** The seconds its mode adds to the answer. */
+  /** The seconds its mode adds to the answer: the registry's, never its mode file's. */
   extra?: number
 }
 
@@ -57,13 +58,31 @@ export interface ListSample extends SampleBase {
   /** The vocabulary entry that is right, which is also the id of its art. */
   answer: number
   subject: { name: string }
-  /** The mode's `Steps`, where its picture builds up and points fall with it. */
+  /** The mode's `Steps`, where its picture builds up and points fall with it: the registry's. */
   steps?: { build: number; of: number }
 }
 
 export type Sample = OneAnswerSample | PriceSample | OrderingSample | ListSample
 
-export const SAMPLES: Record<string, Sample> = modeCopy('sample')
+/** A mode file's sample, with what its mode's registry entry adds to the time and the points. */
+function withRules(sample: Sample): Sample {
+  const rules = rulesOf(sample.mode)
+  if (rules === undefined) return sample
+  if (
+    (sample.type === 'more_less' || sample.type === 'multiple_choice') &&
+    rules.extra_answer > 0
+  ) {
+    return { ...sample, extra: rules.extra_answer }
+  }
+  if (sample.type === 'pick_from_list' && rules.steps !== null) {
+    return { ...sample, steps: rules.steps }
+  }
+  return sample
+}
+
+export const SAMPLES: Record<string, Sample> = Object.fromEntries(
+  Object.entries(modeCopy('sample')).map(([id, sample]) => [id, withRules(sample)]),
+)
 
 /** How long a sample stays open, in seconds: its type's `ANSWER` at the room's usual pace. */
 export function sampleSeconds(sample: Sample): number {

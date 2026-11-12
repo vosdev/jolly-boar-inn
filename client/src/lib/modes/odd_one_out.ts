@@ -1,4 +1,4 @@
-import type { Mode } from '../modes'
+import type { Mode, SuggestCard } from '../modes'
 import type { FieldHints } from '../placeholders'
 import type { Sample } from '../samples'
 
@@ -99,3 +99,5 @@ export const sample: Sample = {
   },
   answer: 2,
 }
+
+export const card: SuggestCard = { place: 5, anyOptions: true }

@@ -19,6 +19,7 @@ from app import modes
 from app.config import REPO_ROOT
 from app.modes import (
     MODES,
+    PLANNED,
     SUGGESTIBLE,
     TRIVIA_TYPES,
     UPCOMING,
@@ -51,15 +52,10 @@ def test_custom_and_random_event_are_the_modes_that_are_not_rounds() -> None:
     assert [mode.id for mode in round_modes()] == [m for m in MODES if m not in EVENTS]
 
 
-def _between(source: str, start: str, end: str) -> str:
-    head = source.index(start)
-    return source[head : source.index(end, head)]
-
-
 def test_the_clients_mode_list_is_this_registry() -> None:
     """``lib/modes/`` has copy for every round, names no mode this server lacks, and
     lists as coming soon only ids the schema accepts and nothing already shipped;
-    ``lib/modes.ts`` lists the shipped ones in this registry's order."""
+    the registry lists every one coming soon, as ``UPCOMING`` or ``PLANNED``."""
     files = {
         path.stem: path.read_text(encoding="utf-8")
         for path in sorted((CLIENT_LIB / "modes").glob("*.ts"))
@@ -85,11 +81,7 @@ def test_the_clients_mode_list_is_this_registry() -> None:
     assert soon and all(re.fullmatch(pattern, mode) for mode in soon), soon
     assert len(set(soon)) == len(soon)
     assert not set(soon) & (set(MODES) | set(keys)), "shipped, and still coming soon"
-    listed = _between(
-        (CLIENT_LIB / "modes.ts").read_text(encoding="utf-8"), "export const MODE_IDS", "\n]\n"
-    )
-    order = re.findall(r"^  '([a-z0-9_]+)',$", listed, flags=re.MULTILINE)
-    assert [m for m in order if m in shipped] == [m for m in MODES if m in shipped]
+    assert sorted(soon) == sorted([*UPCOMING, *PLANNED]), "coming soon, yet not in the registry"
 
 
 def test_more_less_takes_the_registrys_round_length() -> None:
