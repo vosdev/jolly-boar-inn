@@ -10,12 +10,12 @@
    */
   import { tick } from 'svelte'
 
+  import { dismissable, type Dismissed } from '../lib/dismissable'
   import type { HostAction } from '../lib/hostMenu'
 
   let { actions }: { actions: HostAction[] } = $props()
 
   let open = $state(false)
-  let root = $state<HTMLElement | null>(null)
   let control = $state<HTMLButtonElement | null>(null)
   let panel = $state<HTMLElement | null>(null)
 
@@ -31,33 +31,20 @@
     action.run()
   }
 
-  function onWindowPointerDown(event: PointerEvent): void {
-    if (!open) return
-    const target = event.target
-    if (target instanceof Node && root?.contains(target)) return
+  function dismissed(by: Dismissed): void {
     open = false
-    setTimeout(() => {
-      if (document.activeElement === null || document.activeElement === document.body) {
-        control?.focus()
-      }
-    })
-  }
-
-  function onWindowKeyDown(event: KeyboardEvent): void {
-    if (event.key !== 'Escape' || !open) return
-    open = false
-    control?.focus()
-  }
-
-  function onFocusOut(event: FocusEvent): void {
-    const next = event.relatedTarget
-    if (open && next instanceof Node && !root?.contains(next)) open = false
+    if (by === 'escape') control?.focus()
+    // The browser moves focus after pointerdown; a tap on bare page gives it back here.
+    if (by === 'outside')
+      setTimeout(() => {
+        if (document.activeElement === null || document.activeElement === document.body) {
+          control?.focus()
+        }
+      })
   }
 </script>
 
-<svelte:window onpointerdown={onWindowPointerDown} onkeydown={onWindowKeyDown} />
-
-<div class="menu" bind:this={root} onfocusout={onFocusOut}>
+<div class="menu" use:dismissable={{ open, close: dismissed, tab: true }}>
   <button
     type="button"
     class="control host"

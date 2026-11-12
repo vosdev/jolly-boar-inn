@@ -47,6 +47,7 @@
   import { MediaQuery } from 'svelte/reactivity'
 
   import { Cooldown } from '../lib/cooldown.svelte'
+  import { dismissable, type Dismissed } from '../lib/dismissable'
   import { nameProblem } from '../lib/names'
   import { petOf, randomPet } from '../lib/pets'
   import { profile, saveProfile } from '../lib/profile'
@@ -79,7 +80,6 @@
   /** The pet the menu shows: picked here, and nobody else's business until Save. */
   let draftPet = $state<string | null>(null)
   let saved = $state<string | null>(null)
-  let root = $state<HTMLElement | null>(null)
   let control = $state<HTMLButtonElement | null>(null)
   let panel = $state<HTMLElement | null>(null)
   let theme = $state<Theme>(getTheme())
@@ -231,33 +231,19 @@
     }
   }
 
-  function onWindowPointerDown(event: PointerEvent): void {
-    if (!open) return
-    const target = event.target
-    if (target instanceof Node && root?.contains(target)) return
+  function dismissed(by: Dismissed): void {
     close()
+    if (by === 'escape') control?.focus()
     // The browser moves focus after pointerdown; once it has, anything focusable the tap
     // landed on keeps it, and a tap on bare page gives it back to the control.
-    setTimeout(() => {
-      if (document.activeElement === null || document.activeElement === document.body) {
-        control?.focus()
-      }
-    })
-  }
-
-  function onWindowKeyDown(event: KeyboardEvent): void {
-    if (event.key !== 'Escape' || !open) return
-    close()
-    control?.focus()
-  }
-
-  function onFocusOut(event: FocusEvent): void {
-    const next = event.relatedTarget
-    if (open && next instanceof Node && !root?.contains(next)) close()
+    if (by === 'outside')
+      setTimeout(() => {
+        if (document.activeElement === null || document.activeElement === document.body) {
+          control?.focus()
+        }
+      })
   }
 </script>
-
-<svelte:window onpointerdown={onWindowPointerDown} onkeydown={onWindowKeyDown} />
 
 {#snippet petPicker(inline: boolean)}
   <PetPicker
@@ -301,7 +287,7 @@
   </form>
 {/snippet}
 
-<div class="menu" bind:this={root} onfocusout={onFocusOut}>
+<div class="menu" use:dismissable={{ open, close: dismissed, tab: true }}>
   <button
     type="button"
     class="control chip"

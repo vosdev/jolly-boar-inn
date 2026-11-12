@@ -5,88 +5,69 @@
    * It is a stage like the splash's: Home's hero, the selfhoster's picture for the theme
    * (Broav, the inn's boar, here), or else the Wise Old Man, says the lobby line in the
    * bubble above a scroll that holds the code and the invite link. Under it a card per
-   * round, A–Z, and How to play; the players sit in the table panel, Ready over Not ready
-   * yet, as on the splash, with join requests, the teams, I'm ready and Start.
+   * round (`RoundCards`), and How to play; the players sit in the table panel, Ready over
+   * Not ready yet, as on the splash, with join requests, the teams, I'm ready and Start.
    *
    * Admin controls are shown from `you.role`, which comes from the server's snapshot.
    * That is a convenience, not a check: the server decides per message (section 7
-   * step 7), so a player who forges the flag gets `not_admin` back and nothing else.
+   * step 7), so a player who forges the flag gets `not_admin` back and nothing else. An
+   * admin taps a pet for the menu `lib/playerMenu.ts` builds. The TV watches: its pet wears
+   * a screen and sits apart under "TV", and its own lobby has no ready.
    *
    * The ready check is the splash's panel, with names (section 9 of ideas/design.md): the
    * host needs to know *who* is missing before pressing Start, because the answer is
    * usually somebody at the bar, and a name is something you can shout. Start is the plain
    * button once the room reaches the same threshold a splash uses; short of it, it is
-   * "Start anyway", which asks first.
-   *
-   * An admin taps a pet to kick its player or make them a host. Choosing Kick there is its
-   * confirmation, since a kicked player can join again; Make host asks once more, because
-   * there is no demote and an admin cannot be kicked. The same menu makes a player or another
-   * admin the room's TV, or the TV a player again, at once, since either can be undone. The TV
-   * watches: its pet wears a screen and sits apart under "TV", and its own lobby has no ready.
-   *
-   * A team game puts a button per god above the panel's halves, every god even with nobody
-   * on it yet, since an empty team is one to join; each half lists its players by god, the
-   * teamless under "No team". Tapping a god joins it; the server refuses that while ready, so the gods are not tappable then. Ready
-   * waits for a team, and Start for everyone to have one, in two teams or more (section 7 of
-   * ideas/architecture.md); each says why. The host moves a player from the same menu as
-   * kick, an admin too, since admins cannot be kicked but can play for the wrong god.
-   * The host also adds a god the room lacks and removes one, never below two; removing a
-   * team with players asks first, since they go back to no team and lose their ready.
+   * "Start anyway", which asks first. In a team game (`LobbyTeams`) each half lists its
+   * players by god, the teamless under "No team"; Ready waits for a team, and Start for
+   * everyone to have one, in two teams or more (section 7 of ideas/architecture.md); each
+   * says why. Below scale 1 the full-screen switch is offered with a line saying why.
    *
    * The sheet's code row is the code alone in the large face, with "Copy invite link" in the
    * row's top-right corner, or under the code where a phone leaves no room. The link itself
-   * is never drawn.
-   *
-   * Up to 8 rounds show as cards; from 9 the eighth tile is "+N more", a button that opens
-   * every round as the same cards in a popover (Escape, a click outside or the button closes
-   * it), so the panel does not outgrow the stage. Below scale 1 the full-screen switch is
-   * offered with a line saying why.
-   *
-   * "Copy invite link" copies the invite link, which says "Link copied" or "Couldn't copy"
-   * for a moment. An invite-only room's link carries its key, which only admins are sent,
-   * and the key is never drawn, because lobbies get streamed. The refresh button makes
-   * a new key, which is also the room lock: a key nobody else has yet lets nobody in.
-   * Somebody without the link can still ask; they wait on Join until a host lets them in or
-   * turns them away here, with no confirm, since either can be put right by Kick or by
-   * asking again.
+   * is never drawn. It says "Link copied" or "Couldn't copy" for a moment. An invite-only
+   * room's link carries its key, which only admins are sent, and the key is never drawn,
+   * because lobbies get streamed. The refresh button makes a new key, which is also the room
+   * lock: a key nobody else has yet lets nobody in. Somebody without the link can still
+   * ask; they wait on Join until a host lets them in or turns them away here, with no
+   * confirm, since either can be put right by Kick or by asking again.
    */
-  import { onMount, tick } from 'svelte'
+  import { onMount } from 'svelte'
 
   import { SETTLED, SPLASH_TYPE_FROM_MS, interludeFor, reducedMotion } from '../lib/interlude'
   import { heroFor, speakerFor } from '../lib/hero'
   import { inviteLink } from '../lib/invite'
   import { roomShown } from '../lib/roomFit'
-  import { hostOf, modeLabel } from '../lib/modes'
-  import { minutes } from '../lib/duration'
-  import { difficultyLabel } from '../lib/difficulty'
-  import { paceLabel } from '../lib/pace'
+  import { namesOf, roomLength, statusOf, tableStatus, teamsBlockStart } from '../lib/lobbyLines'
   import { petOf } from '../lib/pets'
+  import { playerMenu, type Dialog } from '../lib/playerMenu'
   import type { JoinRequestView, PlayerView } from '../lib/protocol'
   import { playing, readyThreshold } from '../lib/ready'
   import { players, room, you } from '../lib/stores'
   import { watchTheme } from '../lib/theme'
   import { Seating } from '../lib/tableGroups'
-  import { MIN_TEAMS, TEAMS, teamsWith, type TeamId } from '../lib/teams'
+  import { TEAMS, type TeamId } from '../lib/teams'
   import { Cooldown } from '../lib/cooldown.svelte'
   import { Typist, lettersOf } from '../lib/typing.svelte'
-  import { ApiFailure, setRoomQuestions } from '../lib/api'
   import type { HostQuestion } from '../lib/customQuestions'
   import { createdRooms, getSession } from '../lib/session'
-  import { tonightOf, type TonightSettings } from '../lib/gameSetup'
+  import { tonightOf } from '../lib/gameSetup'
+  import { TonightEdits } from '../lib/tonightEdits.svelte'
   import type { RoomSocket } from '../lib/ws'
   import AtTable from './AtTable.svelte'
   import JoinCode from './JoinCode.svelte'
   import Segmented from './Segmented.svelte'
   import TonightPanel from './TonightPanel.svelte'
-  import ConfirmDialog from './ConfirmDialog.svelte'
+  import ConfirmDialog, { type Question } from './ConfirmDialog.svelte'
   import ErrorBanner from './ErrorBanner.svelte'
   import FullScreenSwitch from './FullScreenSwitch.svelte'
   import Switch from './Switch.svelte'
   import HowToPlay from './HowToPlay.svelte'
   import Icon from './Icon.svelte'
-  import NpcFace from './NpcFace.svelte'
+  import LobbyTeams from './LobbyTeams.svelte'
   import Pet from './Pet.svelte'
   import RosterPet from './RosterPet.svelte'
+  import RoundCards from './RoundCards.svelte'
   import Said from './stage/Said.svelte'
   import Stage from './stage/Stage.svelte'
   import TablePanel from './TablePanel.svelte'
@@ -94,10 +75,6 @@
   import Typed from './stage/Typed.svelte'
 
   let { socket }: { socket: RoomSocket } = $props()
-
-  function errorMessage(error: unknown): string {
-    return error instanceof ApiFailure ? error.message : 'Could not save your questions. Try again.'
-  }
 
   let theme = $state('')
   const heroArt = $derived(heroFor(theme))
@@ -113,43 +90,25 @@
     Date.now(),
   )
 
-  /** How long an edit waits for the next one, so a stepper held down is one frame. */
-  const EDIT_SETTLES_MS = 250
-
   const PLAY_AS = [
     { value: false, label: 'Free for all' },
     { value: true, label: 'Teams' },
   ]
   const FIRST_TEAMS: TeamId[] = ['saradomin', 'zamorak']
 
-  /** What in the setup stops the game starting, in words, or null when nothing does. */
-  let setupBlock = $state<string | null>(null)
-  /** The edit waiting for the next one, and the timers that send what has settled. */
-  let unsent: TonightSettings | null = null
-  let editTimer: ReturnType<typeof setTimeout> | undefined
-  let questionsTimer: ReturnType<typeof setTimeout> | undefined
+  const tonight = new TonightEdits((next) =>
+    socket.send({ t: 'set_settings', settings: { ...next, hide_rounds: secret } }),
+  )
 
   const isAdmin = $derived($you?.role === 'admin')
   const isTV = $derived($you?.role === 'tv')
   const admins = $derived($players.filter((p) => p.role === 'admin').length)
-  const listFormat = new Intl.ListFormat(undefined, { style: 'long', type: 'conjunction' })
   const settings = $derived($room?.settings ?? null)
   const teamIds = $derived(settings?.teams ?? [])
   const teamGame = $derived(teamIds.length > 0)
   const roomTeams = $derived(TEAMS.filter((t) => teamIds.includes(t.id)))
   const yourTeam = $derived($players.find((p) => p.id === $you?.id)?.team ?? null)
   const teamless = $derived(teamGame ? playing($players).filter((p) => p.team === null) : [])
-  const teamsWithPlayers = $derived(new Set($players.map((p) => p.team).filter((t) => t !== null)))
-  /** Why the server would refuse Start in a team game, or null when it would not. */
-  const teamsBlockStart = $derived(
-    !teamGame
-      ? null
-      : teamless.length > 0
-        ? `Waiting on ${listFormat.format(teamless.map((p) => (p.id === $you?.id ? 'you' : p.display_name)))} to pick a team.`
-        : teamsWithPlayers.size < MIN_TEAMS
-          ? 'Players are needed in two teams or more.'
-          : null,
-  )
   const code = $derived($room?.code ?? '')
   /** Only the browser that made the room holds the question bank it was made with. */
   const creator = $derived(createdRooms().includes(code))
@@ -168,89 +127,15 @@
   const rounds = $derived(secret ? ($room?.rounds ?? 0) : (settings?.modes.length ?? 0))
   /** Why the host cannot start tonight's game yet, in words, or null when they can. */
   const startBlock = $derived(
-    rounds === 0 ? 'Pick at least one round to start.' : (setupBlock ?? teamsBlockStart),
+    rounds === 0
+      ? 'Pick at least one round to start.'
+      : (tonight.block ?? (teamGame ? teamsBlockStart($players, $you?.id ?? null) : null)),
   )
   const canStart = $derived(
     isAdmin && $room?.status === 'lobby' && $players.length > 0 && startBlock === null,
   )
-  /**
-   * Every question the room actually holds, which the server counted off the questions it
-   * stored rather than off the settings. The two disagree whenever the plan and the
-   * stored set do: a mode whose pack pool ran short gives a round briefer than it asked
-   * for, and a room created before per-mode rounds carries settings that cannot describe
-   * the questions it already has. `total` is what the progress counter reads once the
-   * game starts. The lobby tells the random events apart, which a host would otherwise
-   * read as the rounds coming out longer than they set.
-   */
-  const events = $derived($room?.events ?? 0)
-  const questions = $derived(($room?.total ?? 0) - events)
   // Built here rather than in the markup, where Svelte would trim the spaces around the dots.
-  const length = $derived(
-    settings === null
-      ? ''
-      : `${rounds}${secret ? ' secret' : ''} ${rounds === 1 ? 'round' : 'rounds'} · ` +
-          `${questions} ${questions === 1 ? 'question' : 'questions'} · ` +
-          (events === 0 ? '' : `${events} random ${events === 1 ? 'event' : 'events'} · `) +
-          `${paceLabel(settings.pace)} pace` +
-          // Mixed is every question, the default, so only a narrowed room says so.
-          (settings.difficulty === 'mixed'
-            ? ''
-            : ` · ${difficultyLabel(settings.difficulty)} questions`) +
-          ` · ${minutes($room?.estimated_seconds ?? 0)}`,
-  )
-  /**
-   * The rounds A–Z by name, which is deliberately not the order they play in: what is
-   * coming is the game's to reveal, one splash at a time, and the host arranged that
-   * order (or handed it to `random`) on the way in.
-   */
-  const listed = $derived(
-    [...(settings?.modes ?? [])].sort((a, b) => modeLabel(a.mode).localeCompare(modeLabel(b.mode))),
-  )
-  /** Every round as a card, in the order shown: a secret room's are all "A surprise". */
-  const cards = $derived(
-    secret
-      ? Array.from({ length: rounds }, (_, index) => ({
-          key: String(index),
-          npc: undefined as string | undefined,
-          name: 'A surprise',
-          questions: null as number | null,
-        }))
-      : listed.map((round) => ({
-          key: round.mode,
-          npc: hostOf(round.mode).host.id as string | undefined,
-          name: modeLabel(round.mode),
-          questions: round.questions as number | null,
-        })),
-  )
-  /** The most cards the panel shows; past it the last tile folds the rest away. */
-  const CARDS_MAX = 8
-  const folded = $derived(cards.length > CARDS_MAX)
-  const shown = $derived(folded ? cards.slice(0, CARDS_MAX - 1) : cards)
-  // Closed again whenever the list folds or unfolds; a tap opens it in between.
-  let showAll = $derived.by(() => {
-    void folded
-    return false
-  })
-  let foldButton = $state<HTMLButtonElement | null>(null)
-  let foldPopover = $state<HTMLElement | null>(null)
-  $effect(() => {
-    if (!showAll) return
-    const outside = (event: PointerEvent): void => {
-      const target = event.target as Node
-      if (!foldPopover?.contains(target) && !foldButton?.contains(target)) showAll = false
-    }
-    const escape = (event: KeyboardEvent): void => {
-      if (event.key !== 'Escape') return
-      showAll = false
-      void tick().then(() => foldButton?.focus())
-    }
-    document.addEventListener('pointerdown', outside)
-    document.addEventListener('keydown', escape)
-    return () => {
-      document.removeEventListener('pointerdown', outside)
-      document.removeEventListener('keydown', escape)
-    }
-  })
+  const length = $derived($room === null || settings === null ? '' : roomLength($room, rounds))
   /** The room is drawn smaller than it is laid out: a short window. */
   const squeezed = $derived($roomShown !== null && $roomShown.fit.scale < 1)
   let showHowTo = $state(false)
@@ -268,38 +153,13 @@
   /** Taps still wanted before a start needs no "anyway": a count, never a name. */
   const short = $derived(Math.max(0, readyThreshold(present.length) - presentReady))
   const needTeam = $derived(teamGame && !isTV && yourTeam === null && !youReady)
-  /** Who is not ready yet, by name, in join order — the host included, as "you". */
-  const waitingOn = $derived(
-    counted
-      .filter((p) => p.ready !== true)
-      .map((p) => (p.id === $you?.id ? 'you' : p.display_name)),
-  )
+  /** Who is not ready yet, in join order — the host included, as "you". */
+  const waitingOn = $derived(counted.filter((p) => p.ready !== true))
 
   const seating = new Seating()
   const seated = $derived(
     seating.seat($players, $you?.id ?? null, (p) => p.ready === true, 'lobby', teamIds),
   )
-
-  /** Under a pet at the table, where the bold name says which is you and a heading the TV. */
-  function tableStatus(player: PlayerView): string {
-    if (player.editing === true) return 'picking a name…'
-    return [player.connected ? null : 'away', player.role === 'admin' ? 'host' : null]
-      .filter((word) => word !== null)
-      .join(' · ')
-  }
-
-  /** What the line under a pet's name says, if anything. */
-  function statusOf(player: PlayerView): string {
-    if (player.editing === true) return 'picking a name…'
-    return [
-      player.connected ? null : 'away',
-      player.role === 'admin' ? 'host' : null,
-      player.role === 'tv' ? 'TV' : null,
-      player.id === $you?.id ? 'you' : null,
-    ]
-      .filter((word) => word !== null)
-      .join(' · ')
-  }
 
   let copyResult = $state<'copied' | 'failed' | null>(null)
   let copiedTimer: ReturnType<typeof setTimeout> | undefined
@@ -317,193 +177,57 @@
   }
 
   /** The question the host is being asked, and what a yes does. */
-  let asking = $state<{
-    message: string
-    label: string
-    act: () => void
-    also?: { label: string; act: () => void }[]
-  } | null>(null)
+  let asking = $state<Question | null>(null)
 
   const readyHold = new Cooldown()
-  const teamHold = new Cooldown()
 
   function toggleReady(): void {
     if (socket.send({ t: 'ready', ready: !youReady })) readyHold.start()
   }
 
-  /** Start, asking first when the room is short of its threshold: the host's override. */
-  /** The whole game goes on each edit: a socket that dropped one has lost nothing. */
-  function sendSettings(next: TonightSettings): void {
-    socket.send({
-      t: 'set_settings',
-      settings: { ...next, hide_rounds: settings?.hide_rounds === true },
-    })
-  }
-
-  function edited(next: TonightSettings): void {
-    unsent = next
-    clearTimeout(editTimer)
-    editTimer = setTimeout(flushEdit, EDIT_SETTLES_MS)
-  }
-
-  function flushEdit(): void {
-    clearTimeout(editTimer)
-    if (unsent !== null) sendSettings(unsent)
-    unsent = null
-  }
-
   function questionsTicked(questions: HostQuestion[]): void {
     const session = getSession(code)
-    if (!creator || session === null) return
-    clearTimeout(questionsTimer)
-    questionsTimer = setTimeout(() => {
-      void setRoomQuestions(code, session, questions).catch(
-        (error: unknown) => (setupBlock = errorMessage(error)),
-      )
-    }, EDIT_SETTLES_MS)
+    if (creator && session !== null) tonight.upload(code, session, questions)
   }
 
   function swapTeams(on: boolean): void {
     socket.send({ t: 'set_teams', teams: on ? FIRST_TEAMS : [] })
   }
 
+  /** Start, asking first when the room is short of its threshold: the host's override. */
   function start(): void {
-    flushEdit()
+    tonight.flush()
     if (enoughReady) {
       socket.send({ t: 'start_game' })
       return
     }
     asking = {
-      message: `Start anyway? Still waiting on ${listFormat.format(waitingOn)}.`,
+      message: `Start anyway? Still waiting on ${namesOf(waitingOn, $you?.id ?? null)}.`,
       label: 'Start anyway',
       act: () => socket.send({ t: 'start_game' }),
     }
   }
 
-  function joinTeam(team: TeamId): void {
-    if (!youReady && team !== yourTeam && socket.send({ t: 'set_team', team })) teamHold.start()
+  const menuOf = (player: PlayerView) => playerMenu(player, $you, roomTeams, admins)
+  const taps = {
+    can: (player: PlayerView) => menuOf(player) !== null,
+    label: (player: PlayerView) => menuOf(player)?.hint ?? '',
+    open: (player: PlayerView) => ask(menuOf(player)),
   }
 
-  /** Whether an admin's tap on this player opens a menu: kick, promote, the TV or a move. */
-  function manageable(player: PlayerView): boolean {
-    return (
-      isAdmin && player.id !== $you?.id && (player.role !== 'admin' || canBeTV(player) || teamGame)
-    )
-  }
-
-  /** Whether the server would let this player become the TV: never the last admin. */
-  function canBeTV(player: PlayerView): boolean {
-    return player.role === 'player' || (player.role === 'admin' && admins > 1)
-  }
-
-  function menuOf(player: PlayerView): string {
-    if (player.role === 'tv') return 'kick or not the TV'
-    if (player.role === 'admin') return teamGame ? 'make TV or move team' : 'make TV'
-    return teamGame ? 'kick, make host or move team' : 'kick or make host'
-  }
-
-  function setTV(player: PlayerView, on: boolean): void {
-    socket.send({ t: 'set_tv', player_id: player.id, on })
-    asking = null
-  }
-
-  function manage(player: PlayerView): void {
-    if (player.role === 'tv') {
-      asking = {
-        message: `Kick ${player.display_name}, or turn off TV mode for them?`,
-        label: 'Kick',
-        act: () => socket.send({ t: 'kick', player_id: player.id }),
-        also: [{ label: 'Not the TV', act: () => setTV(player, false) }],
-      }
-      return
-    }
-    if (player.role === 'admin') {
-      if (!canBeTV(player)) {
-        move(player)
-        return
-      }
-      asking = {
-        message: teamGame
-          ? `Make ${player.display_name} the TV, or move them to another team?`
-          : `Make ${player.display_name} the TV?`,
-        label: 'Make TV',
-        act: () => socket.send({ t: 'set_tv', player_id: player.id, on: true }),
-        also: teamGame ? [{ label: 'Move team…', act: () => move(player) }] : [],
-      }
-      return
-    }
-    asking = {
-      message: teamGame
-        ? `Kick ${player.display_name}, make them a host, or move them to another team?`
-        : `Kick ${player.display_name}, or make them a host?`,
-      label: 'Kick',
-      act: () => socket.send({ t: 'kick', player_id: player.id }),
-      also: [
-        { label: 'Make host…', act: () => promote(player) },
-        { label: 'Make TV', act: () => setTV(player, true) },
-        ...(teamGame ? [{ label: 'Move team…', act: () => move(player) }] : []),
-      ],
-    }
-  }
-
-  function move(player: PlayerView): void {
-    const [first, ...rest] = roomTeams
-      .filter((t) => t.id !== player.team)
-      .map((t) => ({
-        label: t.name,
-        act: () => {
-          asking = null
-          socket.send({ t: 'move_team', player_id: player.id, team: t.id })
-        },
-      }))
-    if (first === undefined) return
-    asking = {
-      message: `Move ${player.display_name} to which team?`,
-      label: first.label,
-      act: first.act,
-      also: rest,
-    }
-  }
-
-  const canRemoveTeam = $derived(isAdmin && roomTeams.length > MIN_TEAMS)
-  const missingTeams = $derived(isAdmin ? TEAMS.filter((t) => !teamIds.includes(t.id)) : [])
-
-  function setTeams(id: TeamId, on: boolean): void {
-    socket.send({ t: 'set_teams', teams: teamsWith(teamIds, id, on) })
-  }
-
-  function addTeam(): void {
-    const [first, ...rest] = missingTeams.map((t) => ({
-      label: t.name,
-      // The dialog's other choices run without closing it, so each closes it itself.
+  /** Put up a dialog from a player's menu, or make its one choice when it asks nothing. */
+  function ask(dialog: Dialog | null): void {
+    const [first, ...rest] = (dialog?.choices ?? []).map((choice) => ({
+      label: choice.label,
       act: () => {
-        asking = null
-        setTeams(t.id, true)
+        if (choice.send !== undefined) socket.send(choice.send)
+        if (choice.then !== undefined) ask(choice.then)
+        else asking = null
       },
     }))
-    if (first === undefined) return
-    asking = { message: 'Add which team?', label: first.label, act: first.act, also: rest }
-  }
-
-  function removeTeam(id: TeamId, name: string, members: number): void {
-    if (members === 0) {
-      setTeams(id, false)
-      return
-    }
-    const who = members === 1 ? 'Its player goes' : `Its ${members} players go`
-    asking = {
-      message: `Remove ${name}? ${who} back to no team and must ready up again.`,
-      label: 'Remove',
-      act: () => setTeams(id, false),
-    }
-  }
-
-  function promote(player: PlayerView): void {
-    asking = {
-      message: `Make ${player.display_name} a host? This can't be undone.`,
-      label: 'Make host',
-      act: () => socket.send({ t: 'promote', player_id: player.id }),
-    }
+    if (dialog === null || first === undefined) return
+    if (dialog.message === null) first.act()
+    else asking = { message: dialog.message, label: first.label, act: first.act, also: rest }
   }
 
   function rotateKey(): void {
@@ -524,9 +248,10 @@
 {#snippet roster(list: PlayerView[], label: string)}
   <ul class="pets" aria-label={label}>
     {#each list as player (player.id)}
-      {@const status = statusOf(player)}
+      {@const status = statusOf(player, $you?.id ?? null)}
+      {@const menu = menuOf(player)}
       <li class:editing={player.editing === true}>
-        {#if manageable(player)}
+        {#if menu !== null}
           <button
             type="button"
             class="tile"
@@ -535,8 +260,8 @@
               ? 'TV'
               : player.ready === true
                 ? 'ready'
-                : 'not ready'}: {menuOf(player)}"
-            onclick={() => manage(player)}
+                : 'not ready'}: {menu.hint}"
+            onclick={() => ask(menu)}
           >
             <RosterPet {player} {status} />
             <span class="more"><Icon name="more" /></span>
@@ -626,33 +351,7 @@
           {#if rounds === 0}
             <p class="empty">The rounds show up here as the host picks them.</p>
           {/if}
-          <ul class="rounds">
-            {#each shown as card (card.key)}
-              {@render round(card)}
-            {/each}
-            {#if folded}
-              <li class="fold">
-                <button
-                  bind:this={foldButton}
-                  type="button"
-                  aria-haspopup="dialog"
-                  aria-expanded={showAll}
-                  onclick={() => (showAll = !showAll)}
-                >
-                  +{cards.length - shown.length} more
-                </button>
-              </li>
-            {/if}
-          </ul>
-          {#if showAll}
-            <div class="all" role="dialog" aria-label="All rounds" bind:this={foldPopover}>
-              <ul class="rounds">
-                {#each cards as card (card.key)}
-                  {@render round(card)}
-                {/each}
-              </ul>
-            </div>
-          {/if}
+          <RoundCards modes={settings.modes} {secret} {rounds} />
           {#if secret}
             <p class="aside">
               Tonight's rounds are a surprise. Each one is revealed when it starts.
@@ -679,7 +378,7 @@
           youId={$you?.id ?? null}
           labels={['Ready', 'Not ready yet']}
           statusOf={tableStatus}
-          manage={isAdmin ? { can: manageable, label: menuOf, open: manage } : null}
+          manage={isAdmin ? taps : null}
         >
           {#snippet head()}
             {#if isAdmin}
@@ -712,43 +411,7 @@
               </section>
             {/if}
             {#if teamGame}
-              <div class="teams" role="group" aria-label="Teams">
-                {#each roomTeams as god (god.id)}
-                  {@const members = $players.filter((p) => p.team === god.id)}
-                  <div class="team-head" data-team={god.id}>
-                    <button
-                      type="button"
-                      class="join"
-                      aria-label="{god.name}, {members.length} {members.length === 1
-                        ? 'player'
-                        : 'players'}"
-                      aria-pressed={yourTeam === god.id}
-                      disabled={youReady || isTV || teamHold.held}
-                      onclick={() => joinTeam(god.id)}
-                    >
-                      <span class="logo"><TeamLogo team={god.id} /></span>
-                      <span class="team-name">{god.name}</span>
-                      <span class="aside">{members.length}</span>
-                    </button>
-                    {#if canRemoveTeam}
-                      <button
-                        type="button"
-                        class="glyph remove"
-                        aria-label="Remove {god.name}"
-                        onclick={() => removeTeam(god.id, god.name, members.length)}
-                      >
-                        <Icon name="trash" />
-                      </button>
-                    {/if}
-                  </div>
-                {/each}
-                {#if missingTeams.length > 0}
-                  <button type="button" class="add-team" onclick={addTeam}>Add a team…</button>
-                {/if}
-                {#if youReady}
-                  <p class="hint">Unready first to switch teams.</p>
-                {/if}
-              </div>
+              <LobbyTeams {socket} {teamIds} {youReady} ask={(question) => (asking = question)} />
             {/if}
           {/snippet}
           <div class="ready">
@@ -792,27 +455,14 @@
           settings={tonightOf(settings)}
           hidden={secret}
           own={creator}
-          onchange={edited}
+          onchange={tonight.edited}
           onquestions={questionsTicked}
-          onproblems={(_, start) => (setupBlock = start)}
+          onproblems={(_, start) => (tonight.block = start)}
         />
       {/if}
     </Stage>
   </section>
 {/if}
-
-{#snippet round(card: { npc: string | undefined; name: string; questions: number | null })}
-  <li class="round">
-    <span class="face"><NpcFace npc={card.npc} /></span>
-    <span class="name">{card.name}</span>
-    {#if card.questions !== null}
-      <span class="aside">
-        {card.questions}
-        {card.questions === 1 ? 'question' : 'questions'}
-      </span>
-    {/if}
-  </li>
-{/snippet}
 
 {#snippet greeting()}
   <p><Typed line={GREETING} shown={typist.shown[0]} /></p>
@@ -933,31 +583,6 @@
     margin-bottom: 0;
   }
 
-  /* The folded round's tile: a card that is one button. */
-  .fold {
-    display: grid;
-  }
-
-  .fold button {
-    min-height: 44px;
-    border-radius: var(--radius);
-    font-weight: 700;
-  }
-
-  /* Every round over the list, on the panel's own surface; long, it scrolls. */
-  .all {
-    position: absolute;
-    z-index: 5;
-    inset: 2.5rem 0 auto;
-    max-height: 24rem;
-    overflow-y: auto;
-    padding: 0.6rem;
-    background: var(--panel);
-    border: var(--border-width) solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-  }
-
   .board-line {
     display: flex;
     flex-wrap: wrap;
@@ -969,59 +594,6 @@
   .board h2 {
     margin: 0;
     font-size: 1.1rem;
-  }
-
-  /* A card per round: its host, its name and its length, three abreast when there is room. */
-  .rounds {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
-    gap: 0.6rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .round {
-    display: grid;
-    grid-template-columns: 3.25rem minmax(0, 1fr);
-    grid-template-rows: auto auto;
-    align-items: center;
-    column-gap: 0.75rem;
-    padding: 0.6rem 0.75rem;
-    background: var(--panel-raised);
-    border: var(--border-width) solid var(--line);
-    border-radius: var(--radius);
-  }
-
-  .round .face {
-    grid-row: 1 / 3;
-    display: grid;
-    place-items: center;
-    width: 3.25rem;
-    height: 3.25rem;
-  }
-
-  .round .face :global(img) {
-    width: 3.25rem;
-    max-width: none;
-    height: 3.25rem;
-    max-height: none;
-    object-fit: contain;
-  }
-
-  .round .name {
-    align-self: end;
-    font-weight: 700;
-    overflow-wrap: anywhere;
-  }
-
-  .round .face + .name:last-child {
-    grid-row: 1 / 3;
-    align-self: center;
-  }
-
-  .round .aside {
-    align-self: start;
   }
 
   .board .toggle {
@@ -1111,12 +683,6 @@
     font-size: 0.9rem;
   }
 
-  .teams {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
   .team {
     display: flex;
     flex-direction: column;
@@ -1128,51 +694,8 @@
     gap: 0.5rem;
   }
 
-  .team-head .join {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .add-team {
-    align-self: flex-start;
-    min-height: 44px;
-  }
-
-  /* The god's colour sits on its edge, never behind the words, so the name reads in the
-     panel's own ink whatever the theme. */
-  .join {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    min-height: 44px;
-    padding: 0 0.6rem;
-    border-color: var(--team-trim);
-    border-left-width: 0.35rem;
-    background: var(--panel-raised);
-    color: var(--ink);
-    font-weight: 600;
-    text-align: left;
-  }
-
-  .join[aria-pressed='true'] {
-    box-shadow: inset 0 0 0 1px var(--team-trim);
-  }
-
-  .join .logo {
-    flex: none;
-    display: block;
-    width: 1.6rem;
-    height: 1.6rem;
-  }
-
   .team-name {
     flex: 1;
-  }
-
-  .join[aria-pressed='true'] .team-name::after {
-    content: ' · you';
-    font-weight: 400;
-    color: var(--muted);
   }
 
   .no-team {

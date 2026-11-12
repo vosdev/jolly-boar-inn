@@ -1,3 +1,13 @@
+<script module lang="ts">
+  /** A question for the dialog, and what each yes does. */
+  export interface Question {
+    message: string
+    label: string
+    act: () => void
+    also?: { label: string; act: () => void }[]
+  }
+</script>
+
 <script lang="ts">
   /**
    * Asks before something that cannot be taken back, in place of `window.confirm`: some
