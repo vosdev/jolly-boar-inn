@@ -314,7 +314,8 @@
                       {content}
                       question={questionPreview(content)}
                       answerable={!(
-                        choiceOf(row.kind, content)?.named && content.type === 'pick_from_list'
+                        choiceOf(row.kind, content)?.editor === 'shadow' &&
+                        content.type === 'pick_from_list'
                       )}
                     />
                   {:else}
