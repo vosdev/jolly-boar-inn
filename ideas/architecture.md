@@ -661,8 +661,8 @@ The operator's `ADMIN_TOKEN` is separate from all that. Unset, `/api/admin/*` is
 answers 404; shorter than 32 URL-safe characters, the app refuses to start. `GET /api/admin/rooms`
 (rooms in memory) and `/stats` (every `daily_stats` row) want it as `Authorization: Bearer`,
 compared with `hmac.compare_digest`. It arrives once as `/admin#token=…`, a fragment so no access
-log or `Referer` sees it; the page moves it to `localStorage["jbi:admin"]` and `replaceState`s it
-away. Both return chosen fields only, never a name, an answer or a question. Only the
+log or `Referer` sees it; the page `replaceState`s it away and keeps it in `localStorage["jbi:admin"]`
+once accepted, else falls back to the stored one. Both return chosen fields only, never a name, an answer or a question. Only the
 suggestion and report queues, `/api/admin/questions` and its pending changes (section 11) return
 questions, answers included: players' suggestions and the packs, never a room's. `METRICS_TOKEN`
 gates `GET /metrics` (OpenMetrics text, fixed-set labels only) by the same rules.
