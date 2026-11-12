@@ -79,7 +79,7 @@ def parse_value(payload: dict[str, Any], value: Any) -> list[dict[str, int]] | N
         return None
     area = payload.get("bounds", SURFACE)
     pins = [_tile(pin, area) for pin in value]
-    return None if None in pins else pins
+    return None if None in pins else pins  # type: ignore[return-value]  # no None past the check
 
 
 def _tile(pin: Any, area: dict[str, int]) -> dict[str, int] | None:

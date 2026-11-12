@@ -2,6 +2,7 @@
 them takes. The client's ``lib/teams.ts`` names the same six in the same order.
 """
 
+from collections.abc import Sequence
 from typing import Literal, get_args
 
 God = Literal["saradomin", "zamorak", "guthix", "armadyl", "bandos", "zaros"]
@@ -13,7 +14,7 @@ MIN_TEAMS = 2
 MAX_TEAMS = len(GODS)
 
 
-def check_teams(teams: list[str]) -> list[God]:
+def check_teams(teams: Sequence[str]) -> list[God]:
     """``teams`` as a team game's gods: 2 to 6 distinct ones in ``GODS`` order, else ValueError."""
     if not MIN_TEAMS <= len(teams) <= MAX_TEAMS:
         raise ValueError(f"a team game has {MIN_TEAMS}..{MAX_TEAMS} gods, not {len(teams)}")

@@ -247,7 +247,7 @@ def _place_errors(type_: str, payload: dict[str, Any]) -> list[str]:
     return []
 
 
-def _named_errors(mode: str, held: Suggest, payload: dict[str, Any]) -> list[str]:
+def _named_errors(mode: str | None, held: Suggest, payload: dict[str, Any]) -> list[str]:
     subject = payload.get("subject")
     if (
         payload.keys() != {"prompt", "subject"}
@@ -481,7 +481,7 @@ def similar_in_packs(packs: list[Pack], content: dict[str, Any]) -> list[dict[st
 
 def _matches(
     row: asyncpg.Record,
-    packs: list[dict[str, Any]],
+    packs: list[tuple[dict[str, Any], similar.Features]],
     queued: list[asyncpg.Record],
     features: dict[UUID, similar.Features],
 ) -> list[dict[str, Any]]:

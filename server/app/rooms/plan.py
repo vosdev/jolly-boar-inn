@@ -32,7 +32,10 @@ def plan(
     """A lobby's numbers for ``settings``. A surprise counts as the shortest draw it could be."""
     if settings.surprise_modes:
         shortest = sorted(rounds_offered, key=lambda mode: questions_bounds(mode).default)
-        picked = [ModeSettings(mode=mode) for mode in shortest[: settings.surprise_modes]]
+        picked = [
+            ModeSettings.model_validate({"mode": mode})
+            for mode in shortest[: settings.surprise_modes]
+        ]
         settings = settings.model_copy(update={"modes": picked})
     rounds = selection.select(packs, (), settings, random.Random(_SEED), pictures)
     questions = [question for _, question in selection.flatten(rounds)]

@@ -155,7 +155,7 @@ class ModeSettings(BaseModel):
 
 def default_modes() -> list[ModeSettings]:
     """One round of the first registered mode: the smallest room that is still a game."""
-    return [ModeSettings(mode=next(iter(MODES)))]
+    return [ModeSettings.model_validate({"mode": next(iter(MODES))})]
 
 
 class RoomSettings(BaseModel):
@@ -321,7 +321,9 @@ class RoomSettings(BaseModel):
                 f"{self.surprise_modes} surprise modes, but this server offers {len(offered)}"
             )
         picked = rng.sample(list(offered), self.surprise_modes)
-        settings = self.model_copy(update={"modes": [ModeSettings(mode=m) for m in picked]})
+        settings = self.model_copy(
+            update={"modes": [ModeSettings.model_validate({"mode": m}) for m in picked]}
+        )
         _check_cap(settings)
         return settings
 

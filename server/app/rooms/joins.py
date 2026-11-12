@@ -36,6 +36,7 @@ from app.rooms.errors import (
     RoomFull,
     RoomNotFound,
 )
+from app.rooms.host import RoomHost
 from app.rooms.models import (
     JoinRequest,
     Player,
@@ -93,7 +94,7 @@ def _check_seat(room: Room) -> None:
         raise RoomFull(f"room {room.code} is full")
 
 
-class Joins:
+class Joins(RoomHost):
     """The ``RoomManager`` methods that make a room or let a player into one."""
 
     async def get_listed(self, code: str) -> Room:
