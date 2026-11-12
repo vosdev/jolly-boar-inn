@@ -135,14 +135,14 @@ export function teamsOf(
 }
 
 /**
- * Each playing team's median points on one question, in `teams`' order; a team without
+ * Each playing team's mean points on one question, in `teams`' order; a team without
  * members is left out.
  *
- * A median, not a mean, so one member's lucky guess or missed answer doesn't decide the
- * row. A member with no result did not answer and counts as 0. An even count takes the
- * mean of the middle two, halves rounded up as the standings round.
+ * Computed as the standings compute a team's points, so the row is what the team just
+ * gained: members' points summed over the member count, halves rounded up. A member with
+ * no result did not answer and counts as 0.
  */
-export function teamMedians(
+export function teamMeans(
   teams: readonly TeamId[],
   teamOf: Readonly<Record<string, TeamId>>,
   results: Readonly<Record<string, { points: number }>>,
@@ -151,10 +151,8 @@ export function teamMedians(
     const points = Object.keys(teamOf)
       .filter((player) => teamOf[player] === id)
       .map((player) => results[player]?.points ?? 0)
-      .sort((a, b) => a - b)
     if (points.length === 0) return []
-    const high = points[points.length >> 1]!
-    const low = points[(points.length - 1) >> 1]!
-    return [{ team: id, points: Math.floor((low + high + 1) / 2) }]
+    const sum = points.reduce((total, each) => total + each, 0)
+    return [{ team: id, points: Math.floor((2 * sum + points.length) / (2 * points.length)) }]
   })
 }

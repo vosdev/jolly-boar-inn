@@ -26,6 +26,7 @@ import {
   ZOOM_OUT,
   arrived,
   deal,
+  dailyRevealFor,
   drawFrame,
   entered,
   innerLines,
@@ -199,6 +200,20 @@ describe('the reveal a question gets', () => {
     const first = rooms.map((room) => revealFor(room, QUESTION, 0).reveal.id)
     expect(new Set(first)).toEqual(new Set(ids(REVEALS)))
     expect(ids(deal('WHIPLASH', 1))).not.toEqual(ids(deal('WHIPLASH', 0)))
+  })
+
+  it('deals a daily question the same reveal and seed in every attempt', () => {
+    for (let index = 0; index < 12; index++) {
+      const a = dailyRevealFor('2026-11-11', index)
+      expect(dailyRevealFor('2026-11-11', index)).toEqual(a)
+      expect(dailyRevealFor('2026-11-11', index, true).seed).toBe(a.seed)
+    }
+    const dealt = Array.from({ length: 12 }, (_, index) => dailyRevealFor('2026-11-11', index))
+    for (let deck = 0; deck < 2; deck++) {
+      const six = dealt.slice(deck * 6, deck * 6 + 6).map(({ reveal }) => reveal.id)
+      expect(new Set(six).size).toBe(6)
+    }
+    expect(dailyRevealFor('2026-11-11', 3).seed).not.toBe(dailyRevealFor('2026-11-12', 3).seed)
   })
 
   it('gives each question a seed of its own', () => {

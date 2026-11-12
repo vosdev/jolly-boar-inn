@@ -606,6 +606,7 @@ the picture builds up, then the whole picture as step 18. Points fall from 1000 
   `ends_at`, and the reveal (`lib/pixelHunt.ts`, one `<canvas>`, a function of the picture, the
   build-up's progress and a seed, empty before `answerable_at`). Reveals are dealt by `index`,
   all six per six questions in an order shuffled by the room code; the seed hashes `question_id`.
+  A daily room deals from the day and `index` instead, so every attempt builds a question up alike.
 - `points_for(scoring, credit, band, steps, team=)` is the one entry point. It refuses credit outside 0..1
   rather than paying for a type's bug.
 - `correct` is `credit >= 1.0`: three of five in order scores, and is not "correct".

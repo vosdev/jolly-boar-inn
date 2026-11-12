@@ -110,6 +110,7 @@
           index: question.index,
           answerableAt: question.answerable_at ?? question.opened_at,
           endsAt: question.ends_at,
+          day: $room?.daily?.day,
           sketch: sketched,
         }
       : null,

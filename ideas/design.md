@@ -456,7 +456,7 @@ in display tabular numerals and the box's ink:
 - Only what you earned: the total waits for the standings. The slot never explains a number; a
   speed bonus explained mid-reveal is a second thing to read.
 - No standings under a reveal: a board every question makes the game a spreadsheet. A team game
-  ends the tally with a row per team, logo, name and its members' median points on the question
+  ends the tally with a row per team, logo, name and its members' mean points on the question
   (silent is 0), in god order, not ranked.
 - A suggested question whose player asked to be named ends the tally with "Question by Name",
   muted and off the scroll, so the reveal reads the same without it.
