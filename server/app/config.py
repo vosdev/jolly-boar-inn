@@ -46,6 +46,11 @@ class Settings(BaseSettings):
     finished_room_grace_minutes: int = Field(default=60, ge=0)
     rooms_per_ip_per_hour: int = 30
     max_players_per_room: int = 50
+    # Websockets held open at once, each counted from its upgrade. It has to sit under uvicorn's
+    # ``--limit-concurrency``, which counts every connection and answers 503 past it: the gap
+    # is what keeps ``/api/health``, joins and the page itself answering when the sockets are
+    # full. A socket past it is closed with 1013, and the client retries on its backoff.
+    max_sockets: int = Field(default=2250, gt=0)
     # Whether hosts can list a room on Home. Off, the list is always empty.
     public_rooms: bool = True
     # Whether hosts can pick Random Events Only, a round of nothing but the NPCs' questions.

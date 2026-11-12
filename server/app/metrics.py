@@ -66,6 +66,7 @@ DisconnectReason = Literal[
     "room_gone",
     "room_restarted",
     "send_failed",
+    "server_full",
 ]
 
 ROOM_STATUSES: tuple[str, ...] = get_args(RoomStatus)

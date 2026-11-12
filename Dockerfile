@@ -136,9 +136,12 @@ HEALTHCHECK --interval=10s --timeout=3s --retries=5 --start-period=5s \
 # to another process on the same database.
 # --ws-max-size: the default 16 MiB frame takes hundreds of MB to parse; real ones are
 # under 1 KB. --limit-concurrency: past it uvicorn answers 503 rather than running the
-# 512 MB container out of memory.
+# 512 MB container out of memory. It counts websockets too, so the app's MAX_SOCKETS
+# (2250) stays under it and HTTP keeps the rest. --ws-per-message-deflate false: a zlib
+# context per socket costs about half its memory and a quarter of the CPU per broadcast.
 # --host "": one socket on 0.0.0.0 and one on ::, where there is IPv6. A single :: socket
 # would be IPv6-only, since asyncio sets IPV6_V6ONLY, and 0.0.0.0 misses a network with
 # IPv6 enabled.
 CMD ["uvicorn", "app.main:app", "--host", "", "--port", "8000", "--proxy-headers", \
-     "--workers", "1", "--ws-max-size", "65536", "--limit-concurrency", "1000"]
+     "--workers", "1", "--ws-max-size", "65536", "--limit-concurrency", "2500", \
+     "--ws-per-message-deflate", "false"]

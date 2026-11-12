@@ -14,6 +14,7 @@ def test_defaults_match_architecture_table() -> None:
     assert s.room_cleanup_interval_seconds == 3600
     assert s.rooms_per_ip_per_hour == 30
     assert s.max_players_per_room == 50
+    assert s.max_sockets == 2250
     assert s.public_rooms is True
     assert s.random_event_game_mode is False
     assert s.packs_dir == Path("../data/packs")
@@ -28,6 +29,7 @@ def test_env_overrides(monkeypatch) -> None:
     monkeypatch.setenv("ROOM_CLEANUP_INTERVAL_SECONDS", "60")
     monkeypatch.setenv("ROOMS_PER_IP_PER_HOUR", "2")
     monkeypatch.setenv("MAX_PLAYERS_PER_ROOM", "10")
+    monkeypatch.setenv("MAX_SOCKETS", "900")
     monkeypatch.setenv("PUBLIC_ROOMS", "false")
     monkeypatch.setenv("RANDOM_EVENT_GAME_MODE", "true")
     monkeypatch.setenv("PACKS_DIR", "/data/packs")
@@ -39,6 +41,7 @@ def test_env_overrides(monkeypatch) -> None:
     assert s.room_cleanup_interval_seconds == 60
     assert s.rooms_per_ip_per_hour == 2
     assert s.max_players_per_room == 10
+    assert s.max_sockets == 900
     assert s.public_rooms is False
     assert s.random_event_game_mode is True
     assert s.packs_dir == Path("/data/packs")
