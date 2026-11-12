@@ -111,6 +111,50 @@ jobs:
       - run: pnpm audit --audit-level high
         working-directory: client
 
+  # Credentials in commits. A pull request answers for its own commits only, from its base,
+  # which in a stack is not main: a leak in old history wants the credential rotated, not
+  # unrelated work blocked. Pushes to main and the weekly run scan the whole history.
+  # gitleaks-action needs a licence for organisations, so this runs the release binary, checked
+  # against the pinned hash of the release's checksum list; trivy-bump.yml moves both.
+  secrets:
+    name: Secrets (gitleaks)
+    runs-on: ${{ (vars.RUNNER && !github.event.pull_request.head.repo.fork) && vars.RUNNER || 'ubuntu-latest' }}
+    timeout-minutes: 10
+    env:
+      GITLEAKS_VERSION: v8.30.1
+      GITLEAKS_CHECKSUMS_SHA256: 061476c21adaf5441516f96f185c1a4706a83cd6329b9b38762271b3d4a52fae
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+      - name: Install gitleaks
+        run: |
+          case "$(uname -m)" in
+            x86_64) arch=x64 ;;
+            aarch64 | arm64) arch=arm64 ;;
+            *) echo "::error::no gitleaks build for $(uname -m)"; exit 1 ;;
+          esac
+          v=${GITLEAKS_VERSION#v}
+          dir="$RUNNER_TEMP/gitleaks"
+          mkdir -p "$dir"
+          cd "$dir"
+          base="https://github.com/gitleaks/gitleaks/releases/download/$GITLEAKS_VERSION"
+          curl -fsSLO "$base/gitleaks_${v}_checksums.txt"
+          curl -fsSLO "$base/gitleaks_${v}_linux_${arch}.tar.gz"
+          echo "$GITLEAKS_CHECKSUMS_SHA256  gitleaks_${v}_checksums.txt" | sha256sum -c -
+          grep " gitleaks_${v}_linux_${arch}.tar.gz\$" "gitleaks_${v}_checksums.txt" | sha256sum -c -
+          tar -xzf "gitleaks_${v}_linux_${arch}.tar.gz" gitleaks
+          echo "$dir" >> "$GITHUB_PATH"
+      - name: Scan the pull request's commits
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: gitleaks git --no-banner --redact --log-opts="$BASE_SHA..$HEAD_SHA" .
+      - name: Scan the full history
+        if: github.event_name != 'pull_request'
+        run: gitleaks git --no-banner --redact .
+
   containers:
     name: Containers (build, compose, smoke test, scan)
     runs-on: ${{ (vars.RUNNER && !github.event.pull_request.head.repo.fork) && vars.RUNNER || 'ubuntu-latest' }}
@@ -172,12 +216,13 @@ jobs:
       # rather than in the code: the websocket upgrade under uvicorn --proxy-headers.
       - name: Websocket smoke test
         run: docker compose exec -T app python scripts/smoke_ws.py
-      # After the smoke tests, so a vulnerable base image does not hide a broken one.
+      # After the smoke tests, so a vulnerable base image does not hide a broken one. Secrets
+      # too: a key baked into a layer is in every copy of the image.
       - name: Scan image
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: jolly-boar-inn:ci
-          scanners: vuln
+          scanners: vuln,secret
           severity: HIGH,CRITICAL
           ignore-unfixed: true
           exit-code: 1
@@ -248,7 +293,7 @@ jobs:
   release:
     name: Release (tag when VERSION changes)
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [server, client, audit, containers, map]
+    needs: [server, client, audit, secrets, containers, map]
     runs-on: ${{ (vars.RUNNER && !github.event.pull_request.head.repo.fork) && vars.RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 15
     permissions:
