@@ -15,8 +15,8 @@ from uuid import UUID
 
 import asyncpg
 
+from app.modes import entry
 from app.questions.packs import Pack, mode_questions
-from app.reports import ITEM_MODES
 from app.rooms.models import Room, RoomQuestion
 
 TOTALS = ("answers", "credit_sum", "correct", "unanswered", "games")
@@ -27,7 +27,11 @@ MIN_PLAYERS = 2
 
 def counts(question: RoomQuestion) -> bool:
     """Whether ``question``'s closes are recorded at all."""
-    return question.source == "pack" and question.mode not in ITEM_MODES and not question.host_only
+    return (
+        question.source == "pack"
+        and entry(question.mode).report != "item"
+        and not question.host_only
+    )
 
 
 async def record(

@@ -20,7 +20,7 @@ from pathlib import Path
 from add_detail_pictures import has_picture
 from fetch_assets import MANIFEST, load_manifest
 
-from app.modes import needs_picture
+from app.modes import entry, needs_picture
 from app.questions.packs import EVENTS_DIR, Pack, PackError, load_packs
 
 DEFAULT_DIR = Path(__file__).resolve().parents[2] / "data" / "packs"
@@ -31,8 +31,8 @@ def picture_errors(packs: Iterable[Pack], manifest: dict[str, str]) -> list[str]
     errors = []
     for pack in packs:
         for question in pack.questions:
-            # Who's That NPC? is its picture too, but of an NPC, which has no detail picture.
-            if not needs_picture(question) or question["mode"] == "whos_that_npc":
+            # A mode reported by NPC is its picture too, but of an NPC, which has no detail picture.
+            if not needs_picture(question) or entry(question["mode"]).report == "npc":
                 continue
             payload = question["payload"]
             answer = payload.get("answer_id")

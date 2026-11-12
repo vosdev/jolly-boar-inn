@@ -28,7 +28,7 @@ held to its type's alone, and to the rest once the operator gives it one. Conten
 server stores goes back out only to the operator, and the client draws it as text.
 """
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from typing import Any, Literal
 from uuid import UUID
 
@@ -36,7 +36,8 @@ import asyncpg
 
 from app import reports, similar
 from app.errors import ApiError
-from app.modes import MODES, steps_of
+from app.modes import MODES, SUGGESTIBLE, TRIVIA_TYPES, entry, steps_of
+from app.modes.mode import Suggest
 from app.questions import schema, text, vocab
 from app.questions.normalize import normalize
 from app.questions.packs import Pack, mode_questions
@@ -48,136 +49,33 @@ from app.rooms import scoring
 Kind = Literal["question", "item"]
 Status = Literal["pending", "approved", "rejected", "imported"]
 
-_CHOICE = frozenset({"multiple_choice"})
-# The modes a player may write a question for, and the types its editor offers. An NPC's
-# question is any type a host may write, an ordering or a matching, as an NPC's file holds;
-# the rounds still to be built are all four buttons.
+# The modes a player may write a question for, and the types its editor offers: the
+# registry's, built or not. Read through here, so a test can add a round to it.
 QUESTION_MODES: dict[str, frozenset[str]] = {
-    "random_event": frozenset(
-        {
-            "multiple_choice",
-            "free_text",
-            "closest_number",
-            "number_slider",
-            "pick_all_that_apply",
-            "ordering",
-            "matching",
-        }
-    ),
-    "bestiary": frozenset(
-        {
-            "multiple_choice",
-            "free_text",
-            "closest_number",
-            "number_slider",
-            "pick_all_that_apply",
-            "ordering",
-            "matching",
-        }
-    ),
-    "drop_table": frozenset(
-        {
-            "multiple_choice",
-            "free_text",
-            "closest_number",
-            "number_slider",
-            "pick_all_that_apply",
-            "matching",
-        }
-    ),
-    "guess_examine": _CHOICE,
-    "odd_one_out": _CHOICE,
-    "who_said_that": _CHOICE,
-    "scaperune": _CHOICE,
-    "know_your_content_creator": frozenset(
-        {"multiple_choice", "closest_number", "number_slider", "pick_all_that_apply"}
-    ),
-    "minigame_madness": frozenset(
-        {
-            "multiple_choice",
-            "free_text",
-            "closest_number",
-            "number_slider",
-            "pick_all_that_apply",
-            "ordering",
-            "matching",
-        }
-    ),
-    "tales_of_gielinor": frozenset(
-        {
-            "multiple_choice",
-            "free_text",
-            "closest_number",
-            "number_slider",
-            "pick_all_that_apply",
-            "ordering",
-            "matching",
-        }
-    ),
-    "forgetful_bard": frozenset({"pick_from_list"}),
-    "uris_unravelling": frozenset(
-        {
-            "multiple_choice",
-            "free_text",
-            "closest_number",
-            "number_slider",
-            "pick_all_that_apply",
-            "ordering",
-            "matching",
-        }
-    ),
-    "slayer_master": frozenset(
-        {
-            "multiple_choice",
-            "free_text",
-            "closest_number",
-            "number_slider",
-            "pick_all_that_apply",
-            "ordering",
-            "matching",
-        }
-    ),
-    "sort_it_out": frozenset({"ordering"}),
-    "release_order": frozenset({"ordering"}),
-    "whos_that_npc": frozenset({"pick_from_list", "multiple_choice"}),
-    "mark_the_map": frozenset({"map_pin"}),
+    mode: held.types or frozenset() for mode, held in SUGGESTIBLE.items()
 }
+# What a question with no round yet is held to: the defaults, since only a round gives more.
+_UNLISTED = Suggest()
 
-# Rounds whose prompt may be a list, one entry a line.
-LINED_MODES = frozenset({"scaperune"})
 
-# The rounds that show a quotation under the prompt (``multiple_choice.quote``).
-QUOTE_MODES = frozenset({"who_said_that", "know_your_content_creator", "uris_unravelling"})
+def rules(mode: str | None) -> Suggest:
+    """How a question for ``mode`` is held: its registry entry's, or the defaults."""
+    return SUGGESTIBLE.get(mode, _UNLISTED) if mode is not None else _UNLISTED
 
-# Rounds whose questions all ask the same thing: the pack's tests hold them to it.
-FIXED_PROMPTS = {"odd_one_out": "Which one doesn't belong?", "whos_that_npc": "Who's that NPC?"}
 
-# An examine line is its own joke, and an NPC's name is its own answer: a line after either
-# only repeats it.
-NO_EXPLANATION_MODES = frozenset(
-    {"guess_examine", "whos_that_npc", "forgetful_bard", "mark_the_map"}
-)
+def _where(held: Callable[[Suggest], bool]) -> frozenset[str]:
+    return frozenset(mode for mode, found in SUGGESTIBLE.items() if held(found))
 
-# The intro is an NPC's line before the question, so only an NPC's question takes one.
-INTRO_MODES = frozenset({"random_event"})
 
-# Pack questions' tags by mode and type, which a suggestion is not asked for.
-TAGS = {
-    ("guess_examine", "multiple_choice"): ["examine"],
-    ("whos_that_npc", "pick_from_list"): ["shadow"],
-    ("whos_that_npc", "multiple_choice"): ["render"],
-}
-# Rounds whose pack holds every question to the wiki page its author checked.
-WIKI_MODES = frozenset({"guess_examine", "whos_that_npc", "mark_the_map"})
-# Rounds whose answer a player names, knowing no id: a ``pick_from_list`` payload is the
-# prompt and ``subject.name``, and the import script finds the id, fills in the rest and adds
-# the name to the round's list.
-NAMED_MODES = {"whos_that_npc": "npcs", "forgetful_bard": "items"}
-# Named rounds whose prompt is the player's own, about an item that may be on the list already.
-VERSE_MODES = frozenset({"forgetful_bard"})
-# Rounds whose ``multiple_choice`` right option is an NPC's name: the import script finds its
-# id and makes its render the ``image``. Not on the list, which holds what a shadow may be.
-RENDER_MODES = frozenset({"whos_that_npc"})
+# Each rule's rounds, for the messages that list them and the tests that hold the client's
+# copies to them.
+QUOTE_MODES = _where(lambda r: r.quote)
+INTRO_MODES = _where(lambda r: r.intro)
+NO_EXPLANATION_MODES = _where(lambda r: not r.explanation)
+NO_DIFFICULTY_MODES = _where(lambda r: not r.difficulty)
+PICTURE_ITEM_MODES = _where(lambda r: r.picture_item)
+FIXED_PROMPTS = {m: r.fixed_prompt for m, r in SUGGESTIBLE.items() if r.fixed_prompt is not None}
+
 NPC_NAME_MAX = 80
 # The longest item names on the wiki are about 50 characters.
 ITEM_NAME_MAX = 80
@@ -187,29 +85,15 @@ ITEM_NAME_MAX = 80
 PLACE_KEYS = frozenset({"prompt", "targets", "reach"})
 PLACE_REACH = (50, 200)
 
-# What a question with no round may be: Create's types, an ordering and a matching, as most
-# rounds take them. No NPC, intro, quote or fixed prompt, which only a round gives.
-UNPLACED_TYPES = frozenset(
-    {
-        "multiple_choice",
-        "free_text",
-        "closest_number",
-        "number_slider",
-        "pick_all_that_apply",
-        "ordering",
-        "matching",
-    }
-)
+# What a question with no round may be: the types most rounds take. No NPC, intro, quote or
+# fixed prompt, which only a round gives.
+UNPLACED_TYPES = TRIVIA_TYPES
 
 _QUESTION_KEYS = {"type", "payload"}
 _QUESTION_OPTIONAL = frozenset(
     {"mode", "random_event", "wiki", "source_url", "picture_item", "difficulty"}
 )
 DIFFICULTIES = ("easy", "medium", "hard")
-# A random event's question is drawn whatever the room's difficulty, so a tier would mean nothing.
-NO_DIFFICULTY_MODES = frozenset({"random_event"})
-# Players know an item by name, not id: the import script finds the id and sets the picture.
-PICTURE_ITEM_MODES = frozenset({"drop_table", "minigame_madness"})
 _ITEM_KEYS = {"name"}
 
 
@@ -240,7 +124,7 @@ def question_envelope(content: dict[str, Any]) -> dict[str, Any]:
         "type": content["type"],
         "mode": content["mode"],
         "source": "pack",
-        "tags": TAGS.get((content["mode"], content["type"]), []),
+        "tags": [tag for type_, tag in rules(content["mode"]).tags if type_ == content["type"]],
         "payload": content["payload"],
     }
     for key in ("wiki", "source_url", "random_event", "difficulty"):
@@ -269,7 +153,8 @@ def _question_errors(content: dict[str, Any], sourced: bool) -> list[str]:
     mode = content.get("mode")
     if "mode" in content and not isinstance(mode, str):
         return ["$.mode: a round's name, or no mode at all for the operator to pick one"]
-    if sourced and mode in WIKI_MODES and "wiki" not in content:
+    held = rules(mode)
+    if sourced and held.wiki_only and "wiki" not in content:
         return [f"$.wiki: required, since {mode!r} is checked against the wiki"]
     types = UNPLACED_TYPES if mode is None else QUESTION_MODES.get(mode)
     if types is None:
@@ -291,15 +176,15 @@ def _question_errors(content: dict[str, Any], sourced: bool) -> list[str]:
     found = schema.link_errors(content)
     if found:
         return found
-    if mode in NAMED_MODES and content["type"] == "pick_from_list":
-        return _named_errors(mode, content["payload"])
-    if mode in RENDER_MODES and "image" in content["payload"]:
+    if held.named is not None and content["type"] == "pick_from_list":
+        return _named_errors(mode, held, content["payload"])
+    if held.render and "image" in content["payload"]:
         return ["$.payload.image: none; the import script adds the NPC's render"]
-    if "quote" in content["payload"] and mode not in QUOTE_MODES:
+    if "quote" in content["payload"] and not held.quote:
         return [f"$.payload.quote: only {', '.join(sorted(QUOTE_MODES))} show a quotation"]
-    if "intro" in content["payload"] and mode not in INTRO_MODES:
+    if "intro" in content["payload"] and not held.intro:
         return [f"$.payload.intro: only {', '.join(sorted(INTRO_MODES))} show an intro"]
-    if "explanation" in content["payload"] and mode in NO_EXPLANATION_MODES:
+    if "explanation" in content["payload"] and not held.explanation:
         return [f"$.payload.explanation: {mode!r} shows no explanation"]
     found = _icon_errors(content["type"], content["payload"]) + _place_errors(
         content["type"], content["payload"]
@@ -319,7 +204,7 @@ def _question_errors(content: dict[str, Any], sourced: bool) -> list[str]:
     found = schema.schema_errors(envelope)
     if found:
         return found
-    fixed = FIXED_PROMPTS.get(mode)
+    fixed = held.fixed_prompt
     if fixed is not None and content["payload"]["prompt"] != fixed:
         return [f"$.payload.prompt: {mode!r} always asks {fixed!r}"]
     if mode in MODES:
@@ -329,7 +214,7 @@ def _question_errors(content: dict[str, Any], sourced: bool) -> list[str]:
 
 def difficulty_errors(mode: str | None, difficulty: Any) -> list[str]:
     """What is wrong with ``difficulty`` on a question of ``mode``; empty when it is good."""
-    if mode in NO_DIFFICULTY_MODES:
+    if not rules(mode).difficulty:
         return [f"$.difficulty: {mode!r} questions ignore the room's difficulty, so take none"]
     if difficulty not in DIFFICULTIES:
         return [f"$.difficulty: one of {', '.join(DIFFICULTIES)}"]
@@ -362,7 +247,7 @@ def _place_errors(type_: str, payload: dict[str, Any]) -> list[str]:
     return []
 
 
-def _named_errors(mode: str, payload: dict[str, Any]) -> list[str]:
+def _named_errors(mode: str, held: Suggest, payload: dict[str, Any]) -> list[str]:
     subject = payload.get("subject")
     if (
         payload.keys() != {"prompt", "subject"}
@@ -373,17 +258,17 @@ def _named_errors(mode: str, payload: dict[str, Any]) -> list[str]:
     name = subject["name"]
     if not isinstance(name, str) or not 1 <= len(name.strip()) <= NPC_NAME_MAX:
         return [f"$.payload.subject.name: a name of 1 to {NPC_NAME_MAX} characters"]
-    if mode in VERSE_MODES:
-        return _verse_errors(mode, payload, name)
-    if payload["prompt"] != FIXED_PROMPTS[mode]:
-        return [f"$.payload.prompt: {mode!r} always asks {FIXED_PROMPTS[mode]!r}"]
+    if held.verse:
+        return _verse_errors(held, payload, name)
+    if payload["prompt"] != held.fixed_prompt:
+        return [f"$.payload.prompt: {mode!r} always asks {held.fixed_prompt!r}"]
     return []
 
 
-def _verse_errors(mode: str, payload: dict[str, Any], name: str) -> list[str]:
+def _verse_errors(held: Suggest, payload: dict[str, Any], name: str) -> list[str]:
     # The id is the import's to find, so any will do to hold the prompt to the schema.
     found = schema.payload_errors(
-        "pick_from_list", {**payload, "vocab": NAMED_MODES[mode], "answer_id": 0}
+        "pick_from_list", {**payload, "vocab": held.named, "answer_id": 0}
     )
     if found:
         return found
@@ -396,21 +281,21 @@ def _verse_errors(mode: str, payload: dict[str, Any], name: str) -> list[str]:
 
 def named(content: dict[str, Any]) -> str | None:
     """The answer a named round's question gives by name, or ``None`` for any other question."""
-    if content.get("mode") not in NAMED_MODES or content["type"] != "pick_from_list":
+    if rules(content.get("mode")).named is None or content["type"] != "pick_from_list":
         return None
     return content["payload"]["subject"]["name"]
 
 
 def rendered(content: dict[str, Any]) -> str | None:
     """The NPC a render question pictures, its right option, or ``None`` for any other question."""
-    if content.get("mode") not in RENDER_MODES or content["type"] != "multiple_choice":
+    if not rules(content.get("mode")).render or content["type"] != "multiple_choice":
         return None
     payload = content["payload"]
     return payload["options"][payload["answer_index"]]
 
 
-def _picture_item_errors(mode: str, name: Any) -> list[str]:
-    if mode not in PICTURE_ITEM_MODES:
+def _picture_item_errors(mode: str | None, name: Any) -> list[str]:
+    if not rules(mode).picture_item:
         return [f"$.picture_item: only {', '.join(sorted(PICTURE_ITEM_MODES))} show an item"]
     if not isinstance(name, str) or not 1 <= len(name.strip()) <= ITEM_NAME_MAX:
         return [f"$.picture_item: an item name of 1 to {ITEM_NAME_MAX} characters"]
@@ -453,7 +338,7 @@ def tidy(kind: str, content: dict[str, Any]) -> dict[str, Any]:
         prompt = content["payload"]["prompt"].strip()
         payload = {"prompt": prompt, "subject": {"name": name.strip()}}
         return {**content, "payload": payload}
-    if content.get("mode") in LINED_MODES:
+    if rules(content.get("mode")).lined:
         typed = [line.strip() for line in content["payload"]["prompt"].splitlines()]
         prompt = "\n".join(line for line in typed if line)
         return {**content, "payload": {**content["payload"], "prompt": prompt}}
@@ -464,9 +349,10 @@ def _submission_errors(kind: str, content: dict[str, Any], shown: bool) -> list[
     # Not part of ``errors``: the import script reads an item already on the roster, or an
     # NPC already asked about, as one to skip, not one to refuse.
     name = named(content) if kind == "question" else None
-    if name is not None and content["mode"] not in VERSE_MODES:
+    held = rules(content.get("mode"))
+    if name is not None and not held.verse:
         # Every name on a named round's list is asked about, so the list is the pack's answers.
-        listed = vocab.get(NAMED_MODES[content["mode"]])
+        listed = vocab.get(str(held.named))
         names = {vocab.fold(entry.name) for entry in listed.entries} if listed else set()
         if vocab.fold(name) in names:
             return [f"$.payload.subject.name: {name!r} is already in the game"]
@@ -504,19 +390,19 @@ _TRIER = UUID(int=0)
 
 def _listed_verse(content: dict[str, Any]) -> dict[str, Any] | None:
     # A verse's payload as a room plays it, when the list has its item.
-    mode = content.get("mode")
-    if mode not in VERSE_MODES:
+    held = rules(content.get("mode"))
+    if not held.verse or held.named is None:
         return None
     name = vocab.fold(content["payload"]["subject"]["name"])
-    items = vocab.get(NAMED_MODES[mode])
-    entry = next((e for e in items.entries if vocab.fold(e.name) == name), None) if items else None
-    if entry is None:
+    items = vocab.get(held.named)
+    found = next((e for e in items.entries if vocab.fold(e.name) == name), None) if items else None
+    if found is None:
         return None
     return {
         "prompt": content["payload"]["prompt"],
-        "vocab": NAMED_MODES[mode],
-        "answer_id": entry.id,
-        "subject": {"name": entry.name},
+        "vocab": held.named,
+        "answer_id": found.id,
+        "subject": {"name": found.name},
     }
 
 
@@ -564,7 +450,7 @@ def _pack_candidates(packs: list[Pack]) -> list[tuple[dict[str, Any], similar.Fe
     # still a duplicate. The price modes' packs are generated per instance from the roster.
     found = []
     for mode in reports.pack_modes():
-        if mode in reports.ITEM_MODES:
+        if entry(mode).report == "item":
             continue
         for question in mode_questions(packs, mode):
             if question["id"] not in _pack_features:

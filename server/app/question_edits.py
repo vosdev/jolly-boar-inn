@@ -22,11 +22,12 @@ from typing import Any
 import asyncpg
 
 from app.errors import ApiError
+from app.modes import entry
 from app.questions import schema, text
 from app.questions.packs import Pack, mode_questions
-from app.reports import ITEM_MODES, pack_modes
+from app.reports import pack_modes
 from app.rooms.models import normalize_name
-from app.suggestions import NO_DIFFICULTY_MODES, NO_EXPLANATION_MODES, difficulty_errors
+from app.suggestions import difficulty_errors, rules
 
 EDITABLE = ("payload", "difficulty", "wiki", "source_url", "credit", "credit_shown")
 
@@ -41,7 +42,7 @@ class QuestionNotFound(ApiError):
 
 def edit_modes() -> list[str]:
     """The modes whose pack questions the editor lists: every hand-written one."""
-    return [mode for mode in pack_modes() if mode not in ITEM_MODES]
+    return [mode for mode in pack_modes() if entry(mode).report != "item"]
 
 
 def find(packs: Iterable[Pack], question_id: str) -> dict[str, Any]:
@@ -67,13 +68,14 @@ def edited(packs: list[Pack], before: dict[str, Any], body: dict[str, Any]) -> d
     found = schema.errors(after)
     if found:
         raise BadEdit("; ".join(found))
-    if after["mode"] in NO_EXPLANATION_MODES and "explanation" in after["payload"]:
+    held = rules(after["mode"])
+    if not held.explanation and "explanation" in after["payload"]:
         raise BadEdit(f"$.payload.explanation: {after['mode']!r} shows no explanation")
     if "difficulty" in after:
         found = difficulty_errors(after["mode"], after["difficulty"])
         if found:
             raise BadEdit("; ".join(found))
-    elif after["mode"] not in NO_DIFFICULTY_MODES:
+    elif held.difficulty:
         raise BadEdit("$.difficulty: required, since every round's question keeps a tier")
     if after == before:
         raise BadEdit("the edit changes nothing")
