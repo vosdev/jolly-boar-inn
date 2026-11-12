@@ -28,7 +28,7 @@ from app.rooms.plan import Plan
 from app.rooms.settings import RoomSettings
 from app.rooms.teams import God
 from app.stats import Arrival
-from app.ws.outbox import Outbox
+from app.ws.outbox import Frame, Outbox
 from app.ws.protocol import (
     Daily,
     JoinRequestView,
@@ -254,6 +254,14 @@ class RoomQuestion:
     answerable_mono: float | None = None
     ends_mono: float | None = None
     answers: dict[UUID, Submitted] = field(default_factory=dict)
+    _client_view: dict[str, Any] | None = field(default=None, repr=False, compare=False)
+
+    @property
+    def client_view(self) -> dict[str, Any]:
+        """The type's ``client_view`` of the payload, rendered once for the hold and every frame."""
+        if self._client_view is None:
+            self._client_view = TYPES[self.type].client_view(self.payload)
+        return self._client_view
 
     @property
     def steps(self) -> Steps | None:
@@ -295,9 +303,7 @@ class RoomQuestion:
             type=self.type,
             mode=self.mode,
             segment=segment,
-            view=pictured(
-                self.type, TYPES[self.type].client_view(self.payload), self.payload, pictures or {}
-            ),
+            view=pictured(self.type, self.client_view, self.payload, pictures or {}),
             picture=picture,
             random_event=self.random_event,
             opened_at=self.shown_at,
@@ -389,6 +395,10 @@ class Room:
     # Set when the ready check starts, shortens or stops a splash's countdown, so the
     # timer task wakes and sleeps to the new ``next_mono`` rather than the old one.
     rescheduled: asyncio.Event = field(default_factory=asyncio.Event, repr=False)
+    # Sockets owed a ``players_updated``, and the task that will send them one frame for
+    # every change since, once whatever already waits on the lock has run.
+    players_stale: set[UUID] = field(default_factory=set, repr=False)
+    players_flush: asyncio.Task[None] | None = field(default=None, repr=False)
 
     @property
     def round_count(self) -> int:
@@ -629,21 +639,19 @@ class Room:
 
 @dataclass(slots=True)
 class Broadcast:
-    """Rendered messages and the sockets they go to, snapshotted under the room lock.
+    """Rendered frames and the sockets they go to, snapshotted under the room lock.
 
     One entry per socket, because not every frame is the same for everyone: only admins are
-    sent ``room_updated``'s key and, with ``hide_rounds``, the rounds still to come.
+    sent ``room_updated``'s key and, with ``hide_rounds``, the rounds still to come. Sockets
+    sent the same thing share one ``Frame``, so it is serialised once.
     """
 
-    targets: list[tuple[Outbox, dict[str, Any]]]
+    targets: list[tuple[Outbox, Frame]]
 
     @classmethod
     def to_all(cls, room: Room, message: dict[str, Any], exclude: UUID | None = None) -> Broadcast:
-        return cls([(out, message) for pid, out in room.sockets.items() if pid != exclude])
-
-    @classmethod
-    def per_player(cls, room: Room, build: Callable[[UUID], dict[str, Any]]) -> Broadcast:
-        return cls([(out, build(pid)) for pid, out in room.sockets.items()])
+        frame = Frame(message)
+        return cls([(out, frame) for pid, out in room.sockets.items() if pid != exclude])
 
 
 def _require_admin(player: Player) -> None:

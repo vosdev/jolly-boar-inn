@@ -8,6 +8,7 @@ its sends times out, the writer closes it with 1011 and ``on_failed`` detaches i
 """
 
 import asyncio
+import json
 import logging
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
@@ -28,8 +29,29 @@ _REASON_MAX = 120
 
 
 class Socket(Protocol):
-    async def send_json(self, data: Any) -> None: ...
+    async def send_text(self, data: str) -> None: ...
     async def close(self, code: int = 1000, reason: str | None = None) -> None: ...
+
+
+class Frame:
+    """One server frame, serialised the first time a socket sends it and shared from then on.
+
+    A broadcast puts the same ``Frame`` on every outbox, so a room of fifty dumps it once
+    rather than fifty times, and outside the room lock.
+    """
+
+    __slots__ = ("_text", "message")
+
+    def __init__(self, message: dict[str, Any]) -> None:
+        self.message = message
+        self._text: str | None = None
+
+    @property
+    def text(self) -> str:
+        """The frame as sent, spelled as Starlette's ``send_json`` would spell it."""
+        if self._text is None:
+            self._text = json.dumps(self.message, separators=(",", ":"), ensure_ascii=False)
+        return self._text
 
 
 @dataclass(frozen=True, slots=True)
@@ -38,11 +60,12 @@ class _Close:
     reason: str
 
 
-async def send(ws: Socket, message: dict[str, Any]) -> bool:
+async def send(ws: Socket, message: Frame | dict[str, Any]) -> bool:
     """Send one frame; ``False`` if the socket is gone, refused it or took too long."""
+    frame = message if isinstance(message, Frame) else Frame(message)
     try:
         async with asyncio.timeout(SEND_TIMEOUT):
-            await ws.send_json(message)
+            await ws.send_text(frame.text)
     except Exception as exc:  # closed from either side, transport error, timeout
         log.info("dropping socket after failed send: %r", exc)
         return False
@@ -71,7 +94,7 @@ class Outbox:
         self._on_failed = on_failed
         self._limit = limit
         # Unbounded underneath so a close always fits; ``put`` holds frames to ``limit``.
-        self._queue: asyncio.Queue[dict[str, Any] | _Close] = asyncio.Queue()
+        self._queue: asyncio.Queue[Frame | _Close] = asyncio.Queue()
         self._closing = False
         self._task = asyncio.create_task(self._write(), name="outbox")
 
@@ -80,14 +103,14 @@ class Outbox:
         """A close is queued or done: nothing put from now on is sent."""
         return self._closing
 
-    def put(self, message: dict[str, Any]) -> bool:
+    def put(self, message: Frame | dict[str, Any]) -> bool:
         """Queue a frame. ``False`` if it will never be sent."""
         if self._closing:
             return False
         if self._queue.qsize() >= self._limit:
             self._give_up("send queue full")
             return False
-        self._queue.put_nowait(message)
+        self._queue.put_nowait(message if isinstance(message, Frame) else Frame(message))
         return True
 
     def close(self, code: int, reason: str) -> bool:

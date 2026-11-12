@@ -321,10 +321,10 @@ class FlakySocket:
         self.closed_with: int | None = None
         self.alive = True
 
-    async def send_json(self, data: dict[str, Any]) -> None:
+    async def send_text(self, data: str) -> None:
         if not self.alive:
             raise RuntimeError("connection reset")
-        self.sent.append(data)
+        self.sent.append(json.loads(data))
 
     async def close(self, code: int = 1000, reason: str | None = None) -> None:
         self.closed_with = code
@@ -369,7 +369,7 @@ class DeadSocket:
     ``send`` and ``close``; Starlette does not wrap it.
     """
 
-    async def send_json(self, data: dict[str, Any]) -> None:
+    async def send_text(self, data: str) -> None:
         raise OSError("client is gone")
 
     async def close(self, code: int = 1000, reason: str | None = None) -> None:
