@@ -339,7 +339,7 @@ class Room:
     finished_at: datetime | None = None
     # Only a join carrying it gets in. Sent to admins, never stored in ``settings``.
     invite_key: str | None = field(default=None, repr=False)
-    # Listed on Home for anyone to join while it is a lobby (``RoomManager.public_rooms``).
+    # Listed on Home for anyone to join while it is a lobby (``public_rooms`` in ``http/rooms.py``).
     public: bool = False
     # One player's attempt at a day's set: no lobby, no splash, no standings, never joinable.
     daily: Daily | None = None
@@ -433,7 +433,7 @@ class Room:
         if self.plan is not None:
             return self.plan.seconds
         return duration.game_seconds(
-            [(q.type, q.payload, q.mode) for q in self.questions],
+            [(q.type, q.payload, q.mode, q.random_event is not None) for q in self.questions],
             len(self.segments),
             self.settings.pace,
             self.settings.standings_seconds,

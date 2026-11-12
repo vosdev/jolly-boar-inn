@@ -33,7 +33,7 @@ from app.questions.types import TYPES, pictured
 from app.rooms import ready, scoring
 from app.rooms.daily_room import finish_attempt, record_close
 from app.rooms.errors import BadState
-from app.rooms.hold import hold_seconds, typed_lines
+from app.rooms.hold import payload_hold
 from app.rooms.models import Broadcast, Player, Room, RoomQuestion, _require_admin
 from app.rooms.queries import (
     _count_round_finished,
@@ -53,9 +53,8 @@ ALL_ANSWERED_PAUSE_SECONDS = 1.0
 
 def question_hold(question: RoomQuestion) -> float:
     """Seconds the scroll takes to type ``question`` in before its buttons appear."""
-    view = TYPES[question.type].client_view(question.payload)
     event = question.random_event is not None
-    return hold_seconds(typed_lines(question.type, question.mode, view, event), event)
+    return payload_hold(question.type, question.payload, question.mode, event)
 
 
 def _close_if_everyone_answered(room: Room) -> None:
@@ -540,8 +539,6 @@ class Loop:
                 return None
             question = room.questions[index]
             shown_at, now = datetime.now(UTC), self.clock()
-            seconds = self._answer_seconds(room, question)
-            hold = question_hold(question)
             segment = room.segment_at(index)
             assert segment is not None  # every question belongs to a round
             async with pool.acquire() as conn, conn.transaction():
@@ -550,6 +547,11 @@ class Loop:
                 )
                 if index == segment.start and room.daily is None:
                     await bump(conn, Metric.ROUNDS_STARTED, segment.mode)
+            # Read off the payload only once it is stamped shown: a payload this build cannot
+            # draw then raises into a restart that voids it, rather than one that owes it
+            # again and fails again.
+            seconds = self._answer_seconds(room, question)
+            hold = question_hold(question)
             question.shown_at = shown_at
             question.seconds = seconds
             question.answerable_at = shown_at + timedelta(seconds=hold)
