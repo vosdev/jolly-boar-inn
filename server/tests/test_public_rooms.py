@@ -2,13 +2,14 @@
 
 import json
 from collections.abc import Iterator
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 from typing import Any
 
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from starlette.testclient import WebSocketTestSession
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from app.http import rooms as rooms_http
 from tests.rooms_api import hello, join, next_of
@@ -106,6 +107,78 @@ def test_newest_first_and_capped(
         assert codes(listed(client, clock)) == [newer, older]
         monkeypatch.setattr(rooms_http, "PUBLIC_ROOMS_MAX", 1)
         assert codes(listed(client, clock)) == [newer]
+
+
+def create_at(client: TestClient, address: str) -> tuple[str, dict[str, Any]]:
+    """``create`` from ``address``, through a client that believes ``X-Forwarded-For``."""
+    response = client.post(
+        "/api/rooms",
+        json={
+            "returning": False,
+            "display_name": "Admin",
+            "public": True,
+            "settings": {"modes": MODES},
+        },
+        headers={"X-Forwarded-For": address},
+    )
+    assert response.status_code == 201, response.text
+    body = response.json()
+    return body["code"], {"session": body["session"], "player": body["player"]}
+
+
+@pytest.fixture
+def proxied(app: FastAPI) -> Iterator[TestClient]:
+    with TestClient(ProxyHeadersMiddleware(app, trusted_hosts="testclient")) as client:
+        yield client
+
+
+def test_one_address_lists_only_a_few_rooms_and_others_still_show(
+    app: FastAPI, proxied: TestClient
+) -> None:
+    """A script making rooms from one address cannot push everyone else's off Home."""
+    clock = [1000.0]
+    app.state.rooms.clock = lambda: clock[0]
+    spam = [create_at(proxied, "192.0.2.1") for _ in range(5)]
+    other, host = create_at(proxied, "192.0.2.2")
+    with ExitStack() as held:
+        for code, admin in [*spam, (other, host)]:
+            held.enter_context(seated(proxied, code, admin["session"]))
+        shown = codes(listed(proxied, clock))
+    assert other in shown
+    assert len([code for code, _ in spam if code in shown]) == rooms_http.PUBLIC_ROOMS_PER_ADDRESS
+
+
+def test_of_one_address_s_rooms_those_somebody_joined_are_listed_first(
+    app: FastAPI, proxied: TestClient
+) -> None:
+    clock = [1000.0]
+    app.state.rooms.clock = lambda: clock[0]
+    joined, first = create_at(proxied, "192.0.2.1")
+    assert join(proxied, joined, "Zezima").status_code == 200
+    rooms = [create_at(proxied, "192.0.2.1") for _ in range(3)]
+    with ExitStack() as held:
+        for code, admin in [(joined, first), *rooms]:
+            held.enter_context(seated(proxied, code, admin["session"]))
+        shown = codes(listed(proxied, clock))
+    assert shown == [rooms[-1][0], joined]
+
+
+def test_rehydrated_rooms_count_against_their_admin_s_address(
+    app: FastAPI, proxied: TestClient
+) -> None:
+    clock = [1000.0]
+    app.state.rooms.clock = lambda: clock[0]
+    made = [create_at(proxied, "192.0.2.1") for _ in range(3)]
+    assert proxied.portal is not None
+    for code, _ in made:
+        assert proxied.portal.call(app.state.rooms.evict, code.upper())
+    with ExitStack() as held:
+        for code, admin in made:
+            ws = held.enter_context(
+                proxied.websocket_connect(f"/ws/{code}", headers={"X-Forwarded-For": "192.0.2.1"})
+            )
+            hello(ws, admin["session"])
+        assert len(listed(proxied, clock)) == rooms_http.PUBLIC_ROOMS_PER_ADDRESS
 
 
 def test_a_rehydrated_room_is_still_public(

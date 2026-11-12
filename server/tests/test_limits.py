@@ -7,7 +7,7 @@ flags that back them; and the rate limiter's key and its warning about proxies.
 
 import logging
 import re
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 from pathlib import Path
 from typing import Any
 
@@ -23,6 +23,7 @@ from app.http.bodylimit import MAX_BODY, MAX_DEPTH, nesting
 from app.http.ratelimit import (
     CONNECTS_PER_ADDRESS,
     CONNECTS_PER_SESSION,
+    PENDING_HELLOS_PER_ADDRESS,
     RateLimiter,
     client_key,
 )
@@ -31,7 +32,7 @@ from app.questions.types import TYPES
 from app.ws import handler as ws_handler
 from app.ws.handler import MAX_FRAME, RATE_BURST, TokenBucket
 from tests.conftest import stub_mode
-from tests.rooms_api import closed_with, hello, next_of
+from tests.rooms_api import closed_with, create, hello, next_of
 
 
 def until_pong(ws: WebSocketTestSession) -> list[dict[str, Any]]:
@@ -96,14 +97,53 @@ def test_a_session_connecting_too_often_is_closed_with_1008_and_changes_nothing(
         assert until_pong(kept) == []
 
 
-def test_an_address_connecting_too_often_is_closed_with_1008(client: TestClient, lobby) -> None:
+def test_an_address_connecting_too_often_is_closed_with_1008_but_its_players_get_in(
+    client: TestClient, lobby
+) -> None:
+    """One device on a shared address spending its budget cannot keep a player out."""
     for attempt in range(CONNECTS_PER_ADDRESS):
         with client.websocket_connect(f"/ws/{lobby['code']}") as ws:
             ws.send_json({"t": "hello", "session": f"not-a-session-{attempt}"})
             assert closed_with(ws, drain=True) == 4001
     with client.websocket_connect(f"/ws/{lobby['code']}") as ws:
-        ws.send_json({"t": "hello", "session": lobby["player"]["session"]})
+        ws.send_json({"t": "hello", "session": "not-a-session-either"})
         assert closed_with(ws) == 1008
+    with client.websocket_connect(f"/ws/{lobby['code']}") as ws:
+        hello(ws, lobby["player"]["session"])
+
+
+def test_one_address_adds_at_most_its_own_budget_of_session_keys(
+    app: FastAPI, client: TestClient, lobby
+) -> None:
+    """Sessions are the client's to make up; the address is not, so it is checked first."""
+    before = len(app.state.session_connects._hits)
+    for attempt in range(CONNECTS_PER_ADDRESS + 20):
+        with client.websocket_connect(f"/ws/{lobby['code']}") as ws:
+            ws.send_json({"t": "hello", "session": f"made-up-{attempt}"})
+            closed_with(ws, drain=True)
+    assert len(app.state.session_connects._hits) - before <= CONNECTS_PER_ADDRESS
+
+
+def test_sockets_that_never_say_hello_are_capped_per_address(app: FastAPI) -> None:
+    """Otherwise one client holds every connection uvicorn will take."""
+    with TestClient(ProxyHeadersMiddleware(app, trusted_hosts="testclient")) as proxied:
+        code, admin = create(proxied)
+        crowd = {"X-Forwarded-For": "192.0.2.1"}
+        with ExitStack() as held:
+            for _ in range(PENDING_HELLOS_PER_ADDRESS):
+                held.enter_context(proxied.websocket_connect(f"/ws/{code}", headers=crowd))
+            with proxied.websocket_connect(f"/ws/{code}", headers=crowd) as refused:
+                with pytest.raises(WebSocketDisconnect) as info:
+                    refused.receive_json()
+                assert (info.value.code, info.value.reason) == (
+                    1008,
+                    "too many connects from this address",
+                )
+            elsewhere = {"X-Forwarded-For": "192.0.2.2"}
+            with proxied.websocket_connect(f"/ws/{code}", headers=elsewhere) as ws:
+                hello(ws, admin["session"])
+        with proxied.websocket_connect(f"/ws/{code}", headers=crowd) as ws:
+            hello(ws, admin["session"])
 
 
 def test_a_burst_of_ready_taps_reaches_the_room_at_most_a_burst_of_times(
@@ -328,6 +368,12 @@ def test_the_container_caps_frames_and_connections() -> None:
     assert re.search(r'"--limit-concurrency",\s*"\d+"', cmd), cmd
 
 
+def test_the_container_takes_the_client_address_from_its_proxy() -> None:
+    """Without it every create behind a proxy counts as the proxy's own."""
+    cmd = (REPO_ROOT / "Dockerfile").read_text(encoding="utf-8").split("\nCMD ")[-1]
+    assert '"--proxy-headers"' in cmd, cmd
+
+
 def test_the_dev_server_caps_frames() -> None:
     makefile = (REPO_ROOT / "Makefile").read_text(encoding="utf-8")
     line = next(li for li in makefile.splitlines() if "uvicorn app.main:app" in li)
@@ -361,6 +407,38 @@ def test_create_counts_an_ipv6_client_by_its_64(app: FastAPI) -> None:
         assert create_from("2001:db8::1") == 201
         assert create_from("2001:db8::2") == 429
         assert create_from("2001:db8:0:1::1") == 201
+
+
+def test_behind_a_proxy_it_does_not_trust_every_client_shares_the_create_limit(
+    app: FastAPI,
+) -> None:
+    with TestClient(ProxyHeadersMiddleware(app, trusted_hosts="127.0.0.1")) as proxied:
+        app.state.ratelimiter = RateLimiter(limit=1)
+        body = {"returning": False, "display_name": "Admin"}
+
+        def create_from(address: str) -> int:
+            headers = {"X-Forwarded-For": address}
+            return proxied.post("/api/rooms", json=body, headers=headers).status_code
+
+        assert create_from("192.0.2.1") == 201
+        assert create_from("192.0.2.2") == 429
+
+
+def test_behind_a_trusted_proxy_the_limit_keys_on_the_address_the_proxy_saw(
+    app: FastAPI,
+) -> None:
+    """Whatever a client writes into ``X-Forwarded-For`` itself sits left of what the proxy adds."""
+    with TestClient(ProxyHeadersMiddleware(app, trusted_hosts="testclient")) as proxied:
+        app.state.ratelimiter = RateLimiter(limit=1)
+        body = {"returning": False, "display_name": "Admin"}
+
+        def create_from(forwarded: str) -> int:
+            headers = {"X-Forwarded-For": forwarded}
+            return proxied.post("/api/rooms", json=body, headers=headers).status_code
+
+        assert create_from("198.51.100.1, 192.0.2.1") == 201
+        assert create_from("198.51.100.2, 192.0.2.1") == 429
+        assert create_from("198.51.100.1, 192.0.2.2") == 201
 
 
 # --- the proxy warning --------------------------------------------------------------

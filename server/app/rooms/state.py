@@ -642,7 +642,18 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
 
     # --- Sockets --------------------------------------------------------------------
 
-    async def connect(self, code: str, session: str, ws: WebSocket) -> tuple[Player, Outbox]:
+    def holds_session(self, code: str, session: str) -> bool:
+        """Whether a live room already in memory has a player with ``session``. Loads nothing."""
+        room = self.rooms.get(code.upper())
+        return (
+            room is not None
+            and not room.gone(self._grace, datetime.now(UTC))
+            and room.find_by_session(session) is not None
+        )
+
+    async def connect(
+        self, code: str, session: str, ws: WebSocket, address: str | None = None
+    ) -> tuple[Player, Outbox]:
         """Attach a socket for the player who owns ``session`` and queue its ``welcome``.
 
         Returns the player and the socket's outbox, which is where the handler's own
@@ -653,6 +664,9 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
 
         A ``welcome`` that cannot be delivered fails like any other send: the outbox
         closes the socket with 1011 and detaches it again.
+
+        ``address`` is the socket's limiter key; a room rehydrated without its creator's
+        takes its admin's, for the public list's per-address cap.
         """
         code = code.upper()
         async with self._locked(code):
@@ -660,6 +674,8 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
             player = room.find_by_session(session)
             if player is None:
                 raise BadSession("no player in this room has that session")
+            if room.creator_key is None and player.role == "admin":
+                room.creator_key = address
             if room.awaiting_player:
                 try:
                     await self._recover(room)

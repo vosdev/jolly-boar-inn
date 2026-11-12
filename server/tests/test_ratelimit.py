@@ -2,7 +2,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from app.http.ratelimit import RateLimited, RateLimiter, room_lookup
+from app.http.ratelimit import OpenCount, RateLimited, RateLimiter, room_lookup
 from app.rooms.errors import RoomNotFound
 
 
@@ -61,3 +61,31 @@ def test_a_miss_keeps_its_charge() -> None:
         raise RoomNotFound("no room has that code")
     with pytest.raises(RateLimited), room_lookup(misses, "192.0.2.1"):
         pass
+
+
+def test_a_stream_of_new_keys_sweeps_at_most_once_a_window(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Each sweep walks every key, so one per new key costs the loop quadratic time."""
+    limiter = RateLimiter(limit=1, window=timedelta(minutes=1))
+    t0 = datetime(2026, 9, 19, 12, 0, tzinfo=UTC)
+    for n in range(10_000):
+        limiter.allow(f"live-{n}", t0)
+    sweeps = []
+    real = limiter._sweep
+    monkeypatch.setattr(limiter, "_sweep", lambda cutoff: (sweeps.append(cutoff), real(cutoff)))
+    for n in range(100):
+        limiter.allow(f"new-{n}", t0 + timedelta(seconds=30))
+    assert len(sweeps) <= 1
+    limiter.allow("later", t0 + timedelta(minutes=2))
+    assert "live-0" not in limiter._hits
+
+
+def test_an_open_count_refuses_past_its_limit_until_one_leaves() -> None:
+    held = OpenCount(limit=2)
+    assert held.enter("a")
+    assert held.enter("a")
+    assert not held.enter("a")
+    assert held.enter("b")
+    held.leave("a")
+    assert held.enter("a")

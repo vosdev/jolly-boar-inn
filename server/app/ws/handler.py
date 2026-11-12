@@ -3,10 +3,11 @@
 Close codes ("Websocket protocol"): ``4001`` bad ``hello``, ``4004`` unknown or expired room,
 ``4008`` any protocol error after the handshake, each after a single ``error`` message where
 the protocol has a code for it. ``1008`` for no ``hello`` within ``HELLO_TIMEOUT``, a socket
-over its message rate, a session or address connecting too often, or an address over its
-budget of rooms not found, ``1009`` for a frame over ``MAX_FRAME``, and ``1011`` for a call
-that failed on our side: the client reconnects after these. ``4000`` (replaced by a newer
-socket) and ``1012`` (room left memory) come from the manager.
+over its message rate, a session or address connecting too often, an address holding too many
+sockets that have not said ``hello``, or an address over its budget of rooms not found,
+``1009`` for a frame over ``MAX_FRAME``, and ``1011`` for a call that failed on our side: the
+client reconnects after these. ``4000`` (replaced by a newer socket) and ``1012`` (room left
+memory) come from the manager.
 
 Every message after the handshake is one ``RoomManager`` call. A call that raises
 ``ApiError`` becomes a single ``error`` frame and the socket stays open: a rejected
@@ -27,6 +28,7 @@ import json
 import logging
 import time
 from collections.abc import Callable
+from contextlib import nullcontext
 from datetime import UTC, datetime
 from typing import Any, get_args
 
@@ -35,7 +37,7 @@ from pydantic import ValidationError
 
 from app import metrics
 from app.errors import ApiError
-from app.http.ratelimit import RateLimited, client_key, room_lookup
+from app.http.ratelimit import OpenCount, RateLimited, client_key, room_lookup
 from app.rooms.errors import BadSession, RoomExpired, RoomNotFound
 from app.rooms.models import Player, hash_token
 from app.rooms.state import RoomManager
@@ -149,18 +151,33 @@ def _describe(exc: ValidationError) -> str:
 @router.websocket("/ws/{code}")
 async def room_socket(ws: WebSocket, code: str) -> None:
     manager: RoomManager = ws.app.state.rooms
+    host = ws.client.host if ws.client else ""
+    key = client_key(host)
+    pending: OpenCount = ws.app.state.pending_hellos
     await ws.accept()
     player: Player | None = None
     outbox: Outbox | None = None
     try:
-        hello = await _handshake(ws)
+        if not pending.enter(key):
+            metrics.RATE_LIMITED.labels(limiter="connects").inc()
+            metrics.WS_DISCONNECTS.labels(reason="rate_limited").inc()
+            await _close(ws, CLOSE_POLICY, "too many connects from this address")
+            return
+        try:
+            hello = await _handshake(ws)
+        finally:
+            pending.leave(key)
         if hello is None:
             return
         try:
-            host = ws.client.host if ws.client else ""
-            _check_connects(ws, host, hello.session)
-            with room_lookup(ws.app.state.lookup_misses, host):
-                player, outbox = await manager.connect(code, hello.session, ws)
+            # A session already in the room proves it knows the room exists, so letting it
+            # past the address's budgets reveals nothing, and a shared address one device
+            # spent cannot keep its players from reconnecting.
+            trusted = manager.holds_session(code, hello.session)
+            _check_connects(ws, key, hello.session, trusted)
+            lookup = nullcontext() if trusted else room_lookup(ws.app.state.lookup_misses, host)
+            with lookup:
+                player, outbox = await manager.connect(code, hello.session, ws, key)
         except RateLimited as exc:
             metrics.WS_DISCONNECTS.labels(reason="rate_limited").inc()
             await _close(ws, CLOSE_POLICY, exc.message)
@@ -191,11 +208,16 @@ async def room_socket(ws: WebSocket, code: str) -> None:
             await outbox.finished()
 
 
-def _check_connects(ws: WebSocket, host: str, session: str) -> None:
-    """Refuse a session or an address that connects too often, before the room is touched."""
+def _check_connects(ws: WebSocket, key: str, session: str, trusted: bool) -> None:
+    """Refuse a session or an address that connects too often, before the room is touched.
+
+    The address first, so one address can leave at most its own budget of session keys a
+    window however many sessions it makes up. A trusted session answers to its own budget.
+    """
     state = ws.app.state
+    if not trusted:
+        state.connects.check(key, "too many connects from this address")
     state.session_connects.check(hash_token(session), "this session connects too often")
-    state.connects.check(client_key(host), "too many connects from this address")
 
 
 async def _handshake(ws: WebSocket) -> protocol.Hello | None:

@@ -2,6 +2,7 @@
 ``GET /api/rooms/public``, ``GET /api/rooms/{code}``,
 ``POST /api/rooms/{code}/questions``, ``DELETE /api/rooms/{code}``."""
 
+from collections import Counter
 from typing import Any, Self
 from uuid import UUID
 
@@ -93,6 +94,20 @@ class ModeNotOffered(ApiError):
     status, code = 403, "mode_not_offered"
 
 
+class CrossSite(ApiError):
+    status = 403
+
+
+def refuse_cross_site(request: Request) -> None:
+    """403 for a lookup another site's page made, before it costs the visitor's address.
+
+    An ``<img>`` on any page is a GET with no preflight, so without this every visitor of
+    that page would spend their address's miss budget, and their pub's with it.
+    """
+    if request.headers.get("sec-fetch-site") == "cross-site":
+        raise CrossSite("look a room up from this site")
+
+
 @router.post("", status_code=201)
 async def create_room(body: CreateRoom, request: Request) -> dict[str, Any]:
     ip = client_host(request)
@@ -122,6 +137,7 @@ async def create_room(body: CreateRoom, request: Request) -> dict[str, Any]:
         body.public,
         Arrival(theme=body.theme, device=body.device),
         body.code,
+        client_key(ip),
     )
     # ``expires_at`` lets the host's "rooms you created" list drop a room once its code
     # may belong to someone else.
@@ -152,6 +168,8 @@ class PublicRoom(BaseModel):
 
 
 PUBLIC_ROOMS_MAX = 50
+# Rooms from one creating address, so a script cannot push everyone else's off the list.
+PUBLIC_ROOMS_PER_ADDRESS = 2
 # Long enough that a crowd of open Home pages costs one walk over the rooms per window.
 PUBLIC_ROOMS_TTL = 5.0
 
@@ -179,15 +197,29 @@ def listable(room: Room) -> bool:
 
 
 def public_rooms(rooms: RoomManager) -> list[PublicRoom]:
-    """The listable rooms in memory, newest first.
+    """The listable rooms in memory, newest first, a few from any one creating address.
 
     Memory rather than Postgres, because a lobby nobody is connected to is not worth a
-    stranger's visit, and a room only has connected players while it is in memory.
+    stranger's visit, and a room only has connected players while it is in memory. Which
+    rooms make the cut prefers those somebody has already joined, then the newest.
     """
-    newest = sorted(
-        filter(listable, rooms.rooms.values()), key=lambda room: room.created_at, reverse=True
+    preferred = sorted(
+        filter(listable, rooms.rooms.values()),
+        key=lambda room: (len(room.players) > 1, room.created_at),
+        reverse=True,
     )
-    return [public_room(room) for room in newest[:PUBLIC_ROOMS_MAX]]
+    per_address: Counter[str] = Counter()
+    kept: list[Room] = []
+    for room in preferred:
+        if len(kept) == PUBLIC_ROOMS_MAX:
+            break
+        if room.creator_key is not None:
+            if per_address[room.creator_key] == PUBLIC_ROOMS_PER_ADDRESS:
+                continue
+            per_address[room.creator_key] += 1
+        kept.append(room)
+    kept.sort(key=lambda room: room.created_at, reverse=True)
+    return [public_room(room) for room in kept]
 
 
 @router.get("/free-code")
@@ -217,6 +249,7 @@ async def list_public_rooms(request: Request) -> list[PublicRoom]:
 @router.get("/{code}")
 async def get_room(code: str, request: Request) -> dict[str, Any]:
     """What the join page needs before joining, and nothing about who is in the room."""
+    refuse_cross_site(request)
     with room_lookup(request.app.state.lookup_misses, client_host(request)):
         room = await manager(request).get_listed(code)
     return {"status": room.status, "players": len(room.players)}

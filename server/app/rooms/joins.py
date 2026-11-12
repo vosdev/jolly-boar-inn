@@ -120,6 +120,7 @@ class Joins:
         public: bool = False,
         arrival: Arrival = UNREPORTED,
         code: str | None = None,
+        creator_key: str | None = None,
     ) -> tuple[Room, Player, str]:
         """Insert the room and its admin, in one transaction; its questions wait for the start.
 
@@ -219,6 +220,7 @@ class Joins:
         async with self._locked(code) as lock:
             room = _room_from_row(room_row, total=0, lock=lock)
             room.custom_author = player_row["id"]
+            room.creator_key = creator_key
             self._plan_lobby(room)
             # Before ``setdefault``: the copy that lands in ``self.rooms`` is never re-read,
             # so a room cached without its admin would reject the host's own ``hello``.

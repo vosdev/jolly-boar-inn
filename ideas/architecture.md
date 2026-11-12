@@ -438,7 +438,7 @@ What the server withholds. The admin is a player with a flag; there is no admin 
 | 4003 | kicked | stops |
 | 4004 | unknown, expired or deleted room; no `error` frame | stops |
 | 4008 | protocol error, after an `error` frame | stops |
-| 1008 | no `hello` in 10 s, over 10 messages a second after a burst of 20, over 10 connects a minute per session or 30 per address, or rate limited | reconnects |
+| 1008 | no `hello` in 10 s, over 10 messages a second after a burst of 20, over 10 connects a minute per session or 30 per address, over 10 sockets per address awaiting `hello`, or rate limited | reconnects |
 | 1009 | a frame over 64 KiB | reconnects |
 | 1011 | a send failed or timed out, or the server failed a connect or command | reconnects |
 | 1012 | the room left memory; the reconnect rehydrates it | reconnects |
@@ -702,7 +702,8 @@ gates `GET /metrics` (OpenMetrics text, fixed-set labels only) by the same rules
 - `public` lists the room on Home (`rooms.public`); with `invite_only` too it is a 422.
   `GET /api/rooms/public` is the one route that shows a stranger rooms they were not given, so it
   carries only what a join would: the 50 newest public lobbies in memory with a connected player
-  and a free seat, as `{code, host: {id, display_name, avatar}, players, max_players, rounds,
+  and a free seat, at most 2 per creating address (kept in memory; rooms with a second player
+  win), as `{code, host: {id, display_name, avatar}, players, max_players, rounds,
   modes?}`, `modes` left out with `hide_rounds`. Every caller shares one copy for 5 s.
   `PUBLIC_ROOMS=false` makes it `[]`.
 - `returning` says the browser had a `jbi:profile` when the page loaded. It, `theme` (a picked one
@@ -721,12 +722,14 @@ Limits:
 
 - 30 creates an hour (`ROOMS_PER_IP_PER_HOUR`), 100 joins an hour, 10 daily starts an hour (a resume is
   free), 30 lookups of missing rooms per 10 minutes, 5 free codes per 10 seconds. Past those, every room request is 429 with a `Retry-After` (1008 on a socket), so a refusal never reveals
-  which codes are live.
+  which codes are live. A `hello` whose session a room in memory holds skips the miss and address
+  connect budgets, so one device cannot lock a shared address out. A room `GET` with
+  `Sec-Fetch-Site: cross-site` is 403 and charges nothing.
 - Create refuses a sixth room while `jbi:created` holds five the server still has; one that
   answers 404 or 410 drops off the list. Clearing storage bypasses it; the create limit is the
   backstop.
-- Trusted proxies come only from `FORWARDED_ALLOW_IPS`. The first ignored `X-Forwarded-For` logs one
-  warning.
+- Limits key on uvicorn's `--proxy-headers` address: from a peer in `FORWARDED_ALLOW_IPS`, the
+  rightmost `X-Forwarded-For` entry not in it; else the peer. The first ignored one logs a warning.
 - `/api/*` bodies over 256 KiB get 413, nested over 64 levels 422 `too_deep`. Writes not declared `application/json` get 415, because a
   cross-site `no-cors` fetch sends an untyped body without a preflight.
 - uvicorn runs `--host "" --ws-max-size 65536 --limit-concurrency 1000 --workers 1`. The empty
