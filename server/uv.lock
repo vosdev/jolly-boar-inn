@@ -218,7 +218,7 @@ wheels = [
 
 [[package]]
 name = "jolly-boar-inn"
-version = "0.248.1"
+version = "0.248.2"
 source = { editable = "." }
 default-groups = ["data", "dev"]
 dependencies = [
