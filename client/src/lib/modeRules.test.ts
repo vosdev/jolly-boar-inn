@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import { ALL_MODE_IDS, COMING_SOON, MODE_RULES, SUGGESTIBLE, pictureOf } from './modeRules'
+import {
+  ALL_MODE_IDS,
+  ANSWER_RULES,
+  COMING_SOON,
+  MODE_RULES,
+  SUGGESTIBLE,
+  pictureOf,
+} from './modeRules'
 import { MODES, MODE_FILES, modeCopy } from './modes'
 import questionEdits from './questionEdits.ts?raw'
 import reports from './reports.ts?raw'
@@ -57,6 +64,17 @@ describe('schema/modes.json', () => {
       expect(sample?.extra, id).toBeUndefined()
       expect(sample?.steps, id).toBeUndefined()
     }
+  })
+
+  it('times every type a mode plays and holds speed buckets up to the full time', () => {
+    const types = new Set(MODE_RULES.flatMap((mode) => mode.types))
+    expect(Object.keys(ANSWER_RULES.answer).sort(), 'run `make gen-modes`').toEqual(
+      expect.arrayContaining([...types].sort()),
+    )
+    expect(ANSWER_RULES.min_answer).toBeGreaterThan(0)
+    const edges = ANSWER_RULES.buckets.map(([upTo]) => upTo)
+    expect(edges).toEqual([...edges].sort((a, b) => a - b))
+    expect(edges.at(-1)).toBe(1)
   })
 
   it('gives every mode that takes suggestions a card of its own place', () => {

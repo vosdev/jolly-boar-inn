@@ -4,6 +4,9 @@ import json
 
 from app.modes import MODES, PLANNED, UPCOMING
 from app.modes.rules import MODES_PATH, REGENERATE, mode_rules, render
+from app.questions.types import TYPES
+from app.questions.types.timing import MIN_ANSWER
+from app.rooms import scoring
 
 
 def test_committed_mode_rules_are_current() -> None:
@@ -28,3 +31,13 @@ def test_a_rule_lands_in_the_file() -> None:
         ["pick_from_list", "shadow"],
         ["multiple_choice", "render"],
     ]
+
+
+def test_the_answer_timings_and_speed_buckets_land_in_the_file(monkeypatch) -> None:
+    rules = mode_rules()
+    assert set(rules["answer"]) == set(TYPES)
+    assert rules["answer"]["multiple_choice"] == {"base": 10, "per_item": 2}
+    assert rules["min_answer"] == MIN_ANSWER
+    assert rules["buckets"] == [list(edge) for edge in scoring.BUCKETS]
+    monkeypatch.setattr(scoring, "BUCKETS", ((0.2, 1000), (1.0, 500)))
+    assert mode_rules()["buckets"] == [[0.2, 1000], [1.0, 500]]

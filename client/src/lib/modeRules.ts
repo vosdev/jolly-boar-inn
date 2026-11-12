@@ -51,13 +51,32 @@ export interface ModeRules {
   compare: ReportBy
 }
 
-interface Rules {
+/** `Timing` on the server: `base` seconds plus `per_item` for each item shown, at run pace. */
+export interface Timing {
+  base: number
+  per_item: number
+}
+
+/** What a question's answer time and its speed points are made of, as the server holds them. */
+export interface AnswerRules {
+  /** Each type's `ANSWER`. */
+  answer: Record<string, Timing>
+  /** `MIN_ANSWER`: no question is open for less, whatever the pace. */
+  min_answer: number
+  /** `rooms/scoring.py`'s `BUCKETS`: the fraction of the time used, and its points. */
+  buckets: [number, number][]
+}
+
+interface Rules extends AnswerRules {
   modes: ModeRules[]
   upcoming: { id: string; suggest: SuggestRules }[]
   planned: string[]
 }
 
 const DATA = RULES as unknown as Rules
+
+/** The answer timings and speed buckets this build's server applies. */
+export const ANSWER_RULES: AnswerRules = DATA
 
 /** Every mode this build plays, in the registry's order, which is the create form's. */
 export const MODE_RULES: readonly ModeRules[] = DATA.modes

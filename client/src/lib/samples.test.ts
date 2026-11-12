@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import CASES from '../../../server/tests/sample_grading_cases.json'
+import { ANSWER_RULES, type AnswerRules } from './modeRules'
 import { MODES } from './modes'
 import {
   SAMPLES,
@@ -153,6 +154,29 @@ describe('samples', () => {
     expect(speedPoints(1, 20000, 20)).toBe(600)
     expect(speedPoints(1, 20001, 20)).toBe(0)
     expect(speedPoints(0, 1000, 20)).toBe(0)
+  })
+
+  it("stay open and pay as the generated file's timings and buckets say", () => {
+    const sample = SAMPLES.more_less as OneAnswerSample
+    const rules: AnswerRules = {
+      ...ANSWER_RULES,
+      answer: { ...ANSWER_RULES.answer, more_less: { base: 20, per_item: 0 } },
+      buckets: [
+        [0.1, 1000],
+        [0.25, 850],
+        [1, 500],
+      ],
+    }
+    expect(sampleSeconds(sample, rules)).toBe(20)
+    expect(sampleResult(sample, sample.answer, 3000, rules).points).toBe(850)
+    expect(sampleResult(sample, sample.answer, 3000).points).toBe(800)
+    expect(sampleResult(sample, sample.answer, 15000, rules).points).toBe(500)
+  })
+
+  it("never open a sample for less than the server's floor", () => {
+    const sample = SAMPLES.more_less!
+    const rules = { ...ANSWER_RULES, answer: { more_less: { base: 1, per_item: 0 } } }
+    expect(sampleSeconds(sample, rules)).toBe(ANSWER_RULES.min_answer)
   })
 
   it('grade the right index alone as correct', () => {

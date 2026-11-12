@@ -95,11 +95,12 @@ module lists mode ids, which a test greps for.
 - `is_round` is explicit, so an empty `types` never turns a round into an event pool. Only `custom`
   and `random_event` are not rounds. They state no types and no numbers.
 - Copy (label, hint, blurb, host lines, suggestion card) lives on the client in `lib/modes/`. `make
-  gen-modes` writes every entry, `UPCOMING` and `PLANNED` to `schema/modes.json`, committed; the
-  client reads its per-mode rules (`lib/modeRules.ts`) and its mode order from it, and keeps no list
-  of mode ids. A server test fails while the file is stale, a client test while a mode file is not in
-  it. `stem` is also typed in each mode file, for `rooms/hold.py`, and a server test holds the two
-  equal; `hold_counts_prompt` keeps Pixel Hunt's prompt in the hold.
+  gen-modes` writes every entry, `UPCOMING`, `PLANNED`, each type's `ANSWER` and the speed buckets
+  to `schema/modes.json`, committed; the client reads its per-mode rules (`lib/modeRules.ts`), its
+  mode order and How to play's timings and points from it, and keeps no list of mode ids. A server
+  test fails while the file is stale, a client test while a mode file is not in it. `stem` is also
+  typed in each mode file, for `rooms/hold.py`, and a server test holds the two equal;
+  `hold_counts_prompt` keeps Pixel Hunt's prompt in the hold.
 - `suggest` is a frozen `Suggest` record of what `/suggest` takes (section 11), its `types` the
   mode's own unless stated; `TRIVIA_TYPES` names the seven most rounds take. `UPCOMING` maps a
   round not built yet to its `Suggest`; `PLANNED` lists those that take no suggestions yet. `report` is `item`, `options` or `npc` where the report form
