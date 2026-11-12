@@ -424,6 +424,46 @@ class Room:
             self.settings.name_wrong_answers,
         )
 
+    def enter(
+        self,
+        phase: str,
+        *,
+        seconds: float | None = None,
+        reveal_seconds: int | None = None,
+        now: float,
+        wall: datetime,
+    ) -> None:
+        """Move to ``phase``, ending ``seconds`` after ``now`` and ``wall`` (``None``: untimed).
+
+        ``now`` is the manager's clock and ``wall`` the same moment in UTC, so both ends are
+        one reading. ``reveal_seconds`` is the countdown a reveal shows; any other phase
+        drops it. A skip aimed at the phase before is spent, so ``advance`` starts clear.
+        """
+        self.phase = phase
+        self.reveal_seconds = reveal_seconds if phase == "reveal" else None
+        if seconds is None:
+            self.clear_deadline()
+        else:
+            self.next_mono = now + seconds
+            self.next_at = wall + timedelta(seconds=seconds)
+        self.advance.clear()
+
+    def reschedule(self, until: float | None, *, now: float, wall: datetime) -> None:
+        """End the current phase at ``until`` on the manager's clock, or not on a clock."""
+        self.next_mono = until
+        self.next_at = None if until is None else wall + timedelta(seconds=until - now)
+
+    def clear_deadline(self) -> None:
+        """Leave the current phase without an end, until the next ``enter`` gives it one."""
+        self.next_at = self.next_mono = None
+
+    def reset_ready(self) -> None:
+        """Start a fresh ready check: nobody ready, editing or with their un-ready spent."""
+        for player in self.players.values():
+            player.ready = False
+            player.unreadied = False
+            player.stop_editing()
+
     def segment_at(self, position: int) -> Segment | None:
         return segments.segment_at(self.segments, position)
 
@@ -520,7 +560,7 @@ class Room:
             events=self.event_count,
             phase=self.phase,  # type: ignore[arg-type]
             next_at=self.next_at,
-            reveal_seconds=self.reveal_seconds if self.phase == "reveal" else None,
+            reveal_seconds=self.reveal_seconds,
             estimated_seconds=self.estimated_seconds(),
             segment=self.current_segment,
             next_segment=self.next_segment if self.phase == "standings" else None,
