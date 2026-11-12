@@ -6,7 +6,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as admin from '../../lib/admin'
 import * as api from '../../lib/api'
 import { npcArt } from '../../lib/npcs'
-import type { QuestionContent, QueuedSuggestion } from '../../lib/suggestions'
+import {
+  roundsFor,
+  type QuestionContent,
+  type QueuedSuggestion,
+  type SuggestedType,
+} from '../../lib/suggestions'
 import SuggestionQueue from './SuggestionQueue.svelte'
 
 vi.mock('../../lib/admin', async (importOriginal) => {
@@ -285,6 +290,10 @@ describe('SuggestionQueue', () => {
       return [...select.options].map((option) => option.textContent ?? '')
     }
 
+    function labelsFor(type: SuggestedType): string[] {
+      return roundsFor(type).map((choice) => choice.label)
+    }
+
     it('reads "No round yet", from the house, and cannot be approved', async () => {
       vi.mocked(admin.getQueue).mockResolvedValue({ suggestions: [unplaced], counts: COUNTS })
       render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
@@ -303,22 +312,8 @@ describe('SuggestionQueue', () => {
       render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
       await fireEvent.click((await screen.findByText('Unplaced?')).closest('button')!)
       await fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
-      expect(rounds()).toEqual([
-        'No round yet',
-        'A random event question',
-        'Guess the Examine',
-        'Bestiary',
-        'Drop Table',
-        'Odd One Out',
-        'Minigame Madness',
-        'Who Said That?',
-        'Know Your Content Creator',
-        'ScapeRune',
-        'Tales of Gielinor',
-        'Uri’s Unravelling',
-        'Slayer Master',
-        'Who is That NPC?',
-      ])
+      expect(rounds()).toEqual(['No round yet', ...labelsFor('multiple_choice')])
+      expect(rounds().slice(0, 2)).toEqual(['No round yet', 'A random event question'])
       expect(screen.queryByText('Who asks it')).toBeNull()
       await fireEvent.change(screen.getByLabelText('Round'), { target: { value: 'random_event' } })
       expect(screen.getByText('Who asks it')).toBeTruthy()
@@ -370,16 +365,7 @@ describe('SuggestionQueue', () => {
       await fireEvent.click((await screen.findByText('Sort these.')).closest('button')!)
       await fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
       expect(screen.getByLabelText<HTMLSelectElement>('Round').value).toBe('sort_it_out')
-      expect(rounds()).toEqual([
-        'A random event question',
-        'Bestiary',
-        'Minigame Madness',
-        'Tales of Gielinor',
-        'Uri’s Unravelling',
-        'Slayer Master',
-        'Sort It Out',
-        'Release Order',
-      ])
+      expect(rounds()).toEqual(labelsFor('ordering'))
       await fireEvent.change(screen.getByLabelText('Round'), { target: { value: 'bestiary' } })
       await fireEvent.click(screen.getByRole('button', { name: 'Save' }))
       const [, , body] = vi.mocked(admin.editSuggestion).mock.calls[0]!

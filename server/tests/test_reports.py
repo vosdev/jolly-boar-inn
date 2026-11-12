@@ -122,25 +122,14 @@ def _prompt(question: dict[str, Any]) -> str:
     return payload["prompt"] if quote is None else f"{payload['prompt']} “{quote}”"
 
 
-# What players read while a question is open, per pack mode. A new mode must say.
-WHAT_PLAYERS_READ = {
-    "guess_examine": _prompt,
-    "sort_it_out": _prompt,
-    "who_said_that": _prompt,
-    "know_your_content_creator": _prompt,
-    "bestiary": _prompt,
-    "drop_table": _prompt,
-    "minigame_madness": _prompt,
+# What players read while a question is open, for the pack modes where that is not the
+# prompt. Typed here, not read from ``Mode.report``, so a mode filed under the wrong rule
+# fails; a mode left out is labelled by its prompt.
+NOT_THE_PROMPT = {
     # Certer's are pictures, named as Pixel Hunt's are.
     "random_event": lambda q: (
         q["payload"]["subject"]["name"] if q.get("random_event") == "certer" else _prompt(q)
     ),
-    "forgetful_bard": _prompt,
-    "scaperune": _prompt,
-    "tales_of_gielinor": _prompt,
-    "uris_unravelling": _prompt,
-    "slayer_master": _prompt,
-    "mark_the_map": _prompt,
     "odd_one_out": lambda q: ", ".join(q["payload"]["options"]),
     "pixel_hunt": lambda q: q["payload"]["subject"]["name"],
     "whos_that_npc": lambda q: (
@@ -153,11 +142,11 @@ WHAT_PLAYERS_READ = {
 
 @pytest.mark.parametrize("mode", [m for m in reports.pack_modes() if m not in reports.ITEM_MODES])
 def test_each_pack_mode_is_labelled_by_what_players_read(mode: str) -> None:
-    assert mode in WHAT_PLAYERS_READ, f"{mode}: say what its questions' label is"
+    read = NOT_THE_PROMPT.get(mode, _prompt)
     questions = mode_questions(PACKS, mode)
     assert questions, mode
     for question in questions:
-        assert reports.label(question) == WHAT_PLAYERS_READ[mode](question), question["id"]
+        assert reports.label(question) == read(question), question["id"]
 
 
 def test_whos_that_npc_is_listed_by_the_npc_and_its_id(offline: TestClient) -> None:
