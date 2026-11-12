@@ -87,13 +87,14 @@ lint:
 	cd server && uv run ruff check . && uv run ruff format --check . && uv run python scripts/check_workflows.py
 	cd client && pnpm lint && pnpm check
 
-# T15: 30 bot players through one room over websockets, asserting no error frames, a p99
-# answer -> answer_ack under 200 ms, an exact answers row count and identical standings.
-# Needs a live server and its database, so it is never part of `test` or CI: run `make dev`
-# in another terminal first. For the compose stack the bundled Postgres is not published to
-# the host, so run the script in the app container instead:
+# 30 bot players through one room over websockets, asserting no error frames or refusals, a
+# p99 answer -> answer_ack under 200 ms, an exact answers row count and identical standings.
+# Needs a live server that trusts X-Forwarded-For from 127.0.0.1 (uvicorn's default) and its
+# database, so it is never part of `test` or CI: run `make dev` in another terminal first. For
+# the compose stack the bundled Postgres is not published to the host, so run the script in
+# the app container instead:
 #   docker compose exec app python scripts/loadtest.py
-# Takes about six and a half minutes. Pass flags through with LOADTEST_ARGS, e.g.
+# Takes about twelve and a half minutes. Pass flags through with LOADTEST_ARGS, e.g.
 #   make loadtest LOADTEST_ARGS="--questions 5 --pace run"
 loadtest:
 	cd server && uv run python scripts/loadtest.py $(LOADTEST_ARGS)
