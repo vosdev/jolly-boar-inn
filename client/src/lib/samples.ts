@@ -1,16 +1,17 @@
 /**
  * How to play's Try a question: one sample question per mode, played on the page alone.
  *
- * Written here rather than drawn from a pack, so nothing a player answers reaches the
- * server and nothing lands in anyone's stats. Only the lists the pick-from-list modes search
- * are fetched, the same ones a room's players get. Each sample is the `client_view` its type sends while
- * open, plus what that type's reveal and grade need; the grading is a copy of the server's,
- * held to it by `server/tests/sample_grading_cases.json`.
+ * Written in its mode's file (`lib/modes/`) rather than drawn from a pack, so nothing a
+ * player answers reaches the server and nothing lands in anyone's stats. Only the lists the
+ * pick-from-list modes search are fetched, the same ones a room's players get. Each sample is
+ * the `client_view` its type sends while open, plus what that type's reveal and grade need;
+ * the grading is a copy of the server's, held to it by `server/tests/sample_grading_cases.json`.
  *
  * A mode whose round asks only in other types has no sample, and its view offers no Try a
  * question. A mixed mode's sample is one of its types.
  */
 
+import { modeCopy } from './modes'
 import { npcArt } from './npcs'
 import type { PlayerResult } from './protocol'
 import { credit as sliderCredit } from './slider'
@@ -62,189 +63,7 @@ export interface ListSample extends SampleBase {
 
 export type Sample = OneAnswerSample | PriceSample | OrderingSample | ListSample
 
-export const SAMPLES: Record<string, Sample> = {
-  more_less: {
-    mode: 'more_less',
-    type: 'more_less',
-    view: {
-      metric: 'high_alch',
-      direction: 'more',
-      options: [
-        { subject: { name: 'Rune scimitar', asset: 'item:1333' } },
-        { subject: { name: 'Rune platebody', asset: 'item:1127' } },
-      ],
-      as_of: '2026-10-01',
-    },
-    answer: 1,
-    values: [15360, 39000],
-  },
-  price_is_right: {
-    mode: 'price_is_right',
-    type: 'price_is_right',
-    view: {
-      subject: { name: 'Dragon boots', asset: 'item:11840' },
-      min: 70000,
-      max: 150000,
-      as_of: '2026-10-28',
-    },
-    value: 130000,
-  },
-  guess_examine: {
-    mode: 'guess_examine',
-    type: 'multiple_choice',
-    view: {
-      prompt: 'A razor-sharp ring of obsidian.',
-      options: ['Toktz-xil-ak', 'Toktz-xil-ul', 'Tzhaar-ket-om', 'Obsidian cape'],
-    },
-    answer: 1,
-  },
-  sort_it_out: {
-    mode: 'sort_it_out',
-    type: 'ordering',
-    view: {
-      prompt: 'Which three of these fish heal the most, best first?',
-      ends: ['Heals most', 'Heals least'],
-      picks: 3,
-      entries: [
-        { text: 'Lobster' },
-        { text: 'Shrimps' },
-        { text: 'Shark' },
-        { text: 'Trout' },
-        { text: 'Swordfish' },
-      ],
-    },
-    reveal: [
-      { rank: 3, detail: 'Heals 12' },
-      { rank: 5, detail: 'Heals 3' },
-      { rank: 1, detail: 'Heals 20' },
-      { rank: 4, detail: 'Heals 7' },
-      { rank: 2, detail: 'Heals 14' },
-    ],
-  },
-  who_said_that: {
-    mode: 'who_said_that',
-    type: 'multiple_choice',
-    view: {
-      quote: 'What am I to do?',
-      options: ['The Cook', 'Duke Horacio', 'Father Aereck', 'Hans'],
-    },
-    answer: 0,
-  },
-  know_your_content_creator: {
-    mode: 'know_your_content_creator',
-    type: 'multiple_choice',
-    view: {
-      prompt: 'Which game company makes Old School RuneScape?',
-      options: ['Blizzard', 'Jagex', 'Valve', 'Bethesda'],
-    },
-    answer: 1,
-  },
-  bestiary: {
-    mode: 'bestiary',
-    type: 'multiple_choice',
-    view: {
-      prompt: 'How many hitpoints does a Hill Giant have?',
-      options: ['25', '35', '45', '60'],
-    },
-    answer: 1,
-  },
-  drop_table: {
-    mode: 'drop_table',
-    type: 'multiple_choice',
-    view: {
-      prompt: 'Which monster drops the Abyssal whip?',
-      options: ['Greater demon', 'Abyssal demon', 'Black dragon', 'Gargoyle'],
-    },
-    answer: 1,
-  },
-  odd_one_out: {
-    mode: 'odd_one_out',
-    type: 'multiple_choice',
-    view: {
-      prompt: 'Which one is not a Barrows brother?',
-      options: ['Dharok', 'Karil', 'Hazeel', 'Verac'],
-    },
-    answer: 2,
-  },
-  minigame_madness: {
-    mode: 'minigame_madness',
-    type: 'multiple_choice',
-    view: {
-      prompt: 'Which minigame rewards the Fire cape?',
-      options: ['Pest Control', 'The Fight Caves', 'Barbarian Assault', 'Castle Wars'],
-    },
-    answer: 1,
-  },
-  tales_of_gielinor: {
-    mode: 'tales_of_gielinor',
-    type: 'multiple_choice',
-    view: {
-      prompt: 'Whose Edicts keep the gods from walking Gielinor?',
-      options: ['Saradomin', 'Guthix', 'Zamorak', 'Armadyl'],
-    },
-    answer: 1,
-  },
-  uris_unravelling: {
-    mode: 'uris_unravelling',
-    type: 'multiple_choice',
-    view: {
-      prompt: 'Which NPC does this anagram name?',
-      quote: 'AN EARL',
-      options: ['Aretha', 'Ranael', 'Baraek', 'Kaylee'],
-    },
-    answer: 1,
-    extra: 5,
-  },
-  slayer_master: {
-    mode: 'slayer_master',
-    type: 'multiple_choice',
-    view: {
-      prompt: 'Which item do you need to kill a rockslug?',
-      options: ['Ice cooler', 'Bag of salt', 'Rock hammer', 'Fungicide spray'],
-    },
-    answer: 1,
-  },
-  whos_that_npc: {
-    mode: 'whos_that_npc',
-    type: 'pick_from_list',
-    view: { prompt: "Who's that NPC?", vocab: 'npcs' },
-    answer: 817,
-    subject: { name: 'Elvarg' },
-  },
-  pixel_hunt: {
-    mode: 'pixel_hunt',
-    type: 'pick_from_list',
-    view: { prompt: 'Which item is this?', vocab: 'items' },
-    answer: 4151,
-    subject: { name: 'Abyssal whip' },
-    steps: { build: 17, of: 25 },
-  },
-  forgetful_bard: {
-    mode: 'forgetful_bard',
-    type: 'pick_from_list',
-    view: {
-      prompt: "Seventy Attack, and hear it crack: an Abyss-born lash on a demon's back.",
-      vocab: 'items',
-    },
-    answer: 4151,
-    subject: { name: 'Abyssal whip' },
-  },
-  scaperune: {
-    mode: 'scaperune',
-    type: 'multiple_choice',
-    view: {
-      prompt: 'Lumbridge',
-      options: [
-        'Where do new players arrive after leaving Tutorial Island?',
-        'Which city is home to the Grand Exchange?',
-        'Which town is the Champions’ Guild just south of?',
-        'Where in Asgarnia do the White Knights keep their castle?',
-      ],
-    },
-    answer: 0,
-    extra: 12,
-  },
-}
+export const SAMPLES: Record<string, Sample> = modeCopy('sample')
 
 /** How long a sample stays open, in seconds: its type's `ANSWER` at the room's usual pace. */
 export function sampleSeconds(sample: Sample): number {

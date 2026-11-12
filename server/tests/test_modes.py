@@ -20,7 +20,7 @@ from app.questions.types.bounds import Bounds
 
 # The two modes whose questions are random events rather than a round.
 EVENTS = ("custom", "random_event")
-CLIENT_COPY = REPO_ROOT / "client" / "src" / "lib" / "modes.ts"
+CLIENT_LIB = REPO_ROOT / "client" / "src" / "lib"
 
 
 def test_every_shipped_mode_follows_the_registry_rules() -> None:
@@ -42,21 +42,39 @@ def _between(source: str, start: str, end: str) -> str:
 
 
 def test_the_clients_mode_list_is_this_registry() -> None:
-    """``lib/modes.ts`` has copy for every round, names no mode this server lacks, and
-    lists as coming soon only ids the schema accepts and nothing already shipped."""
-    source = CLIENT_COPY.read_text(encoding="utf-8")
-    shipped = _between(source, "export const MODES", "\n}\n")
-    upcoming = _between(source, "export const UPCOMING_MODES", "\n]\n")
-    keys = re.findall(r"^  ([a-z0-9_]+): \{$", shipped, flags=re.MULTILINE)
-    ids = re.findall(r"^    id: '([^']*)',$", shipped, flags=re.MULTILINE)
-    soon = re.findall(r"^ +(?:\{ )?id: '([^']*)',", upcoming, flags=re.MULTILINE)
+    """``lib/modes/`` has copy for every round, names no mode this server lacks, and
+    lists as coming soon only ids the schema accepts and nothing already shipped;
+    ``lib/modes.ts`` lists the shipped ones in this registry's order."""
+    files = {
+        path.stem: path.read_text(encoding="utf-8")
+        for path in sorted((CLIENT_LIB / "modes").glob("*.ts"))
+    }
+    shipped = {k: v for k, v in files.items() if "\nexport const mode: Mode = {\n" in v}
+    upcoming = {k: v for k, v in files.items() if "\nexport const upcoming: " in v}
+    keys = sorted(shipped)
+    ids = sorted(
+        id_
+        for source in shipped.values()
+        for id_ in re.findall(r"^  id: '([^']*)',$", source, flags=re.MULTILINE)
+    )
+    soon = [
+        id_
+        for source in upcoming.values()
+        for id_ in re.findall(r"^  id: '([^']*)',$", source, flags=re.MULTILINE)
+    ]
     assert keys and keys == ids, "an entry filed under another id, or the file's shape moved"
+    assert soon and sorted(soon) == sorted(upcoming), "an upcoming mode filed under another id"
     assert {mode.id for mode in round_modes()} <= set(keys), "a round with no client copy"
     assert set(keys) <= set(MODES), "client copy for a mode this server does not have"
     pattern = load_schema()["properties"]["mode"]["pattern"]
     assert soon and all(re.fullmatch(pattern, mode) for mode in soon), soon
     assert len(set(soon)) == len(soon)
     assert not set(soon) & (set(MODES) | set(keys)), "shipped, and still coming soon"
+    listed = _between(
+        (CLIENT_LIB / "modes.ts").read_text(encoding="utf-8"), "export const MODE_IDS", "\n]\n"
+    )
+    order = re.findall(r"^  '([a-z0-9_]+)',$", listed, flags=re.MULTILINE)
+    assert [m for m in order if m in shipped] == [m for m in MODES if m in shipped]
 
 
 def test_more_less_takes_the_registrys_round_length() -> None:

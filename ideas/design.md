@@ -311,7 +311,7 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
 - **Below the scroll** are the answers on a panel; gems never sit on parchment, so every gem
   check still measures against `--panel`. **At the table** (`AtTable`): the table panel (§9), with
   the lobby's and splash's buttons at its foot.
-- **The host's voice** is the mode's copy in `lib/modes.ts`, all in the dialogue box: splash line,
+- **The host's voice** is the mode's copy in `lib/modes/`, all in the dialogue box: splash line,
   blurb, several ask, waiting and reveal lines, three or more waiting lines for each speed (bands
   1–2 quick, 3 middling, 4–5 "Just in time!") and step (first early, then later), and three or
   more reveal lines for each of right, partial credit, wrong and no answer. The host always speaks: ask while a question is

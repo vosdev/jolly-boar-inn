@@ -19,7 +19,7 @@ host's own questions and
 ``random_event`` the NPCs' (``data/packs/random_events/``).
 
 Copy -- what a mode is called and how it is explained -- is not here. It stays on the
-client, in ``lib/modes.ts``.
+client, in ``lib/modes/``.
 """
 
 from collections.abc import Callable, Collection, Iterable
