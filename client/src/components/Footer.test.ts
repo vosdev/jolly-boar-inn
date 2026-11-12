@@ -58,7 +58,7 @@ describe('Footer', () => {
     render(Footer)
     expect(screen.queryByRole('dialog')).toBeNull()
     await fireEvent.click(screen.getByRole('button', { name: `What's new in v${VERSION_LABEL}` }))
-    expect(screen.getByRole('dialog', { name: "What's new" })).toBeTruthy()
+    expect(await screen.findByRole('dialog', { name: "What's new" })).toBeTruthy()
     await fireEvent.click(screen.getByRole('button', { name: 'Got it' }))
     expect(screen.queryByRole('dialog')).toBeNull()
   })
