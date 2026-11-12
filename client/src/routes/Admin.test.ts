@@ -203,6 +203,43 @@ describe('Admin', () => {
     expect(localStorage.getItem('jbi:admin')).toBeNull()
   })
 
+  it('keeps a stored token a link’s refused one would have replaced, and loads with it', async () => {
+    localStorage.setItem('jbi:admin', TOKEN)
+    history.replaceState(null, '', '/admin#token=bad')
+    const fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      const auth = (init?.headers as Record<string, string> | undefined)?.authorization
+      if (auth !== `Bearer ${TOKEN}`) return new Response('{}', { status: 401 })
+      if (url.endsWith('/rooms')) return new Response(JSON.stringify(LIVE))
+      if (url.includes('/suggestions')) {
+        return new Response(
+          JSON.stringify({
+            suggestions: [],
+            counts: { pending: 0, approved: 0, rejected: 0, imported: 0 },
+          }),
+        )
+      }
+      if (url.includes('/reports')) {
+        return new Response(
+          JSON.stringify({ reports: [], counts: { open: 0, resolved: 0, dismissed: 0 } }),
+        )
+      }
+      return new Response(JSON.stringify({ counts: COUNTS }))
+    })
+    vi.stubGlobal('fetch', fetch)
+    render(Admin)
+    expect(await screen.findByRole('table')).toBeTruthy()
+    expect(localStorage.getItem('jbi:admin')).toBe(TOKEN)
+    expect(screen.queryByText('That admin token was refused.')).toBeNull()
+  })
+
+  it('stores a link’s token only once the server takes it', async () => {
+    localStorage.setItem('jbi:admin', 'old-token-old-token')
+    serve()
+    render(Admin)
+    await screen.findByRole('table')
+    expect(localStorage.getItem('jbi:admin')).toBe(TOKEN)
+  })
+
   it('asks nothing without a token', () => {
     history.replaceState(null, '', '/admin')
     const fetch = serve()

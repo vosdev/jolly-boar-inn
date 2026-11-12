@@ -7,7 +7,7 @@
  * `:code` wherever they appear, and the tokens it holds read `[token]`.
  */
 
-import { storedAdminToken } from './admin'
+import { pendingAdminToken, storedAdminToken } from './admin'
 import { createdRooms, getSession, normalizeCode } from './session'
 
 /** `FARO_URL_SLOT` in `site-branding.ts`; left as is when Vite serves the page. */
@@ -42,7 +42,7 @@ export function knownSecrets(path: string = location.pathname): Secrets {
     .map((key) => key.slice(SESSION_PREFIX.length))
   const inPath = /^\/(?:r|history)\/([^/]+)/.exec(path)?.[1]
   const codes = [...sessionCodes, ...createdRooms(), ...(inPath ? [normalizeCode(inPath)] : [])]
-  const tokens = [...sessionCodes.map(getSession), storedAdminToken()]
+  const tokens = [...sessionCodes.map(getSession), storedAdminToken(), pendingAdminToken()]
   return {
     codes: [...new Set(codes)].filter((code) => /^[A-Z0-9]+$/.test(code)),
     tokens: tokens.filter((token): token is string => token !== null && token.length >= 8),

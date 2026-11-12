@@ -286,6 +286,11 @@ def _question_errors(content: dict[str, Any], sourced: bool) -> list[str]:
     links = [content[key] for key in ("wiki", "source_url") if key in content]
     if not isinstance(content["payload"], dict) or not all(isinstance(url, str) for url in links):
         return ["$.payload: an object, and $.wiki and $.source_url: links"]
+    # Named rounds and unplaced questions return before the envelope schema runs, and the
+    # operator's queue renders these as links.
+    found = schema.link_errors(content)
+    if found:
+        return found
     if mode in NAMED_MODES and content["type"] == "pick_from_list":
         return _named_errors(mode, content["payload"])
     if mode in RENDER_MODES and "image" in content["payload"]:

@@ -1245,6 +1245,30 @@ FREE_TEXT = _with(
     payload={"prompt": "Which brother wields a greataxe?", "accepted": ["Dharok"]},
 )
 
+BAD_LINKS = [
+    ("source_url", "javascript:alert(document.domain)"),
+    ("source_url", "data:text/html,<script>alert(1)</script>"),
+    ("source_url", "http://evil.example/"),
+    ("source_url", "https://example.com/" + "x" * 281),
+    ("wiki", "javascript:alert(1)"),
+    ("wiki", "data:text/html,<script>alert(1)</script>"),
+    ("wiki", "http://oldschool.runescape.wiki/w/Cabbage"),
+    ("wiki", "https://evil.example/w/x"),
+    ("wiki", "https://oldschool.runescape.wiki/w/" + "x" * 266),
+]
+
+
+@pytest.mark.parametrize(("key", "link"), BAD_LINKS)
+@pytest.mark.parametrize("base", [UNPLACED, NPC], ids=["unplaced", "whos_that_npc"])
+def test_a_link_the_schema_refuses_is_refused_on_every_path(
+    client: TestClient, base: dict[str, Any], key: str, link: str
+) -> None:
+    response = client.post("/api/suggestions", json=_with(base, **{key: link}))
+    assert response.status_code == 422, response.text
+    assert response.json()["code"] == "bad_suggestion"
+    assert f"$.{key}" in response.text
+    assert queue(client)["suggestions"] == []
+
 
 def _status(client: TestClient, suggestion: str, status: str) -> Any:
     return client.post(

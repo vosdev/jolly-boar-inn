@@ -484,6 +484,19 @@ describe('SuggestionQueue', () => {
     ).toBe('<b>Hi</b>')
   })
 
+  it('draws a link that is not https as text, never as a link', async () => {
+    const bad = 'javascript:alert(1)'
+    const content = { ...(row().content as QuestionContent), wiki: undefined, source_url: bad }
+    vi.mocked(admin.getQueue).mockResolvedValue({
+      suggestions: [row({ content })],
+      counts: COUNTS,
+    })
+    const { container } = render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+    await fireEvent.click((await screen.findByText(/is not a Barrows brother/)).closest('button')!)
+    expect(screen.getByText(bad)).toBeTruthy()
+    expect(container.querySelector(`a[href="${bad}"]`)).toBeNull()
+  })
+
   it('exports the approved ones, then marks what was exported as imported', async () => {
     const createObjectURL = vi.fn(() => 'blob:x')
     Object.assign(URL, { createObjectURL, revokeObjectURL: vi.fn() })

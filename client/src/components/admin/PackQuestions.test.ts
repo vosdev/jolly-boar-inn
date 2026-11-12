@@ -164,6 +164,16 @@ describe('PackQuestions', () => {
     expect(screen.getByText('What level is TzTok-Jad?')).toBeTruthy()
   })
 
+  it('draws a link that is not https as text, never as a link', async () => {
+    const bad = 'javascript:alert(1)'
+    vi.mocked(admin.getPackQuestions).mockResolvedValue([{ ...VORKATH, source_url: bad }])
+    show()
+    await fireEvent.click(await screen.findByText('Which <b>dragon</b> sleeps on Ungael?'))
+    expect(screen.getByText(bad)).toBeTruthy()
+    expect(document.querySelector(`a[href="${bad}"]`)).toBeNull()
+    expect(document.querySelector(`a[href="${WIKI}"]`)).not.toBeNull()
+  })
+
   it('queues an edit with its intro, links and credit, leaving the type and mode out', async () => {
     show()
     await fireEvent.click(await screen.findByText('Which <b>dragon</b> sleeps on Ungael?'))

@@ -66,8 +66,13 @@ export interface Count {
   count: number
 }
 
+// A link's token waits here until the server takes it, so a bad link cannot overwrite a
+// stored token that works.
+let pending: string | null = null
+
 /**
- * The token in the address bar, moved into storage, or else the stored one.
+ * The token in the address bar, else the stored one. A link's token is stored only once
+ * `keepAdminToken` says the server took it.
  *
  * Any fragment is cleared from the address bar, so a token never sits there to be
  * shared in a screenshot or kept in the history.
@@ -75,11 +80,33 @@ export interface Count {
 export function takeAdminToken(): string | null {
   const fromLink = new URLSearchParams(location.hash.slice(1)).get('token')
   if (location.hash !== '') history.replaceState(history.state, '', location.pathname)
-  if (fromLink !== null && fromLink !== '') {
-    writeStored(TOKEN_KEY, fromLink)
+  if (fromLink !== null && fromLink !== '' && fromLink !== readStored(TOKEN_KEY)) {
+    pending = fromLink
     return fromLink
   }
+  pending = null
   return readStored(TOKEN_KEY)
+}
+
+/** Stores `token` once the server has answered it with a success. */
+export function keepAdminToken(token: string): void {
+  if (token === pending) pending = null
+  if (readStored(TOKEN_KEY) !== token) writeStored(TOKEN_KEY, token)
+}
+
+/** Drops a refused `token`, and returns the stored one to try instead when there is one. */
+export function refuseAdminToken(token: string): string | null {
+  if (token === pending) {
+    pending = null
+    return readStored(TOKEN_KEY)
+  }
+  if (readStored(TOKEN_KEY) === token) dropStored(TOKEN_KEY)
+  return null
+}
+
+/** A link's token the server has not answered yet, so it can be scrubbed from reports. */
+export function pendingAdminToken(): string | null {
+  return pending
 }
 
 /** The token this browser holds, which is not to say the server still takes it. */
@@ -93,6 +120,7 @@ export function hasAdminToken(): boolean {
 }
 
 export function forgetAdminToken(): void {
+  pending = null
   dropStored(TOKEN_KEY)
 }
 

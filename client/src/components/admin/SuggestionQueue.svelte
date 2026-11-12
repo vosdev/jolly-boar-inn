@@ -24,6 +24,7 @@
     type Queue,
   } from '../../lib/admin'
   import { ApiFailure } from '../../lib/api'
+  import { isHttpsLink } from '../../lib/links'
   import { npcArt } from '../../lib/npcs'
   import {
     STATUS_LABELS,
@@ -371,7 +372,11 @@
                   {#each checksOf(row) as link, index (link)}
                     <p class="check">
                       <span class="note">{index === 0 ? 'Fact-check' : 'Also'}</span>
-                      <a href={link} target="_blank" rel="noopener noreferrer">{link} ↗</a>
+                      {#if isHttpsLink(link)}
+                        <a href={link} target="_blank" rel="noopener noreferrer">{link} ↗</a>
+                      {:else}
+                        <span>{link}</span>
+                      {/if}
                     </p>
                   {/each}
                   {#if !hasRound(row.kind, row.content)}
