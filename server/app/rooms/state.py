@@ -310,15 +310,15 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
                 " where room_id = $1 order by joined_at, id",
                 row["id"],
             )
+            room = _room_from_row(row, total=len(questions), lock=self._locks[code].lock)
+            room.replace_questions(questions)
             closed = [q.position for q in questions if q.closed_at is not None]
-            round_start = _round_start(questions, max(closed, default=None))
+            round_start = _round_start(room, max(closed, default=None))
             totals = await _fetch_totals(conn, row["id"], round_start)
-        room = _room_from_row(row, total=len(questions), lock=self._locks[code].lock)
         if row["daily"] is not None:
             number = number_of(row["daily"], self.settings.daily_first_day)
             room.daily = Daily(day=row["daily"], number=number)
         room.players = {p["id"]: _player_from_row(p) for p in players}
-        room.questions = questions
         if room.status == "lobby" and not questions:
             self._plan_lobby(room)
         room.totals = totals
@@ -617,7 +617,11 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
         )
 
     def _players_updated(
-        self, room: Room, before: RoomView, exclude: UUID | None = None
+        self,
+        room: Room,
+        before: RoomView,
+        exclude: UUID | None = None,
+        after: RoomView | None = None,
     ) -> Broadcast:
         """``players_updated``, or ``room_updated`` if the room itself moved since ``before``.
 
@@ -625,8 +629,9 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
         nothing else: the full ``RoomView`` with its settings is most of ``room_updated``,
         and those three are the frames a room of fifty sends most. On a splash any of them
         can start or shorten the countdown, and that ``next_at`` needs the full frame.
+        ``after`` is ``room.view()`` as it is now, for a caller that has built it already.
         """
-        if room.view() != before:
+        if (room.view() if after is None else after) != before:
             return self._room_updated(room, exclude)
         message = PlayersUpdated(players=room.player_views())
         return Broadcast.to_all(room, message.model_dump(mode="json"), exclude)
@@ -713,10 +718,14 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
                 if question is not None and segment is not None
                 else None
             )
+            # Nothing below changes what a view says, so these serve the welcome and the
+            # comparison with ``before`` alike.
+            after = room.view()
+            players_after = room.player_views()
             welcome = Welcome(
-                room=room.view_for(player.id),
+                room=room.view_for(player.id, plain=after),
                 you=player.view(),
-                players=room.player_views(),
+                players=players_after,
                 question=open_view,
                 your_answer=answered.value if answered is not None else None,
                 standings=room.standings(),
@@ -732,10 +741,10 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
                 # Behind whatever it still had queued, so nothing it was owed is cut off.
                 if previous.close(CLOSE_REPLACED, "connected from another device"):
                     metrics.WS_DISCONNECTS.labels(reason="replaced").inc()
-            if room.view() == before and room.player_views() == players_before:
+            if after == before and players_after == players_before:
                 update = Broadcast([])
             else:
-                update = self._players_updated(room, before, exclude=player.id)
+                update = self._players_updated(room, before, exclude=player.id, after=after)
             update.targets += _count_moved(room, count_before, exclude=player.id).targets
         self._broadcast(update)
         return player, outbox
@@ -817,7 +826,7 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
                 questions = await _fetch_questions(conn, room.id)
                 await _count_game_started(conn, room, questions)
             room.settings = settings
-            room.questions = questions
+            room.replace_questions(questions)
             room.total = len(questions)
             room.plan = None
             room.status = "playing"
@@ -869,7 +878,7 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
             room.status = "lobby"
             room.settings = settings
             room.played_ids = frozenset(played)
-            room.questions = []
+            room.replace_questions([])
             room.totals = {}
             room.totals_round = 0
             room.current_index = None

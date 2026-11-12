@@ -646,7 +646,7 @@ class Loop:
                 await question_stats.record(
                     conn, room, question, {pid: got for pid, (got, _, _) in graded.items()}
                 )
-                round_start = _round_start(room.questions, question.position)
+                round_start = _round_start(room, question.position)
                 totals = await _fetch_totals(conn, room.id, round_start)
             question.closed_at = closed_at
             for pid, (got, correct, points) in graded.items():
