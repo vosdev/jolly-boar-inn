@@ -19,6 +19,7 @@ from app.rooms.errors import (
     BadValue,
     NameTaken,
 )
+from app.rooms.host import RoomHost
 from app.rooms.loop import _recount_splash
 from app.rooms.models import Player, Room, _require_admin, normalize_name
 from app.rooms.plan import plan
@@ -64,7 +65,7 @@ def _check_teams_ready(room: Room) -> None:
         raise BadState("a team game needs players on at least two teams")
 
 
-class Lobby:
+class Lobby(RoomHost):
     """The ``RoomManager`` methods a player calls on their own profile and ready state."""
 
     async def set_profile(

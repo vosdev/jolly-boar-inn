@@ -34,6 +34,7 @@ from app.rooms import ready, scoring
 from app.rooms.daily_room import finish_attempt, record_close
 from app.rooms.errors import BadState
 from app.rooms.hold import hold_seconds, typed_lines
+from app.rooms.host import RoomHost
 from app.rooms.models import Broadcast, Player, Room, RoomQuestion, _require_admin
 from app.rooms.queries import (
     _count_round_finished,
@@ -189,7 +190,7 @@ def _closed_by(room: Room, question: RoomQuestion) -> Metric:
     return Metric.QUESTIONS_SKIPPED
 
 
-class Loop:
+class Loop(RoomHost):
     """The ``RoomManager`` methods that run the timer task and end or skip what it is on."""
 
     def _live(self, room: Room) -> bool:

@@ -23,6 +23,7 @@ from app.daily import SET_SIZE, NoDailySet, daily_set, day_of, number_of
 from app.errors import ApiError
 from app.rooms import codes
 from app.rooms.errors import RoomExpired, RoomNotFound
+from app.rooms.host import RoomHost
 from app.rooms.models import Room, hash_token, new_token, normalize_name
 from app.rooms.queries import _question_rows
 from app.rooms.settings import RoomSettings
@@ -113,7 +114,7 @@ async def finish_attempt(conn: asyncpg.Connection, room: Room, at: datetime) -> 
     await bump(conn, Metric.DAILY, "correct", row["results"].count("right"))
 
 
-class DailyRooms:
+class DailyRooms(RoomHost):
     """The ``RoomManager`` methods that start and resume a daily attempt."""
 
     async def start_daily(

@@ -89,7 +89,7 @@ gen-modes:
 	cd server && uv run python scripts/gen_modes.py
 
 lint:
-	cd server && uv run ruff check . && uv run ruff format --check . && uv run python scripts/check_workflows.py
+	cd server && uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run python scripts/check_workflows.py
 	cd client && pnpm lint && pnpm check
 
 # 30 bot players through one room over websockets, asserting no error frames or refusals, a
