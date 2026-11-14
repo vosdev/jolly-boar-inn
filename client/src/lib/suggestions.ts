@@ -281,7 +281,7 @@ function roundChoice(id: string, rules: SuggestRules): Choice | undefined {
         quote: rules.quote,
         explanation,
         prompt,
-        options: card?.anyOptions ? undefined : (rulesOf(id)?.options ?? undefined),
+        options: rulesOf(id)?.options ?? undefined,
         wording: ROUND_WORDING[id],
         wikiOnly: rules.wiki_only,
         pictureItem: rules.picture_item,

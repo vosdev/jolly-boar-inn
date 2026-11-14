@@ -370,7 +370,7 @@
                       </dd>
                     {/if}
                   </dl>
-                  {#each checksOf(row) as link, index (link)}
+                  {#each checksOf(row) as link, index (index)}
                     <p class="check">
                       <span class="note">{index === 0 ? 'Fact-check' : 'Also'}</span>
                       {#if isHttpsLink(link)}

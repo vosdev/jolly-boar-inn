@@ -154,6 +154,8 @@ async function adminRequest<T>(
       typeof fault.message === 'string' ? fault.message : `request failed (${response.status})`,
     )
   }
+  // Any admin call that succeeds proves a link's token, whichever tab made it.
+  if (token === pending) keepAdminToken(token)
   return (await response.json()) as T
 }
 

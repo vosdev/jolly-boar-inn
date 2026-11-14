@@ -349,8 +349,6 @@ export interface SuggestCard {
   host?: string
   /** The question a new one starts with, which the player may change. */
   prompt?: string
-  /** The form leaves the number of options free, though a round plays `options`' range. */
-  anyOptions?: true
 }
 
 const files = import.meta.glob<ModeFile>('./modes/*.ts', { eager: true })

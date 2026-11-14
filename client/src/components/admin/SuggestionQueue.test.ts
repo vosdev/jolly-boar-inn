@@ -470,6 +470,18 @@ describe('SuggestionQueue', () => {
     ).toBe('<b>Hi</b>')
   })
 
+  it('lists a source that repeats the wiki page twice, Fact-check and Also', async () => {
+    const content = { ...(row().content as QuestionContent), wiki: WIKI, source_url: WIKI }
+    vi.mocked(admin.getQueue).mockResolvedValue({
+      suggestions: [row({ content })],
+      counts: COUNTS,
+    })
+    const { container } = render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+    await fireEvent.click((await screen.findByText(/is not a Barrows brother/)).closest('button')!)
+    const checks = [...container.querySelectorAll('.check')].map((check) => check.textContent)
+    expect(checks).toEqual([`Fact-check ${WIKI} ↗`, `Also ${WIKI} ↗`])
+  })
+
   it('draws a link that is not https as text, never as a link', async () => {
     const bad = 'javascript:alert(1)'
     const content = { ...(row().content as QuestionContent), wiki: undefined, source_url: bad }

@@ -277,6 +277,8 @@ describe('Suggest', () => {
     await fireEvent.click(tier.getByRole('radio', { name: 'Hard' }))
     await type('Answer 1', 'Dharok')
     await type('Answer 2', 'Hazelmere')
+    await type('Answer 3', 'Guthan')
+    await type('Answer 4', 'Verac')
     await fireEvent.click(screen.getByLabelText('Answer 2 is right'))
     await type('Your name', 'AFKFisher')
     await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
@@ -293,7 +295,7 @@ describe('Suggest', () => {
         type: 'multiple_choice',
         payload: {
           prompt: "Which one doesn't belong?",
-          options: ['Dharok', 'Hazelmere'],
+          options: ['Dharok', 'Hazelmere', 'Guthan', 'Verac'],
           answer_index: 1,
         },
         mode: 'odd_one_out',
@@ -303,6 +305,32 @@ describe('Suggest', () => {
       credit: 'AFKFisher',
       credit_shown: false,
     })
+  })
+
+  it('keeps an Odd One Out to the four to six names its round plays', async () => {
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /Odd One Out/ }))
+    expect(screen.getAllByRole('textbox', { name: /^Answer \d$/ })).toHaveLength(4)
+    const add = screen.getByRole('button', { name: 'Add an answer' }) as HTMLButtonElement
+    await fireEvent.click(add)
+    await fireEvent.click(add)
+    expect(screen.getAllByRole('textbox', { name: /^Answer \d$/ })).toHaveLength(6)
+    expect(add.disabled).toBe(true)
+    await fireEvent.click(screen.getByRole('button', { name: 'Remove answer 6' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Remove answer 5' }))
+    const remove = screen.getAllByRole('button', { name: /^Remove answer/ }) as HTMLButtonElement[]
+    expect(remove.every((button) => button.disabled)).toBe(true)
+
+    await fireEvent.click(screen.getByRole('radio', { name: 'Easy' }))
+    await type('Answer 1', 'Dharok')
+    await type('Answer 2', 'Hazelmere')
+    await type('Answer 3', 'Guthan')
+    await fireEvent.click(screen.getByLabelText('Answer 2 is right'))
+    await type('Your name', 'AFKFisher')
+    await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Barrows_Brothers')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
+    expect(api.sendSuggestion).not.toHaveBeenCalled()
   })
 
   it('lets a Who Said That? carry its quote, and be sent with a non-wiki source', async () => {
@@ -735,6 +763,18 @@ describe('Suggest', () => {
     expect(screen.queryByRole('option', { name: 'Abyssal whip (or)' })).toBeNull()
   })
 
+  it('keeps a Who’s That NPC? shadow’s name across a swap to Render and back', async () => {
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /Who is That NPC\?/ }))
+    await type('Monster or NPC, as the wiki spells it', 'Spotted kebbit')
+    await fireEvent.click(screen.getByLabelText('Render'))
+    await fireEvent.click(screen.getByLabelText('Shadow'))
+    expect(
+      screen.getByLabelText<HTMLInputElement>('Monster or NPC, as the wiki spells it').value,
+    ).toBe('Spotted kebbit')
+  })
+
   it('writes a Who’s That NPC? render on buttons, even of an NPC only a render asks about', async () => {
     played()
     vi.mocked(api.getReportChoices).mockResolvedValue({
@@ -1021,6 +1061,8 @@ describe('Suggest', () => {
       await fireEvent.click(await screen.findByRole('button', { name: /Odd One Out/ }))
       await type('Answer 1', first)
       await type('Answer 2', 'Hazelmere')
+      await type('Answer 3', 'Guthan')
+      await type('Answer 4', 'Verac')
       await fireEvent.click(screen.getByLabelText('Answer 2 is right'))
     }
 
@@ -1040,7 +1082,7 @@ describe('Suggest', () => {
         type: 'multiple_choice',
         payload: {
           prompt: "Which one doesn't belong?",
-          options: ['Dharok', 'Hazelmere'],
+          options: ['Dharok', 'Hazelmere', 'Guthan', 'Verac'],
           answer_index: 1,
         },
         mode: 'odd_one_out',

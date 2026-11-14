@@ -232,6 +232,53 @@ describe('Admin', () => {
     expect(screen.queryByText('That admin token was refused.')).toBeNull()
   })
 
+  it.each(['overview', 'queue'])(
+    'falls back to the stored token when the %s’s 401 answers first',
+    async (first) => {
+      localStorage.setItem('jbi:admin', TOKEN)
+      history.replaceState(null, '', '/admin#token=bad')
+      let open = (): void => {}
+      const gate = new Promise<void>((resolve) => (open = resolve))
+      const fetch = vi.fn(async (url: string, init?: RequestInit) => {
+        const auth = (init?.headers as Record<string, string> | undefined)?.authorization
+        if (auth !== `Bearer ${TOKEN}`) {
+          const overview = url.endsWith('/rooms') || url.endsWith('/stats')
+          if ((first === 'overview') !== overview) await gate
+          else setTimeout(open, 0)
+          return new Response('{}', { status: 401 })
+        }
+        if (url.endsWith('/rooms')) return new Response(JSON.stringify(LIVE))
+        if (url.includes('/suggestions')) {
+          const counts = { pending: 0, approved: 0, rejected: 0, imported: 0 }
+          return new Response(JSON.stringify({ suggestions: [], counts }))
+        }
+        if (url.includes('/reports')) {
+          return new Response(JSON.stringify({ reports: [], counts: { open: 0, closed: 0 } }))
+        }
+        return new Response(JSON.stringify({ counts: COUNTS }))
+      })
+      vi.stubGlobal('fetch', fetch)
+      render(Admin)
+      expect(await screen.findByRole('table', {}, { timeout: 1000 })).toBeTruthy()
+      expect(localStorage.getItem('jbi:admin')).toBe(TOKEN)
+    },
+  )
+
+  it('stores a link’s token when only a tab’s own call succeeds', async () => {
+    localStorage.setItem('jbi:admin', 'old-token-old-token')
+    history.replaceState(null, '', `/admin/roster#token=${TOKEN}`)
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) => {
+        if (url.endsWith('/roster')) return new Response(JSON.stringify({ items: [] }))
+        if (url.endsWith('/roster-changes')) return new Response(JSON.stringify({ changes: [] }))
+        return new Response('{}', { status: 500 })
+      }),
+    )
+    render(Admin, { tab: 'roster' })
+    await waitFor(() => expect(localStorage.getItem('jbi:admin')).toBe(TOKEN))
+  })
+
   it('stores a link’s token only once the server takes it', async () => {
     localStorage.setItem('jbi:admin', 'old-token-old-token')
     serve()

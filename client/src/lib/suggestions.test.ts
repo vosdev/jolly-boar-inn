@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 
 import { stemLines } from '../components/questions/index'
 import { savePastGame } from './history'
-import { SUGGESTIBLE } from './modeRules'
+import { rulesOf, SUGGESTIBLE } from './modeRules'
 import {
   CHOICES,
   answerOf,
@@ -150,8 +150,12 @@ describe('the choices', () => {
     ])
     expect(CHOICES.filter((c) => c.options !== undefined).map((c) => c.id)).toEqual([
       'guess_examine',
+      'odd_one_out',
       'scaperune',
     ])
+    expect(CHOICES.find((c) => c.id === 'odd_one_out')?.options).toEqual(
+      rulesOf('odd_one_out')?.options,
+    )
     const sort = CHOICES.find((c) => c.id === 'sort_it_out')
     expect(sort?.host).toBe('historian_minas')
     expect(sort?.hint).toBe('Something worth putting in order.')
