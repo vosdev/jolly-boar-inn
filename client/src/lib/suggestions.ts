@@ -165,6 +165,13 @@ export interface QueueMatch {
   question: QuestionContent
 }
 
+/**
+ * A form of its own: `shadow`, an NPC's name (`NAMED_MODES` on the server); `verse`, a verse and
+ * the item it describes (`VERSE_MODES`); `place`, a place on the world map, so this server needs
+ * its tiles; `item`, an item. `components/suggest/forms.ts` maps each to its component.
+ */
+export type EditorKind = 'shadow' | 'verse' | 'place' | 'item'
+
 /** One thing the form offers to write. */
 export interface Choice {
   /** The mode a question is for, or the kind itself for an item. */
@@ -190,15 +197,10 @@ export interface Choice {
   wikiOnly?: boolean
   /** Whether it may name an item to picture: `PICTURE_ITEM_MODES` on the server. */
   pictureItem?: boolean
-  /**
-   * Whether its answer is an NPC's name, which the import looks up: a shadow's
-   * (`NAMED_MODES` on the server) or a render's right option (`RENDER_MODES`).
-   */
-  named?: boolean
-  /** Whether a question is a verse and the item it describes: `VERSE_MODES` on the server. */
-  verse?: boolean
-  /** Whether a question is a place on the world map, so this server needs its tiles. */
-  map?: boolean
+  /** The form of its own that writes it, where the shared question forms do not. */
+  editor?: EditorKind
+  /** A line under the question in the shared forms, where the round asks more of it. */
+  questionHint?: string
   /** What the type picker calls a type, where the round's word says more than the type's. */
   typeLabels?: Partial<Record<SuggestedType, string>>
 }
@@ -367,6 +369,7 @@ export const CHOICES: readonly Choice[] = [
     hint: 'For More or Less, The Price is Right and Pixel Hunt.',
     host: 'grand_exchange_clerk',
     types: [],
+    editor: 'item',
   },
   {
     id: 'random_event',
@@ -405,7 +408,8 @@ export const CHOICES: readonly Choice[] = [
       prompt: ROUND_PROMPTS[mode.id],
       explanation: !NO_EXPLANATION_ROUNDS.includes(mode.id),
       wikiOnly: WIKI_ROUNDS.includes(mode.id),
-      named: true,
+      editor: 'shadow',
+      questionHint: "Players see the right answer's render. Name it as the wiki does.",
       typeLabels: { pick_from_list: 'Shadow', multiple_choice: 'Render' },
     })),
   ...VERSE_ROUNDS.map(choiceRound)
@@ -418,7 +422,7 @@ export const CHOICES: readonly Choice[] = [
       host: mode.host,
       types: ['pick_from_list'],
       explanation: !NO_EXPLANATION_ROUNDS.includes(mode.id),
-      verse: true,
+      editor: 'verse',
     })),
   ...MAP_ROUNDS.map(choiceRound)
     .filter((mode) => mode !== undefined)
@@ -431,7 +435,7 @@ export const CHOICES: readonly Choice[] = [
       types: ['map_pin'],
       explanation: !NO_EXPLANATION_ROUNDS.includes(mode.id),
       wikiOnly: WIKI_ROUNDS.includes(mode.id),
-      map: true,
+      editor: 'place',
     })),
   ...ORDERING_ROUNDS.map(choiceRound)
     .filter((mode) => mode !== undefined)

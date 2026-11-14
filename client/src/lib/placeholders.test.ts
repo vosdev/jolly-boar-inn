@@ -8,7 +8,7 @@ describe('fieldHints', () => {
       (c) =>
         c.kind === 'question' &&
         c.prompt?.fixed !== true &&
-        c.map !== true &&
+        c.editor !== 'place' &&
         c.id !== 'random_event' &&
         c.id !== 'no_round',
     )

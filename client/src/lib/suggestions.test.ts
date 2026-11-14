@@ -130,11 +130,11 @@ describe('the choices', () => {
       'mark_the_map',
     ])
     const npc = CHOICES.find((c) => c.id === 'whos_that_npc')
-    expect([npc?.types, npc?.host, npc?.prompt, npc?.named]).toEqual([
+    expect([npc?.types, npc?.host, npc?.prompt, npc?.editor]).toEqual([
       ['pick_from_list', 'multiple_choice'],
       'postie_pete',
       { text: "Who's that NPC?", fixed: true },
-      true,
+      'shadow',
     ])
     expect(CHOICES.filter((c) => c.options !== undefined).map((c) => c.id)).toEqual([
       'guess_examine',
@@ -215,7 +215,7 @@ describe('the choices', () => {
       'ordering',
       'matching',
     ])
-    expect([any?.quote, any?.prompt, any?.wikiOnly, any?.pictureItem, any?.named]).toEqual([
+    expect([any?.quote, any?.prompt, any?.wikiOnly, any?.pictureItem, any?.editor]).toEqual([
       undefined,
       undefined,
       undefined,
