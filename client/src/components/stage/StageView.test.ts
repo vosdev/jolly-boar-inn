@@ -9,6 +9,7 @@ import {
   RETURN_MS,
 } from '../../lib/interlude'
 import { ENTER_MOVE_MS } from '../../lib/stageMoves'
+import scrollSource from './ClueScroll.svelte?raw'
 import source from './StageView.svelte?raw'
 
 /** The duration and delay of the animation a rule for `state` plays, in ms. */
@@ -34,7 +35,8 @@ describe('the return', () => {
   })
 
   it('takes the words off the sheet with the NPC, before the scroll moves', () => {
-    expect(timing('> :global\\(\\.scroll \\.content\\)')).toEqual(timing('\\.guest'))
+    const words = scrollSource.match(/\n {2}\.content\.hidden \{[^}]*?animation: [\w-]+ (\d+)ms/)
+    expect({ duration: Number(words?.[1]), delay: 0 }).toEqual(timing('\\.guest'))
   })
 })
 
@@ -75,5 +77,26 @@ describe('the map', () => {
   it('keeps the host on a stacked map while players pin', () => {
     expect(source).not.toMatch(/\.map\.pinning \.speaker/)
     expect(source).not.toMatch(/\.stage\.map \.speaker \{[^}]*display: none/)
+  })
+})
+
+describe('the sheet inside the stage', () => {
+  it('is styled from the stage only at its root, never inside it', () => {
+    const markup = scrollSource.slice(
+      scrollSource.indexOf('</script>'),
+      scrollSource.indexOf('<style>'),
+    )
+    const inside = new Set([
+      ...[...markup.matchAll(/class="([^"]+)"/g)].flatMap((m) =>
+        m[1]!.split(/\s+/).filter((name) => /^[\w-]+$/.test(name)),
+      ),
+      ...[...markup.matchAll(/class:([\w-]+)/g)].map((m) => m[1]!),
+    ])
+    inside.delete('scroll')
+    const reached = [...source.matchAll(/:global\(([^)]*)\)/g)].flatMap((m) =>
+      [...m[1]!.matchAll(/\.([\w-]+)/g)].map((c) => c[1]!),
+    )
+    expect(inside.size).toBeGreaterThan(5)
+    expect(reached.filter((name) => inside.has(name))).toEqual([])
   })
 })

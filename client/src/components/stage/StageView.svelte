@@ -133,10 +133,10 @@
 
   let hostNpc = $state<HTMLElement | null>(null)
   let guestNpc = $state<HTMLElement | null>(null)
+  let content = $state<HTMLElement | null>(null)
 
   // A tall sheet needs no wrapping: the host stands only beside its top line.
   $effect(() => {
-    const content = root?.querySelector<HTMLElement>('.content') ?? null
     const npc = event ? guestNpc : hostNpc
     if (tall || speaks || content === null || npc === null) return
     return keepSeated(content, npc, event ? 'right' : 'left', () => tv)
@@ -196,10 +196,17 @@
       class:event={event && !speaks}
       class:entering={guestArt !== null && entering && !returning && !speaks}
       class:returning={guestArt !== null && returning && !speaks}
-      class:fading={guestArt !== null && returning && speaks}
     >
       {#if !speaks}{@render hostHead()}{/if}
-      <ClueScroll {award} {sheet} {theme}>
+      <ClueScroll
+        {award}
+        {sheet}
+        {theme}
+        hideWords={guestArt !== null && returning}
+        fill={tv}
+        edge
+        bind:content
+      >
         {@render paper?.()}
       </ClueScroll>
       {#if !speaks}{@render guestHead()}{/if}
@@ -319,11 +326,6 @@
     opacity: 1;
   }
 
-  .fading > :global(.scroll .content) {
-    opacity: 0;
-    animation: fade-out 225ms ease-in both;
-  }
-
   .speaker.presence-leaving .bubble:not(.shell) {
     animation: leave 200ms ease-in both;
   }
@@ -337,8 +339,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .speaker .bubble,
-    .fading > :global(.scroll .content) {
+    .speaker .bubble {
       animation: none !important;
     }
 
@@ -480,12 +481,7 @@
   }
 
   /* The way back, a step at a time in `RETURN_*_MS` of `lib/interlude.ts`: the guest and
-     the words leave, then the scroll slides home, then the host walks back on. */
-  .returning > :global(.scroll .content) {
-    opacity: 0;
-    animation: fade-out 225ms ease-in both;
-  }
-
+     the words (`hideWords`) leave, then the scroll slides home, then the host walks back on. */
   .returning .guest {
     position: absolute;
     right: 0;
@@ -556,8 +552,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     :is(.entering, .returning) :is(.host, .guest),
-    :is(.entering, .returning) > :global(.scroll),
-    .returning > :global(.scroll .content) {
+    :is(.entering, .returning) > :global(.scroll) {
       animation: none;
     }
   }
@@ -595,10 +590,6 @@
     .stage-row {
       margin-inline: -1rem;
       overflow-x: clip;
-    }
-
-    .stage-row :global(.paper) {
-      padding-inline: calc(var(--roll-w) / 2 + 1rem);
     }
 
     .npc {
@@ -692,17 +683,6 @@
 
   .tv :is(.entering, .returning) > :global(.scroll) {
     animation: none;
-  }
-
-  .tv .stage-row > :global(.scroll),
-  .tv .stage-row > :global(.scroll > .reveal) {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .tv .stage-row > :global(.scroll > .reveal),
-  .tv .stage-row > :global(.scroll > .reveal > .paper) {
-    flex: 1;
   }
 
   .tv .under {

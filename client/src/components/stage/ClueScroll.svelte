@@ -18,6 +18,10 @@
    *
    * Whatever is drawn on the sheet reads `--ink` and `--muted`, which the sheet points at
    * the scroll's own inks, so a stem needs no idea what it is written on to be legible.
+   *
+   * Outside this file only the root is styled: `.scroll`, or `[data-sheet]` for what is
+   * written on a sheet. The stage asks for anything deeper through the props below, so a
+   * wrapper renamed here breaks nothing elsewhere.
    */
   import type { Snippet } from 'svelte'
 
@@ -32,12 +36,27 @@
     award = NO_AWARD,
     sheet = 'scroll',
     theme = '',
+    hideWords = false,
+    fill = false,
+    edge = false,
+    content = $bindable(null),
     children,
   }: {
     award?: Award
     sheet?: Sheet
     /** The page's theme, which picks the rosette's mark. */
     theme?: string
+    /** Fade the words off the sheet and keep them off, the sheet itself staying put. */
+    hideWords?: boolean
+    /** Stretch the sheet to the height its parent gives it, as the TV's does. */
+    fill?: boolean
+    /**
+     * Under 448px of screen, run the words to 1rem inside the cut rolls, for a sheet laid
+     * edge to edge across the screen.
+     */
+    edge?: boolean
+    /** The element the words are written in. */
+    content?: HTMLElement | null
     children: Snippet
   } = $props()
 
@@ -111,7 +130,7 @@
   </svg>
 {/snippet}
 
-<div class="scroll" data-sheet={sheet}>
+<div class="scroll" class:fill class:edge data-sheet={sheet}>
   {#if sheet === 'scroll'}{@render roll('left')}{/if}
   <div class="reveal">
     {#if sheet === 'gravestone'}
@@ -185,7 +204,7 @@
           <ellipse cx="33" cy="11" rx="8" ry="2.5" fill={ART.moss} />
         </svg>
       {/if}
-      <div class="content">
+      <div class="content" class:hidden={hideWords} bind:this={content}>
         {@render children()}
       </div>
     </div>
@@ -342,7 +361,7 @@
     text-align: center;
   }
 
-  /* Each sheet's own rules sit in :where(), so the stage's phone padding still wins. */
+  /* Each sheet's own rules sit in :where(), so an `edge` sheet's phone padding still wins. */
   :where(.scroll:not([data-sheet='scroll'])) .paper {
     padding-inline: calc(1.3rem * var(--k));
   }
@@ -755,6 +774,29 @@
     min-width: 0;
   }
 
+  /* As long as a random event's NPC takes to leave, `RETURN_GUEST_OUT_MS` of `lib/interlude.ts`. */
+  .content.hidden {
+    opacity: 0;
+    animation: words-out 225ms ease-in both;
+  }
+
+  @keyframes words-out {
+    from {
+      opacity: 1;
+    }
+  }
+
+  .fill,
+  .fill > .reveal {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .fill > .reveal,
+  .fill > .reveal > .paper {
+    flex: 1;
+  }
+
   /* The rolls' wood and paper: flat bands, like the game's own shading. */
   .fl {
     fill: white;
@@ -855,7 +897,8 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .pin {
+    .pin,
+    .content.hidden {
       animation: none !important;
     }
   }
@@ -865,6 +908,10 @@
   @media (max-width: 447.98px) {
     .scroll {
       padding-inline: 0;
+    }
+
+    .edge .paper {
+      padding-inline: calc(var(--roll-w) / 2 + 1rem);
     }
 
     .roll.left {
