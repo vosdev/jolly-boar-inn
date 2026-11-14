@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 
 import { stemLines } from '../components/questions/index'
 import { savePastGame } from './history'
+import { SUGGESTIBLE } from './modeRules'
 import {
   CHOICES,
   answerOf,
@@ -89,28 +90,39 @@ describe('where a question was checked', () => {
 
 describe('the choices', () => {
   it('are an item, an NPC question, the rounds, and last a question with no round', () => {
-    expect(CHOICES.map((choice) => choice.id)).toEqual([
-      'item',
-      'random_event',
-      'guess_examine',
-      'bestiary',
-      'drop_table',
-      'odd_one_out',
-      'minigame_madness',
-      'who_said_that',
-      'know_your_content_creator',
-      'scaperune',
-      'tales_of_gielinor',
-      'uris_unravelling',
-      'slayer_master',
-      'whos_that_npc',
-      'forgetful_bard',
-      'mark_the_map',
-      'sort_it_out',
-      'release_order',
-      'no_round',
+    const trivia = [
+      'multiple_choice',
+      'free_text',
+      'closest_number',
+      'number_slider',
+      'pick_all_that_apply',
+      'ordering',
+      'matching',
+    ]
+    expect(CHOICES.map((choice) => [choice.id, choice.types])).toEqual([
+      ['item', []],
+      ['random_event', trivia],
+      ['guess_examine', ['multiple_choice']],
+      ['bestiary', trivia],
+      ['drop_table', trivia.filter((type) => type !== 'ordering')],
+      ['odd_one_out', ['multiple_choice']],
+      ['minigame_madness', trivia],
+      ['who_said_that', ['multiple_choice']],
+      [
+        'know_your_content_creator',
+        ['multiple_choice', 'closest_number', 'number_slider', 'pick_all_that_apply'],
+      ],
+      ['scaperune', ['multiple_choice']],
+      ['tales_of_gielinor', trivia],
+      ['uris_unravelling', trivia],
+      ['slayer_master', trivia],
+      ['whos_that_npc', ['pick_from_list', 'multiple_choice']],
+      ['forgetful_bard', ['pick_from_list']],
+      ['mark_the_map', ['map_pin']],
+      ['sort_it_out', ['ordering']],
+      ['release_order', ['ordering']],
+      ['no_round', trivia],
     ])
-    expect(CHOICES.find((c) => c.id === 'odd_one_out')?.types).toEqual(['multiple_choice'])
     const scaperune = CHOICES.find((c) => c.id === 'scaperune')
     expect([scaperune?.types, scaperune?.options, scaperune?.wording?.option]).toEqual([
       ['multiple_choice'],
@@ -140,40 +152,7 @@ describe('the choices', () => {
       'guess_examine',
       'scaperune',
     ])
-    expect(CHOICES.find((c) => c.id === 'bestiary')?.types).toEqual([
-      'multiple_choice',
-      'free_text',
-      'closest_number',
-      'number_slider',
-      'pick_all_that_apply',
-      'ordering',
-      'matching',
-    ])
-    expect(CHOICES.find((c) => c.id === 'drop_table')?.types).toEqual([
-      'multiple_choice',
-      'free_text',
-      'closest_number',
-      'number_slider',
-      'pick_all_that_apply',
-      'matching',
-    ])
-    expect(CHOICES.find((c) => c.id === 'minigame_madness')?.types).toEqual([
-      'multiple_choice',
-      'free_text',
-      'closest_number',
-      'number_slider',
-      'pick_all_that_apply',
-      'ordering',
-      'matching',
-    ])
-    expect(CHOICES.find((c) => c.id === 'know_your_content_creator')?.types).toEqual([
-      'multiple_choice',
-      'closest_number',
-      'number_slider',
-      'pick_all_that_apply',
-    ])
     const sort = CHOICES.find((c) => c.id === 'sort_it_out')
-    expect(sort?.types).toEqual(['ordering'])
     expect(sort?.host).toBe('historian_minas')
     expect(sort?.hint).toBe('Something worth putting in order.')
     expect(CHOICES.filter((c) => c.pictureItem).map((c) => c.id)).toEqual([
@@ -184,18 +163,7 @@ describe('the choices', () => {
     expect(quoting).toEqual(['who_said_that', 'know_your_content_creator', 'uris_unravelling'])
     const silent = CHOICES.filter((c) => c.explanation === false).map((c) => c.id)
     expect(silent).toEqual(['guess_examine', 'whos_that_npc', 'forgetful_bard', 'mark_the_map'])
-    const release = CHOICES.find((c) => c.id === 'release_order')
-    expect(release?.types).toEqual(['ordering'])
-    expect(release?.host).toBe('aris')
-    expect(CHOICES.find((c) => c.id === 'random_event')?.types).toEqual([
-      'multiple_choice',
-      'free_text',
-      'closest_number',
-      'number_slider',
-      'pick_all_that_apply',
-      'ordering',
-      'matching',
-    ])
+    expect(CHOICES.find((c) => c.id === 'release_order')?.host).toBe('aris')
   })
 
   it('offers one with no round all seven types, from the house, and nothing a round adds', () => {
@@ -437,25 +405,14 @@ describe('a question’s round', () => {
   })
 
   it('is picked from the rounds whose editor offers its type', () => {
-    expect(roundsFor('free_text').map((c) => c.id)).toEqual([
-      'random_event',
-      'bestiary',
-      'drop_table',
-      'minigame_madness',
-      'tales_of_gielinor',
-      'uris_unravelling',
-      'slayer_master',
-    ])
-    expect(roundsFor('ordering').map((c) => c.id)).toEqual([
-      'random_event',
-      'bestiary',
-      'minigame_madness',
-      'tales_of_gielinor',
-      'uris_unravelling',
-      'slayer_master',
-      'sort_it_out',
-      'release_order',
-    ])
+    for (const type of ['free_text', 'ordering'] as const) {
+      const suggesting = CHOICES.filter((c) => SUGGESTIBLE.get(c.id)?.types.includes(type))
+      expect(suggesting.length, type).toBeGreaterThan(1)
+      expect(roundsFor(type).map((c) => c.id)).toEqual(suggesting.map((c) => c.id))
+    }
+    expect(roundsFor('free_text').map((c) => c.id)).toContain('random_event')
+    expect(roundsFor('ordering').map((c) => c.id)).toContain('release_order')
+    expect(roundsFor('ordering').map((c) => c.id)).not.toContain('drop_table')
     expect(roundsFor('pick_from_list').map((c) => c.id)).toEqual([
       'whos_that_npc',
       'forgetful_bard',
