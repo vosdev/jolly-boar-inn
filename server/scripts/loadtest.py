@@ -39,7 +39,7 @@ from ``welcome.server_time``, so the script can point at another host.
 - Every room played ``--questions`` questions to ``game_finished``, with zero ``error`` frames,
   refusals (HTTP 429, close 1008) or unplanned closes.
 - Ack p99 (``answer`` sent to ``answer_ack`` read) under ``--p99-ms``, overall and in the worst
-  room; one ``answers`` row per acknowledged answer in every room, counted from what the bots
+  room, p95 under ``--smoke``, where the few acks make p99 the slowest one; one ``answers`` row per acknowledged answer in every room, counted from what the bots
   had acknowledged rather than ``bots x questions``; byte-identical standings inside each room.
 - Every deliberate drop came back through ``welcome``, a ``welcome`` never lost an
   acknowledged answer, and, with ``METRICS_TOKEN`` set, ``jbi_rate_limited_total`` stayed put.
@@ -55,7 +55,8 @@ from ``welcome.server_time``, so the script can point at another host.
   2 s; slow readers as above; join-burst join p99 under 1 s and no 5xx.
 
 **Invalid runs.** Each bot process times a 50 ms sleep. When its p99 overshoots by 20 ms or
-more the harness, not the server, was the bottleneck: the run says INVALID and exits 2.
+more the harness, not the server, was the bottleneck: the run says INVALID and exits 2, or
+under ``--smoke``, where a shared runner's lag is no news, warns and exits as its checks say.
 
 ``--json PATH`` writes the report, ``--compare OLD.json`` fails when ack p99, CPU per room or
 RSS per socket are more than ``--compare-factor`` times the old run's (ratios, since hosts
@@ -1579,13 +1580,16 @@ def evaluate(report: dict[str, Any]) -> list[dict[str, Any]]:
         f" {report['error_count']} errors",
     )
     acks = report["acks"]
+    # A smoke run's hundred or so acks make p99 its single slowest, one scheduler hiccup.
+    pct = "p95" if args.get("smoke") else "p99"
+    key = f"{pct}_ms"
     if acks["count"]:
-        check("ack p99", acks["p99_ms"] < limit, f"{acks['p99_ms']:.1f} ms against {limit:.0f} ms")
-        worst = max(rooms, key=lambda r: r["acks"].get("p99_ms", math.inf))
-        p99 = worst["acks"].get("p99_ms", math.inf)
-        check("worst room ack p99", p99 < limit, f"{p99:.1f} ms in {worst['code']}")
+        check(f"ack {pct}", acks[key] < limit, f"{acks[key]:.1f} ms against {limit:.0f} ms")
+        worst = max(rooms, key=lambda r: r["acks"].get(key, math.inf))
+        slowest = worst["acks"].get(key, math.inf)
+        check(f"worst room ack {pct}", slowest < limit, f"{slowest:.1f} ms in {worst['code']}")
     else:
-        check("ack p99", False, "no answers were acknowledged")
+        check(f"ack {pct}", False, "no answers were acknowledged")
     off = [r for r in rooms if not r["rows"] == r["acked"] == r["sent"]]
     check(
         "answers rows",
@@ -1856,7 +1860,14 @@ def main(argv: list[str]) -> int:
     if args.json:
         Path(args.json).write_text(json.dumps(report, indent=2) + "\n")
         print(f"  report written to {args.json}")
-    if not report["valid"]:
+    if not report["valid"] and args.smoke:
+        print("  warning: the bot processes lagged, so the numbers above are the harness's too")
+    return exit_code(report, args.smoke)
+
+
+def exit_code(report: dict[str, Any], smoke: bool) -> int:
+    """Passed, failed, or invalid; a smoke run on a shared runner is never invalid."""
+    if not report["valid"] and not smoke:
         return EXIT_INVALID
     return EXIT_PASSED if report["passed"] else EXIT_FAILED
 
@@ -1882,7 +1893,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         "--p99-ms",
         type=float,
         default=DEFAULT_P99_MS,
-        help="the p99 answer -> answer_ack budget the run asserts",
+        help="the answer -> answer_ack budget the run asserts of p99 (p95 under --smoke)",
     )
     parser.add_argument("--smoke", action="store_true", help="only the loose checks CI runs")
     parser.add_argument("--server-pid", type=int, help="sample this process's CPU and RSS")

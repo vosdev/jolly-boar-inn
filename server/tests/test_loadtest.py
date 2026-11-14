@@ -260,7 +260,7 @@ def test_the_report_holds_what_a_later_run_compares_against() -> None:
 def test_a_room_short_of_rows_or_over_budget_fails() -> None:
     report = _report(0.3)
     failed = {c["name"] for c in report["checks"] if not c["passed"]}
-    assert failed == {"ack p99", "worst room ack p99"}
+    assert failed == {"ack p95", "worst room ack p95"}
     short = loadtest.build_report(
         {"scenario": "steady", "questions": 2, "p99_ms": 200.0, "smoke": True},
         [_worker([[0.01, 0]] * 4)],
@@ -281,6 +281,41 @@ def test_a_lagging_harness_makes_the_run_invalid() -> None:
     report = _report(0.01)
     report["harness"]["loop_lag"] = loadtest.stats([0.03] * 10)
     assert not loadtest.validity(report)[0]
+
+
+def _acks_with_one_slow(**args: Any) -> dict[str, Any]:
+    acks = [[0.3 if i == 0 else 0.01, i % 2] for i in range(90)]
+    base = {"scenario": "steady", "questions": 2, "p99_ms": 200.0, **args}
+    report = loadtest.build_report(base, [_worker(acks)], {"RoomA": 90}, None, None, None)
+    report["checks"] = loadtest.evaluate(report)
+    return report
+
+
+def test_a_smoke_run_holds_ack_p95_to_the_bound_and_a_full_run_p99() -> None:
+    smoke = {c["name"]: c["passed"] for c in _acks_with_one_slow(smoke=True)["checks"]}
+    assert smoke["ack p95"] and smoke["worst room ack p95"]
+    assert "ack p99" not in smoke
+    full = {c["name"]: c["passed"] for c in _acks_with_one_slow(smoke=False)["checks"]}
+    assert not full["ack p99"] and not full["worst room ack p99"]
+    assert "ack p95" not in full
+
+
+@pytest.mark.parametrize(
+    ("smoke", "passed", "code"),
+    [
+        (True, True, loadtest.EXIT_PASSED),
+        (True, False, loadtest.EXIT_FAILED),
+        (False, True, loadtest.EXIT_INVALID),
+        (False, False, loadtest.EXIT_INVALID),
+    ],
+)
+def test_a_lagging_harness_fails_only_a_full_run(smoke: bool, passed: bool, code: int) -> None:
+    assert loadtest.exit_code({"valid": False, "passed": passed}, smoke) == code
+
+
+def test_a_valid_run_exits_as_its_checks_say() -> None:
+    assert loadtest.exit_code({"valid": True, "passed": True}, False) == loadtest.EXIT_PASSED
+    assert loadtest.exit_code({"valid": True, "passed": False}, False) == loadtest.EXIT_FAILED
 
 
 def test_compare_passes_on_identical_reports_and_fails_when_p99_doubles() -> None:
