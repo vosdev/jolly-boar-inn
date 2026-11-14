@@ -65,14 +65,16 @@ Nothing else writes `rooms`, `players`, `questions` or `answers` after creation.
 `end_round`, `rotate_key`, `request_join`, `poll_request`, `cancel_request`, `decide_request`, `promote`, `kick`,
 `end_game`, `rematch`, `delete`, `purge_expired`, `evict`, `shutdown`. A `Room` holds `players`, `requests`, `plan`,
 `custom_questions`, `custom_author`, `played_ids`, `questions`, `totals`, `totals_round`, `current_index`, `phase`,
-`next_at`, `next_mono`, `sockets`, `timer`, `awaiting_player`, `daily`, `advance`, `rescheduled` and `lock`.
+`next_at`, `next_mono`, `sockets`, `timer`, `awaiting_player`, `daily`, `advance`, `rescheduled`, `players_stale`,
+`players_flush` and `lock`.
 
 - One `asyncio.Lock` per room. Every public method takes it. Nothing locks across rooms.
 - A method writes to Postgres before it changes memory, so a failed write leaves memory as it was.
   An answer is committed before its `answer_ack`.
 - A method builds its frames under the lock, then queues them on each socket's `Outbox`: 256 frames
-  and one writer task, which also carries replies and closes so frames keep their order. An
-  overflow, or a send slower than 10 s, closes that socket with 1011. No socket I/O under the lock.
+  and one writer task, which also carries replies and closes so frames keep their order. Sockets
+  sent the same frame share one `Frame`, serialised once. An overflow, or a send slower than 10 s,
+  closes that socket with 1011. No socket I/O under the lock.
 - `RoomManager` is the only part that would change for several replicas. Do not build for that now.
 
 ## 3. Modes and types
@@ -373,7 +375,7 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 |---|---|---|
 | `welcome` | `room`, `you`, `players`, `question`, `your_answer`, `standings`, `team_standings`, `server_time`, `server_version` | Reply to `hello`. The full state. |
 | `room_updated` | `room`, `players`, `standings`?, `team_standings`? | Join, leave, promote, `set_tv`, kick, rename, `set_teams`, `set_settings`, status change, a splash or standings starting or a rematch (with both standings), a ready change that moves `next_at`. |
-| `players_updated` | `players` | A ready, team, editing, connect or disconnect that changed players only. |
+| `players_updated` | `players` | A ready, team, editing, connect or disconnect that changed players only. One frame, queued behind the room lock's waiters, covers every change before it; a `room_updated` or `welcome` already did. |
 | `question_open` | `question` | A question opens. |
 | `answer_ack` | `question_id`, `scoring`, `band`, `answered`, `of` | Answer committed. Never correctness. |
 | `answer_count` | `question_id`, `answered`, `of`, `waiting` | Another player's answer, connect, disconnect or kick moved the count. Who is still to, never what. |

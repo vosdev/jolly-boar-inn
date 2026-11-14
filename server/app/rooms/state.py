@@ -97,7 +97,7 @@ from app.rooms.queries import (
 )
 from app.rooms.settings import RoomSettings
 from app.stats import Metric, bump, peak, round_key
-from app.ws.outbox import Outbox
+from app.ws.outbox import Frame, Outbox
 from app.ws.protocol import AnswerCount, Daily, PlayersUpdated, RoomUpdated, RoomView, Welcome
 
 log = logging.getLogger("app.rooms")
@@ -418,6 +418,7 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
         if self.rooms.get(room.code) is room:
             del self.rooms[room.code]
         _stop_timer(room)
+        _stop_flush(room)
         room.drop_requests()
         sockets = list(room.sockets.values())
         room.sockets.clear()
@@ -605,9 +606,15 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
             standings=ranked,
             team_standings=teams,
         )
+        # Every recipient gets the players as they are now, which is all a pending
+        # ``players_updated`` would have told it.
+        room.players_stale.intersection_update({exclude} if exclude is not None else set())
         if admins == everyone:
             return Broadcast.to_all(room, everyone.model_dump(mode="json"), exclude)
-        rendered = {False: everyone.model_dump(mode="json"), True: admins.model_dump(mode="json")}
+        rendered = {
+            False: Frame(everyone.model_dump(mode="json")),
+            True: Frame(admins.model_dump(mode="json")),
+        }
         return Broadcast(
             [
                 (out, rendered[room.is_admin(pid)])
@@ -630,11 +637,32 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
         and those three are the frames a room of fifty sends most. On a splash any of them
         can start or shorten the countdown, and that ``next_at`` needs the full frame.
         ``after`` is ``room.view()`` as it is now, for a caller that has built it already.
+
+        ``players_updated`` itself is not sent from here: the sockets are marked owed one,
+        and ``_flush_players`` sends it once the lock's queue has run, so fifty players
+        reconnecting at once cost each socket a frame or two rather than fifty.
         """
         if (room.view() if after is None else after) != before:
             return self._room_updated(room, exclude)
-        message = PlayersUpdated(players=room.player_views())
-        return Broadcast.to_all(room, message.model_dump(mode="json"), exclude)
+        room.players_stale.update(pid for pid in room.sockets if pid != exclude)
+        if room.players_flush is None:
+            room.players_flush = asyncio.create_task(
+                self._flush_players(room), name="players-updated"
+            )
+        return Broadcast([])
+
+    async def _flush_players(self, room: Room) -> None:
+        """Send every socket owed a ``players_updated`` one, with the players as they are now.
+
+        It queues on the room lock like any change, so every change already waiting there
+        lands in this one frame, and it is built from the room as that queue left it.
+        """
+        async with room.lock:
+            room.players_flush = None
+            stale, room.players_stale = room.players_stale, set()
+            frame = Frame(PlayersUpdated(players=room.player_views()).model_dump(mode="json"))
+            update = Broadcast([(room.sockets[pid], frame) for pid in stale if pid in room.sockets])
+        self._broadcast(update)
 
     def _broadcast(self, broadcast: Broadcast) -> None:
         """Queue every snapshotted frame on its socket. Waits for nothing.
@@ -737,6 +765,8 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
             await self._count_peaks()
             # Queued under the lock, so no later broadcast can reach this socket first.
             outbox.put(welcome)
+            # The welcome lists the players as they are now: nothing owed before it is news.
+            room.players_stale.discard(player.id)
             if previous is not None:
                 # Behind whatever it still had queued, so nothing it was owed is cut off.
                 if previous.close(CLOSE_REPLACED, "connected from another device"):
@@ -1128,9 +1158,18 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
         timers = [room.timer for room in self.rooms.values() if room.timer is not None]
         for room in self.rooms.values():
             _stop_timer(room)
+            _stop_flush(room)
             for outbox in room.sockets.values():
                 outbox.cancel()
         await asyncio.gather(*timers, return_exceptions=True)
+
+
+def _stop_flush(room: Room) -> None:
+    """Drop a pending ``players_updated``: the room's sockets are being closed. Lock held."""
+    flush, room.players_flush = room.players_flush, None
+    room.players_stale.clear()
+    if flush is not None:
+        flush.cancel()
 
 
 def _counted(room: Room) -> AnswerCount | None:

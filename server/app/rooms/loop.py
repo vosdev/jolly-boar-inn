@@ -33,7 +33,7 @@ from app.questions.types import TYPES, pictured
 from app.rooms import ready, scoring
 from app.rooms.daily_room import finish_attempt, record_close
 from app.rooms.errors import BadState
-from app.rooms.hold import payload_hold
+from app.rooms.hold import hold_seconds, typed_lines
 from app.rooms.models import Broadcast, Player, Room, RoomQuestion, _require_admin
 from app.rooms.queries import (
     _count_round_finished,
@@ -43,6 +43,7 @@ from app.rooms.queries import (
     _void_question,
 )
 from app.stats import Metric, bump, duration_bucket
+from app.ws.outbox import Frame
 from app.ws.protocol import GameFinished, PlayerResult, QuestionClosed, QuestionOpen, Segment
 
 log = logging.getLogger("app.rooms")
@@ -54,7 +55,9 @@ ALL_ANSWERED_PAUSE_SECONDS = 1.0
 def question_hold(question: RoomQuestion) -> float:
     """Seconds the scroll takes to type ``question`` in before its buttons appear."""
     event = question.random_event is not None
-    return payload_hold(question.type, question.payload, question.mode, event)
+    return hold_seconds(
+        typed_lines(question.type, question.mode, question.client_view, event), event
+    )
 
 
 def _close_if_everyone_answered(room: Room) -> None:
@@ -564,19 +567,25 @@ class Loop:
             room.advance.clear()
             count = _answer_count(room, question)
             waiting = _waiting(room, question)
-            opened = Broadcast.per_player(
-                room,
-                lambda pid: QuestionOpen(
-                    question=question.view(
+            # Only ``you_can_answer`` tells sockets apart, so there are two frames at most.
+            frames: dict[bool, Frame] = {}
+
+            def frame(can: bool) -> Frame:
+                if can not in frames:
+                    view = question.view(
                         room.total,
-                        room.can_answer(question, pid),
+                        can,
                         segment,
                         count,
                         self._open_picture(question),
                         self._pictures(question),
                         waiting,
                     )
-                ).model_dump(mode="json"),
+                    frames[can] = Frame(QuestionOpen(question=view).model_dump(mode="json"))
+                return frames[can]
+
+            opened = Broadcast(
+                [(out, frame(room.can_answer(question, pid))) for pid, out in room.sockets.items()]
             )
         self._broadcast(opened)
         return question

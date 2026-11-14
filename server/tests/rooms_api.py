@@ -157,7 +157,7 @@ class StalledSocket:
         self.sends = 0
         self.closed_with: int | None = None
 
-    async def send_json(self, data: dict[str, Any]) -> None:
+    async def send_text(self, data: str) -> None:
         self.sends += 1
         await asyncio.Event().wait()
 
