@@ -12,6 +12,7 @@ The numbers are the client's (``lib/interlude.ts``, section 12 of ideas/design.m
 
 from typing import Any
 
+from app.modes import Mode, entry
 from app.questions.types import TYPES
 
 # Seconds before the typing starts: a random event's NPC walks on first.
@@ -36,12 +37,17 @@ def _text(view: dict[str, Any], key: str) -> str:
     return value if isinstance(value, str) else ""
 
 
+def _silent(mode: Mode) -> bool:
+    # A mode with no stem asks its standing question in the host's ask line alone.
+    return mode.stem is None and not mode.hold_counts_prompt
+
+
 def stem_lines(type_id: str, mode: str, view: dict[str, Any]) -> list[int]:
     """The letters of each line a question's stem types, in order.
 
-    A quote's prompt and Who's That NPC?'s are the mode's standing question, which the host's
-    ask line says, so the sheet does not type them. ScapeRune's answer may be a list, a line
-    per entry.
+    A quote's prompt and a mode's with no stem are the mode's standing question, which the
+    host's ask line says, so the sheet does not type them. A board's answer may be a list, a
+    line per entry. A mode this build lacks types its prompt.
     """
     prompt = _text(view, "prompt")
     if type_id == "more_less":
@@ -53,9 +59,10 @@ def stem_lines(type_id: str, mode: str, view: dict[str, Any]) -> list[int]:
     quote = _text(view, "quote")
     if quote:
         return [len(quote)]
-    if mode == "whos_that_npc":
+    found = entry(mode)
+    if _silent(found):
         return []
-    if mode == "scaperune":
+    if found.stem == "board":
         return [len(line) for line in prompt.split("\n")]
     return [len(prompt)] if prompt else []
 
@@ -69,7 +76,7 @@ def typed_lines(type_id: str, mode: str, view: dict[str, Any], event: bool) -> l
     stem = stem_lines(type_id, mode, view)
     if event:
         return stem
-    return [HOST_ASK, *stem] if stem or mode == "whos_that_npc" else stem
+    return [HOST_ASK, *stem] if stem or _silent(entry(mode)) else stem
 
 
 def hold_seconds(lines: list[int], event: bool) -> float:

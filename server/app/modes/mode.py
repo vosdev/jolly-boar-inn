@@ -1,14 +1,59 @@
-"""``Mode``: one round a host can pick, and the question types it is answered in.
+"""``Mode``: one round a host can pick, the question types it is answered in, and its rules.
 
 Its own module rather than a class in ``modes/__init__.py`` for the same reason ``Bounds``
 has one: a test's stub mode, or anything else that needs the shape, should not have to
 import the registry to get it.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from typing import Literal
 
 from app.questions.types.bounds import Bounds
 from app.questions.types.scoring import Steps
+
+# How the report form offers and names a mode's questions: ``item`` from the roster rather
+# than the pack, ``options`` by its options since every prompt is the same, ``npc`` by the
+# NPC a render shows and with the NPC a shadow is.
+Report = Literal["question", "item", "options", "npc"]
+# What makes two of a mode's questions the same, before prompts and answers: ``item`` the
+# same item, ``options`` the same options in any order, ``npc`` the same NPC and nothing else.
+Compare = Literal["question", "item", "options", "npc"]
+
+
+@dataclass(frozen=True, slots=True)
+class Suggest:
+    """What a player may suggest for a mode (``app/suggestions.py``), and how it is held.
+
+    ``types`` are what its editor offers; ``None`` means the mode's own. ``quote`` and
+    ``intro`` allow those payload fields, and ``explanation`` and ``difficulty`` say whether
+    the mode takes one. ``fixed_prompt`` is the one thing every question asks. ``wiki_only``
+    takes a wiki page and nothing else as proof. ``named`` is the list a ``pick_from_list``
+    answer is named on, by name, for the import script to find; ``verse`` makes the prompt
+    the player's own, about an item that may be listed already. ``render`` names an NPC as a
+    ``multiple_choice`` right option, for the import script to picture. ``picture_item``
+    takes an item's name to picture, ``lined`` a prompt of several lines. ``tags`` are the
+    pack's tags a question of each type gets, as ``(type, tag)`` pairs. ``right_first`` is a
+    pack that lists the right option first and asks each prompt once.
+    """
+
+    types: frozenset[str] | None = None
+    quote: bool = False
+    intro: bool = False
+    explanation: bool = True
+    difficulty: bool = True
+    fixed_prompt: str | None = None
+    wiki_only: bool = False
+    named: str | None = None
+    verse: bool = False
+    render: bool = False
+    picture_item: bool = False
+    lined: bool = False
+    tags: tuple[tuple[str, str], ...] = ()
+    right_first: bool = False
+
+    def __post_init__(self) -> None:
+        if self.types is not None:
+            object.__setattr__(self, "types", frozenset(self.types))
 
 
 @dataclass(frozen=True, slots=True)
@@ -44,6 +89,15 @@ class Mode:
     score on speed. ``pictured`` keeps a question whose picture this install lacks out of the
     round: the picture is the whole question. ``picture_at_reveal`` holds a question's picture
     back until it closes, for a round where the picture would give the answer away.
+
+    ``stem`` is what the client draws above the answers (``lib/modes/``), or ``None`` for a
+    mode its view alone draws; ``rooms/hold.py`` reads it to count the letters typed.
+    ``hold_counts_prompt`` has the hold count the prompt although ``stem`` is ``None``: the
+    server's guess for Pixel Hunt, which the client does not type.
+
+    ``suggest`` is how a player may suggest a question for it, ``None`` for not at all.
+    ``report`` is how the report form offers its questions, ``compare`` what makes two of
+    them the same to ``app/similar.py``.
     """
 
     id: str
@@ -57,9 +111,16 @@ class Mode:
     pictured: bool = False
     picture_at_reveal: bool = False
     extra_answer: int = 0
+    stem: str | None = "text"
+    hold_counts_prompt: bool = False
+    suggest: Suggest | None = None
+    report: Report = "question"
+    compare: Compare = "question"
 
     def __post_init__(self) -> None:
         # A bare string would be read as a set of its letters.
         if isinstance(self.types, str):
             raise TypeError(f"{self.id}: types must be a collection of type ids, not a str")
         object.__setattr__(self, "types", frozenset(self.types))
+        if self.suggest is not None and self.suggest.types is None:
+            object.__setattr__(self, "suggest", replace(self.suggest, types=self.types))

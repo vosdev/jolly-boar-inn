@@ -5,15 +5,30 @@ modes and stub types show the links the shipped modes do not exercise. The regis
 is held to rules rather than to a snapshot, so a new mode needs no edit here.
 """
 
+import ast
+import io
 import re
+import tokenize
 from collections.abc import Iterator
+from pathlib import Path
 from types import ModuleType
 
 import pytest
 
 from app import modes
 from app.config import REPO_ROOT
-from app.modes import MODES, Mode, problems, questions_bounds, round_modes
+from app.modes import (
+    MODES,
+    SUGGESTIBLE,
+    TRIVIA_TYPES,
+    UPCOMING,
+    Mode,
+    problems,
+    questions_bounds,
+    round_modes,
+    suggest_problems,
+)
+from app.modes.mode import Suggest
 from app.questions.schema import load_schema
 from app.questions.types import TYPES
 from app.questions.types.bounds import Bounds
@@ -165,3 +180,117 @@ def test_an_event_pool_states_no_type_and_no_round_length(extra: dict[str, objec
 def test_a_bare_string_is_not_a_set_of_types() -> None:
     with pytest.raises(TypeError, match="not a str"):
         Mode(id="typo", types="more_less")  # type: ignore[arg-type]
+
+
+# --- a mode's rules ----------------------------------------------------------------------
+
+
+def test_a_suggestion_offers_the_modes_own_types_unless_it_says() -> None:
+    assert MODES["bestiary"].suggest == Suggest(types=MODES["bestiary"].types)
+    assert MODES["random_event"].suggest is not None
+    assert MODES["random_event"].suggest.types == TRIVIA_TYPES
+    assert set(SUGGESTIBLE) == {
+        *(mode.id for mode in MODES.values() if mode.suggest is not None),
+        *UPCOMING,
+    }
+    assert not UPCOMING.keys() & MODES.keys()
+
+
+@pytest.mark.parametrize(
+    ("rules", "problem"),
+    [
+        (Suggest(types=frozenset()), "a suggestion needs at least one type"),
+        (Suggest(types=frozenset({"word_search"})), "suggests 'word_search', which no type"),
+        (Suggest(types=frozenset({"ordering"}), quote=True), "a quote is a multiple_choice field"),
+        (
+            Suggest(types=frozenset({"ordering"}), named="items", verse=True),
+            "suggests no pick_from_list",
+        ),
+        (Suggest(types=frozenset({"pick_from_list"}), verse=True), "names none"),
+        (Suggest(types=frozenset({"pick_from_list"}), named="items"), "fixed prompt or a verse"),
+        (Suggest(types=frozenset({"ordering"}), render=True), "a render is a multiple_choice"),
+        (Suggest(types=frozenset({"ordering"}), tags=(("matching", "x"),)), "tags 'matching'"),
+    ],
+)
+def test_a_contradictory_suggestion_is_refused(rules: Suggest, problem: str) -> None:
+    found = suggest_problems("odd", rules)
+    assert len(found) == 1 and problem in found[0], found
+    upcoming = problems(Mode(id="odd", types=frozenset({"ordering"}), suggest=rules))
+    assert any(problem in p for p in upcoming), upcoming
+
+
+def test_a_round_suggests_only_types_it_plays() -> None:
+    mode = Mode(id="odd", types=frozenset({"ordering"}), suggest=Suggest(types=TRIVIA_TYPES))
+    assert problems(mode) == ["odd: suggests a type it does not play"]
+
+
+def test_the_hold_counts_a_prompt_only_where_no_stem_types_one() -> None:
+    mode = Mode(id="odd", types=frozenset({"ordering"}), hold_counts_prompt=True)
+    assert problems(mode) == ["odd: the hold counts the prompt only for a mode with no stem"]
+
+
+def test_only_a_round_on_buttons_is_told_apart_by_its_options() -> None:
+    mode = Mode(id="odd", types=frozenset({"ordering"}), compare="options")
+    assert problems(mode) == ["odd: told apart by its options, but plays no multiple_choice"]
+
+
+def test_every_modes_stem_is_the_one_the_client_draws() -> None:
+    """``rooms/hold.py`` counts the letters of the stem the client types."""
+    for mode in MODES.values():
+        source = (CLIENT_LIB / "modes" / f"{mode.id}.ts").read_text(encoding="utf-8")
+        (stem,) = re.findall(r"^  stem: (null|'[a-z_]+'),$", source, flags=re.MULTILINE)
+        assert mode.stem == (None if stem == "null" else stem.strip("'")), mode.id
+
+
+SERVER = REPO_ROOT / "server"
+# Where a mode's id is named for something other than a per-mode rule: as a type's id, as the
+# mode a script generates a pack for or plays, and as the mode of a host's own questions.
+NOT_A_RULE = {
+    ("app/daily.py", "more_less"): "a type",
+    ("app/daily.py", "price_is_right"): "a type",
+    ("app/questions/types/__init__.py", "more_less"): "a type",
+    ("app/questions/types/__init__.py", "price_is_right"): "a type",
+    ("app/questions/schema.py", "more_less"): "a type",
+    ("app/questions/schema.py", "price_is_right"): "a type",
+    ("app/rooms/hold.py", "more_less"): "a type",
+    ("app/rooms/hold.py", "price_is_right"): "a type",
+    ("app/questions/custom.py", "custom"): "a host's questions",
+    ("app/questions/schema.py", "custom"): "a host's questions",
+    ("scripts/gen_locations.py", "mark_the_map"): "the pack it drafts",
+    ("scripts/gen_pixel_hunt.py", "pixel_hunt"): "the pack it generates",
+    ("scripts/gen_price_questions.py", "more_less"): "the pack it generates",
+    ("scripts/gen_price_questions.py", "price_is_right"): "the pack it generates",
+    ("scripts/loadtest.py", "who_said_that"): "the round it plays",
+    ("scripts/smoke_ws.py", "more_less"): "the round it plays",
+}
+# Also the field a question names its NPC in, so it is everywhere and no rule.
+EVENT = "random_event"
+
+
+def _named_modes(path: Path) -> set[str]:
+    ids = (set(MODES) | set(UPCOMING)) - {EVENT}
+    found = set()
+    for token in tokenize.generate_tokens(io.StringIO(path.read_text("utf-8")).readline):
+        if token.type == tokenize.STRING:
+            value = ast.literal_eval(token.string)
+            if value in ids:
+                found.add(value)
+    return found
+
+
+def test_no_module_outside_the_registry_names_a_mode() -> None:
+    """A mode's rules are its registry entry's, so a new mode is one entry and nothing else."""
+    paths = [*(SERVER / "app").rglob("*.py"), *(SERVER / "scripts").rglob("*.py")]
+    found = {
+        (path.relative_to(SERVER).as_posix(), mode)
+        for path in paths
+        if (SERVER / "app" / "modes") not in path.parents
+        for mode in _named_modes(path)
+    }
+    assert sorted(found - NOT_A_RULE.keys()) == []
+
+
+def test_the_hold_reads_the_stem_and_names_no_mode() -> None:
+    names = _named_modes(SERVER / "app" / "rooms" / "hold.py")
+    assert names <= TYPES.keys(), "a mode named other than as a type"
+    assert "mode ==" not in (SERVER / "app" / "rooms" / "hold.py").read_text("utf-8")

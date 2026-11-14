@@ -25,18 +25,16 @@ from uuid import UUID
 import asyncpg
 
 from app.errors import ApiError
-from app.modes import MODES, offered
+from app.modes import MODES, entry, offered
 from app.questions import text, vocab
 from app.questions.packs import EVENT_MODE, Pack, mode_questions
 
 Status = Literal["open", "closed"]
 
 TEXT_MAX = 500
-ITEM_MODES = frozenset({"more_less", "price_is_right"})
+# The modes reported by a roster item rather than by a question.
+ITEM_MODES = frozenset(mode.id for mode in MODES.values() if mode.report == "item")
 ITEM_VOCAB = "items"
-NPC_MODE = "whos_that_npc"
-# Its prompt is the same for every question; the options are what tell them apart.
-OPTIONS_LABEL_MODES = frozenset({"odd_one_out"})
 
 
 class BadReport(ApiError):
@@ -69,12 +67,12 @@ def report_modes(settings: Any, packs: list[Pack], pictures: Collection[str]) ->
 def label(question: dict[str, Any]) -> str:
     """How the form names a question: what players read while it is open, never its answer."""
     payload = question["payload"]
-    if question["mode"] in OPTIONS_LABEL_MODES:
+    mode = entry(question["mode"])
+    if mode.report == "options":
         return ", ".join(payload["options"])
-    if question["mode"] == NPC_MODE and question["type"] == "multiple_choice":
+    if mode.report == "npc" and question["type"] == "multiple_choice":
         return payload["options"][payload["answer_index"]]
-    mode = MODES.get(question["mode"])
-    named = mode is None or not mode.picture_at_reveal
+    named = not mode.picture_at_reveal
     if question["type"] == "pick_from_list" and "image" in payload and named:
         names = vocab.get(payload["vocab"])
         name = names.name_of(payload["answer_id"]) if names else None
@@ -86,7 +84,7 @@ def label(question: dict[str, Any]) -> str:
 
 def choices(packs: list[Pack], mode: str) -> dict[str, Any]:
     """What the form offers for ``mode``: the roster's items, or the pack's questions."""
-    if mode in ITEM_MODES:
+    if entry(mode).report == "item":
         roster = vocab.get(ITEM_VOCAB)
         entries = roster.entries if roster else ()
         return {"by": "item", "choices": [{"id": e.id, "label": e.name} for e in entries]}
@@ -97,7 +95,7 @@ def _choice(question: dict[str, Any]) -> dict[str, Any]:
     # A shadow's NPC id lets /suggest refuse one the list already has; a render's NPC is
     # on no list. A random event's asker is no secret: players see who asks it first.
     choice = {"id": question["id"], "label": label(question)}
-    if question["mode"] == NPC_MODE and question["type"] == "pick_from_list":
+    if entry(question["mode"]).report == "npc" and question["type"] == "pick_from_list":
         choice["npc"] = question["payload"]["answer_id"]
     if question["mode"] == EVENT_MODE:
         choice["random_event"] = question["random_event"]
@@ -107,7 +105,7 @@ def _choice(question: dict[str, Any]) -> dict[str, Any]:
 def _snapshot(
     packs: list[Pack], mode: str, question: str | None, item: int | None
 ) -> dict[str, Any] | None:
-    if mode in ITEM_MODES:
+    if entry(mode).report == "item":
         if question is not None:
             raise BadReport(f"$.question: {mode!r} is reported by item, not by question")
         if item is None:

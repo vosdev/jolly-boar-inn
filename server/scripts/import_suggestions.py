@@ -84,8 +84,6 @@ DEFAULT_NPCS = REPO_ROOT / "data" / "popular-npcs.json"
 DEFAULT_ASSETS = REPO_ROOT / "data" / "assets.json"
 WIKI_API = "https://oldschool.runescape.wiki/api.php"
 SECTIONS = ("questions", "items")
-# The rounds whose pack lists the right option first, and asks each line once.
-RIGHT_FIRST = frozenset({"guess_examine"})
 CREDIT_KEYS = {"credit", "credit_shown"}
 # Asked in this order: Who's That NPC? is mostly monsters. Each bucket's name for the id.
 NPC_BUCKETS = {"infobox_monster": "id", "infobox_npc": "npc_id"}
@@ -287,7 +285,7 @@ def wiki_page(url: str) -> str:
 
 def npc_named(content: dict[str, Any]) -> str | None:
     """The NPC a Who's That NPC? question shows, as a shadow or a render; ``None`` for others."""
-    if content.get("mode") in suggestions.VERSE_MODES:
+    if suggestions.rules(content.get("mode")).verse:
         return None
     return suggestions.named(content) or suggestions.rendered(content)
 
@@ -382,7 +380,7 @@ def named_npc(
         plan.assets[f"pictures/npc/{number}.png"] = picture
     payload = {
         "prompt": content["payload"]["prompt"],
-        "vocab": suggestions.NAMED_MODES[content["mode"]],
+        "vocab": suggestions.rules(content["mode"]).named,
         "answer_id": number,
         "image": f"npc:{number}",
         "subject": {"name": spelled},
@@ -435,7 +433,7 @@ def named_item(
             plan.assets[f"items/{number}.png"] = icon
     payload = {
         "prompt": content["payload"]["prompt"],
-        "vocab": suggestions.NAMED_MODES[content["mode"]],
+        "vocab": suggestions.rules(content["mode"]).named,
         "answer_id": item["id"],
         "image": f"item:{item['id']}",
         "subject": {"name": item["name"]},
@@ -470,7 +468,7 @@ def plan_questions(
         if credit is None:
             continue
         content = pictured(content, where, lookup, plan)
-        if content is not None and content["mode"] in suggestions.VERSE_MODES:
+        if content is not None and suggestions.rules(content["mode"]).verse:
             content = named_item(content, where, lookup, plan)
         elif content is not None and suggestions.named(content) is not None:
             content = named_npc(content, where, npc_rows, plan)
@@ -479,16 +477,17 @@ def plan_questions(
         if content is None:
             continue
         mode = content["mode"]
-        if mode not in suggestions.NO_DIFFICULTY_MODES:
+        held = suggestions.rules(mode)
+        if held.difficulty:
             content = {"difficulty": "medium"} | content
         envelope = suggestions.question_envelope(content)
-        envelope = right_first(envelope) if mode in RIGHT_FIRST else shuffled(envelope)
+        envelope = right_first(envelope) if held.right_first else shuffled(envelope)
         if envelope["id"] in ids:
             plan.skipped.append(f"{where}: {envelope['id']} is already in a pack")
             continue
         pack = pack_for(mode, content.get("random_event"), packs_dir, plan)
         prompt = fold(content["payload"]["prompt"])
-        if mode in RIGHT_FIRST and any(
+        if held.right_first and any(
             q["mode"] == mode and fold(q["payload"]["prompt"]) == prompt for q in pack["questions"]
         ):
             plan.skipped.append(f"{where}: {content['payload']['prompt']!r} is already asked")

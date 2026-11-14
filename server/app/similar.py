@@ -23,6 +23,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any
 
+from app.modes import entry
 from app.questions import vocab
 from app.questions.normalize import normalize
 from app.questions.types.map_pin import overlap
@@ -32,9 +33,6 @@ PROMPT_WEIGHT = 0.7
 # shared subject alone ("How much does a … cost?") stays under it.
 THRESHOLD = 60
 TOP = 3
-OPTIONS_MODES = frozenset({"odd_one_out"})
-NPC_MODE = "whos_that_npc"
-ITEM_MODES = frozenset({"forgetful_bard"})
 MAP_TYPE = "map_pin"
 
 
@@ -112,7 +110,7 @@ def features(question: dict[str, Any]) -> Features:
     subject = None
     if type_ == "pick_from_list":
         subject = (payload.get("answer_id"), vocab.fold(_subject_name(payload)))
-    elif question.get("mode") == NPC_MODE and type_ == "multiple_choice":
+    elif _compare(question.get("mode")) == "npc" and type_ == "multiple_choice":
         image = payload.get("image")
         right = vocab.fold(payload["options"][payload["answer_index"]])
         subject = (int(image.removeprefix("npc:")) if image else None, right)
@@ -132,6 +130,10 @@ def features(question: dict[str, Any]) -> Features:
     )
 
 
+def _compare(mode: str | None) -> str:
+    return "question" if mode is None else entry(mode).compare
+
+
 def _same_subject(a: tuple[Any, str], b: tuple[Any, str]) -> bool:
     if a[0] is not None and b[0] is not None:
         return a[0] == b[0]
@@ -146,13 +148,14 @@ def _same_place(a: Features, b: Features) -> bool:
 
 def score(a: Features, b: Features) -> int:
     """How alike two questions are, from 0 to 100."""
-    if a.mode == b.mode == NPC_MODE:
+    compare = _compare(a.mode) if a.mode == b.mode else "question"
+    if compare == "npc":
         return 100 if _same_subject(a.subject, b.subject) else 0
-    if a.mode == b.mode and a.mode in ITEM_MODES and _same_subject(a.subject, b.subject):
+    if compare == "item" and _same_subject(a.subject, b.subject):
         return 100
     if a.mode == b.mode and a.type == b.type == MAP_TYPE and _same_place(a, b):
         return 100
-    if a.mode == b.mode and a.mode in OPTIONS_MODES:
+    if compare == "options":
         union = a.options | b.options
         return round(100 * len(a.options & b.options) / len(union)) if union else 100
     prompt = dice(a.prompt, b.prompt)

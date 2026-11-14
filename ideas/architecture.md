@@ -82,14 +82,23 @@ A **type** is an answer shape: what a player sends, how it is checked, how it ea
 planned modes share `multiple_choice`; as five types they would be five copies of `grade`.
 
 `Mode(id, types, is_round=True, questions=None, pool=None, setting=None, options=None,
-steps=None, pictured=False, picture_at_reveal=False, extra_answer=0)` in `modes/`, registered in `MODES` in the create form's order.
+steps=None, pictured=False, picture_at_reveal=False, extra_answer=0, stem="text",
+hold_counts_prompt=False, suggest=None, report="question", compare="question")` in `modes/`,
+registered in `MODES` in the create form's order. A mode's rules are its entry's alone: no other
+module lists mode ids, which a test greps for.
 
 - `id` is `questions.mode` and the settings key. It is never renamed once shipped.
 - A round may mix types. The game loop reads only `question.type`, which also times the question. A
   round whose types disagree on `questions` states its own; `modes.problems` checks this at import.
 - `is_round` is explicit, so an empty `types` never turns a round into an event pool. Only `custom`
   and `random_event` are not rounds. They state no types and no numbers.
-- Copy (label, hint, blurb, host lines) lives on the client in `lib/modes/`.
+- Copy (label, hint, blurb, host lines) lives on the client in `lib/modes/`. `stem` is the client's
+  too, repeated here for `rooms/hold.py`; `hold_counts_prompt` keeps Pixel Hunt's prompt in the hold.
+- `suggest` is a frozen `Suggest` record of what `/suggest` takes (section 11), its `types` the
+  mode's own unless stated; `TRIVIA_TYPES` names the seven most rounds take. `UPCOMING` maps a
+  round not built yet to its `Suggest`. `report` is `item`, `options` or `npc` where the report form
+  offers or labels a mode's questions so; `compare` is `item`, `options` or `npc` where `similar.py`
+  scores them so. `modes.problems` refuses a contradictory entry at import.
 - `pool` names the mode whose pack questions a round draws, restamped with its own id. `setting` names
   the `Settings` flag that offers the mode; off, or with an empty pool, `/api/modes` omits it and
   `POST /api/rooms` is a 403 `mode_not_offered`. A stored room keeps playing it. `options` holds a
@@ -810,14 +819,13 @@ key into them, so cleanup leaves it.
   and every `ROOM_CLEANUP_INTERVAL_SECONDS`, then drops them from memory. A failed pass is logged
   and the next runs. There is no external cron.
 - `suggestions` holds what players send to `POST /api/suggestions` (`app/suggestions.py`): a
-  `question` in Create's shape plus a `wiki` or `source_url`, or both, and a `mode` (a `quote` only
-  for the two quote rounds, an `intro` only for an NPC's, a `picture_item` name only for Drop
-  Table's; Guess the Examine's and Who's That NPC?'s take no `explanation` and need a `wiki`)
-  or none, held to its type alone (`UNPLACED_TYPES`) until the operator picks its round;
+  `question` in Create's shape plus a `wiki` or `source_url`, or both, and a `mode`, held to its
+  `Suggest` (`quote`, `intro`, `picture_item`, `explanation`, `wiki_only`, `fixed_prompt`), or
+  none, held to its type alone (`TRIVIA_TYPES`) until the operator picks its round;
   or an `item` (a name not on the roster).
   A Who's That NPC? shadow's payload is its fixed prompt and `subject.name`, an NPC not on its
-  list (`NAMED_MODES`); a render's right option names its NPC, and it has no `image` (`RENDER_MODES`).
-  A Forgetful Bard payload is a verse and `subject.name`, a plain item on the list or not, which the verse may not name (`VERSE_MODES`). A place for Mark the Map is `prompt`, one target and a `reach`, nothing else (`_place_errors`), with a `wiki`. A question but an NPC's (`NO_DIFFICULTY_MODES`) may carry a `difficulty`;
+  list (`named`); a render's right option names its NPC, and it has no `image` (`render`).
+  A Forgetful Bard payload is a verse and `subject.name`, a plain item on the list or not, which the verse may not name (`verse`). A place for Mark the Map is `prompt`, one target and a `reach`, nothing else (`_place_errors`), with a `wiki`. A question but an NPC's (`difficulty`) may carry a `difficulty`;
   `/suggest` requires picking one, loading with the toggle unselected. Each has a `credit`
   held to the name rules and `credit_shown`, never true for an item. Pending, approved,
   rejected or imported. A round not built yet takes questions; they wait in approved. The client offers the form after a finished game; 10 an hour
