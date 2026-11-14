@@ -287,6 +287,72 @@ jobs:
             -v "$PWD:/repo" jolly-boar-inn-map:latest python scripts/gen_map.py
           test -f "client/public/map/$CACHE_ID/clean/manifest.json"
 
+  # The smoke profile of scripts/loadtest.py against uvicorn started as the Dockerfile's CMD
+  # starts it: three rooms of ten play three questions. Loose absolute checks only, since the
+  # runner is shared; the heavy scenarios are for manual runs. The report is an artifact, so a
+  # later run can be held against it with --compare.
+  loadtest:
+    name: Load test (smoke)
+    runs-on: ${{ (vars.RUNNER && !github.event.pull_request.head.repo.fork) && vars.RUNNER || 'ubuntu-latest' }}
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: server
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: jbi
+          POSTGRES_PASSWORD: jbi
+          POSTGRES_DB: jbi
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U jbi -d jbi"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 12
+    env:
+      DATABASE_URL: postgresql://jbi:jbi@localhost:5432/jbi
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: server/uv.lock
+      - run: uv sync --locked
+      # A fresh key per run, so /metrics can be scraped for rate limiting and nothing is stored.
+      - name: Make a metrics key
+        run: echo "METRICS_TOKEN=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+      - name: Start the server
+        run: |
+          .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --proxy-headers \
+            --workers 1 --ws-max-size 65536 --limit-concurrency 2500 \
+            --ws-per-message-deflate false > "$RUNNER_TEMP/server.log" 2>&1 &
+          echo "SERVER_PID=$!" >> "$GITHUB_ENV"
+          for _ in $(seq 60); do
+            curl -fsS http://127.0.0.1:8000/api/health && exit 0
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/server.log"
+          exit 1
+      - name: Play three rooms of ten
+        run: |
+          uv run python scripts/loadtest.py --rooms 3 --bots 10 --questions 3 --smoke \
+            --server-pid "$SERVER_PID" --json "$RUNNER_TEMP/loadtest.json"
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        if: always()
+        with:
+          name: loadtest-smoke
+          path: ${{ runner.temp }}/loadtest.json
+          if-no-files-found: ignore
+      - name: Server log
+        if: always()
+        run: tail -n 200 "$RUNNER_TEMP/server.log" || true
+      - name: Stop the server
+        if: always()
+        run: kill "$SERVER_PID" 2>/dev/null || true
+
   # Every T or D task bumps VERSION (ideas/architecture.md, Versioning). A main commit that
   # passed everything above and carries a version with no tag yet becomes a release: tag
   # v<VERSION> and a GitHub Release, notes built from the merged PRs. A commit that did not
@@ -294,7 +360,7 @@ jobs:
   release:
     name: Release (tag when VERSION changes)
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [server, client, audit, secrets, containers, map]
+    needs: [server, client, audit, secrets, containers, map, loadtest]
     runs-on: ${{ (vars.RUNNER && !github.event.pull_request.head.repo.fork) && vars.RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 15
     permissions:

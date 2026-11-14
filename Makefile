@@ -1,4 +1,4 @@
-.PHONY: all setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-protocol gen-modes gen-price-questions gen-pixel-hunt import-suggestions edit-packs edit-roster rehash-questions fetch-assets logo loadtest image
+.PHONY: all setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-protocol gen-modes gen-price-questions gen-pixel-hunt import-suggestions edit-packs edit-roster rehash-questions fetch-assets logo loadtest loadtest-smoke image
 
 # The app's version: /VERSION is the one place it lives (ideas/architecture.md, Versioning).
 VERSION := $(shell cat VERSION)
@@ -92,17 +92,20 @@ lint:
 	cd server && uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run python scripts/check_workflows.py
 	cd client && pnpm lint && pnpm check
 
-# 30 bot players through one room over websockets, asserting no error frames or refusals, a
-# p99 answer -> answer_ack under 200 ms, an exact answers row count and identical standings.
-# Needs a live server that trusts X-Forwarded-For from 127.0.0.1 (uvicorn's default) and its
-# database, so it is never part of `test` or CI: run `make dev` in another terminal first. For
-# the compose stack the bundled Postgres is not published to the host, so run the script in
-# the app container instead:
+# Bot players through rooms over websockets, against a live server that trusts X-Forwarded-For
+# from 127.0.0.1 (uvicorn's default) and its database: run `make dev` in another terminal first.
+# The flags (rooms, scenarios, --json, --compare) are in scripts/loadtest.py's docstring. For the
+# compose stack, whose Postgres is not published to the host, run it in the app container:
 #   docker compose exec app python scripts/loadtest.py
-# Takes about twelve and a half minutes. Pass flags through with LOADTEST_ARGS, e.g.
-#   make loadtest LOADTEST_ARGS="--questions 5 --pace run"
+# The default, one room of 30 for 30 questions, takes about twelve and a half minutes. Pass
+# flags through with LOADTEST_ARGS, e.g.
+#   make loadtest LOADTEST_ARGS="--rooms 18 --bots 50 --scenario reconnect-storm --procs 3"
 loadtest:
 	cd server && uv run python scripts/loadtest.py $(LOADTEST_ARGS)
+
+# The profile CI runs, about a minute: three rooms of ten, three questions, loose checks only.
+loadtest-smoke:
+	cd server && uv run python scripts/loadtest.py --rooms 3 --bots 10 --questions 3 --smoke $(LOADTEST_ARGS)
 
 # Regenerate data/packs/prices.json from the roster and the wiki price API (two requests,
 # /mapping and /latest). Never part of test, CI or app startup, and never committed: each
