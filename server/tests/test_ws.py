@@ -632,6 +632,22 @@ async def test_a_client_that_left_after_its_close_was_queued_is_not_counted_twic
     assert disconnects("client") == before
 
 
+async def test_a_stalled_send_after_its_close_was_queued_is_not_counted_again(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The handler counted the client leaving; the send that then times out is the same loss."""
+    monkeypatch.setattr(outbox_module, "SEND_TIMEOUT", 0.05)
+    outbox = Outbox(StalledSocket(), on_failed=_detached_anyway)
+    before = {reason: disconnects(reason) for reason in ("client", "send_failed")}
+    outbox.put({"n": 1})
+    outbox.close(1000, "disconnected")
+    await asyncio.wait_for(outbox.finished(), 1)
+    assert {reason: disconnects(reason) - before[reason] for reason in before} == {
+        "client": 0,
+        "send_failed": 0,
+    }
+
+
 async def _fails_counting_from(
     outbox: Outbox, detached: asyncio.Event, before: dict[str, float]
 ) -> dict[str, float]:
