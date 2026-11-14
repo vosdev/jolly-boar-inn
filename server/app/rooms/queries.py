@@ -9,7 +9,6 @@ from uuid import UUID
 
 import asyncpg
 
-from app.rooms import segments
 from app.rooms.errors import RoomExpired, RoomNotFound
 from app.rooms.models import Player, Room, RoomQuestion, Totals, _gone
 from app.rooms.settings import RoomSettings
@@ -198,11 +197,11 @@ async def _fetch_totals(
     }
 
 
-def _round_start(questions: Sequence[RoomQuestion], position: int | None) -> int:
+def _round_start(room: Room, position: int | None) -> int:
     """Where the round holding ``position`` starts; 0 for no position."""
     if position is None:
         return 0
-    segment = segments.segment_at(segments.segments_of(questions), position)
+    segment = room.segment_at(position)
     return 0 if segment is None else segment.start
 
 

@@ -350,7 +350,12 @@ class Room:
     # Join requests by ticket hash, oldest first. Only an invite-only lobby has any.
     requests: dict[str, JoinRequest] = field(default_factory=dict, repr=False)
     sockets: dict[UUID, Outbox] = field(default_factory=dict, repr=False)
-    questions: list[RoomQuestion] = field(default_factory=list, repr=False)  # by position
+    # By position. Written only through ``replace_questions``, which keeps the two below.
+    questions: list[RoomQuestion] = field(default_factory=list, repr=False)
+    # Grouped and counted once per list rather than per view: a connect or a broadcast
+    # builds several views, and a game's questions never change while it plays.
+    segments: list[Segment] = field(default_factory=list, repr=False)
+    game_seconds: int = field(default=0, repr=False)
     # The host's own questions, as envelopes, until ``start_game`` selects them into
     # ``questions``, and who sent them.
     custom_questions: list[dict[str, Any]] = field(default_factory=list, repr=False)
@@ -395,10 +400,19 @@ class Room:
             return self.plan.events
         return sum(q.random_event is not None for q in self.questions)
 
-    @property
-    def segments(self) -> list[Segment]:
-        """The room's rounds. Grouped on demand so they cannot drift from the questions."""
-        return segments.segments_of(self.questions)
+    def replace_questions(self, questions: list[RoomQuestion]) -> None:
+        """Replace the questions, and regroup the rounds and recount the game's length."""
+        self.questions = questions
+        self.segments = segments.segments_of(questions)
+        # Under the settings as they stand, so callers set the game's settings first. Those
+        # behind the length change only in the lobby, where ``plan`` holds the number.
+        self.game_seconds = duration.game_seconds(
+            [(q.type, q.payload, q.mode, q.random_event is not None) for q in questions],
+            len(self.segments),
+            self.settings.pace,
+            self.settings.standings_seconds,
+            self.settings.name_wrong_answers,
+        )
 
     def segment_at(self, position: int) -> Segment | None:
         return segments.segment_at(self.segments, position)
@@ -433,15 +447,7 @@ class Room:
 
     def estimated_seconds(self) -> int:
         """How long the whole game takes at most (``rooms/duration.py``)."""
-        if self.plan is not None:
-            return self.plan.seconds
-        return duration.game_seconds(
-            [(q.type, q.payload, q.mode, q.random_event is not None) for q in self.questions],
-            len(self.segments),
-            self.settings.pace,
-            self.settings.standings_seconds,
-            self.settings.name_wrong_answers,
-        )
+        return self.game_seconds if self.plan is None else self.plan.seconds
 
     @property
     def current(self) -> RoomQuestion | None:
@@ -468,10 +474,15 @@ class Room:
         player = self.players.get(player_id)
         return player is not None and player.role == "admin"
 
-    def view_for(self, player_id: UUID) -> RoomView:
-        """The room as ``player_id`` is sent it: admins get the key, the rest the rounds so far."""
+    def view_for(self, player_id: UUID, plain: RoomView | None = None) -> RoomView:
+        """The room as ``player_id`` is sent it: admins get the key, the rest the rounds so far.
+
+        ``plain`` is ``view()`` as the room is now, returned when it is the same answer.
+        """
         if self.is_admin(player_id):
             return self.view(admin=True, withhold=bool(self.settings.surprise_modes))
+        if plain is not None and not self.settings.hide_rounds:
+            return plain
         return self.view(withhold=self.settings.hide_rounds)
 
     def view(self, withhold: bool = False, admin: bool = False) -> RoomView:
