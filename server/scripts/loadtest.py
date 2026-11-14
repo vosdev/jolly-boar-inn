@@ -39,8 +39,9 @@ from ``welcome.server_time``, so the script can point at another host.
 - Every room played ``--questions`` questions to ``game_finished``, with zero ``error`` frames,
   refusals (HTTP 429, close 1008) or unplanned closes.
 - Ack p99 (``answer`` sent to ``answer_ack`` read) under ``--p99-ms``, overall and in the worst
-  room, p95 under ``--smoke``, where the few acks make p99 the slowest one; one ``answers`` row per acknowledged answer in every room, counted from what the bots
-  had acknowledged rather than ``bots x questions``; byte-identical standings inside each room.
+  room, p95 under ``--smoke``, where the few acks make p99 the slowest one; one ``answers`` row
+  per acknowledged answer in every room, counted from what the bots had acknowledged rather
+  than ``bots x questions``; byte-identical standings inside each room.
 - Every deliberate drop came back through ``welcome``, a ``welcome`` never lost an
   acknowledged answer, and, with ``METRICS_TOKEN`` set, ``jbi_rate_limited_total`` stayed put.
 
