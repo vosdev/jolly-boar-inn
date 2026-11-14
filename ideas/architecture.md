@@ -12,7 +12,7 @@ final. The licence is AGPL-3.0.
 | Database | Postgres 18 through `asyncpg`, hand-written SQL | An ORM would add more code than it removes. |
 | Migrations | Numbered `.sql` files, applied at startup by `db.py` | Alembic needs SQLAlchemy models we do not want. |
 | Validation | Pydantic v2 for HTTP and websocket, `jsonschema` for questions | The question schema is shared with CI and the client. |
-| Client | Svelte 5 with runes, Vite SPA, TypeScript; Leaflet for the map, loaded with the first one | No SSR is needed, so no SvelteKit. |
+| Client | Svelte 5 with runes, Vite SPA, TypeScript; Leaflet for the map, Admin, Suggest, Report, History and the changelog each load on first use | No SSR is needed, so no SvelteKit. |
 | Tooling | `uv`, `ruff`, `pytest` with `pytest-xdist`; `pnpm`, ESLint, Prettier, `svelte-check`, `vitest` in jsdom | Vitest compiles components exactly as the build does. |
 | Serving | FastAPI serves `client/dist`, SPA fallback to `index.html` (404 for a missing file under `/assets/`, `/pictures/` or `/map/`); `robots.txt`, `sitemap.xml` and `/.well-known/security.txt` built from `PUBLIC_BASE_URL` | One container, one origin, no CORS. |
 | Time | `datetime.now(UTC)` on the server, `timestamptz`, ISO 8601 on the wire | The client never sends a time. |

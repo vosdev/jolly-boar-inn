@@ -32,15 +32,11 @@
   import SettingsMenu from './components/SettingsMenu.svelte'
   import TimerBar from './components/TimerBar.svelte'
   import TopBar from './components/TopBar.svelte'
-  import Admin from './routes/Admin.svelte'
   import Create from './routes/Create.svelte'
   import Daily from './routes/Daily.svelte'
-  import History from './routes/History.svelte'
   import Home from './routes/Home.svelte'
   import Join from './routes/Join.svelte'
   import Room from './routes/Room.svelte'
-  import Report from './routes/Report.svelte'
-  import Suggest from './routes/Suggest.svelte'
   import type { HowToView } from './components/HowToPage.svelte'
   import { SHOWN } from './components/ModeShowcase.svelte'
   import { howToViewOf } from './lib/howToPlay'
@@ -212,11 +208,23 @@
       {:else if route.name === 'create'}
         <Create {navigate} />
       {:else if route.name === 'admin'}
-        <Admin tab={route.tab} {navigate} />
+        {#await import('./routes/Admin.svelte')}
+          <p class="note">Loading…</p>
+        {:then { default: Admin }}
+          <Admin tab={route.tab} {navigate} />
+        {/await}
       {:else if route.name === 'suggest'}
-        <Suggest {navigate} />
+        {#await import('./routes/Suggest.svelte')}
+          <p class="note">Loading…</p>
+        {:then { default: Suggest }}
+          <Suggest {navigate} />
+        {/await}
       {:else if route.name === 'report'}
-        <Report {navigate} />
+        {#await import('./routes/Report.svelte')}
+          <p class="note">Loading…</p>
+        {:then { default: Report }}
+          <Report {navigate} />
+        {/await}
       {:else if route.name === 'daily'}
         <Daily {navigate} />
       {:else if route.name === 'dev-map'}
@@ -227,7 +235,11 @@
         {/if}
       {:else if route.name === 'history'}
         {#key `${route.code}/${route.stamp}`}
-          <History code={route.code} stamp={route.stamp} {navigate} />
+          {#await import('./routes/History.svelte')}
+            <p class="note">Loading…</p>
+          {:then { default: History }}
+            <History code={route.code} stamp={route.stamp} {navigate} />
+          {/await}
         {/key}
       {:else if route.name === 'join'}
         {#key route.code}

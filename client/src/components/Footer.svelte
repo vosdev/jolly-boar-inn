@@ -8,7 +8,6 @@
    * It sits in the page's flow, never fixed, so on a long screen it is below the last
    * answer rather than over it, and on a short one the shell pushes it to the bottom.
    */
-  import Changelog from './Changelog.svelte'
   import Credits from './Credits.svelte'
   import Icon from './Icon.svelte'
   import QuestionCounts from './QuestionCounts.svelte'
@@ -78,7 +77,10 @@
 </footer>
 
 {#if showChangelog}
-  <Changelog onclose={() => (showChangelog = false)} />
+  <!-- Fetched on the first tap, so the 2,000 lines of releases are not in every visit. -->
+  {#await import('./Changelog.svelte') then { default: Changelog }}
+    <Changelog onclose={() => (showChangelog = false)} />
+  {/await}
 {/if}
 {#if showCounts && questionCounts.counts !== null}
   <QuestionCounts counts={questionCounts.counts} onclose={() => (showCounts = false)} />
