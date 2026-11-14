@@ -9,7 +9,7 @@ final. The licence is AGPL-3.0.
 | Concern | Choice | Reason |
 |---|---|---|
 | Server | Python 3.14, FastAPI, uvicorn, one worker | All room state lives in one process's memory. |
-| Database | Postgres 18 through `asyncpg`, hand-written SQL | Four tables; an ORM would add more code than it removes. |
+| Database | Postgres 18 through `asyncpg`, hand-written SQL | An ORM would add more code than it removes. |
 | Migrations | Numbered `.sql` files, applied at startup by `db.py` | Alembic needs SQLAlchemy models we do not want. |
 | Validation | Pydantic v2 for HTTP and websocket, `jsonschema` for questions | The question schema is shared with CI and the client. |
 | Client | Svelte 5 with runes, Vite SPA, TypeScript; Leaflet for the map, loaded with the first one | No SSR is needed, so no SvelteKit. |
@@ -29,10 +29,11 @@ data/packs/                        prices (generated, ignored), examine, sample 
 data/                              assets, pets, popular-items/-npcs, player-names, room-words
 branding/                          a selfhoster's logo, gitignored
 monitoring/                        Prometheus scrape config and alert rules, starter Grafana dashboard
-server/app/                        main, config, db, static, accesslog, errors, metrics, pets, daily,
-                                   random_events, suggestions, reports, question_edits, roster_edits
-server/app/rooms/                  state (RoomManager), joins, lobby, loop, daily_room (its parts), models,
-                                   errors, queries, settings, selection, segments, scoring, ready, codes
+server/app/                        main, config, db, static, accesslog, errors, metrics, pets, daily, similar,
+                                   random_events, suggestions, reports, question_edits, roster_edits, stats,
+                                   question_stats, pictures, map, profiling
+server/app/rooms/                  state, joins, lobby, loop, daily_room, models, errors, queries, settings,
+                                   selection, segments, scoring, ready, codes, plan, duration, hold, teams
 server/app/modes/, questions/      Mode and MODES; schema, packs, vocab, normalize, custom,
                                    submission, text; types/ one module per type
 server/app/ws/, http/              handler, protocol, schema, outbox; one module per route or middleware
@@ -58,14 +59,13 @@ The retired `/r/:code/admin` resolves like `/r/:code`, because whoever holds tha
 `RoomManager` (`rooms/state.py`, with `joins`, `lobby`, `loop` and `daily_room`) owns every room. Handlers call it.
 Nothing else writes `rooms`, `players`, `questions` or `answers` after creation.
 
-`RoomManager` methods: `get` (rehydrates, section 9), `get_listed`, `create`, `start_daily`, `join`,
-`connect`, `disconnect`, `set_profile`, `set_ready`, `set_editing`, `set_team`, `move_team`,
-`set_teams`, `set_settings`, `set_questions`, `set_tv`, `start_game`, `submit_answer`,
-`skip(phase, index)`, `end_round`, `rotate_key`, `request_join`, `poll_request`, `cancel_request`,
-`decide_request`, `promote`, `kick`, `end_game`, `rematch`, `delete`, `purge_expired`, `evict`. A `Room` holds `players`, `requests`,
-`questions`, `totals`, `current_index`, `phase`, `next_at` (wall clock) with `next_mono`
-(monotonic), `sockets` (one `Outbox` each), `timer`, the `advance` and `rescheduled` events, and
-`lock`.
+`RoomManager` methods: `get`, `get_listed`, `create`, `start_daily`, `daily_result`, `join`, `check_code`,
+`free_code`, `connect`, `disconnect`, `set_profile`, `check_avatar`, `set_ready`, `set_editing`, `set_team`,
+`move_team`, `set_teams`, `set_settings`, `set_questions`, `set_tv`, `start_game`, `submit_answer`, `skip`,
+`end_round`, `rotate_key`, `request_join`, `poll_request`, `cancel_request`, `decide_request`, `promote`, `kick`,
+`end_game`, `rematch`, `delete`, `purge_expired`, `evict`, `shutdown`. A `Room` holds `players`, `requests`, `plan`,
+`custom_questions`, `custom_author`, `played_ids`, `questions`, `totals`, `totals_round`, `current_index`, `phase`,
+`next_at`, `next_mono`, `sockets`, `timer`, `awaiting_player`, `daily`, `advance`, `rescheduled` and `lock`.
 
 - One `asyncio.Lock` per room. Every public method takes it. Nothing locks across rooms.
 - A method writes to Postgres before it changes memory, so a failed write leaves memory as it was.
@@ -122,9 +122,9 @@ def items(payload) -> int             # optional: options or entries; 0 without 
   `more_less` 10 and 5, `pick_from_list` 25 and 6, `free_text` 20 and 7, `closest_number` 20 and 8,
   `number_slider` 15 and 8, `map_pin` 20 + 10 and 8 + 2 per pin.
   `name_wrong_answers` adds 1 s to every reveal after the pace, for the names.
-- A game's minutes (`rooms/duration.py`) are a ceiling: every question's full answer and reveal,
+- A game's minutes (`rooms/duration.py`) are a ceiling: every question's hold, answer and reveal,
   15 s per splash, standings between rounds. Create multiplies each round by its mode's `seconds`
-  from `/api/modes`, its pool's mean per pace; a surprise counts the offered modes' average.
+  (`/api/modes`), its pool's mean per pace; a surprise counts the offered modes' average.
 
 | Mode | Label | Type | Pool | Status |
 |---|---|---|---|---|
@@ -262,9 +262,9 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   NPCs' questions; a test fails on a new round that does neither. Not-yet-built image modes are not on Create.
 - `/suggest` offers `map_pin` for Mark the Map only, with its card shown once a tile loads: a place's name, one box and a `reach` of 50 to 200 on `MapView`, whose `grips` keep their markers through a drag. The prompt is `Where is <name>?`; the queue may reword it.
 
-`select(packs, custom, settings, rng)` fixes a room's questions at `start_game`, from the settings
-at that moment. Until then a lobby's `total`, `events`, `rounds` and `estimated_seconds` come from
-a dry `select` thrown away (`rooms/plan.py`), redone on every change of settings:
+`select(packs, custom, settings, rng, pictures, played)` fixes a room's questions at `start_game`.
+Until then a lobby's `total`, `events`, `rounds` and `estimated_seconds` come from a dry `select`
+thrown away (`rooms/plan.py`), redone on every settings change:
 
 - `surprise_modes: N` draws N distinct offered round modes at the start, each at its default
   `questions`, and needs `hide_rounds`. The plan counts the N shortest. A request with both it and
@@ -418,8 +418,8 @@ PlayerResult { value, correct, credit, points }
 
 What the server withholds. The admin is a player with a flag; there is no admin channel.
 
-- Open-question frames are identical for every socket, admin included, except the live counts.
-  `you_can_answer` is false only on `host_only`. They never carry the answer.
+- Open-question frames differ by socket only in live counts and `you_can_answer` (false on
+  `host_only` and for the TV), and never carry the answer.
 - `question_id` is the row uuid, never the content id, which hashes the answer and could be
   brute-forced.
 - Results and correct answers first appear in `question_closed`, to everyone at once.
@@ -930,5 +930,5 @@ CLAUDE.md has the bump rule.
   needs an entry for every version, a stacked PR's too.
 - CI's `release` job tags `v<VERSION>` with a GitHub Release once the other jobs pass, and fails if
   `VERSION` went backwards. `make image` builds locally; no registry.
-- Dependabot gathers every ecosystem's minor and patch updates into one PR, checked Monday and Thursday, which keeps
-  the version: no bump, no changelog entry. CI fails on a high or critical known vulnerability in a lockfile or the image. Trivy's own version is pinned in `ci.yml`; `trivy-bump.yml` opens the PR for a release three days old. Trivy's own version is pinned in `ci.yml`; `trivy-bump.yml` opens the PR for a release three days old.
+- Dependabot gathers every ecosystem's minor and patch updates into one PR, Mondays and Thursdays, which keeps
+  the version: no bump, no changelog entry. CI fails on a high or critical known vulnerability in a lockfile or the image. Trivy's version is pinned in `ci.yml`; `trivy-bump.yml` opens the PR for a release three days old.

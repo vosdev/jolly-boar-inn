@@ -2,8 +2,8 @@
  * How long a game takes, as the minutes Create shows before the room exists. The lobby
  * reads the server's own count off the questions it stored (`RoomView.estimated_seconds`);
  * Create has no questions yet, so it multiplies each round by what its mode's pack
- * questions typically take (`ModePacing.seconds`). Both are ceilings: every question at
- * its full time, as `server/app/rooms/duration.py` counts them.
+ * questions typically take (`ModePacing.seconds`). Both are ceilings: every question typed
+ * in and at its full time, as `server/app/rooms/duration.py` counts them.
  */
 
 /** `rooms/duration.py`'s `SPLASH_SECONDS`: a splash has no clock until the room is ready. */
@@ -13,7 +13,7 @@ export const NAMES_SECONDS = 1
 
 export interface PlannedRound {
   questions: number
-  /** One question of the round, open and revealed. */
+  /** One question of the round, typed in, open and revealed. */
   seconds: number
 }
 

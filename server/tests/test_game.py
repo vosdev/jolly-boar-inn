@@ -1196,6 +1196,54 @@ def test_a_kick_during_the_standings_drops_the_player_and_the_next_round_opens(
     assert zezima.id not in [s["player_id"] for s in finished["standings"]]
 
 
+def test_a_kick_after_the_game_sends_everyone_the_standings_without_the_kicked_player(
+    table,
+) -> None:
+    """Clients replace the standings only from a frame that carries them, so without them
+    the final screen keeps the kicked player as the winner."""
+    game = table("Zezima", "Woox", seconds=10, reveal_seconds=1, questions=1)
+    zezima, woox = game.players
+    game.start()
+    game.opened(0)
+    game.answer(zezima, 0, game.right(0))
+    zezima.take("answer_ack")
+    game.skip()
+    final = woox.take("game_finished", limit=40)
+    assert final["standings"][0]["display_name"] == "Zezima"
+
+    game.admin.send(t="kick", player_id=zezima.id)
+    update = woox.take("room_updated")
+    assert [p["display_name"] for p in update["players"]] == ["Admin", "Woox"]
+    assert [s["display_name"] for s in update["standings"]] == ["Admin", "Woox"]
+
+
+def test_a_kick_in_the_lobby_sends_no_standings(game) -> None:
+    game.admin.send(t="kick", player_id=game.players[0].id)
+    assert "standings" not in game.players[1].take("room_updated")
+
+
+def test_a_game_starts_after_the_author_of_its_custom_questions_was_kicked(
+    table, second_mode, db
+) -> None:
+    """The host's questions outlive their author: kicking the laptop that posted them, once
+    it is the TV, must not stop the game from starting."""
+    game = table("Phone", custom=[TANZANITE], **event_rooms(second_mode))
+    laptop, phone = game.admin, game.players[0]
+    laptop.send(t="promote", player_id=phone.id)
+    updated(phone, lambda m: m["players"][1]["role"] == "admin")
+    phone.send(t="set_tv", player_id=laptop.id, on=True)
+    updated(phone, lambda m: m["players"][0]["role"] == "tv")
+    phone.send(t="kick", player_id=laptop.id)
+    updated(phone, lambda m: len(m["players"]) == 1)
+    assert db("select custom_author from rooms")[0]["custom_author"] is None
+
+    phone.send(t="start_game")
+    started = updated(phone, lambda m: m["room"]["status"] == "playing")
+    assert started["room"]["status"] == "playing"
+    assert len(game.room.questions) == 7
+    assert db("select author_player_id from questions where author_player_id is not null") == []
+
+
 def test_a_player_who_first_connects_mid_question_counts_and_is_scored(table, client) -> None:
     """Section 4 lets nobody new join a game under way; somebody who joined in the lobby
     and only now connects is not new, and answers the question already up."""
@@ -3122,6 +3170,38 @@ def test_a_question_whose_opening_fails_is_still_asked_after_the_restart(
         game.skip(admin)
         assert admin.take("question_open")["question"]["index"] == 1
     assert not any(row["voided"] for row in db("select voided from questions"))
+
+
+def test_a_question_that_can_never_open_is_voided_and_the_game_moves_on(
+    table, client, db, monkeypatch
+) -> None:
+    """A payload this build cannot draw costs the room that question, as a close that fails
+    does, not a reconnect loop that opens it again after every restart."""
+    game = table("Zezima", seconds=10, reveal_seconds=30, questions=3)
+    game.start()
+    game.opened(0)
+    broken = game.question(1).id
+
+    def hold(question: RoomQuestion) -> float:
+        if question.id == broken:
+            raise KeyError("ends")  # what a payload from before a key was required raises
+        return 0.0
+
+    monkeypatch.setattr(loop, "question_hold", hold)
+    game.skip()
+    game.admin.take("question_closed")
+    game.skip()  # the reveal ends, and opening question 1 is what fails
+
+    assert left_memory(game), "the room stayed in memory with its timer stopped"
+    assert closed_after(game.admin) == 1012
+    with client.websocket_connect(f"/ws/{game.code}") as ws:
+        admin = reseat(game.admin, ws)
+        assert admin.take("welcome")["room"]["phase"] == "reveal"
+        game.skip(admin)
+        assert admin.take("question_open")["question"]["index"] == 2
+    stored = db("select voided, shown_at, closed_at from questions order by position")
+    assert [row["voided"] for row in stored] == [False, True, False]
+    assert stored[1]["closed_at"] is not None
 
 
 def test_a_game_whose_finish_fails_finishes_after_the_restart(table, client, db, faults) -> None:

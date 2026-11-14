@@ -12,6 +12,8 @@ The numbers are the client's (``lib/interlude.ts``, section 12 of ideas/design.m
 
 from typing import Any
 
+from app.questions.types import TYPES
+
 # Seconds before the typing starts: a random event's NPC walks on first.
 TYPE_FROM = 0.4
 EVENT_TYPE_FROM = 0.9
@@ -79,3 +81,9 @@ def hold_seconds(lines: list[int], event: bool) -> float:
         reading = letters * (1 / READ_LETTERS_PER_SECOND - 1 / LETTERS_PER_SECOND)
         held += letters / LETTERS_PER_SECOND + max(PAUSE_MIN, min(PAUSE_MAX, reading))
     return round(held + SETTLE, 3)
+
+
+def payload_hold(type_id: str, payload: dict[str, Any], mode: str, event: bool) -> float:
+    """Seconds the scroll takes to type a question in before its buttons appear."""
+    view = TYPES[type_id].client_view(payload)
+    return hold_seconds(typed_lines(type_id, mode, view, event), event)

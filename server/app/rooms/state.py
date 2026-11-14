@@ -1079,13 +1079,19 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
                 await conn.execute("delete from players where id = $1", player_id)
             count_before = _counted(room)
             del room.players[player_id]
+            if room.custom_author == player_id:
+                # Postgres nulled ``rooms.custom_author`` with the row; the questions stay,
+                # authorless, and a stale id would fail ``start_game``'s insert.
+                room.custom_author = None
             room.totals.pop(player_id, None)
             for question in room.questions:
                 question.answers.pop(player_id, None)
             socket = room.sockets.pop(player_id, None)
             _recount_splash(room, self.clock())
             _close_if_everyone_answered(room)
-            update = self._room_updated(room)
+            # Clients replace the standings only from a frame that carries them, and a kick
+            # outside the lobby has just changed them.
+            update = self._room_updated(room, standings=room.status != "lobby")
             update.targets += _count_moved(room, count_before).targets
         if socket is not None:
             if socket.close(CLOSE_KICKED, "removed from the room"):
