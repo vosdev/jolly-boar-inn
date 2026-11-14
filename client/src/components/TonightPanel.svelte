@@ -559,6 +559,7 @@
     flex: 1;
     min-height: 0;
     overflow-y: auto;
+    scrollbar-width: thin;
     padding-top: 0.25rem;
   }
 

@@ -131,6 +131,8 @@
     padding: 0;
     max-height: 20rem;
     overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface-muted) var(--panel);
     border: var(--border-width) solid var(--line);
     border-radius: min(var(--radius), 8px);
     background: var(--panel);

@@ -119,6 +119,8 @@
     padding: 0.25rem;
     max-height: 40vh;
     overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface-muted) var(--panel-raised);
     overscroll-behavior: contain;
     border: var(--border-width) solid var(--line);
     border-radius: var(--radius);

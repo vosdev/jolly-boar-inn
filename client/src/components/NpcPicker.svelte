@@ -117,6 +117,7 @@
     display: flex;
     gap: 0.5rem;
     overflow-x: auto;
+    scrollbar-width: thin;
     scroll-snap-type: x proximity;
     padding: 2px 2px 0.4rem;
   }

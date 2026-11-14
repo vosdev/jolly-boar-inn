@@ -47,6 +47,8 @@
     border: var(--border-width) solid var(--line);
     border-radius: min(var(--radius), 8px);
     overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface-muted) var(--panel);
   }
 
   .node {

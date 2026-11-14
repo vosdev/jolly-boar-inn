@@ -123,6 +123,7 @@
   .fitted .table {
     min-height: 0;
     overflow-y: auto;
+    scrollbar-width: thin;
     display: flex;
     flex-direction: column;
   }

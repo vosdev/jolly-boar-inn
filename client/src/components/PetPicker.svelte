@@ -262,6 +262,8 @@
     gap: 0.25rem;
     max-height: 13.5rem;
     overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface-muted) var(--panel);
     overscroll-behavior: contain;
     padding: 0.25rem;
     background: var(--panel);
