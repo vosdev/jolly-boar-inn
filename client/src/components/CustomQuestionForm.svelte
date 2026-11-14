@@ -16,7 +16,6 @@
    * limits show (too long, too many, a repeated answer); what is still empty waits for
    * Save, so a fresh form is not a page of red.
    */
-  import { fieldHints } from '../lib/placeholders'
   import type { OpenQuestion } from '../lib/protocol'
   import type { Snippet } from 'svelte'
 
@@ -37,10 +36,8 @@
   import { QuestionForm } from '../lib/questionForm.svelte'
   import { codePoints, field, limit } from '../lib/questionSchema'
   import type { Scale } from '../lib/slider'
-  import NpcPicker from './NpcPicker.svelte'
-  import QuestionStage from './QuestionStage.svelte'
+  import QuestionFormShell from './QuestionFormShell.svelte'
   import { GEMS } from './questions/GemButton.svelte'
-  import RandomEvent from './RandomEvent.svelte'
   import Segmented from './Segmented.svelte'
 
   let {
@@ -172,12 +169,8 @@
   const optionsMax = $derived(ranged ? Math.min(schemaMax, rangeMax) : schemaMax)
   const id = $props.id()
 
-  const hints = $derived(fieldHints(mode))
   const optionName = $derived(wording.option.charAt(0).toUpperCase() + wording.option.slice(1))
-  const promptMax = $derived(limit(field(draft.type, 'prompt'), 'maxLength'))
   const quoteMax = limit(field('multiple_choice', 'quote'), 'maxLength')
-  const introMax = $derived(limit(field(draft.type, 'intro'), 'maxLength'))
-  const explanationMax = $derived(limit(field(draft.type, 'explanation'), 'maxLength'))
   const built = $derived(questionOf(draft))
   const withins = $derived([
     ...WITHIN_PERCENTS.map((share) => ({
@@ -220,21 +213,6 @@
     onprogress: () => onprogress,
   })
   const errorsAt = (path: string): string[] => form.errorsAt(path)
-  const save = (): void => form.save()
-
-  // Enter in a field would submit Create's form, and with it the room. Here it saves the
-  // question instead, as it would in a form of its own.
-  function enter(event: KeyboardEvent): void {
-    if (event.key !== 'Enter' || !(event.target instanceof HTMLInputElement)) return
-    if (event.target.type === 'radio') return
-    event.preventDefault()
-    save()
-  }
-
-  function enterSaves(node: HTMLElement): () => void {
-    node.addEventListener('keydown', enter)
-    return () => node.removeEventListener('keydown', enter)
-  }
 
   function gem(index: number): string {
     return `--fill: var(--gem-${GEMS[index % GEMS.length]})`
@@ -273,22 +251,7 @@
   {/each}
 {/snippet}
 
-{#snippet introField()}
-  {#if showIntro}
-    <div class="field">
-      <label for="{id}-intro">Intro, a line in the asker's voice before the question</label>
-      <textarea id="{id}-intro" rows="2" bind:value={draft.intro}></textarea>
-      <p class="note counter">{codePoints(draft.intro.trim())}/{introMax}</p>
-      {@render errors('payload.intro')}
-    </div>
-  {/if}
-{/snippet}
-
-{#snippet questionBody()}
-  {#if asker === 'optional' || asker === 'required'}
-    <NpcPicker bind:value={draft.npc} {asker} errors={errorsAt('random_event')} />
-  {/if}
-
+{#snippet chooser()}
   {#if offered.length > 1}
     <div class="type-picker">
       <Segmented
@@ -302,23 +265,9 @@
       />
     </div>
   {/if}
+{/snippet}
 
-  {#if !stepExtras}
-    {@render introField()}
-  {/if}
-
-  <div class="field">
-    <label for="{id}-prompt">{wording.prompt}</label>
-    <textarea
-      id="{id}-prompt"
-      rows="3"
-      placeholder={promptFixed ? undefined : hints.prompt}
-      bind:value={draft.prompt}
-      readonly={promptFixed}></textarea>
-    <p class="note counter">{codePoints(draft.prompt.trim())}/{promptMax}</p>
-    {@render errors('payload.prompt')}
-  </div>
-
+{#snippet payload()}
   {#if draft.type === 'multiple_choice' && (quote || draft.quote !== '')}
     <div class="field">
       <label for="{id}-quote">The quotation, if the question asks about words someone said</label>
@@ -533,113 +482,43 @@
       {@render errors('payload.image')}
     </div>
   {/if}
-
-  {@render inQuestion?.()}
 {/snippet}
 
-{#snippet extrasBody()}
-  {#if stepExtras}
-    {@render introField()}
-  {/if}
-  {@render inExtras?.(form.attempted)}
-  {#if explanation || draft.explanation !== ''}
-    <div class="field">
-      <label for="{id}-explanation">Explanation shown after the question finished.</label>
-      <textarea
-        id="{id}-explanation"
-        rows="2"
-        placeholder={hints.explanation}
-        bind:value={draft.explanation}></textarea>
-      <p class="note counter">{codePoints(draft.explanation.trim())}/{explanationMax}</p>
-      {@render errors('payload.explanation')}
-    </div>
-  {/if}
-{/snippet}
-
-<!-- A form of its own would nest inside Create's, which HTML does not allow, so this is a
-     group whose Save button does the submitting. -->
-<div class="editor surface" role="group" aria-labelledby="{id}-title" {@attach enterSaves}>
-  {@render head?.()}
-  <div class="layout">
-    <div class="fields">
-      <h3 id="{id}-title">
-        {title ?? (question === undefined ? 'New question' : 'Edit question')}
-      </h3>
-      {#if stepQuestion}
-        {@render stepQuestion(questionBody)}
-      {:else}
-        {@render questionBody()}
-      {/if}
-
-      {#if stepDifficulty}
-        {@render stepDifficulty()}
-      {/if}
-
-      {#if stepExtras}
-        {@render stepExtras(extrasBody)}
-      {:else}
-        {@render extrasBody()}
-      {/if}
-
-      {@render more?.(form.attempted)}
-
-      {#each form.unplaced as problem (problem.path + problem.message)}
-        <p class="error">{problem.path}: {problem.message}</p>
-      {/each}
-
-      {@render nearSave?.()}
-
-      <div class="row">
-        <button type="button" class="primary" onclick={save}>
-          {saveLabel ?? (question === undefined ? 'Add question' : 'Save question')}
-        </button>
-        <button type="button" onclick={oncancel}>Cancel</button>
-      </div>
-    </div>
-
-    <section class="preview" aria-label="Preview">
-      <p class="note">What players will see</p>
-      {#if preview}
-        {@render preview(asker === 'none' ? previewOf(built, mode) : previewOf(built))}
-      {:else if asker === 'none'}
-        <QuestionStage question={previewOf(built, mode)} yourValue={null} onAnswer={() => {}} />
-      {:else}
-        <RandomEvent question={previewOf(built)} yourValue={null} onAnswer={() => {}} />
-      {/if}
-    </section>
-  </div>
-</div>
+<QuestionFormShell
+  {id}
+  type={draft.type}
+  {mode}
+  {form}
+  fresh={question === undefined}
+  {title}
+  {saveLabel}
+  {asker}
+  bind:npc={draft.npc}
+  {chooser}
+  intro={showIntro}
+  bind:introText={draft.intro}
+  bind:prompt={draft.prompt}
+  promptLabel={wording.prompt}
+  promptRows={3}
+  {promptFixed}
+  {payload}
+  explanation={explanation || draft.explanation !== ''}
+  bind:explanationText={draft.explanation}
+  {head}
+  {inQuestion}
+  {inExtras}
+  {stepQuestion}
+  {stepDifficulty}
+  {stepExtras}
+  fields={more}
+  {nearSave}
+  previewNote="What players will see"
+  shown={asker === 'none' ? previewOf(built, mode) : previewOf(built)}
+  {preview}
+  {oncancel}
+/>
 
 <style>
-  .editor {
-    container-type: inline-size;
-    padding: 1rem;
-    border: var(--border-width) solid var(--line);
-    border-radius: min(var(--radius), 8px);
-    background: var(--panel-raised);
-  }
-
-  /* The preview beside the fields where there is room, under them on a phone. */
-  .layout {
-    display: grid;
-    gap: 1.25rem;
-  }
-
-  @container (min-width: 46rem) {
-    .layout {
-      grid-template-columns: 3fr 2fr;
-      align-items: start;
-    }
-  }
-
-  .fields {
-    min-width: 0;
-  }
-
-  h3 {
-    margin: 0 0 0.75rem;
-  }
-
   .type-picker > :global(.segmented) {
     margin-bottom: 1rem;
   }
@@ -809,19 +688,11 @@
     grid-template-columns: 1fr 1fr;
   }
 
-  .preview {
-    min-width: 0;
-  }
-
-  .preview > .note {
-    margin: 0 0 0.5rem;
-  }
-
-  .fields .note {
+  :global(.fields) .note {
     margin: 0.3rem 0 0;
   }
 
-  .fields .closest {
+  :global(.fields) .closest {
     margin: -0.5rem 0 1rem;
   }
 </style>
