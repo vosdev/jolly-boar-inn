@@ -1,0 +1,16 @@
+# The default rules, plus the fixtures the tests sign in with. Each entry matches one exact
+# value and only in test files, so the same string anywhere else still fails.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Admin and metrics tokens the tests configure: hex counting up and down, not a key"
+condition = "AND"
+paths = ['''^server/tests/test_[a-z_]+\.py$''', '''^client/src/.+\.test\.ts$''']
+regexes = ['''^(0123456789abcdef){2}$''', '''^(fedcba9876543210){2}$''']
+
+[[allowlists]]
+description = "A token shaped like uuidgen output, which test_admin.py checks is long enough"
+condition = "AND"
+paths = ['''^server/tests/test_admin\.py$''']
+regexes = ['''^6F1C2B8E-3A4D-4E5F-9A0B-1C2D3E4F5A6B$''']

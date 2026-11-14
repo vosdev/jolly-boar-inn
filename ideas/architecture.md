@@ -935,4 +935,5 @@ CLAUDE.md has the bump rule.
 - CI's `release` job tags `v<VERSION>` with a GitHub Release once the other jobs pass, and fails if
   `VERSION` went backwards. `make image` builds locally; no registry.
 - Dependabot gathers every ecosystem's minor and patch updates into one PR, Mondays and Thursdays, which keeps
-  the version: no bump, no changelog entry. CI fails on a high or critical known vulnerability in a lockfile or the image. Trivy's version is pinned in `ci.yml`; `trivy-bump.yml` opens the PR for a release three days old.
+  the version: no bump, no changelog entry. CI fails on a high or critical known vulnerability in a lockfile or the image, or a secret in the image. Trivy's and gitleaks' versions are pinned in `ci.yml`; `trivy-bump.yml` opens the PR for a release three days old.
+- CI's `secrets` job runs gitleaks with `.gitleaks.toml`, the defaults plus the test fixtures by path and value: a PR over its own commits, from its base, main and the weekly run over the whole history. A leak in history is fixed by rotating it, never by rewriting main.

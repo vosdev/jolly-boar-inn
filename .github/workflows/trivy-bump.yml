@@ -1,6 +1,7 @@
-# Dependabot cannot see the `version:` input of trivy-action, so this opens the PR for it.
-# Takes the newest release at least three days old, the same cooldown Dependabot uses.
-name: Trivy bump
+# Dependabot cannot see the `version:` input of trivy-action or the gitleaks binary the secrets
+# job downloads, so this opens the PRs for them. Takes the newest release at least three days
+# old, the same cooldown Dependabot uses.
+name: Trivy and gitleaks bump
 
 on:
   schedule:
@@ -35,3 +36,30 @@ jobs:
           git commit -am "Update Trivy to $latest"
           git push origin "$branch"
           gh pr create --title "Update Trivy to $latest" --body "Bumps the pinned Trivy in ci.yml from $current to $latest."
+
+  # A job of its own, so its branch starts from main rather than from the Trivy one.
+  gitleaks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Open a PR for a newer gitleaks
+        run: |
+          latest=$(gh api repos/gitleaks/gitleaks/releases --jq \
+            '[.[] | select(.prerelease == false and .draft == false and (.published_at | fromdateiso8601) < (now - 3*86400))][0].tag_name')
+          current=$(grep -m1 -oE 'GITLEAKS_VERSION: v[0-9.]+' .github/workflows/ci.yml | cut -d' ' -f2)
+          [ -n "$latest" ] && [ "$latest" != "$current" ] || exit 0
+          [ "$(printf '%s\n%s\n' "$current" "$latest" | sort -V | tail -1)" = "$latest" ] || exit 0
+          branch="gitleaks-$latest"
+          git ls-remote --exit-code --heads origin "$branch" && exit 0
+          sum=$(gh release download "$latest" -R gitleaks/gitleaks -p "gitleaks_${latest#v}_checksums.txt" -O - | sha256sum | cut -d' ' -f1)
+          sed -i -e "s/GITLEAKS_VERSION: $current/GITLEAKS_VERSION: $latest/" \
+            -e "s/GITLEAKS_CHECKSUMS_SHA256: [0-9a-f]*/GITLEAKS_CHECKSUMS_SHA256: $sum/" .github/workflows/ci.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git commit -am "Update gitleaks to $latest"
+          git push origin "$branch"
+          gh pr create --title "Update gitleaks to $latest" --body "Bumps the pinned gitleaks in ci.yml from $current to $latest, with the hash of its checksum list."
