@@ -2,7 +2,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from app.http.ratelimit import OpenCount, RateLimited, RateLimiter, room_lookup
+from app.http.ratelimit import OldestOut, OpenCount, RateLimited, RateLimiter, room_lookup
 from app.rooms.errors import RoomNotFound
 
 
@@ -89,3 +89,18 @@ def test_an_open_count_refuses_past_its_limit_until_one_leaves() -> None:
     assert held.enter("b")
     held.leave("a")
     assert held.enter("a")
+
+
+def test_past_its_limit_the_oldest_open_is_told_to_go() -> None:
+    held = OldestOut(limit=2)
+    first, second = held.enter("a"), held.enter("a")
+    other = held.enter("b")
+    third = held.enter("a")
+    assert first.is_set()
+    assert not any(e.is_set() for e in (second, third, other))
+    assert held.held("a") == 2
+    held.leave("a", first)
+    assert held.held("a") == 2
+    held.leave("a", second)
+    held.leave("a", third)
+    assert held.held("a") == 0

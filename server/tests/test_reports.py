@@ -122,27 +122,50 @@ def _prompt(question: dict[str, Any]) -> str:
     return payload["prompt"] if quote is None else f"{payload['prompt']} “{quote}”"
 
 
-# What players read while a question is open, for the pack modes where that is not the
-# prompt. Typed here, not read from ``Mode.report``, so a mode filed under the wrong rule
-# fails; a mode left out is labelled by its prompt.
-NOT_THE_PROMPT = {
-    # Certer's are pictures, named as Pixel Hunt's are.
-    "random_event": lambda q: (
-        q["payload"]["subject"]["name"] if q.get("random_event") == "certer" else _prompt(q)
-    ),
+# What players read while a question is open, for every pack mode. Typed here, not read
+# from ``Mode.report``, so a mode filed under the wrong rule fails, and stated for each mode,
+# so a new one is a decision rather than its prompt by default.
+READ_AS = {
+    "guess_examine": _prompt,
+    "sort_it_out": _prompt,
+    "who_said_that": _prompt,
+    "know_your_content_creator": _prompt,
+    "bestiary": _prompt,
+    "drop_table": _prompt,
+    # Every prompt is the same, so the options tell the questions apart.
     "odd_one_out": lambda q: ", ".join(q["payload"]["options"]),
-    "pixel_hunt": lambda q: q["payload"]["subject"]["name"],
+    "minigame_madness": _prompt,
     "whos_that_npc": lambda q: (
         q["payload"]["subject"]["name"]
         if q["type"] == "pick_from_list"
         else q["payload"]["options"][q["payload"]["answer_index"]]
     ),
+    "pixel_hunt": lambda q: q["payload"]["subject"]["name"],
+    "forgetful_bard": _prompt,
+    "scaperune": _prompt,
+    "tales_of_gielinor": _prompt,
+    "uris_unravelling": _prompt,
+    "slayer_master": _prompt,
+    "mark_the_map": _prompt,
+    # Certer's are pictures, named as Pixel Hunt's are.
+    "random_event": lambda q: (
+        q["payload"]["subject"]["name"] if q.get("random_event") == "certer" else _prompt(q)
+    ),
 }
+LABELLED = [m for m in reports.pack_modes() if m not in reports.ITEM_MODES]
 
 
-@pytest.mark.parametrize("mode", [m for m in reports.pack_modes() if m not in reports.ITEM_MODES])
+def test_every_pack_mode_states_what_players_read() -> None:
+    missing = [mode for mode in LABELLED if mode not in READ_AS]
+    assert not missing, (
+        f"state how the report form labels {missing} in READ_AS: _prompt if players read the "
+        "prompt, else what they read while the question is open"
+    )
+
+
+@pytest.mark.parametrize("mode", LABELLED)
 def test_each_pack_mode_is_labelled_by_what_players_read(mode: str) -> None:
-    read = NOT_THE_PROMPT.get(mode, _prompt)
+    read = READ_AS.get(mode, _prompt)
     questions = mode_questions(PACKS, mode)
     assert questions, mode
     for question in questions:

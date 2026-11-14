@@ -31,7 +31,7 @@ from app.main import create_app
 from app.questions.types import TYPES
 from app.ws import handler as ws_handler
 from app.ws.handler import MAX_FRAME, RATE_BURST, TokenBucket
-from tests.conftest import stub_mode
+from tests.conftest import BASE, stub_mode
 from tests.rooms_api import closed_with, create, hello, next_of
 
 
@@ -127,23 +127,66 @@ def test_one_address_adds_at_most_its_own_budget_of_session_keys(
 def test_sockets_that_never_say_hello_are_capped_per_address(app: FastAPI) -> None:
     """Otherwise one client holds every connection uvicorn will take."""
     with TestClient(ProxyHeadersMiddleware(app, trusted_hosts="testclient")) as proxied:
+        code, _ = create(proxied)
+        crowd = {"X-Forwarded-For": "192.0.2.1"}
+        with ExitStack() as held:
+            silent = [
+                held.enter_context(proxied.websocket_connect(f"/ws/{code}", headers=crowd))
+                for _ in range(PENDING_HELLOS_PER_ADDRESS)
+            ]
+            with proxied.websocket_connect(f"/ws/{code}", headers=crowd) as newest:
+                with pytest.raises(WebSocketDisconnect) as info:
+                    silent[0].receive_json()
+                assert (info.value.code, info.value.reason) == (
+                    1008,
+                    "too many connects from this address",
+                )
+                assert app.state.pending_hellos.held("192.0.2.1") == PENDING_HELLOS_PER_ADDRESS
+                newest.send_json({"t": "ping"})
+                assert closed_with(newest, drain=True) == 4001
+
+
+def test_silent_sockets_from_an_address_cannot_keep_its_players_out(app: FastAPI) -> None:
+    """An honest client says hello at once, so the one silent longest is the one to go."""
+    with TestClient(ProxyHeadersMiddleware(app, trusted_hosts="testclient")) as proxied:
         code, admin = create(proxied)
         crowd = {"X-Forwarded-For": "192.0.2.1"}
         with ExitStack() as held:
             for _ in range(PENDING_HELLOS_PER_ADDRESS):
                 held.enter_context(proxied.websocket_connect(f"/ws/{code}", headers=crowd))
-            with proxied.websocket_connect(f"/ws/{code}", headers=crowd) as refused:
-                with pytest.raises(WebSocketDisconnect) as info:
-                    refused.receive_json()
-                assert (info.value.code, info.value.reason) == (
-                    1008,
-                    "too many connects from this address",
-                )
-            elsewhere = {"X-Forwarded-For": "192.0.2.2"}
-            with proxied.websocket_connect(f"/ws/{code}", headers=elsewhere) as ws:
+            with proxied.websocket_connect(f"/ws/{code}", headers=crowd) as ws:
                 hello(ws, admin["session"])
-        with proxied.websocket_connect(f"/ws/{code}", headers=crowd) as ws:
-            hello(ws, admin["session"])
+
+
+def test_a_socket_from_another_site_is_closed_before_any_budget(
+    app: FastAPI, client: TestClient, lobby
+) -> None:
+    """A page a player visits cannot spend their address's connect and miss budgets."""
+    state = app.state
+
+    def budgets() -> list[dict[str, int]]:
+        spent = (state.connects, state.session_connects, state.lookup_misses)
+        return [{key: len(hits) for key, hits in limiter._hits.items()} for limiter in spent]
+
+    before = budgets()
+    for _ in range(CONNECTS_PER_ADDRESS + 5):
+        with client.websocket_connect("/ws/ZZZ", headers={"Origin": "https://evil.example"}) as ws:
+            with pytest.raises(WebSocketDisconnect) as info:
+                ws.receive_json()
+            assert (info.value.code, info.value.reason) == (1008, "cross-site socket")
+    assert budgets() == before
+    with client.websocket_connect(f"/ws/{lobby['code']}") as ws:
+        ws.send_json({"t": "hello", "session": "not-a-session"})
+        assert closed_with(ws, drain=True) == 4001
+
+
+@pytest.mark.parametrize("origin", [None, "http://testserver", BASE, BASE.upper()])
+def test_a_socket_from_the_app_or_with_no_origin_connects(
+    client: TestClient, lobby, origin: str | None
+) -> None:
+    headers = {} if origin is None else {"Origin": origin}
+    with client.websocket_connect(f"/ws/{lobby['code']}", headers=headers) as ws:
+        hello(ws, lobby["player"]["session"])
 
 
 def test_a_burst_of_ready_taps_reaches_the_room_at_most_a_burst_of_times(

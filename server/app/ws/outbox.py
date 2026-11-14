@@ -153,8 +153,9 @@ class Outbox:
                 return
             if (lost := await _deliver(self.ws, item)) is not None:
                 break
-        # A close already queued was counted by whoever queued it, under its own reason.
-        if self._closing and lost == "client":
+        # A close already queued was counted by whoever queued it, under its own reason, and a
+        # send failing behind it, timed out or not, is that same socket lost.
+        if self._closing:
             lost = None
         self._closing = True
         await self._fail("send failed", lost)

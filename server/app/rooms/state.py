@@ -660,8 +660,10 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
         """
         async with room.lock:
             room.players_flush = None
-            stale, room.players_stale = room.players_stale, set()
+            # Built before the owed set is emptied, so a frame that fails to build leaves the
+            # sockets owed and the next change's flush still reaches them.
             frame = Frame(PlayersUpdated(players=room.player_views()).model_dump(mode="json"))
+            stale, room.players_stale = room.players_stale, set()
             update = Broadcast([(room.sockets[pid], frame) for pid in stale if pid in room.sockets])
         self._broadcast(update)
 

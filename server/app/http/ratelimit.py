@@ -8,6 +8,7 @@ room answers whether it exists, so an address that keeps asking for rooms that a
 there is scanning and is refused for a while.
 """
 
+import asyncio
 import ipaddress
 import math
 from collections import deque
@@ -48,7 +49,8 @@ CONNECTS_PER_SESSION = 10
 CONNECTS_PER_ADDRESS = 30
 CONNECTS_WINDOW = timedelta(minutes=1)
 # Sockets open at once that have not said hello yet. An honest client says it the moment the
-# socket opens, so a pub reconnecting together holds a few for milliseconds each.
+# socket opens, so a pub reconnecting together holds a few for milliseconds each, and the
+# oldest of them past this is the one silent longest.
 PENDING_HELLOS_PER_ADDRESS = 10
 
 
@@ -149,6 +151,43 @@ class OpenCount:
             self._open[key] = held
         else:
             self._open.pop(key, None)
+
+
+class OldestOut:
+    """What each key holds open right now; past ``limit`` the oldest is told to go.
+
+    Refusing the newest instead would let one device on a shared address hold every slot
+    with silent sockets and keep everyone else on it out.
+    """
+
+    def __init__(self, limit: int) -> None:
+        self.limit = limit
+        self._open: dict[str, deque[asyncio.Event]] = {}
+
+    def enter(self, key: str) -> asyncio.Event:
+        """Count one more open for ``key``; the event is set if a newer one displaces it."""
+        held = self._open.setdefault(key, deque())
+        if len(held) >= self.limit:
+            held.popleft().set()
+        displaced = asyncio.Event()
+        held.append(displaced)
+        return displaced
+
+    def leave(self, key: str, displaced: asyncio.Event) -> None:
+        """Count one fewer open for ``key``, unless it was displaced and so already not counted."""
+        held = self._open.get(key)
+        if held is None:
+            return
+        try:
+            held.remove(displaced)
+        except ValueError:
+            return
+        if not held:
+            del self._open[key]
+
+    def held(self, key: str) -> int:
+        """How many ``key`` holds open now."""
+        return len(self._open.get(key, ()))
 
 
 def client_key(host: str) -> str:
