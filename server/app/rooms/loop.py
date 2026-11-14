@@ -132,10 +132,7 @@ def _recount_splash(room: Room, now: float, unready: bool = False) -> None:
     if target is None and not unready:
         return
     if target != room.next_mono:
-        room.next_mono = target
-        room.next_at = (
-            None if target is None else datetime.now(UTC) + timedelta(seconds=target - now)
-        )
+        room.reschedule(target, now=now, wall=datetime.now(UTC))
         room.rescheduled.set()
 
 
@@ -194,6 +191,10 @@ def _closed_by(room: Room, question: RoomQuestion) -> Metric:
 
 class Loop:
     """The ``RoomManager`` methods that run the timer task and end or skip what it is on."""
+
+    def _live(self, room: Room) -> bool:
+        """Is ``room`` still the one in memory under its code, and still playing?"""
+        return self.rooms.get(room.code) is room and room.status == "playing"
 
     async def skip(self, code: str, by: Player, phase: str, index: int) -> None:
         """Admin: cut the splash, the open question, the reveal or the standings short. A
@@ -307,7 +308,7 @@ class Loop:
                 if voiding is not None:
                     voiding.closed_at, voiding.voided = closed_at, True
                 room.totals, room.totals_round = totals, segment.start
-                room.next_at = room.next_mono = None
+                room.clear_deadline()
                 self._start_timer(room, following, standings_after=following - 1)
                 return
         for broadcast in broadcasts:
@@ -328,7 +329,7 @@ class Loop:
         rather than on an open: there is nothing to overtake in a room that has no sockets
         yet, and the task's first move is to sleep anyway.
         """
-        if self.rooms.get(room.code) is not room or room.status != "playing":
+        if not self._live(room):
             return
         room.timer = asyncio.create_task(
             self._run_questions(room, index, resume_at, standings_after),
@@ -443,7 +444,7 @@ class Loop:
         which ``_recover`` already knows how to resume.
         """
         async with room.lock:
-            if self.rooms.get(room.code) is not room or room.status != "playing":
+            if not self._live(room):
                 return False
             segment = room.segment_at(index)
             if (
@@ -454,15 +455,11 @@ class Loop:
             ):
                 return True
             room.current_index = index
-            room.phase = "splash"
             # No clock: the splash waits for the room (``rooms/ready.py``) or the host.
-            room.next_at = room.next_mono = None
-            room.advance.clear()
+            room.enter("splash", now=self.clock(), wall=datetime.now(UTC))
             # Each splash is its own ready check: being ready for the last round is not
             # being ready for this one.
-            for player in room.players.values():
-                player.ready = False
-                player.unreadied = False
+            room.reset_ready()
             update = self._room_updated(room)
         self._broadcast(update)
         await self._sleep_through_splash(room)
@@ -504,7 +501,7 @@ class Loop:
         round its standings and nothing else.
         """
         async with room.lock:
-            if self.rooms.get(room.code) is not room or room.status != "playing":
+            if not self._live(room):
                 return False
             segment = room.segment_at(index)
             seconds = room.settings.standings_seconds
@@ -515,11 +512,10 @@ class Loop:
                 or index + 1 >= len(room.questions)
             ):
                 return True
-            room.phase = "standings"
-            room.next_at = datetime.now(UTC) + timedelta(seconds=seconds)
-            room.next_mono = ends = self.clock() + seconds
-            # A skip that landed during the reveal has been spent on the reveal.
-            room.advance.clear()
+            now = self.clock()
+            # Clears ``advance``: a skip that landed during the reveal was spent on it.
+            room.enter("standings", seconds=seconds, now=now, wall=datetime.now(UTC))
+            ends = now + seconds
             update = self._room_updated(room, standings=True)
         self._broadcast(update)
         await self._sleep_until(room, ends)
@@ -536,7 +532,7 @@ class Loop:
         """
         pool = await self._pool()
         async with room.lock:
-            if self.rooms.get(room.code) is not room or room.status != "playing":
+            if not self._live(room):
                 return None
             if not 0 <= index < len(room.questions):
                 return None
@@ -562,9 +558,7 @@ class Loop:
             question.answerable_mono = now + hold
             question.ends_mono = question.answerable_mono + seconds
             room.current_index = index
-            room.phase = "open"
-            room.next_at = room.next_mono = None
-            room.advance.clear()
+            room.enter("open", now=now, wall=shown_at)
             count = _answer_count(room, question)
             waiting = _waiting(room, question)
             # Only ``you_can_answer`` tells sockets apart, so there are two frames at most.
@@ -604,7 +598,7 @@ class Loop:
         """
         pool = await self._pool()
         async with room.lock:
-            if self.rooms.get(room.code) is not room or room.status != "playing":
+            if not self._live(room):
                 return None
             if room.phase != "open" or room.current is not question:
                 return None
@@ -663,11 +657,9 @@ class Loop:
                 answer.credit, answer.correct, answer.points = got, correct, points
             room.totals = totals
             room.totals_round = round_start
-            room.phase = "reveal"
-            hold, room.reveal_seconds = self._reveal_hold(room, question)
-            room.next_at = closed_at + timedelta(seconds=hold)
-            room.next_mono = reveal_ends = now + hold
-            room.advance.clear()
+            hold, shown = self._reveal_hold(room, question)
+            room.enter("reveal", seconds=hold, reveal_seconds=shown, now=now, wall=closed_at)
+            reveal_ends = now + hold
             message = QuestionClosed(
                 question_id=str(question.id),
                 reveal=reveal,
@@ -705,7 +697,7 @@ class Loop:
         """
         pool = await self._pool()
         async with room.lock:
-            if self.rooms.get(room.code) is not room or room.status != "playing":
+            if not self._live(room):
                 return None
             following = index + 1
             async with pool.acquire() as conn, conn.transaction():
@@ -713,24 +705,28 @@ class Loop:
                     await conn.execute(
                         "update rooms set current_index = $1 where id = $2", following, room.id
                     )
-                    room.current_index = following
-                    room.next_at = room.next_mono = None
-                    return following
-                finished_at = datetime.now(UTC)
-                await conn.execute(
-                    "update rooms set status = 'finished', finished_at = $2 where id = $1",
-                    room.id,
-                    finished_at,
-                )
-                if room.daily is not None:
-                    await finish_attempt(conn, room, finished_at)
                 else:
-                    await bump(conn, Metric.GAMES_FINISHED)
-                    started_at = room.questions[0].shown_at
-                    if started_at is not None:
-                        await bump(
-                            conn, Metric.GAME_DURATIONS, duration_bucket(finished_at - started_at)
-                        )
+                    finished_at = datetime.now(UTC)
+                    await conn.execute(
+                        "update rooms set status = 'finished', finished_at = $2 where id = $1",
+                        room.id,
+                        finished_at,
+                    )
+                    if room.daily is not None:
+                        await finish_attempt(conn, room, finished_at)
+                    else:
+                        await bump(conn, Metric.GAMES_FINISHED)
+                        started_at = room.questions[0].shown_at
+                        if started_at is not None:
+                            await bump(
+                                conn,
+                                Metric.GAME_DURATIONS,
+                                duration_bucket(finished_at - started_at),
+                            )
+            if following < len(room.questions):
+                room.current_index = following
+                room.clear_deadline()
+                return following
             if room.daily is None:
                 metrics.GAMES.labels(outcome="finished").inc()
             broadcasts = self._finish(room, finished_at)
@@ -747,8 +743,7 @@ class Loop:
         """
         room.status = "finished"
         room.finished_at = finished_at
-        room.phase = "idle"
-        room.next_at = room.next_mono = None
+        room.enter("idle", now=self.clock(), wall=finished_at)
         finished = GameFinished(standings=room.standings(), team_standings=room.team_standings())
         return [
             self._room_updated(room),

@@ -380,10 +380,11 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
             log.warning(
                 "room %s: question %d was open at the restart, voided", room.code, question.position
             )
-        room.phase = "reveal"
-        hold, room.reveal_seconds = self._reveal_hold(room, question)
-        room.next_at = datetime.now(UTC) + timedelta(seconds=hold)
-        room.next_mono = self.clock() + hold
+        hold, shown = self._reveal_hold(room, question)
+        room.enter(
+            "reveal", seconds=hold, reveal_seconds=shown, now=self.clock(), wall=datetime.now(UTC)
+        )
+        assert room.next_at is not None
         log.info(
             "room %s resumes in reveal until %s, then question %d",
             room.code,
@@ -863,9 +864,7 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
             room.expires_at = expires_at
             room.current_index = 0
             # "Ready to start" has been answered by starting. The first splash asks again.
-            for player in room.players.values():
-                player.ready = False
-                player.stop_editing()
+            room.reset_ready()
             # Too late to let anyone in; each requester's next poll is told so.
             room.drop_requests()
             update = self._room_updated(room)
@@ -914,12 +913,8 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
             room.current_index = None
             room.finished_at = None
             room.expires_at = expires_at
-            room.phase = "idle"
-            room.next_at = room.next_mono = None
-            room.reveal_seconds = None
-            for player in room.players.values():
-                player.ready = False
-                player.unreadied = False
+            room.enter("idle", now=self.clock(), wall=datetime.now(UTC))
+            room.reset_ready()
             self._plan_lobby(room)
             # Everyone's standings go back to zero with the room, as a ``welcome`` would say.
             update = self._room_updated(room, standings=True)
