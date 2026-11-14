@@ -341,6 +341,9 @@ class Room:
     invite_key: str | None = field(default=None, repr=False)
     # Listed on Home for anyone to join while it is a lobby (``public_rooms`` in ``http/rooms.py``).
     public: bool = False
+    # The limiter key of the address that made it, or of its admin's first socket after a
+    # rehydrate: memory only, so Home lists only a few rooms from any one address.
+    creator_key: str | None = field(default=None, repr=False)
     # One player's attempt at a day's set: no lobby, no splash, no standings, never joinable.
     daily: Daily | None = None
     players: dict[UUID, Player] = field(default_factory=dict)  # in join order

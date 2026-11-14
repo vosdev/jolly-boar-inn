@@ -47,6 +47,9 @@ DAILIES_PER_HOUR = 10
 CONNECTS_PER_SESSION = 10
 CONNECTS_PER_ADDRESS = 30
 CONNECTS_WINDOW = timedelta(minutes=1)
+# Sockets open at once that have not said hello yet. An honest client says it the moment the
+# socket opens, so a pub reconnecting together holds a few for milliseconds each.
+PENDING_HELLOS_PER_ADDRESS = 10
 
 
 class RateLimited(ApiError):
@@ -70,13 +73,17 @@ class RateLimiter:
         self.window = window
         self.name: LimiterName = name
         self._hits: dict[str, deque[datetime]] = {}
+        self._swept: datetime | None = None
 
     def allow(self, key: str, now: datetime | None = None) -> bool:
         """Record a hit for ``key`` and return whether it is within the limit."""
         now = now or datetime.now(UTC)
         cutoff = now - self.window
-        if key not in self._hits:
-            self._sweep(cutoff)  # a new address is the moment to forget idle ones
+        # A new key is the moment to forget idle ones, but at most once a window: a stream of
+        # new keys would otherwise walk the whole table each, quadratic in the stream's rate.
+        if key not in self._hits and (self._swept is None or self._swept <= cutoff):
+            self._sweep(cutoff)
+            self._swept = now
         hits = self._hits.setdefault(key, deque())
         _expire(hits, cutoff)
         if len(hits) >= self.limit:
@@ -118,6 +125,30 @@ class RateLimiter:
             _expire(self._hits[key], cutoff)
             if not self._hits[key]:
                 del self._hits[key]
+
+
+class OpenCount:
+    """How many of something each key holds open right now, refused past ``limit``."""
+
+    def __init__(self, limit: int) -> None:
+        self.limit = limit
+        self._open: dict[str, int] = {}
+
+    def enter(self, key: str) -> bool:
+        """Count one more open for ``key``; ``False``, counting nothing, if it holds ``limit``."""
+        held = self._open.get(key, 0)
+        if held >= self.limit:
+            return False
+        self._open[key] = held + 1
+        return True
+
+    def leave(self, key: str) -> None:
+        """Count one fewer open for ``key``."""
+        held = self._open.get(key, 0) - 1
+        if held > 0:
+            self._open[key] = held
+        else:
+            self._open.pop(key, None)
 
 
 def client_key(host: str) -> str:
