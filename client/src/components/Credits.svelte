@@ -11,6 +11,7 @@
   import { ApiFailure, getCredits, type Author } from '../lib/api'
   import { WIKI_URL } from '../lib/links'
   import Sheet from './Sheet.svelte'
+  import SheetHead from './SheetHead.svelte'
 
   let { onclose }: { onclose: () => void } = $props()
 
@@ -36,7 +37,7 @@
 </script>
 
 <Sheet labelledby="{id}-title" {onclose}>
-  <h2 id="{id}-title">Credits</h2>
+  <SheetHead id="{id}-title" {onclose}>Credits</SheetHead>
   <h3>Question authors</h3>
   {#if failure !== null}
     <div class="banner bad">{failure}</div>
@@ -104,17 +105,12 @@
 </Sheet>
 
 <style>
-  h2 {
-    margin: 0 0 0.75rem;
-    font-size: 1.25rem;
-  }
-
   h3 {
     margin: 1rem 0 0.5rem;
     font-size: 1rem;
   }
 
-  h2 + h3 {
+  :global(.sheet-head) + h3 {
     margin-top: 0;
   }
 
