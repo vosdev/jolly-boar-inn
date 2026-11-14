@@ -8,7 +8,7 @@ answer shapes a round is played in is the server's to say, and so do its ``secon
 one of its pack questions typically takes per pace, for the form's minutes. A price mode
 has ``as_of``, the date its prices were fetched, which the splash and footer show instead
 of every question; ``None`` for the rest. Copy -- what a
-mode is called and how it is explained -- stays on the client, in ``lib/modes.ts``.
+mode is called and how it is explained -- stays on the client, in ``lib/modes/``.
 
 ``custom`` and ``random_event`` are listed too, with no types and ``questions`` null: they
 are never a round, and each of their questions is a random event. The create form offers

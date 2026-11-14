@@ -18,7 +18,7 @@ import { CUSTOM_TYPES, TYPE_LABELS, previewOf } from './customQuestions'
 import { pastGames } from './history'
 import { WIKI_URL } from './links'
 import { DEFAULT_REACH } from './mapBox'
-import { HOUSE, MODES, UPCOMING_MODES } from './modes'
+import { HOUSE, MODES, UPCOMING_MODES, modeCopy } from './modes'
 import { nameProblem } from './names'
 import {
   answerLine as matchingLine,
@@ -311,12 +311,7 @@ const ROUND_OPTIONS: Record<string, readonly [number, number]> = {
 }
 
 /** Rounds whose form names its fields otherwise: on the buttons, ScapeRune plays questions. */
-const ROUND_WORDING: Record<string, FormWording> = {
-  scaperune: {
-    prompt: 'The answer shown on the board (one entry per line for an ordered list)',
-    option: 'question',
-  },
-}
+const ROUND_WORDING: Record<string, FormWording> = modeCopy('wording')
 
 /** Rounds whose pack holds every question to its wiki page: `WIKI_MODES` on the server. */
 const WIKI_ROUNDS = ['guess_examine', 'whos_that_npc', 'mark_the_map']
@@ -350,10 +345,7 @@ const MAP_ROUNDS = ['mark_the_map']
 /** Rounds that sort: `ordering` questions, the form with its tie boxes. */
 const ORDERING_ROUNDS = ['sort_it_out', 'release_order']
 /** What a card says to a player thinking of a question, where the round's tagline would not. */
-const ORDERING_HINTS: Record<string, string> = {
-  sort_it_out: 'Something worth putting in order.',
-  release_order: 'Something worth putting in release order.',
-}
+const ORDERING_HINTS: Record<string, string> = modeCopy('orderingHint')
 
 /**
  * The card for a question that fits no round the player can name. It is no mode: it is

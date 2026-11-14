@@ -89,7 +89,7 @@ steps=None, pictured=False, picture_at_reveal=False, extra_answer=0)` in `modes/
   round whose types disagree on `questions` states its own; `modes.problems` checks this at import.
 - `is_round` is explicit, so an empty `types` never turns a round into an event pool. Only `custom`
   and `random_event` are not rounds. They state no types and no numbers.
-- Copy (label, hint, blurb, host lines) lives on the client in `lib/modes.ts`.
+- Copy (label, hint, blurb, host lines) lives on the client in `lib/modes/`.
 - `pool` names the mode whose pack questions a round draws, restamped with its own id. `setting` names
   the `Settings` flag that offers the mode; off, or with an empty pool, `/api/modes` omits it and
   `POST /api/rooms` is a 403 `mode_not_offered`. A stored room keeps playing it. `options` holds a
@@ -152,7 +152,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 | `mark_the_map` | Mark the Map | `map_pin`, one pin on the whole surface | hand-written, drafted once by `gen_locations.py` | done, hosted by Bill Teach; a place inside a town opens on both (`view`) with `reach` 50 |
 | `minimap_guesser`, `name_that_spell` | Minimap Guesser, Name that spell | undecided | | Images (minimap), Sound (spell) |
 
-Create lists the unbuilt ones from `UPCOMING_MODES` in `lib/modes.ts`.
+Create lists the unbuilt ones from their files in `lib/modes/`.
 
 - Sort It Out and Release Order are two modes over one type: their splash, prompt and pool differ.
 - Who's That NPC?'s shadows use a strict list, not free text: free text needs an alias list and a

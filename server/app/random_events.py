@@ -13,7 +13,7 @@ set of questions nobody can be drawn to ask, and the tests refuse an NPC without
 
 The ids are all the server knows. Who these NPCs are, what they open with and what they
 look like is copy, and copy lives on the client (``lib/randomEvents.ts``) exactly as a
-mode's label does in ``lib/modes.ts``. A client that meets an id it has no copy for draws
+mode's label does in ``lib/modes/``. A client that meets an id it has no copy for draws
 a generic card for it, so adding one here never breaks an older build.
 
 The roster no longer has to outnumber the events a room can hold. A room at ``more`` has

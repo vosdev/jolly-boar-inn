@@ -10,6 +10,8 @@ import {
   ASK_MAX,
   GENERIC_HOST,
   HOUSE,
+  MODE_FILES,
+  MODE_IDS,
   MODES,
   PACES,
   SHARED_TROPHY_LINES,
@@ -145,6 +147,29 @@ describe('hosts', () => {
   it('has the house present a mode with no entry, in its generic lines', () => {
     expect(hostOf('zoom_quiz')).toBe(GENERIC_HOST)
     expect(GENERIC_HOST.host).toEqual(HOUSE)
+  })
+})
+
+describe('mode files', () => {
+  it('has a file for every mode listed, and lists every file', () => {
+    expect(MODE_IDS.length).toBeGreaterThan(0)
+    expect(new Set(MODE_IDS).size).toBe(MODE_IDS.length)
+    expect(Object.keys(MODE_FILES).sort()).toEqual([...MODE_IDS].sort())
+  })
+
+  it('files each mode under its id, built or still being built but not both', () => {
+    for (const [name, file] of Object.entries(MODE_FILES)) {
+      const entries = [file.mode, file.upcoming].filter((entry) => entry !== undefined)
+      expect(
+        entries.map((entry) => entry.id),
+        name,
+      ).toEqual([name])
+    }
+  })
+
+  it('reads the built modes in the listed order, not by file name', () => {
+    expect(Object.keys(MODES)).toEqual(MODE_IDS.filter((id) => MODE_FILES[id]?.mode))
+    expect(Object.keys(MODES)).not.toEqual(Object.keys(MODES).sort())
   })
 })
 

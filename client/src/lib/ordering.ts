@@ -11,6 +11,7 @@
  */
 
 import { at, previewShell, unstorable } from './customQuestions'
+import { modeCopy } from './modes'
 import type { OpenQuestion } from './protocol'
 import {
   check,
@@ -80,14 +81,7 @@ const GENERIC: OrderingWording = {
   detailRequired: false,
 }
 
-const WORDING: Record<string, OrderingWording> = {
-  release_order: {
-    prompt: 'What are they put in order of?',
-    ends: ['Oldest', 'Newest'],
-    detail: 'The date it came out, such as 4 January 2001',
-    detailRequired: true,
-  },
-}
+const WORDING: Record<string, OrderingWording> = modeCopy('ordering')
 
 export function wordingOf(mode: string): OrderingWording {
   return WORDING[mode] ?? GENERIC
