@@ -19,6 +19,7 @@
    */
   import { tick } from 'svelte'
 
+  import { dismissable } from '../lib/dismissable'
   import { PICKABLE, petName, randomPet } from '../lib/pets'
   import Die from './Die.svelte'
   import Pet from './Pet.svelte'
@@ -80,9 +81,7 @@
   }
 
   /** Escape closes the grid and not the menu or prompt it sits in. */
-  function onKeyDown(event: KeyboardEvent): void {
-    if (event.key !== 'Escape' || !open) return
-    event.stopPropagation()
+  function dismissed(): void {
     open = false
     toggle?.focus()
   }
@@ -134,8 +133,11 @@
   </div>
 {/snippet}
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="picker" class:inline onkeydown={onKeyDown}>
+<div
+  class="picker"
+  class:inline
+  use:dismissable={{ open, close: dismissed, outside: false, nested: true }}
+>
   {#if inline}
     <label for="{id}-search">Pet: <strong class="pet-name">{petName(value)}</strong></label>
     <div class="search-row">
