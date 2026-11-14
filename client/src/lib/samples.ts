@@ -11,7 +11,7 @@
  * question. A mixed mode's sample is one of its types.
  */
 
-import { rulesOf } from './modeRules'
+import { ANSWER_RULES, rulesOf, type AnswerRules } from './modeRules'
 import { modeCopy } from './modes'
 import { npcArt } from './npcs'
 import type { PlayerResult } from './protocol'
@@ -29,6 +29,8 @@ interface SampleBase {
   mode: string
   /** `client_view(payload)`: what the question shows while open. */
   view: Record<string, unknown>
+  /** The seconds its mode adds to the answer: the registry's, never its mode file's. */
+  extra?: number
 }
 
 export interface OneAnswerSample extends SampleBase {
@@ -37,8 +39,6 @@ export interface OneAnswerSample extends SampleBase {
   answer: number
   /** More or Less's reveal: each option's value, in the shown order. */
   values?: number[]
-  /** The seconds its mode adds to the answer: the registry's, never its mode file's. */
-  extra?: number
 }
 
 interface PriceSample extends SampleBase {
@@ -68,36 +68,36 @@ export type Sample = OneAnswerSample | PriceSample | OrderingSample | ListSample
 function withRules(sample: Sample): Sample {
   const rules = rulesOf(sample.mode)
   if (rules === undefined) return sample
-  if (
-    (sample.type === 'more_less' || sample.type === 'multiple_choice') &&
-    rules.extra_answer > 0
-  ) {
-    return { ...sample, extra: rules.extra_answer }
+  const timed = rules.extra_answer > 0 ? { ...sample, extra: rules.extra_answer } : sample
+  if (timed.type === 'pick_from_list' && rules.steps !== null) {
+    return { ...timed, steps: rules.steps }
   }
-  if (sample.type === 'pick_from_list' && rules.steps !== null) {
-    return { ...sample, steps: rules.steps }
-  }
-  return sample
+  return timed
 }
 
 export const SAMPLES: Record<string, Sample> = Object.fromEntries(
   Object.entries(modeCopy('sample')).map(([id, sample]) => [id, withRules(sample)]),
 )
 
-/** How long a sample stays open, in seconds: its type's `ANSWER` at the room's usual pace. */
-export function sampleSeconds(sample: Sample): number {
+/** The type's `items(payload)`: what its `ANSWER` adds seconds for. */
+function sampleItems(sample: Sample): number {
   switch (sample.type) {
-    case 'more_less':
-      return 10
     case 'multiple_choice':
-      return 10 + 2 * (sample.view.options as unknown[]).length + (sample.extra ?? 0)
-    case 'price_is_right':
-      return 15
+      return (sample.view.options as unknown[]).length
     case 'ordering':
-      return 10 + 5 * sample.reveal.length
+      return sample.reveal.length
+    case 'more_less':
+    case 'price_is_right':
     case 'pick_from_list':
-      return 25
+      return 0
   }
+}
+
+/** How long a sample stays open, in seconds: its type's `ANSWER` at the room's usual pace. */
+export function sampleSeconds(sample: Sample, rules: AnswerRules = ANSWER_RULES): number {
+  const timing = rules.answer[sample.type]!
+  const exact = timing.base + timing.per_item * sampleItems(sample) + (sample.extra ?? 0)
+  return Math.max(rules.min_answer, Math.floor(exact + 0.5))
 }
 
 /** The picture a room would send with the sample, as a URL, or null for none. */
@@ -180,19 +180,15 @@ export function sampleCredit(sample: Sample, value: unknown): number {
   }
 }
 
-/** The server's speed buckets (`rooms/scoring.py`): the fraction of the time used, and its points. */
-const BUCKETS: readonly [number, number][] = [
-  [0.1, 1000],
-  [0.25, 900],
-  [0.5, 800],
-  [0.75, 700],
-  [1, 600],
-]
-
 /** Points for an answer `elapsedMs` into `seconds`, as the room scores one on speed. */
-export function speedPoints(credit: number, elapsedMs: number, seconds: number): number {
+export function speedPoints(
+  credit: number,
+  elapsedMs: number,
+  seconds: number,
+  rules: AnswerRules = ANSWER_RULES,
+): number {
   const fraction = elapsedMs / (seconds * 1000)
-  const bucket = BUCKETS.find(([upTo]) => fraction <= upTo)
+  const bucket = rules.buckets.find(([upTo]) => fraction <= upTo)
   return bucket === undefined ? 0 : Math.round(bucket[1] * credit)
 }
 
@@ -209,18 +205,29 @@ export function stepPoints(
 }
 
 /** The points a room would pay `credit`, `elapsedMs` into the sample. */
-function samplePoints(sample: Sample, credit: number, elapsedMs: number): number {
-  const seconds = sampleSeconds(sample)
+function samplePoints(
+  sample: Sample,
+  credit: number,
+  elapsedMs: number,
+  rules: AnswerRules,
+): number {
+  const seconds = sampleSeconds(sample, rules)
   if (sample.type === 'pick_from_list' && sample.steps !== undefined) {
     return Math.round(stepPoints(elapsedMs, seconds, sample.steps) * credit)
   }
-  return speedPoints(credit, elapsedMs, seconds)
+  return speedPoints(credit, elapsedMs, seconds, rules)
 }
 
 /** The row a room's reveal would give this answer, `elapsedMs` into the sample. */
-export function sampleResult(sample: Sample, value: unknown, elapsedMs: number): PlayerResult {
+export function sampleResult(
+  sample: Sample,
+  value: unknown,
+  elapsedMs: number,
+  rules: AnswerRules = ANSWER_RULES,
+): PlayerResult {
   const credit = sampleCredit(sample, value)
-  return { value, correct: credit >= 1, credit, points: samplePoints(sample, credit, elapsedMs) }
+  const points = samplePoints(sample, credit, elapsedMs, rules)
+  return { value, correct: credit >= 1, credit, points }
 }
 
 /** The mode to try after `mode`, in `order`, wrapping round; only modes with a sample. */

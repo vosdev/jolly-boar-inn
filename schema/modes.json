@@ -838,5 +838,74 @@
     "minimap_guesser",
     "scrying_pool",
     "lost_in_gielinor"
+  ],
+  "answer": {
+    "more_less": {
+      "base": 10,
+      "per_item": 0.0
+    },
+    "price_is_right": {
+      "base": 15,
+      "per_item": 0.0
+    },
+    "pick_from_list": {
+      "base": 25,
+      "per_item": 0.0
+    },
+    "multiple_choice": {
+      "base": 10,
+      "per_item": 2
+    },
+    "closest_number": {
+      "base": 20,
+      "per_item": 0.0
+    },
+    "number_slider": {
+      "base": 15,
+      "per_item": 0.0
+    },
+    "free_text": {
+      "base": 20,
+      "per_item": 0.0
+    },
+    "pick_all_that_apply": {
+      "base": 10,
+      "per_item": 3
+    },
+    "ordering": {
+      "base": 10,
+      "per_item": 5
+    },
+    "matching": {
+      "base": 10,
+      "per_item": 5
+    },
+    "map_pin": {
+      "base": 20,
+      "per_item": 10
+    }
+  },
+  "min_answer": 5,
+  "buckets": [
+    [
+      0.1,
+      1000
+    ],
+    [
+      0.25,
+      900
+    ],
+    [
+      0.5,
+      800
+    ],
+    [
+      0.75,
+      700
+    ],
+    [
+      1.0,
+      600
+    ]
   ]
 }
