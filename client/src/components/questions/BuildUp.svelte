@@ -10,6 +10,7 @@
   import { get } from 'svelte/store'
 
   import {
+    dailyRevealFor,
     drawFrame,
     progress,
     revealFor,
@@ -26,6 +27,7 @@
     index,
     answerableAt,
     endsAt,
+    day = undefined,
     sketch = false,
   }: Build & { image: HTMLImageElement | null } = $props()
 
@@ -75,7 +77,10 @@
     if (picture === null || pen === null) return
     target.width = picture.width
     target.height = picture.height
-    const { reveal, seed } = revealFor(room, questionId, index, sketch)
+    const { reveal, seed } =
+      day === undefined
+        ? revealFor(room, questionId, index, sketch)
+        : dailyRevealFor(day, index, sketch)
     const theme = look(target)
     const from = Date.parse(answerableAt)
     const to = Date.parse(endsAt)

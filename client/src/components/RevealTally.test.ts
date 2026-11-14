@@ -424,12 +424,12 @@ describe('RevealTally in a team game', () => {
     })
   }
 
-  it("shows each team with its members' median points, after the groups", () => {
+  it("shows each team with its members' mean points, after the groups", () => {
     const { container } = drawTeams(
       { a: scored(900), b: scored(100), c: scored(400), d: scored(1200), e: wrong(1) },
       { a: 'saradomin', b: 'saradomin', c: 'saradomin', d: 'guthix', e: 'zamorak' },
     )
-    expect(teamLines(container)).toEqual(['Saradomin +400', 'Zamorak +0', 'Guthix +1,200'])
+    expect(teamLines(container)).toEqual(['Saradomin +467', 'Zamorak +0', 'Guthix +1,200'])
     const heads = [...container.querySelectorAll('.head')].map(text)
     expect(heads).toEqual(['Got it wrong', 'Teams'])
     expect(container.querySelectorAll('.team .logo .logo')).toHaveLength(3)
@@ -440,15 +440,15 @@ describe('RevealTally in a team game', () => {
       { a: scored(900), b: scored(600) },
       { a: 'saradomin', b: 'saradomin', c: 'saradomin', d: 'zamorak' },
     )
-    expect(teamLines(container)).toEqual(['Saradomin +600', 'Zamorak +0'])
+    expect(teamLines(container)).toEqual(['Saradomin +500', 'Zamorak +0'])
   })
 
-  it('takes the mean of the middle two of an even count, rounded', () => {
+  it('shows the standings gain: 900, 0 and 0 is 300, not 0', () => {
     const { container } = drawTeams(
-      { a: scored(0), b: scored(301), c: scored(600), d: scored(900) },
-      { a: 'zamorak', b: 'zamorak', c: 'zamorak', d: 'zamorak' },
+      { a: scored(900), b: wrong(), c: wrong() },
+      { a: 'zamorak', b: 'zamorak', c: 'zamorak' },
     )
-    expect(teamLines(container)).toEqual(['Zamorak +451'])
+    expect(teamLines(container)).toEqual(['Zamorak +300'])
   })
 
   it('leaves a normal game without team rows', () => {

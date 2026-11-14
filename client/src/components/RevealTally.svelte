@@ -29,7 +29,7 @@
    * names `NAMES_SHOWN` at most, you first so you always find yourself, then the rest
    * alphabetically.
    *
-   * In a team game, a row per team with a member: its logo, name and the median of its
+   * In a team game, a row per team with a member: its logo, name and the mean of its
    * members' points on this question, in the room's order of gods rather than ranked,
    * because a reveal carries no standings.
    *
@@ -47,7 +47,7 @@
   import { normalize } from '../lib/customQuestions'
   import { formatGp } from '../lib/gp'
   import type { PlayerResult } from '../lib/protocol'
-  import { team as god, teamMedians, type TeamId } from '../lib/teams'
+  import { team as god, teamMeans, type TeamId } from '../lib/teams'
   import { loadVocab } from '../lib/vocab'
   import { GEMS, type Gem } from './questions/GemButton.svelte'
   import { inPlace, placement } from './questions/types/Ordering.svelte'
@@ -317,7 +317,7 @@
     quiet: true,
   })
 
-  const teamRows = $derived(teamMedians(teams, teamOf, results))
+  const teamRows = $derived(teamMeans(teams, teamOf, results))
 
   /** A number as the question wrote it, with its unit. */
   function written(value: number): string {

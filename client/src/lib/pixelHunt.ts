@@ -27,6 +27,8 @@ export interface Build {
   /** ISO 8601, as `OpenQuestion` carries them. */
   answerableAt: string
   endsAt: string
+  /** The daily's day, in a daily room: its deal comes from the day instead of the room. */
+  day?: string
   /** Certer's: always the Sketch, whatever the room's deal. */
   sketch?: boolean
 }
@@ -127,6 +129,18 @@ export function revealFor(
     reveal: sketch ? SKETCH : deal(room, deck)[index % REVEALS.length]!,
     seed: fnv1a(`${room.toUpperCase()}:${questionId}:seed`),
   }
+}
+
+/**
+ * A daily question's reveal and seed, from the day and its place in the set rather than the
+ * attempt's room, so every player's attempt builds the same question up the same way.
+ */
+export function dailyRevealFor(
+  day: string,
+  index: number,
+  sketch = false,
+): { reveal: Reveal; seed: number } {
+  return revealFor(`daily:${day}`, `${day}:${index}`, index, sketch)
 }
 
 /**
