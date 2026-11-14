@@ -15,7 +15,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app.questions.types import TYPES
-from app.rooms.models import Broadcast
+from app.rooms.models import Broadcast, Room
 from app.rooms.state import RoomManager
 from app.ws import outbox as outbox_module
 from tests.game_api import Game
@@ -92,6 +92,39 @@ def test_fifty_sockets_attaching_at_once_hear_a_few_players_updated(
     assert dumped["players_updated"] == len(broadcasts)
     assert sum(len(frames) for frames in received) > len(broadcasts)
     assert dumped["welcome"] == ROOM_SIZE
+
+
+def test_a_players_updated_that_fails_to_build_stays_owed(
+    app: FastAPI, client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    manager: RoomManager = app.state.rooms
+    code, admin = create(client)
+    ws = RecordingSocket()
+    call(client, manager.connect, code, admin["session"], ws)
+    room = call(client, manager.get, code)
+    owed = set(room.sockets)
+    room.players_stale.update(owed)
+    built = Room.player_views
+
+    def fails(self: Room) -> Any:
+        raise RuntimeError("could not build the players")
+
+    monkeypatch.setattr(Room, "player_views", fails)
+    with pytest.raises(RuntimeError):
+        call(client, manager._flush_players, room)
+    assert room.players_stale == owed
+    monkeypatch.setattr(Room, "player_views", built)
+
+    async def flush() -> None:
+        await manager._flush_players(room)
+        for _ in range(200):
+            await asyncio.sleep(0.01)
+            if all(out._queue.empty() for out in room.sockets.values()):
+                break
+
+    call(client, flush)
+    assert room.players_stale == set()
+    assert ws.kinds("players_updated")
 
 
 def test_a_question_opens_as_one_frame_for_players_and_one_for_the_tv(
