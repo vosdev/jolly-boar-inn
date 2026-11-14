@@ -10,7 +10,10 @@ import {
   getCounts,
   getLive,
   hasAdminToken,
+  keepAdminToken,
+  pendingAdminToken,
   refreshLabel,
+  refuseAdminToken,
   takeAdminToken,
   timeUntil,
 } from './admin'
@@ -28,10 +31,14 @@ afterEach(() => {
 })
 
 describe('takeAdminToken', () => {
-  it('moves the token from the fragment into storage and out of the address bar', () => {
+  it('takes the token from the fragment, out of the address bar, and stores it once kept', () => {
     history.replaceState(null, '', `/admin#token=${TOKEN}`)
     expect(takeAdminToken()).toBe(TOKEN)
+    expect(localStorage.getItem('jbi:admin')).toBeNull()
+    expect(pendingAdminToken()).toBe(TOKEN)
+    keepAdminToken(TOKEN)
     expect(localStorage.getItem('jbi:admin')).toBe(TOKEN)
+    expect(pendingAdminToken()).toBeNull()
     expect(location.href).not.toContain(TOKEN)
     expect(location.hash).toBe('')
     expect(location.pathname).toBe('/admin')
@@ -46,6 +53,22 @@ describe('takeAdminToken', () => {
     history.replaceState(null, '', '/admin#nothing')
     expect(takeAdminToken()).toBeNull()
     expect(location.hash).toBe('')
+  })
+
+  it('falls back to the stored token when a link’s token is refused', () => {
+    localStorage.setItem('jbi:admin', TOKEN)
+    history.replaceState(null, '', '/admin#token=bad')
+    expect(takeAdminToken()).toBe('bad')
+    expect(refuseAdminToken('bad')).toBe(TOKEN)
+    expect(localStorage.getItem('jbi:admin')).toBe(TOKEN)
+    expect(pendingAdminToken()).toBeNull()
+  })
+
+  it('drops a refused stored token, with nothing to fall back to', () => {
+    localStorage.setItem('jbi:admin', TOKEN)
+    expect(takeAdminToken()).toBe(TOKEN)
+    expect(refuseAdminToken(TOKEN)).toBeNull()
+    expect(hasAdminToken()).toBe(false)
   })
 
   it('forgets the token', () => {

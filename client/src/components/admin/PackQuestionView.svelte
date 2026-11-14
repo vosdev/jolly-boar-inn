@@ -3,6 +3,7 @@
    * A pack question read-only, for the operator: what players see, the right answer
    * marked, and the page it was checked against. Every string is drawn as text.
    */
+  import { isHttpsLink } from '../../lib/links'
   import { packAnswer, type PackQuestion } from '../../lib/reports'
   import { difficultyName } from '../../lib/suggestions'
 
@@ -102,7 +103,11 @@
   </dl>
   {#each [question.wiki, question.source_url].filter((l) => l !== undefined) as link, index (index)}
     <p class="link">
-      <a href={link} target="_blank" rel="noopener noreferrer">{link} ↗</a>
+      {#if isHttpsLink(link)}
+        <a href={link} target="_blank" rel="noopener noreferrer">{link} ↗</a>
+      {:else}
+        <span>{link}</span>
+      {/if}
     </p>
   {/each}
 </div>

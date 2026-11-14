@@ -67,6 +67,19 @@ def schema_errors(question: Any) -> list[str]:
 
 
 @cache
+def _link_validator() -> Draft202012Validator:
+    properties = load_schema()["properties"]
+    links = {key: properties[key] for key in ("wiki", "source_url")}
+    return Draft202012Validator({"type": "object", "properties": links})
+
+
+def link_errors(content: dict[str, Any]) -> list[str]:
+    """Every violation of the envelope's ``wiki`` and ``source_url`` rules in ``content``."""
+    found = sorted(_link_validator().iter_errors(content), key=lambda e: e.json_path)
+    return [f"{error.json_path}: {error.message}" for error in found]
+
+
+@cache
 def _payload_validator(kind: str) -> Draft202012Validator:
     whole = load_schema()
     return Draft202012Validator(

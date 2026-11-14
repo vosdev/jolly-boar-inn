@@ -22,12 +22,13 @@
   import Segmented from '../components/Segmented.svelte'
   import {
     adminPath,
-    forgetAdminToken,
     getCounts,
     getLive,
     getQueue,
     getReports,
+    keepAdminToken,
     refreshLabel,
+    refuseAdminToken,
     takeAdminToken,
     timeUntil,
     type AdminTab,
@@ -222,15 +223,21 @@
     return new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
   }
 
-  function refuse(): void {
-    forgetAdminToken()
-    token = null
-    view = 'refused'
+  /** Falls back from a link's refused token to the stored one, else shows the refusal. */
+  function refuse(used: string | null = token): void {
+    // A second request on the same refused token answers after the fallback is in place.
+    if (used === null || used !== token) return
+    token = refuseAdminToken(used)
+    if (token === null) view = 'refused'
+  }
+
+  function accept(used: string): void {
+    if (used === token) keepAdminToken(used)
   }
 
   /** A 401 or 404 decides the whole page; anything else is the tab's own to report. */
-  function decides(error: unknown): boolean {
-    if (error instanceof ApiFailure && error.status === 401) refuse()
+  function decides(error: unknown, used: string): boolean {
+    if (error instanceof ApiFailure && error.status === 401) refuse(used)
     else if (error instanceof ApiFailure && error.status === 404) view = 'absent'
     else return false
     return true
@@ -238,9 +245,11 @@
 
   async function refresh(): Promise<void> {
     if (token === null || busy || tab !== 'overview') return
+    const used = token
     busy = true
     try {
-      const [nextLive, nextCounts] = await Promise.all([getLive(token), getCounts(token)])
+      const [nextLive, nextCounts] = await Promise.all([getLive(used), getCounts(used)])
+      accept(used)
       live = nextLive
       counts = nextCounts
       updatedAt = Date.now()
@@ -248,7 +257,7 @@
       view = 'ready'
       failure = null
     } catch (error) {
-      if (!decides(error))
+      if (!decides(error, used))
         failure = error instanceof ApiFailure ? error.message : 'the refresh failed'
     } finally {
       busy = false
@@ -257,15 +266,17 @@
 
   async function countWaiting(): Promise<void> {
     if (token === null) return
+    const used = token
     try {
       const [suggested, reported] = await Promise.all([
-        getQueue(token, 'pending'),
-        getReports(token, 'open'),
+        getQueue(used, 'pending'),
+        getReports(used, 'open'),
       ])
+      accept(used)
       waiting = { suggestions: suggested.counts.pending, reports: reported.counts.open }
       if (view === 'loading' && tab !== 'overview') view = 'ready'
     } catch (error) {
-      if (!decides(error) && view === 'loading' && tab !== 'overview') view = 'ready'
+      if (!decides(error, used) && view === 'loading' && tab !== 'overview') view = 'ready'
     }
   }
 

@@ -7,6 +7,7 @@ flags that back them; and the rate limiter's key and its warning about proxies.
 
 import logging
 import re
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
@@ -26,8 +27,10 @@ from app.http.ratelimit import (
     client_key,
 )
 from app.main import create_app
+from app.questions.types import TYPES
 from app.ws import handler as ws_handler
 from app.ws.handler import MAX_FRAME, RATE_BURST, TokenBucket
+from tests.conftest import stub_mode
 from tests.rooms_api import closed_with, hello, next_of
 
 
@@ -175,6 +178,39 @@ def test_a_change_that_changes_nothing_does_not_start_the_cooldown(
 
 
 # --- HTTP bodies --------------------------------------------------------------------
+
+
+def _deep_answer(question_id: str, shape: str) -> str:
+    head = '{"t": "answer", "question_id": "' + question_id + '", "value": '
+    room = MAX_FRAME - len(head) - 1
+    # Each level costs two bytes as a list and seven as an object; both fill the frame.
+    if shape == "list":
+        depth = room // 2
+        value = "[" * depth + "]" * depth
+    else:
+        depth = (room - 1) // 7
+        value = '{"a": ' * depth + "1" + "}" * depth
+    return head + value + "}"
+
+
+@pytest.mark.usefixtures("pictures")
+@pytest.mark.parametrize("shape", ["list", "object"])
+@pytest.mark.parametrize("type_id", sorted(TYPES))
+def test_an_answer_nested_past_any_recursion_limit_is_bad_value_for_every_type(
+    app: FastAPI, table, type_id: str, shape: str
+) -> None:
+    with contextmanager(stub_mode)(app, f"deep_{type_id}", type_id) as mode:
+        game = table("Zezima", modes=[mode], seconds=30)
+        game.start()
+        game.opened(0)
+        (player,) = game.players
+        frame = _deep_answer(str(game.question(0).id), shape)
+        assert len(frame) <= MAX_FRAME
+        player.ws.send_text(frame)
+        assert player.take("error")["code"] == "bad_value"
+        assert game.question(0).answers == {}
+        player.send(t="ping")
+        player.take("pong")
 
 
 @pytest.fixture

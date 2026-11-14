@@ -10,6 +10,15 @@ export const RELEASES_URL = `${REPO_URL}/releases`
 export const DISCORD_URL = 'https://discord.gg/FrWVe2dSGj'
 export const WIKI_URL = 'https://oldschool.runescape.wiki'
 
+/** Whether `link` is safe to open from a page: a stored link may be anything a player typed. */
+export function isHttpsLink(link: string): boolean {
+  try {
+    return new URL(link).protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
 /** `0.10.0` reads as `0.10`; a fix release keeps its patch number. */
 export function versionLabel(version: string): string {
   return version.replace(/\.0$/, '')
