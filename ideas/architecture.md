@@ -455,7 +455,7 @@ What the server withholds. The admin is a player with a flag; there is no admin 
 | 4003 | kicked | stops |
 | 4004 | unknown, expired or deleted room; no `error` frame | stops |
 | 4008 | protocol error, after an `error` frame | stops |
-| 1008 | no `hello` in 10 s, over 10 messages a second after a burst of 20, over 10 connects a minute per session or 30 per address, over 10 sockets per address awaiting `hello`, or rate limited | reconnects |
+| 1008 | no `hello` in 10 s, over 10 messages a second after a burst of 20, over 10 connects a minute per session or 30 per address, the oldest of over 10 sockets per address awaiting `hello`, an `Origin` of another site, or rate limited | reconnects |
 | 1009 | a frame over 64 KiB | reconnects |
 | 1011 | a send failed or timed out, or the server failed a connect or command | reconnects |
 | 1012 | the room left memory; the reconnect rehydrates it | reconnects |
@@ -741,8 +741,10 @@ Limits:
 - 30 creates an hour (`ROOMS_PER_IP_PER_HOUR`), 100 joins an hour, 10 daily starts an hour (a resume is
   free), 30 lookups of missing rooms per 10 minutes, 5 free codes per 10 seconds. Past those, every room request is 429 with a `Retry-After` (1008 on a socket), so a refusal never reveals
   which codes are live. A `hello` whose session a room in memory holds skips the miss and address
-  connect budgets, so one device cannot lock a shared address out. A room `GET` with
-  `Sec-Fetch-Site: cross-site` is 403 and charges nothing.
+  connect budgets, so one device cannot lock a shared address out; nor can its silent sockets,
+  since past 10 awaiting `hello` the oldest closes. A room `GET` with
+  `Sec-Fetch-Site: cross-site` is 403 and charges nothing, and so is a `/ws` (1008) whose `Origin`
+  host is neither `Host` nor `PUBLIC_BASE_URL`'s, since browsers open cross-site sockets.
 - Create refuses a sixth room while `jbi:created` holds five the server still has; one that
   answers 404 or 410 drops off the list. Clearing storage bypasses it; the create limit is the
   backstop.
@@ -757,9 +759,8 @@ Limits:
   and joins answering. At about 60 KB a socket that is some 220 MB of the 512 MB container.
   Compression is off because a zlib context per socket doubled that and took a quarter of the
   CPU per broadcast; frames are serialised once per room, and a reverse proxy may compress.
-  uvicorn never times out a connection that opens and sends nothing, so the reverse proxy must.
-- `/ws` checks no `Origin`, because nothing ambient logs a socket in. Add an allow-list with any
-  cookie.
+  uvicorn counts every open TCP connection toward `--limit-concurrency` before any HTTP and never
+  times one out that sends nothing, so idle-connection floods are the reverse proxy's job.
 - Display names have no word filter: rooms are closed lobbies. Revisit if public rooms see abuse.
 
 `http/headers.py` sets `Referrer-Policy: no-referrer`, `nosniff`, `X-Frame-Options: DENY`,

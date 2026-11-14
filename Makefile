@@ -95,7 +95,8 @@ lint:
 # Bot players through rooms over websockets, against a live server that trusts X-Forwarded-For
 # from 127.0.0.1 (uvicorn's default) and its database: run `make dev` in another terminal first.
 # The flags (rooms, scenarios, --json, --compare) are in scripts/loadtest.py's docstring. For the
-# compose stack, whose Postgres is not published to the host, run it in the app container:
+# compose stack, whose Postgres is not published to the host, run it in the app container,
+# with FORWARDED_ALLOW_IPS=127.0.0.1 in .env, or every bot shares one address and its limits:
 #   docker compose exec app python scripts/loadtest.py
 # The default, one room of 30 for 30 questions, takes about twelve and a half minutes. Pass
 # flags through with LOADTEST_ARGS, e.g.

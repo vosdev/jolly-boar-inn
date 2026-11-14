@@ -3,8 +3,9 @@
 Close codes ("Websocket protocol"): ``4001`` bad ``hello``, ``4004`` unknown or expired room,
 ``4008`` any protocol error after the handshake, each after a single ``error`` message where
 the protocol has a code for it. ``1008`` for no ``hello`` within ``HELLO_TIMEOUT``, a socket
-over its message rate, a session or address connecting too often, an address holding too many
-sockets that have not said ``hello``, or an address over its budget of rooms not found,
+over its message rate, a session or address connecting too often, the oldest of too many
+sockets an address holds that have not said ``hello``, an address over its budget of rooms
+not found, or a page on another site opening the socket, before any budget is charged,
 ``1009`` for a frame over ``MAX_FRAME``, ``1011`` for a call that failed on our side, and
 ``1013`` for a socket past ``MAX_SOCKETS``, before its ``hello``: the client reconnects after
 these. ``4000`` (replaced by a newer socket) and ``1012`` (room left memory) come from the
@@ -32,13 +33,14 @@ from collections.abc import Callable
 from contextlib import nullcontext
 from datetime import UTC, datetime
 from typing import Any, get_args
+from urllib.parse import urlsplit
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import ValidationError
 
 from app import metrics
 from app.errors import ApiError
-from app.http.ratelimit import OpenCount, RateLimited, client_key, room_lookup
+from app.http.ratelimit import OldestOut, OpenCount, RateLimited, client_key, room_lookup
 from app.rooms.errors import BadSession, RoomExpired, RoomNotFound
 from app.rooms.models import Player, hash_token
 from app.rooms.state import RoomManager
@@ -80,6 +82,10 @@ class BadFrame(Exception):
 
 class FrameTooBig(Exception):
     """A text frame over ``MAX_FRAME``."""
+
+
+class Displaced(Exception):
+    """A newer socket from the same address took this one's place before its ``hello``."""
 
 
 class TokenBucket:
@@ -152,10 +158,32 @@ def _describe(exc: ValidationError) -> str:
     return f"{where}: {first['msg']}" if where else first["msg"]
 
 
+def _foreign_origin(ws: WebSocket) -> bool:
+    """Whether a browser opened this socket from a page that is not the app's.
+
+    Browsers let any page open a websocket anywhere, so without this a page a player visits
+    could spend their address's connect and miss budgets. A client that is not a browser
+    sends no ``Origin``. Behind a proxy that rewrites ``Host``, ``PUBLIC_BASE_URL`` matches.
+    """
+    origin = ws.headers.get("origin")
+    if origin is None:
+        return False
+    theirs = urlsplit(origin).netloc.lower()
+    ours = {
+        ws.headers.get("host", "").lower(),
+        urlsplit(ws.app.state.settings.public_base_url).netloc.lower(),
+    }
+    return not theirs or theirs not in ours
+
+
 @router.websocket("/ws/{code}")
 async def room_socket(ws: WebSocket, code: str) -> None:
     sockets: OpenCount = ws.app.state.sockets
     await ws.accept()
+    if _foreign_origin(ws):
+        metrics.WS_DISCONNECTS.labels(reason="cross_site").inc()
+        await _close(ws, CLOSE_POLICY, "cross-site socket")
+        return
     if not sockets.enter(_EVERY_SOCKET):
         metrics.WS_DISCONNECTS.labels(reason="server_full").inc()
         await _close(ws, CLOSE_TRY_AGAIN_LATER, "server is full, try again later")
@@ -171,19 +199,15 @@ async def _room_socket(ws: WebSocket, code: str) -> None:
     manager: RoomManager = ws.app.state.rooms
     host = ws.client.host if ws.client else ""
     key = client_key(host)
-    pending: OpenCount = ws.app.state.pending_hellos
+    pending: OldestOut = ws.app.state.pending_hellos
     player: Player | None = None
     outbox: Outbox | None = None
     try:
-        if not pending.enter(key):
-            metrics.RATE_LIMITED.labels(limiter="connects").inc()
-            metrics.WS_DISCONNECTS.labels(reason="rate_limited").inc()
-            await _close(ws, CLOSE_POLICY, "too many connects from this address")
-            return
+        displaced = pending.enter(key)
         try:
-            hello = await _handshake(ws)
+            hello = await _handshake(ws, displaced)
         finally:
-            pending.leave(key)
+            pending.leave(key, displaced)
         if hello is None:
             return
         try:
@@ -237,12 +261,31 @@ def _check_connects(ws: WebSocket, key: str, session: str, trusted: bool) -> Non
     state.session_connects.check(hash_token(session), "this session connects too often")
 
 
-async def _handshake(ws: WebSocket) -> protocol.Hello | None:
+async def _first_frame(ws: WebSocket, displaced: asyncio.Event) -> Any:
+    """The first decoded frame; ``Displaced`` if ``displaced`` is set before it comes."""
+    frame = asyncio.ensure_future(_next_frame(ws))
+    newer = asyncio.ensure_future(displaced.wait())
+    try:
+        done, _ = await asyncio.wait({frame, newer}, return_when=asyncio.FIRST_COMPLETED)
+    finally:
+        frame.cancel()
+        newer.cancel()
+    if frame in done:
+        return frame.result()
+    raise Displaced
+
+
+async def _handshake(ws: WebSocket, displaced: asyncio.Event) -> protocol.Hello | None:
     """The first frame as ``Hello``, or ``None`` after rejecting or closing the socket."""
     try:
         async with asyncio.timeout(HELLO_TIMEOUT):
-            frame = await _next_frame(ws)
+            frame = await _first_frame(ws, displaced)
         message = protocol.parse_client_message(frame)
+    except Displaced:
+        metrics.RATE_LIMITED.labels(limiter="connects").inc()
+        metrics.WS_DISCONNECTS.labels(reason="rate_limited").inc()
+        await _close(ws, CLOSE_POLICY, "too many connects from this address")
+        return None
     except TimeoutError:
         metrics.WS_DISCONNECTS.labels(reason="no_hello").inc()
         await _close(ws, CLOSE_POLICY, "no hello")

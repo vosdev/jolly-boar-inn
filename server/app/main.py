@@ -55,6 +55,7 @@ from app.http.ratelimit import (
     SIMILAR_PER_HOUR,
     SUGGESTIONS_PER_HOUR,
     TRIES_PER_HOUR,
+    OldestOut,
     OpenCount,
     RateLimiter,
 )
@@ -291,7 +292,7 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
     app.state.dailies = RateLimiter(DAILIES_PER_HOUR, name="dailies")
     app.state.connects = RateLimiter(CONNECTS_PER_ADDRESS, CONNECTS_WINDOW, name="connects")
     app.state.session_connects = RateLimiter(CONNECTS_PER_SESSION, CONNECTS_WINDOW, name="connects")
-    app.state.pending_hellos = OpenCount(PENDING_HELLOS_PER_ADDRESS)
+    app.state.pending_hellos = OldestOut(PENDING_HELLOS_PER_ADDRESS)
     app.state.sockets = OpenCount(app.state.settings.max_sockets)
     app.add_middleware(JsonBody)  # inside BodyLimit, so an oversized body is a 413 first
     app.add_middleware(BodyLimit)

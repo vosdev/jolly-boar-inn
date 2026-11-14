@@ -9,9 +9,11 @@ stack, where the bundled Postgres is not published to the host::
 
 **The server must trust the loopback proxy.** Each bot sends its own ``X-Forwarded-For``
 address, on its POSTs and its websocket handshake, so that every player is its own address to
-the per-address limits, as in a pub behind a real proxy. uvicorn honours the header from
-``FORWARDED_ALLOW_IPS``, which defaults to ``127.0.0.1,::1``: the Dockerfile's CMD and
-``make dev`` both qualify. Narrow it, and the bots share one address and trip the limits.
+the per-address limits, as in a pub behind a real proxy. uvicorn honours the header only from
+``FORWARDED_ALLOW_IPS``. Unset it is ``127.0.0.1,::1``, as under ``make dev``; the compose
+stack passes it empty, so set ``FORWARDED_ALLOW_IPS=127.0.0.1`` there (with your proxy, if
+any). Otherwise every bot shares one address: one cap of 10 sockets awaiting ``hello``, at
+most 2 public rooms listed, and refusals from the other per-address limits.
 
 **Shape.** ``--rooms`` rooms of ``--bots`` players each, bot 0 of every room its admin (it
 creates the room, so it holds the creator session and sends ``start_game``). ``--ramp``
