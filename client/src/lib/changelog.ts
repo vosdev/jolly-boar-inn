@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.249.1',
+    date: '2026-11-14',
+    text: 'A page that fails to load now offers to try again.',
+  },
+  {
     version: '0.249.0',
     date: '2026-11-14',
     text: 'Scrollbars now take the colours of your theme, and lists inside panels get slimmer ones.',

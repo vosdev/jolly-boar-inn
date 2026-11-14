@@ -27,6 +27,7 @@
   import { onMount } from 'svelte'
 
   import Footer from './components/Footer.svelte'
+  import LazyRoute from './components/LazyRoute.svelte'
   import WallLights from './components/WallLights.svelte'
   import Floor from './components/Floor.svelte'
   import SettingsMenu from './components/SettingsMenu.svelte'
@@ -208,38 +209,42 @@
       {:else if route.name === 'create'}
         <Create {navigate} />
       {:else if route.name === 'admin'}
-        {#await import('./routes/Admin.svelte')}
-          <p class="note">Loading…</p>
-        {:then { default: Admin }}
-          <Admin tab={route.tab} {navigate} />
-        {/await}
+        {@const tab = route.tab}
+        <LazyRoute load={() => import('./routes/Admin.svelte')}>
+          {#snippet children({ default: Admin })}
+            <Admin {tab} {navigate} />
+          {/snippet}
+        </LazyRoute>
       {:else if route.name === 'suggest'}
-        {#await import('./routes/Suggest.svelte')}
-          <p class="note">Loading…</p>
-        {:then { default: Suggest }}
-          <Suggest {navigate} />
-        {/await}
+        <LazyRoute load={() => import('./routes/Suggest.svelte')}>
+          {#snippet children({ default: Suggest })}
+            <Suggest {navigate} />
+          {/snippet}
+        </LazyRoute>
       {:else if route.name === 'report'}
-        {#await import('./routes/Report.svelte')}
-          <p class="note">Loading…</p>
-        {:then { default: Report }}
-          <Report {navigate} />
-        {/await}
+        <LazyRoute load={() => import('./routes/Report.svelte')}>
+          {#snippet children({ default: Report })}
+            <Report {navigate} />
+          {/snippet}
+        </LazyRoute>
       {:else if route.name === 'daily'}
         <Daily {navigate} />
       {:else if route.name === 'dev-map'}
         {#if import.meta.env.DEV}
-          {#await import('./routes/DevMap.svelte') then { default: DevMap }}
-            <DevMap />
-          {/await}
+          <LazyRoute load={() => import('./routes/DevMap.svelte')}>
+            {#snippet children({ default: DevMap })}
+              <DevMap />
+            {/snippet}
+          </LazyRoute>
         {/if}
       {:else if route.name === 'history'}
-        {#key `${route.code}/${route.stamp}`}
-          {#await import('./routes/History.svelte')}
-            <p class="note">Loading…</p>
-          {:then { default: History }}
-            <History code={route.code} stamp={route.stamp} {navigate} />
-          {/await}
+        {@const { code, stamp } = route}
+        {#key `${code}/${stamp}`}
+          <LazyRoute load={() => import('./routes/History.svelte')}>
+            {#snippet children({ default: History })}
+              <History {code} {stamp} {navigate} />
+            {/snippet}
+          </LazyRoute>
         {/key}
       {:else if route.name === 'join'}
         {#key route.code}

@@ -28,9 +28,20 @@
     wide?: boolean
   } = $props()
 
-  let showChangelog = $state(false)
+  let Changelog = $state<(typeof import('./Changelog.svelte'))['default'] | null>(null)
+  let changelogFailed = $state(false)
   let showCredits = $state(false)
   let showCounts = $state(false)
+
+  /** Fetched on every tap until one succeeds, so the 2,000 lines of releases load on demand. */
+  async function openChangelog(): Promise<void> {
+    changelogFailed = false
+    try {
+      Changelog = (await import('./Changelog.svelte')).default
+    } catch {
+      changelogFailed = true
+    }
+  }
 
   const asOf = $derived(newestAsOf(pricesAsOf.byMode))
 
@@ -68,19 +79,17 @@
         <button type="button" class="plain" onclick={() => (showCredits = true)}>Credits</button>
       </li>
       <li>
-        <button type="button" class="plain" onclick={() => (showChangelog = true)}
+        <button type="button" class="plain" onclick={() => void openChangelog()}
           >What's new in v{VERSION_LABEL}</button
         >
+        {#if changelogFailed}<span>What's new didn't load.</span>{/if}
       </li>
     </ul>
   </div>
 </footer>
 
-{#if showChangelog}
-  <!-- Fetched on the first tap, so the 2,000 lines of releases are not in every visit. -->
-  {#await import('./Changelog.svelte') then { default: Changelog }}
-    <Changelog onclose={() => (showChangelog = false)} />
-  {/await}
+{#if Changelog !== null}
+  <Changelog onclose={() => (Changelog = null)} />
 {/if}
 {#if showCounts && questionCounts.counts !== null}
   <QuestionCounts counts={questionCounts.counts} onclose={() => (showCounts = false)} />

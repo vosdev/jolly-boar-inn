@@ -26,7 +26,6 @@
     getLive,
     getQueue,
     getReports,
-    keepAdminToken,
     refreshLabel,
     refuseAdminToken,
     takeAdminToken,
@@ -231,10 +230,6 @@
     if (token === null) view = 'refused'
   }
 
-  function accept(used: string): void {
-    if (used === token) keepAdminToken(used)
-  }
-
   /** A 401 or 404 decides the whole page; anything else is the tab's own to report. */
   function decides(error: unknown, used: string): boolean {
     if (error instanceof ApiFailure && error.status === 401) refuse(used)
@@ -249,7 +244,6 @@
     busy = true
     try {
       const [nextLive, nextCounts] = await Promise.all([getLive(used), getCounts(used)])
-      accept(used)
       live = nextLive
       counts = nextCounts
       updatedAt = Date.now()
@@ -262,6 +256,9 @@
     } finally {
       busy = false
     }
+    // A refusal elsewhere may fall back to the stored token while this ran, and a refresh
+    // asked for meanwhile was turned away by `busy`.
+    if (token !== used) void refresh()
   }
 
   async function countWaiting(): Promise<void> {
@@ -272,7 +269,6 @@
         getQueue(used, 'pending'),
         getReports(used, 'open'),
       ])
-      accept(used)
       waiting = { suggestions: suggested.counts.pending, reports: reported.counts.open }
       if (view === 'loading' && tab !== 'overview') view = 'ready'
     } catch (error) {

@@ -95,6 +95,11 @@
   let wiki = $state(start?.wiki ?? '')
   let sourceUrl = $state(start?.source_url ?? '')
   let pictureItem = $state(start?.picture_item ?? '')
+  let subjectName = $state(
+    start?.type === 'pick_from_list'
+      ? ((start.payload?.subject as { name?: string } | undefined)?.name ?? '')
+      : '',
+  )
   let difficulty = $state<QuestionDifficulty | undefined>(start?.difficulty)
   // An NPC's question is drawn whatever the room's difficulty, so it is asked for none.
   // svelte-ignore state_referenced_locally
@@ -426,6 +431,7 @@
         {id}
         {choice}
         content={initial?.content}
+        bind:name={subjectName}
         {asked}
         {picker}
         {saveLabel}

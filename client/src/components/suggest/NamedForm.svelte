@@ -30,6 +30,7 @@
     id,
     choice,
     content,
+    name = $bindable(''),
     asked,
     picker,
     saveLabel,
@@ -51,11 +52,6 @@
   const start = content as Partial<QuestionContent> | undefined
   // svelte-ignore state_referenced_locally
   const verses = choice.editor === 'verse'
-  let name = $state(
-    start?.type === 'pick_from_list'
-      ? ((start.payload?.subject as { name?: string })?.name ?? '')
-      : '',
-  )
   let verse = $state(verses ? ((start?.payload?.prompt as string | undefined) ?? '') : '')
   let attempted = $state(false)
   let roster = $state<readonly VocabEntry[] | 'loading' | 'failed'>('loading')

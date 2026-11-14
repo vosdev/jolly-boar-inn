@@ -100,4 +100,4 @@ export const sample: Sample = {
   answer: 2,
 }
 
-export const card: SuggestCard = { place: 5, anyOptions: true }
+export const card: SuggestCard = { place: 5 }

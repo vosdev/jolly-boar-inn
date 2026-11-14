@@ -35,6 +35,11 @@ export interface SuggestionFormProps {
   choice: Choice
   /** The suggestion's content to edit, or none for a new one. */
   content: SuggestionContent | undefined
+  /**
+   * The name a named form's answer is, bound. The frame holds it, so it outlives the form
+   * when the picker swaps to another type and back.
+   */
+  name?: string
   /** The names a shadow may not give: the game asks about them already. */
   asked: readonly string[]
   /** Every type the round offers, and what to do with one another form writes. */

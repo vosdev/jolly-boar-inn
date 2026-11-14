@@ -653,7 +653,7 @@ Client (`lib/ws.ts`):
 4. Ping every 30 s. No frame in 10 s closes the socket. So does an `answer` unanswered in 5 s.
 5. A `welcome` with a different `server_version` reloads the page at once; an API response's
    different `X-App-Version` (`lib/version.ts`) at the next navigation or tab return. Once per
-   version. A lazy chunk gone after a deploy (`vite:preloadError`) reloads at once, once per build.
+   version. A lost lazy chunk (`vite:preloadError`) reloads once per build, then offers Try again.
 
 Server `connect`: find `sha256(session)` in the room or close 4001. The last device wins: an older
 socket closes with 4000. A disconnect keeps the player and their answers.
