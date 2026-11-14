@@ -42,7 +42,9 @@ Besides assets, some questions are dynamically generated based on Grand Exchange
 
 6. `docker compose up -d`
 
-7. Set up a reverse proxy for port 8000
+7. Set up a reverse proxy for port 8000. Give it an idle timeout (a few minutes) for client
+   connections: the app never closes one that opens and sends nothing, and each counts against
+   its connection limit.
 
 ## Update instructions
 

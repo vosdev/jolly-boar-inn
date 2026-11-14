@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 
 from app import metrics
+from app.metrics import DisconnectReason
 
 log = logging.getLogger("app.ws")
 
@@ -63,13 +64,23 @@ class _Close:
 async def send(ws: Socket, message: Frame | dict[str, Any]) -> bool:
     """Send one frame; ``False`` if the socket is gone, refused it or took too long."""
     frame = message if isinstance(message, Frame) else Frame(message)
+    return await _deliver(ws, frame) is None
+
+
+async def _deliver(ws: Socket, frame: Frame) -> DisconnectReason | None:
+    """Send one frame; on failure, the reason the socket is counted as lost.
+
+    Only a send that ran out of time is the client's backpressure. Anything else raised
+    means the connection is already gone, as when a player leaves with a broadcast queued.
+    """
+    timeout = asyncio.timeout(SEND_TIMEOUT)
     try:
-        async with asyncio.timeout(SEND_TIMEOUT):
+        async with timeout:
             await ws.send_text(frame.text)
     except Exception as exc:  # closed from either side, transport error, timeout
         log.info("dropping socket after failed send: %r", exc)
-        return False
-    return True
+        return "send_failed" if timeout.expired() else "client"
+    return None
 
 
 async def close(ws: Socket, code: int, reason: str) -> None:
@@ -140,20 +151,24 @@ class Outbox:
             if isinstance(item, _Close):
                 await close(self.ws, item.code, item.reason)
                 return
-            if not await send(self.ws, item):
+            if (lost := await _deliver(self.ws, item)) is not None:
                 break
+        # A close already queued was counted by whoever queued it, under its own reason.
+        if self._closing and lost == "client":
+            lost = None
         self._closing = True
-        await self._fail("send failed")
+        await self._fail("send failed", lost)
 
     def _give_up(self, reason: str) -> None:
         log.info("dropping socket: %s", reason)
         self._closing = True
         # The writer may be stuck in a send that will not finish; it is not waited for.
         self._task.cancel()
-        self._task = asyncio.create_task(self._fail(reason), name="outbox-failed")
+        self._task = asyncio.create_task(self._fail(reason, "send_failed"), name="outbox-failed")
 
-    async def _fail(self, reason: str) -> None:
-        metrics.WS_DISCONNECTS.labels(reason="send_failed").inc()
+    async def _fail(self, reason: str, lost: DisconnectReason | None) -> None:
+        if lost is not None:
+            metrics.WS_DISCONNECTS.labels(reason=lost).inc()
         # Together: a close to a client that has stopped reading can take ``SEND_TIMEOUT``,
         # and the room should hear it has gone now, not then.
         await asyncio.gather(close(self.ws, CLOSE_SEND_FAILED, reason), self._detach())

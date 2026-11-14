@@ -19,12 +19,15 @@ from uuid import UUID, uuid4
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from starlette.websockets import WebSocketDisconnect
 
+from app import metrics
 from app.config import REPO_ROOT
 from app.rooms import codes
 from app.rooms.models import Player, Room
 from app.rooms.state import RoomManager
 from app.ws import handler as ws_handler
+from app.ws import outbox as outbox_module
 from app.ws import protocol
 from app.ws.outbox import Outbox
 from tests.rooms_api import StalledSocket, call, closed_with, create, held, hello, join
@@ -549,6 +552,96 @@ async def test_an_outbox_whose_send_fails_closes_and_detaches_its_socket() -> No
     await asyncio.wait_for(detached.wait(), 1)
     await asyncio.wait_for(outbox.finished(), 1)
     assert ws.closed_with == 1011
+
+
+def disconnects(reason: str) -> float:
+    value = metrics.REGISTRY.get_sample_value("jbi_ws_disconnects_total", {"reason": reason})
+    return value or 0.0
+
+
+class LeftSocket(FlakySocket):
+    """A client that left while a frame for it was queued."""
+
+    def __init__(self, error: Exception) -> None:
+        super().__init__()
+        self.error = error
+
+    async def send_text(self, data: str) -> None:
+        raise self.error
+
+
+@pytest.mark.parametrize(
+    "error", [OSError("client is gone"), WebSocketDisconnect(1006)], ids=["uvicorn", "starlette"]
+)
+async def test_an_outbox_whose_client_has_left_counts_a_client_disconnect(
+    error: Exception,
+) -> None:
+    """The end of a game, everyone leaving at once, is not a backpressure problem."""
+    detached = asyncio.Event()
+
+    async def on_failed() -> None:
+        detached.set()
+
+    outbox = Outbox(LeftSocket(error), on_failed=on_failed)
+    before = {reason: disconnects(reason) for reason in ("client", "send_failed")}
+    outbox.put({"n": 1})
+    counted = await _fails_counting_from(outbox, detached, before)
+    assert counted == {"client": 1, "send_failed": 0}
+
+
+async def test_an_outbox_whose_send_outlasts_the_timeout_counts_send_failed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(outbox_module, "SEND_TIMEOUT", 0.05)
+    detached = asyncio.Event()
+
+    async def on_failed() -> None:
+        detached.set()
+
+    outbox = Outbox(StalledSocket(), on_failed=on_failed)
+    before = {reason: disconnects(reason) for reason in ("client", "send_failed")}
+    outbox.put({"n": 1})
+    counted = await _fails_counting_from(outbox, detached, before)
+    assert counted == {"client": 0, "send_failed": 1}
+
+
+async def test_an_outbox_that_overflows_counts_send_failed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(outbox_module, "SEND_TIMEOUT", 0.05)  # for the close to a stalled client
+    detached = asyncio.Event()
+
+    async def on_failed() -> None:
+        detached.set()
+
+    outbox = Outbox(StalledSocket(), on_failed=on_failed, limit=1)
+    before = {reason: disconnects(reason) for reason in ("client", "send_failed")}
+    outbox.put({"n": 1})
+    outbox.put({"n": 2})
+    counted = await _fails_counting_from(outbox, detached, before)
+    assert counted == {"client": 0, "send_failed": 1}
+
+
+async def test_a_client_that_left_after_its_close_was_queued_is_not_counted_twice() -> None:
+    """Whoever queued the close counted it, as the handler does for a client that left."""
+    outbox = Outbox(LeftSocket(OSError("client is gone")), on_failed=_detached_anyway)
+    before = disconnects("client")
+    outbox.put({"n": 1})
+    outbox.close(1000, "disconnected")
+    await asyncio.wait_for(outbox.finished(), 1)
+    assert disconnects("client") == before
+
+
+async def _fails_counting_from(
+    outbox: Outbox, detached: asyncio.Event, before: dict[str, float]
+) -> dict[str, float]:
+    await asyncio.wait_for(detached.wait(), 1)
+    await asyncio.wait_for(outbox.finished(), 1)
+    return {reason: disconnects(reason) - before[reason] for reason in before}
+
+
+async def _detached_anyway() -> None:
+    pass
 
 
 async def _never() -> None:

@@ -457,6 +457,7 @@ What the server withholds. The admin is a player with a flag; there is no admin 
 | 1009 | a frame over 64 KiB | reconnects |
 | 1011 | a send failed or timed out, or the server failed a connect or command | reconnects |
 | 1012 | the room left memory; the reconnect rehydrates it | reconnects |
+| 1013 | the server holds `MAX_SOCKETS` sockets already | reconnects |
 
 `GET /api/vocab/{name}` serves `items` (`popular-items.json`) and `npcs` (`popular-npcs.json`,
 each the infobox's first NPC id) as `{vocab, version, entries: [{id, name}]}`, built at startup. One name under two ids, or one id under two names, refuses to load. The client fetches a list once, when a question
@@ -747,8 +748,14 @@ Limits:
   rightmost `X-Forwarded-For` entry not in it; else the peer. The first ignored one logs a warning.
 - `/api/*` bodies over 256 KiB get 413, nested over 64 levels 422 `too_deep`. Writes not declared `application/json` get 415, because a
   cross-site `no-cors` fetch sends an untyped body without a preflight.
-- uvicorn runs `--host "" --ws-max-size 65536 --limit-concurrency 1000 --workers 1`. The empty
-  host listens on `0.0.0.0` and, where there is IPv6, `::` too.
+- uvicorn runs `--host "" --ws-max-size 65536 --limit-concurrency 2500 --ws-per-message-deflate
+  false --workers 1`. The empty host listens on `0.0.0.0` and, where there is IPv6, `::` too. The
+  limit counts every connection, websockets included, and answers 503 past it, so the app holds at
+  most `MAX_SOCKETS` (2250) sockets and closes the next with 1013: the gap keeps `/api/health`
+  and joins answering. At about 60 KB a socket that is some 220 MB of the 512 MB container.
+  Compression is off because a zlib context per socket doubled that and took a quarter of the
+  CPU per broadcast; frames are serialised once per room, and a reverse proxy may compress.
+  uvicorn never times out a connection that opens and sends nothing, so the reverse proxy must.
 - `/ws` checks no `Origin`, because nothing ambient logs a socket in. Add an allow-list with any
   cookie.
 - Display names have no word filter: rooms are closed lobbies. Revisit if public rooms see abuse.

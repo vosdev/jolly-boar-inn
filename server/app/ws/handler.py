@@ -5,9 +5,10 @@ Close codes ("Websocket protocol"): ``4001`` bad ``hello``, ``4004`` unknown or 
 the protocol has a code for it. ``1008`` for no ``hello`` within ``HELLO_TIMEOUT``, a socket
 over its message rate, a session or address connecting too often, an address holding too many
 sockets that have not said ``hello``, or an address over its budget of rooms not found,
-``1009`` for a frame over ``MAX_FRAME``, and ``1011`` for a call that failed on our side: the
-client reconnects after these. ``4000`` (replaced by a newer socket) and ``1012`` (room left
-memory) come from the manager.
+``1009`` for a frame over ``MAX_FRAME``, ``1011`` for a call that failed on our side, and
+``1013`` for a socket past ``MAX_SOCKETS``, before its ``hello``: the client reconnects after
+these. ``4000`` (replaced by a newer socket) and ``1012`` (room left memory) come from the
+manager.
 
 Every message after the handshake is one ``RoomManager`` call. A call that raises
 ``ApiError`` becomes a single ``error`` frame and the socket stays open: a rejected
@@ -56,6 +57,9 @@ CLOSE_PROTOCOL_ERROR = 4008
 CLOSE_POLICY = 1008
 CLOSE_TOO_BIG = 1009
 CLOSE_INTERNAL = 1011
+CLOSE_TRY_AGAIN_LATER = 1013
+# ``app.state.sockets`` counts one total, not one per address.
+_EVERY_SOCKET = ""
 # uvicorn's ``--ws-max-size`` refuses bigger frames before they reach us. This repeats it
 # for any other launcher, and so that ``json.loads`` never sees one: a 16 MiB array of
 # empty objects costs hundreds of MB to parse. The largest real frame is well under 1 KB.
@@ -150,11 +154,24 @@ def _describe(exc: ValidationError) -> str:
 
 @router.websocket("/ws/{code}")
 async def room_socket(ws: WebSocket, code: str) -> None:
+    sockets: OpenCount = ws.app.state.sockets
+    await ws.accept()
+    if not sockets.enter(_EVERY_SOCKET):
+        metrics.WS_DISCONNECTS.labels(reason="server_full").inc()
+        await _close(ws, CLOSE_TRY_AGAIN_LATER, "server is full, try again later")
+        return
+    try:
+        await _room_socket(ws, code)
+    finally:
+        sockets.leave(_EVERY_SOCKET)
+
+
+async def _room_socket(ws: WebSocket, code: str) -> None:
+    """One accepted socket, from its ``hello`` until it is finished with."""
     manager: RoomManager = ws.app.state.rooms
     host = ws.client.host if ws.client else ""
     key = client_key(host)
     pending: OpenCount = ws.app.state.pending_hellos
-    await ws.accept()
     player: Player | None = None
     outbox: Outbox | None = None
     try:

@@ -380,6 +380,26 @@ def test_the_dev_server_caps_frames() -> None:
     assert f"--ws-max-size {MAX_FRAME}" in line
 
 
+def test_the_dev_server_does_not_compress_websocket_frames() -> None:
+    """As in the container, so dev measures what production pays per socket."""
+    makefile = (REPO_ROOT / "Makefile").read_text(encoding="utf-8")
+    line = next(li for li in makefile.splitlines() if "uvicorn app.main:app" in li)
+    assert "--ws-per-message-deflate false" in line
+
+
+def test_the_socket_cap_leaves_the_container_room_for_http() -> None:
+    """Past ``--limit-concurrency`` every request is a 503, the healthcheck included."""
+    cmd = (REPO_ROOT / "Dockerfile").read_text(encoding="utf-8").split("\nCMD ")[-1]
+    found = re.search(r'"--limit-concurrency",\s*"(\d+)"', cmd)
+    assert found, cmd
+    example = (REPO_ROOT / ".env.example").read_text(encoding="utf-8")
+    shipped = re.search(r"^MAX_SOCKETS=(\d+)$", example, re.MULTILINE)
+    assert shipped, "MAX_SOCKETS is missing from .env.example"
+    default = Settings(_env_file=None).max_sockets
+    assert int(shipped.group(1)) == default
+    assert int(found.group(1)) - default >= 100
+
+
 # --- the rate limiter's key ---------------------------------------------------------
 
 
