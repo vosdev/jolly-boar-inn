@@ -897,7 +897,10 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .pin,
+    .pin {
+      animation: none !important;
+    }
+
     .content.hidden {
       animation: none !important;
     }
