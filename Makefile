@@ -1,4 +1,4 @@
-.PHONY: all setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-protocol gen-price-questions gen-pixel-hunt import-suggestions edit-packs edit-roster rehash-questions fetch-assets logo loadtest image
+.PHONY: all setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-protocol gen-modes gen-price-questions gen-pixel-hunt import-suggestions edit-packs edit-roster rehash-questions fetch-assets logo loadtest image
 
 # The app's version: /VERSION is the one place it lives (ideas/architecture.md, Versioning).
 VERSION := $(shell cat VERSION)
@@ -82,6 +82,11 @@ check-contrast:
 gen-protocol:
 	cd server && uv run python scripts/gen_protocol_schema.py
 	cd client && pnpm gen:protocol
+
+# The mode registry (server/app/modes) as schema/modes.json, which the client reads its
+# per-mode rules from. Run after changing a mode; a server and a client test fail until it has been.
+gen-modes:
+	cd server && uv run python scripts/gen_modes.py
 
 lint:
 	cd server && uv run ruff check . && uv run ruff format --check . && uv run python scripts/check_workflows.py

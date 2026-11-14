@@ -23,6 +23,7 @@
 
 import type { FormWording } from './customQuestions'
 import { HOUSE } from './house'
+import { ALL_MODE_IDS, pictureOf, rulesOf } from './modeRules'
 import type { OrderingWording } from './ordering'
 import type { FieldHints } from './placeholders'
 import type { Scoring } from './protocol'
@@ -204,7 +205,7 @@ export interface Mode extends HostLines {
    * How the question's picture shows: large with the name under it on the reveal, and while
    * a question picked from the list is open, `shadow` fills its outline with the theme's
    * `--silhouette`, `build` builds it up (`lib/pixelHunt.ts`) and `reveal` keeps it back.
-   * Left out, as it is.
+   * Left out, as it is. Filled from the registry (`lib/modeRules.ts`), never in a mode's file.
    */
   picture?: 'shadow' | 'build' | 'reveal'
   /** Its options run to whole sentences: one button a row on a phone, on the reveal too. */
@@ -305,39 +306,11 @@ export const GENERIC_HOST: HostLines = {
 }
 
 /**
- * Every mode with a file under `modes/`, in the server's registry order (`MODES` in
- * `server/app/modes`), then the ones still being built. Create and the lobby read `MODES` in
- * this order, which file names would not keep; `server/tests/test_modes.py` holds it to the
- * registry.
+ * Every mode with a file under `modes/`, in the server's registry order (`schema/modes.json`),
+ * then the ones still being built. Create and the lobby read `MODES` in this order, which
+ * file names would not keep.
  */
-export const MODE_IDS: readonly string[] = [
-  'more_less',
-  'price_is_right',
-  'guess_examine',
-  'sort_it_out',
-  'who_said_that',
-  'know_your_content_creator',
-  'bestiary',
-  'drop_table',
-  'odd_one_out',
-  'minigame_madness',
-  'whos_that_npc',
-  'pixel_hunt',
-  'forgetful_bard',
-  'scaperune',
-  'tales_of_gielinor',
-  'uris_unravelling',
-  'slayer_master',
-  'mark_the_map',
-  'random_events_only',
-  'custom',
-  'random_event',
-  'release_order',
-  'name_that_spell',
-  'minimap_guesser',
-  'scrying_pool',
-  'lost_in_gielinor',
-]
+export const MODE_IDS: readonly string[] = ALL_MODE_IDS
 
 /** A mode still being built: its card on the create form, and who will host it. */
 export interface UpcomingMode {
@@ -362,8 +335,22 @@ export interface ModeFile {
   ordering?: OrderingWording
   /** How the suggestion form names its fields (`lib/suggestions.ts`). */
   wording?: FormWording
-  /** The suggestion card's line, in place of `hint` (`lib/suggestions.ts`). */
-  orderingHint?: string
+  /** Its card on the suggestion form (`lib/suggestions.ts`), for a mode that takes suggestions. */
+  card?: SuggestCard
+}
+
+/** How the suggestion form's card presents a mode, beyond what the registry says of it. */
+export interface SuggestCard {
+  /** Where the card stands among the question cards, smallest first. */
+  place: number
+  /** In place of the mode's own label, hint and host. */
+  label?: string
+  hint?: string
+  host?: string
+  /** The question a new one starts with, which the player may change. */
+  prompt?: string
+  /** The form leaves the number of options free, though a round plays `options`' range. */
+  anyOptions?: true
 }
 
 const files = import.meta.glob<ModeFile>('./modes/*.ts', { eager: true })
@@ -385,7 +372,14 @@ export function modeCopy<K extends keyof ModeFile>(
   return found
 }
 
-export const MODES: Record<string, Mode> = modeCopy('mode')
+/** Each built mode's copy, its picture as the registry has it shown. */
+export const MODES: Record<string, Mode> = Object.fromEntries(
+  Object.entries(modeCopy('mode')).map(([id, mode]) => {
+    const rules = rulesOf(id)
+    const picture = rules === undefined ? undefined : pictureOf(rules)
+    return [id, picture === undefined ? mode : { ...mode, picture }]
+  }),
+)
 
 /**
  * Modes still being built, shown on the create form faded and with nothing to press, their

@@ -1,4 +1,4 @@
-import type { UpcomingMode } from '../modes'
+import type { SuggestCard, UpcomingMode } from '../modes'
 import type { OrderingWording } from '../ordering'
 import type { FieldHints } from '../placeholders'
 
@@ -21,4 +21,4 @@ export const ordering: OrderingWording = {
   detailRequired: true,
 }
 
-export const orderingHint = 'Something worth putting in release order.'
+export const card: SuggestCard = { place: 17, hint: 'Something worth putting in release order.' }

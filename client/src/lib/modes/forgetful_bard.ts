@@ -1,4 +1,4 @@
-import type { Mode } from '../modes'
+import type { Mode, SuggestCard } from '../modes'
 import type { FieldHints } from '../placeholders'
 import type { Sample } from '../samples'
 
@@ -83,7 +83,6 @@ export const mode: Mode = {
   },
   stem: 'text',
   // The verse is the question; the picture would be its answer.
-  picture: 'reveal',
 }
 
 export const hints: FieldHints = {
@@ -101,3 +100,5 @@ export const sample: Sample = {
   answer: 4151,
   subject: { name: 'Abyssal whip' },
 }
+
+export const card: SuggestCard = { place: 14, hint: 'A verse about an item, for Falo to sing.' }

@@ -28,10 +28,10 @@
   import {
     creditProblem,
     hasExtras,
-    INTRO_ROUNDS,
     itemPage,
     QUESTION_DIFFICULTIES,
     takesDifficulty,
+    takesIntro,
     NO_ROUND,
     pictureItemProblem,
     sourceProblems,
@@ -449,7 +449,7 @@
     title={choice.label}
     mode={stageMode(choice.id)}
     asker={choice.id === 'random_event' ? 'required' : 'none'}
-    intro={INTRO_ROUNDS.includes(choice.id)}
+    intro={takesIntro(choice.id)}
     {picker}
     {saveLabel}
     head={progressHead}
@@ -474,7 +474,7 @@
     title={choice.label}
     mode={stageMode(choice.id)}
     asker={choice.id === 'random_event' ? 'required' : 'none'}
-    intro={INTRO_ROUNDS.includes(choice.id)}
+    intro={takesIntro(choice.id)}
     {picker}
     {saveLabel}
     head={progressHead}
@@ -505,7 +505,7 @@
     promptFixed={roundPrompt?.fixed ?? false}
     optionRange={choice.options}
     wording={choice.wording}
-    intro={INTRO_ROUNDS.includes(choice.id)}
+    intro={takesIntro(choice.id)}
     {picker}
     {saveLabel}
     head={progressHead}

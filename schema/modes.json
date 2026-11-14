@@ -1,0 +1,842 @@
+{
+  "modes": [
+    {
+      "id": "more_less",
+      "types": [
+        "more_less"
+      ],
+      "is_round": true,
+      "questions": null,
+      "pool": null,
+      "setting": null,
+      "options": null,
+      "steps": null,
+      "pictured": false,
+      "picture_at_reveal": false,
+      "extra_answer": 0,
+      "stem": "more_less",
+      "hold_counts_prompt": false,
+      "suggest": null,
+      "report": "item",
+      "compare": "question"
+    },
+    {
+      "id": "price_is_right",
+      "types": [
+        "price_is_right"
+      ],
+      "is_round": true,
+      "questions": null,
+      "pool": null,
+      "setting": null,
+      "options": null,
+      "steps": null,
+      "pictured": false,
+      "picture_at_reveal": false,
+      "extra_answer": 0,
+      "stem": "price",
+      "hold_counts_prompt": false,
+      "suggest": null,
+      "report": "item",
+      "compare": "question"
+    },
+    {
+      "id": "guess_examine",
+      "types": [
+        "multiple_choice"
+      ],
+      "is_round": true,
+      "questions": null,
+      "pool": null,
+      "setting": null,
+      "options": [
+        4,
+        6
+      ],
+      "steps": null,
+      "pictured": false,
+      "picture_at_reveal": false,
+      "extra_answer": 0,
+      "stem": "examine",
+      "hold_counts_prompt": false,
+      "suggest": {
+        "types": [
+          "multiple_choice"
+        ],
+        "quote": false,
+        "intro": false,
+        "explanation": false,
+        "difficulty": true,
+        "fixed_prompt": null,
+        "wiki_only": true,
+        "named": null,
+        "verse": false,
+        "render": false,
+        "picture_item": false,
+        "lined": false,
+        "tags": [
+          [
+            "multiple_choice",
+            "examine"
+          ]
+        ],
+        "right_first": true
+      },
+      "report": "question",
+      "compare": "question"
+    },
+    {
+      "id": "sort_it_out",
+      "types": [
+        "ordering"
+      ],
+      "is_round": true,
+      "questions": null,
+      "pool": null,
+      "setting": null,
+      "options": null,
+      "steps": null,
+      "pictured": false,
+      "picture_at_reveal": false,
+      "extra_answer": 0,
+      "stem": "text",
+      "hold_counts_prompt": false,
+      "suggest": {
+        "types": [
+          "ordering"
+        ],
+        "quote": false,
+        "intro": false,
+        "explanation": true,
+        "difficulty": true,
+        "fixed_prompt": null,
+        "wiki_only": false,
+        "named": null,
+        "verse": false,
+        "render": false,
+        "picture_item": false,
+        "lined": false,
+        "tags": [],
+        "right_first": false
+      },
+      "report": "question",
+      "compare": "question"
+    },
+    {
+      "id": "who_said_that",
+      "types": [
+        "multiple_choice"
+      ],
+      "is_round": true,
+      "questions": null,
+      "pool": null,
+      "setting": null,
+      "options": null,
+      "steps": null,
+      "pictured": false,
+      "picture_at_reveal": false,
+      "extra_answer": 0,
+      "stem": "quote",
+      "hold_counts_prompt": false,
+      "suggest": {
+        "types": [
+          "multiple_choice"
+        ],
+        "quote": true,
+        "intro": false,
+        "explanation": true,
+        "difficulty": true,
+        "fixed_prompt": null,
+        "wiki_only": false,
+        "named": null,
+        "verse": false,
+        "render": false,
+        "picture_item": false,
+        "lined": false,
+        "tags": [],
+        "right_first": false
+      },
+      "report": "question",
+      "compare": "question"
+    },
+    {
+      "id": "know_your_content_creator",
+      "types": [
+        "closest_number",
+        "multiple_choice",
+        "number_slider",
+        "pick_all_that_apply"
+      ],
+      "is_round": true,
+      "questions": null,
+      "pool": null,
+      "setting": null,
+      "options": null,
+      "steps": null,
+      "pictured": false,
+      "picture_at_reveal": false,
+      "extra_answer": 0,
+      "stem": "quote",
+      "hold_counts_prompt": false,
+      "suggest": {
+        "types": [
+          "closest_number",
+          "multiple_choice",
+          "number_slider",
+          "pick_all_that_apply"
+        ],
+        "quote": true,
+        "intro": false,
+        "explanation": true,
+        "difficulty": true,
+        "fixed_prompt": null,
+        "wiki_only": false,
+        "named": null,
+        "verse": false,
+        "render": false,
+        "picture_item": false,
+        "lined": false,
+        "tags": [],
+        "right_first": false
+      },
+      "report": "question",
+      "compare": "question"
+    },
+    {
+      "id": "bestiary",
+      "types": [
+        "closest_number",
+        "free_text",
+        "matching",
+        "multiple_choice",
+        "number_slider",
+        "ordering",
+        "pick_all_that_apply"
+      ],
+      "is_round": true,
+      "questions": null,
+      "pool": null,
+      "setting": null,
+      "options": null,
+      "steps": null,
+      "pictured": false,
+      "picture_at_reveal": false,
+      "extra_answer": 0,
+      "stem": "text",
+      "hold_counts_prompt": false,
+      "suggest": {
+        "types": [
+          "closest_number",
+          "free_text",
+          "matching",
+          "multiple_choice",
+          "number_slider",
+          "ordering",
+          "pick_all_that_apply"
+        ],
+        "quote": false,
+        "intro": false,
+        "explanation": true,
+        "difficulty": true,
+        "fixed_prompt": null,
+        "wiki_only": false,
+        "named": null,
+        "verse": false,
+        "render": false,
+        "picture_item": false,
+        "lined": false,
+        "tags": [],
+        "right_first": false
+      },
+      "report": "question",
+      "compare": "question"
+    },
+    {
+      "id": "drop_table",
+      "types": [
+        "closest_number",
+        "free_text",
+        "matching",
+        "multiple_choice",
+        "number_slider",
+        "pick_all_that_apply"
+      ],
+      "is_round": true,
+      "questions": null,
+      "pool": null,
+      "setting": null,
+      "options": null,
+      "steps": null,
+      "pictured": false,
+      "picture_at_reveal": false,
+      "extra_answer": 0,
+      "stem": "text",
+      "hold_counts_prompt": false,
+      "suggest": {
+        "types": [
+          "closest_number",
+          "free_text",
+          "matching",
+          "multiple_choice",
+          "number_slider",
+          "pick_all_that_apply"
+        ],
+        "quote": false,
+        "intro": false,
+        "explanation": true,
+        "difficulty": true,
+        "fixed_prompt": null,
+        "wiki_only": false,
+        "named": null,
+        "verse": false,
+        "render": false,
+        "picture_item": true,
+        "lined": false,
+        "tags": [],
+        "right_first": false
+      },
+      "report": "question",
+      "compare": "question"
+    },
+    {
+      "id": "odd_one_out",
+      "types": [
+        "multiple_choice"
+      ],
+      "is_round": true,
+      "questions": null,
+      "pool": null,
+      "setting": null,
+      "options": [
+        4,
+        6
+      ],
+      "steps": null,
+      "pictured": false,
+      "picture_at_reveal": false,
+      "extra_answer": 0,
+      "stem": "text",
+      "hold_counts_prompt": false,
+      "suggest": {
+        "types": [
+          "multiple_choice"
+        ],
+        "quote": false,
+        "intro": false,
+        "explanation": true,
+        "difficulty": true,
+        "fixed_prompt": "Which one doesn't belong?",
+        "wiki_only": false,
+        "named": null,
+        "verse": false,
+        "render": false,
+        "picture_item": false,
+        "lined": false,
+        "tags": [],
+        "right_first": false
+      },
+      "report": "options",
+      "compare": "options"
+    },
+    {
+      "id": "minigame_madness",
+      "types": [
+        "closest_number",
+        "free_text",
+        "matching",
+        "multiple_choice",
+        "number_slider",
+        "ordering",
+        "pick_all_that_apply"
+      ],
+      "is_round": true,
+      "questions": null,
+      "pool": null,
+      "setting": null,
+      "options": null,
+      "steps": null,
+      "pictured": false,
+      "picture_at_reveal": false,
+      "extra_answer": 0,
+      "stem": "text",
+      "hold_counts_prompt": false,
+      "suggest": {
+        "types": [
+          "closest_number",
+          "free_text",
+          "matching",
+          "multiple_choice",
+          "number_slider",
+          "ordering",
+          "pick_all_that_apply"
+        ],
+        "quote": false,
+        "intro": false,
+        "explanation": true,
+        "difficulty": true,
+        "fixed_prompt": null,
+        "wiki_only": false,
+        "named": null,
+        "verse": false,
+        "render": false,
+        "picture_item": true,
+        "lined": false,
+        "tags": [],
+        "right_first": false
+      },
+      "report": "question",
+      "compare": "question"
+    },
+    {
+      "id": "whos_that_npc",
+      "types": [
+        "multiple_choice",
+        "pick_from_list"
+      ],
+      "is_round": true,
+      "questions": null,
+      "pool": null,
+      "setting": null,
+      "options": null,
+      "steps": null,
+      "pictured": true,
+      "picture_at_reveal": false,
+      "extra_answer": 0,
+      "stem": null,
+      "hold_counts_prompt": false,
+      "suggest": {
+        "types": [
+          "multiple_choice",
+          "pick_from_list"
+        ],
+        "quote": false,
+        "intro": false,
+        "explanation": false,
+        "difficulty": true,
+        "fixed_prompt": "Who's that NPC?",
+        "wiki_only": true,
+        "named": "npcs",
+        "verse": false,
+        "render": true,
+        "picture_item": false,
+        "lined": false,
+        "tags": [
+          [
+            "pick_from_list",
+            "shadow"
+          ],
+          [
+            "multiple_choice",
+            "render"
+          ]
+        ],
+        "right_first": false
+      },
+      "report": "npc",
+      "compare": "npc"
+    },
+    {
+      "id": "pixel_hunt",
+      "types": [
+        "pick_from_list"
+      ],
+      "is_round": true,
+      "questions": null,
+      "pool": null,
+      "setting": null,
+      "options": null,
+      "steps": {
+        "build": 17,
+        "of": 25
+      },
+      "pictured": true,
+      "picture_at_reveal": false,
+      "extra_answer": 0,
+      "stem": null,
+      "hold_counts_prompt": true,
+      "suggest": null,
+      "report": "question",
+      "compare": "question"
+    },
+    {
+      "id": "forgetful_bard",
+      "types": [
+        "pick_from_list"
+      ],
+      "is_round": true,
+      "questions": null,
+      "pool": null,
+      "setting": null,
+      "options": null,
+      "steps": null,
+      "pictured": false,
+      "picture_at_reveal": true,
+      "extra_answer": 0,
+      "stem": "text",
+      "hold_counts_prompt": false,
+      "suggest": {
+        "types": [
+          "pick_from_list"
+        ],
+        "quote": false,
+        "intro": false,
+        "explanation": false,
+        "difficulty": true,
+        "fixed_prompt": null,
+        "wiki_only": false,
+        "named": "items",
+        "verse": true,
+        "render": false,
+        "picture_item": false,
+        "lined": false,
+        "tags": [],
+        "right_first": false
+      },
+      "report": "question",
+      "compare": "item"
+    },
+    {
+      "id": "scaperune",
+      "types": [
+        "multiple_choice"
+      ],
+      "is_round": true,
+      "questions": null,
+      "pool": null,
+      "setting": null,
+      "options": [
+        4,
+        4
+      ],
+      "steps": null,
+      "pictured": false,
+      "picture_at_reveal": false,
+      "extra_answer": 12,
+      "stem": "board",
+      "hold_counts_prompt": false,
+      "suggest": {
+        "types": [
+          "multiple_choice"
+        ],
+        "quote": false,
+        "intro": false,
+        "explanation": true,
+        "difficulty": true,
+        "fixed_prompt": null,
+        "wiki_only": false,
+        "named": null,
+        "verse": false,
+        "render": false,
+        "picture_item": false,
+        "lined": true,
+        "tags": [],
+        "right_first": false
+      },
+      "report": "question",
+      "compare": "question"
+    },
+    {
+      "id": "tales_of_gielinor",
+      "types": [
+        "closest_number",
+        "free_text",
+        "matching",
+        "multiple_choice",
+        "number_slider",
+        "ordering",
+        "pick_all_that_apply"
+      ],
+      "is_round": true,
+      "questions": null,
+      "pool": null,
+      "setting": null,
+      "options": null,
+      "steps": null,
+      "pictured": false,
+      "picture_at_reveal": false,
+      "extra_answer": 0,
+      "stem": "text",
+      "hold_counts_prompt": false,
+      "suggest": {
+        "types": [
+          "closest_number",
+          "free_text",
+          "matching",
+          "multiple_choice",
+          "number_slider",
+          "ordering",
+          "pick_all_that_apply"
+        ],
+        "quote": false,
+        "intro": false,
+        "explanation": true,
+        "difficulty": true,
+        "fixed_prompt": null,
+        "wiki_only": false,
+        "named": null,
+        "verse": false,
+        "render": false,
+        "picture_item": false,
+        "lined": false,
+        "tags": [],
+        "right_first": false
+      },
+      "report": "question",
+      "compare": "question"
+    },
+    {
+      "id": "uris_unravelling",
+      "types": [
+        "closest_number",
+        "free_text",
+        "matching",
+        "multiple_choice",
+        "number_slider",
+        "ordering",
+        "pick_all_that_apply"
+      ],
+      "is_round": true,
+      "questions": null,
+      "pool": null,
+      "setting": null,
+      "options": null,
+      "steps": null,
+      "pictured": false,
+      "picture_at_reveal": false,
+      "extra_answer": 5,
+      "stem": "quote",
+      "hold_counts_prompt": false,
+      "suggest": {
+        "types": [
+          "closest_number",
+          "free_text",
+          "matching",
+          "multiple_choice",
+          "number_slider",
+          "ordering",
+          "pick_all_that_apply"
+        ],
+        "quote": true,
+        "intro": false,
+        "explanation": true,
+        "difficulty": true,
+        "fixed_prompt": null,
+        "wiki_only": false,
+        "named": null,
+        "verse": false,
+        "render": false,
+        "picture_item": false,
+        "lined": false,
+        "tags": [],
+        "right_first": false
+      },
+      "report": "question",
+      "compare": "question"
+    },
+    {
+      "id": "slayer_master",
+      "types": [
+        "closest_number",
+        "free_text",
+        "matching",
+        "multiple_choice",
+        "number_slider",
+        "ordering",
+        "pick_all_that_apply"
+      ],
+      "is_round": true,
+      "questions": null,
+      "pool": null,
+      "setting": null,
+      "options": null,
+      "steps": null,
+      "pictured": false,
+      "picture_at_reveal": false,
+      "extra_answer": 0,
+      "stem": "text",
+      "hold_counts_prompt": false,
+      "suggest": {
+        "types": [
+          "closest_number",
+          "free_text",
+          "matching",
+          "multiple_choice",
+          "number_slider",
+          "ordering",
+          "pick_all_that_apply"
+        ],
+        "quote": false,
+        "intro": false,
+        "explanation": true,
+        "difficulty": true,
+        "fixed_prompt": null,
+        "wiki_only": false,
+        "named": null,
+        "verse": false,
+        "render": false,
+        "picture_item": false,
+        "lined": false,
+        "tags": [],
+        "right_first": false
+      },
+      "report": "question",
+      "compare": "question"
+    },
+    {
+      "id": "mark_the_map",
+      "types": [
+        "map_pin"
+      ],
+      "is_round": true,
+      "questions": null,
+      "pool": null,
+      "setting": null,
+      "options": null,
+      "steps": null,
+      "pictured": false,
+      "picture_at_reveal": false,
+      "extra_answer": 0,
+      "stem": "text",
+      "hold_counts_prompt": false,
+      "suggest": {
+        "types": [
+          "map_pin"
+        ],
+        "quote": false,
+        "intro": false,
+        "explanation": false,
+        "difficulty": true,
+        "fixed_prompt": null,
+        "wiki_only": true,
+        "named": null,
+        "verse": false,
+        "render": false,
+        "picture_item": false,
+        "lined": false,
+        "tags": [],
+        "right_first": false
+      },
+      "report": "question",
+      "compare": "question"
+    },
+    {
+      "id": "random_events_only",
+      "types": [
+        "closest_number",
+        "free_text",
+        "matching",
+        "multiple_choice",
+        "number_slider",
+        "ordering",
+        "pick_all_that_apply",
+        "pick_from_list"
+      ],
+      "is_round": true,
+      "questions": {
+        "default": 10,
+        "minimum": 1,
+        "maximum": 20
+      },
+      "pool": "random_event",
+      "setting": "random_event_game_mode",
+      "options": null,
+      "steps": null,
+      "pictured": false,
+      "picture_at_reveal": false,
+      "extra_answer": 0,
+      "stem": "text",
+      "hold_counts_prompt": false,
+      "suggest": null,
+      "report": "question",
+      "compare": "question"
+    },
+    {
+      "id": "custom",
+      "types": [],
+      "is_round": false,
+      "questions": null,
+      "pool": null,
+      "setting": null,
+      "options": null,
+      "steps": null,
+      "pictured": false,
+      "picture_at_reveal": false,
+      "extra_answer": 0,
+      "stem": "text",
+      "hold_counts_prompt": false,
+      "suggest": null,
+      "report": "question",
+      "compare": "question"
+    },
+    {
+      "id": "random_event",
+      "types": [],
+      "is_round": false,
+      "questions": null,
+      "pool": null,
+      "setting": null,
+      "options": null,
+      "steps": null,
+      "pictured": false,
+      "picture_at_reveal": false,
+      "extra_answer": 0,
+      "stem": "text",
+      "hold_counts_prompt": false,
+      "suggest": {
+        "types": [
+          "closest_number",
+          "free_text",
+          "matching",
+          "multiple_choice",
+          "number_slider",
+          "ordering",
+          "pick_all_that_apply"
+        ],
+        "quote": false,
+        "intro": true,
+        "explanation": true,
+        "difficulty": false,
+        "fixed_prompt": null,
+        "wiki_only": false,
+        "named": null,
+        "verse": false,
+        "render": false,
+        "picture_item": false,
+        "lined": false,
+        "tags": [],
+        "right_first": false
+      },
+      "report": "question",
+      "compare": "question"
+    }
+  ],
+  "upcoming": [
+    {
+      "id": "release_order",
+      "suggest": {
+        "types": [
+          "ordering"
+        ],
+        "quote": false,
+        "intro": false,
+        "explanation": true,
+        "difficulty": true,
+        "fixed_prompt": null,
+        "wiki_only": false,
+        "named": null,
+        "verse": false,
+        "render": false,
+        "picture_item": false,
+        "lined": false,
+        "tags": [],
+        "right_first": false
+      }
+    }
+  ],
+  "planned": [
+    "name_that_spell",
+    "minimap_guesser",
+    "scrying_pool",
+    "lost_in_gielinor"
+  ]
+}

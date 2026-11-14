@@ -12,13 +12,16 @@
  */
 
 import { answerLine as matchingLine } from './matching'
+import { MODE_RULES, rulesOf } from './modeRules'
 import { MODES } from './modes'
 import type { QuestionDifficulty } from './suggestions'
 
 /** `TEXT_MAX` on the server, counted in characters. */
 export const REPORT_TEXT_MAX = 500
-/** `ITEM_MODES` on the server: reported by item rather than by question. */
-export const ITEM_MODES: readonly string[] = ['more_less', 'price_is_right']
+/** The modes reported by item rather than by question: `report` on the server. */
+export const ITEM_MODES: readonly string[] = MODE_RULES.filter((m) => m.report === 'item').map(
+  (m) => m.id,
+)
 
 export type ReportStatus = 'open' | 'closed'
 
@@ -136,8 +139,9 @@ export function reportSummary(report: QueuedReport): string {
 /** A question in one line, the way players find it in the form. */
 export function questionLine(question: PackQuestion): string {
   const payload = question.payload
-  if (question.mode === 'odd_one_out') return (payload.options as string[]).join(', ')
-  if (question.mode === 'whos_that_npc') {
+  const by = rulesOf(question.mode)?.report
+  if (by === 'options') return (payload.options as string[]).join(', ')
+  if (by === 'npc') {
     if (question.type === 'pick_from_list') return (payload.subject as Subject).name
     return str((payload.options as string[])[payload.answer_index as number])
   }

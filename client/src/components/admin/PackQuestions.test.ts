@@ -164,6 +164,22 @@ describe('PackQuestions', () => {
     expect(screen.getByText('What level is TzTok-Jad?')).toBeTruthy()
   })
 
+  it("offers the quotation on an Uri's Unravelling question that has none yet", async () => {
+    const riddle: PackQuestion = {
+      id: 'q_uri',
+      type: 'multiple_choice',
+      mode: 'uris_unravelling',
+      payload: { prompt: 'Who wears this?', options: ['Uri', 'Bob'], answer_index: 0 },
+      difficulty: 'easy',
+    }
+    vi.mocked(admin.getEditModes).mockResolvedValue(['uris_unravelling'])
+    vi.mocked(admin.getPackQuestions).mockResolvedValue([riddle])
+    show()
+    await fireEvent.click(await screen.findByText('Who wears this?'))
+    await fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    expect(screen.getByLabelText(/^The quotation/)).toBeTruthy()
+  })
+
   it('draws a link that is not https as text, never as a link', async () => {
     const bad = 'javascript:alert(1)'
     vi.mocked(admin.getPackQuestions).mockResolvedValue([{ ...VORKATH, source_url: bad }])

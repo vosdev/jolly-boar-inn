@@ -18,7 +18,8 @@ import { CUSTOM_TYPES, TYPE_LABELS, previewOf } from './customQuestions'
 import { pastGames } from './history'
 import { WIKI_URL } from './links'
 import { DEFAULT_REACH } from './mapBox'
-import { HOUSE, MODES, UPCOMING_MODES, modeCopy } from './modes'
+import { HOUSE, MODES, UPCOMING_MODES, modeCopy, type SuggestCard } from './modes'
+import { SUGGESTIBLE, rulesOf, suggestRulesOf, type SuggestRules } from './modeRules'
 import { nameProblem } from './names'
 import {
   answerLine as matchingLine,
@@ -84,12 +85,14 @@ export const QUESTION_DIFFICULTIES: { value: QuestionDifficulty; label: string }
   { value: 'hard', label: 'Hard' },
 ]
 
-/** Rounds whose questions take no difficulty: `NO_DIFFICULTY_MODES` on the server. */
-const NO_DIFFICULTY_ROUNDS = ['random_event']
-
 /** Whether a question for `round` carries a difficulty: a round that has no tier is drawn alike. */
 export function takesDifficulty(round: string): boolean {
-  return !NO_DIFFICULTY_ROUNDS.includes(round)
+  return suggestRulesOf(round)?.difficulty ?? true
+}
+
+/** Whether a question for `round` may carry an intro, an NPC's line before the prompt. */
+export function takesIntro(round: string): boolean {
+  return suggestRulesOf(round)?.intro ?? false
 }
 
 export function difficultyName(difficulty: QuestionDifficulty): string {
@@ -166,8 +169,8 @@ export interface QueueMatch {
 }
 
 /**
- * A form of its own: `shadow`, an NPC's name (`NAMED_MODES` on the server); `verse`, a verse and
- * the item it describes (`VERSE_MODES`); `place`, a place on the world map, so this server needs
+ * A form of its own: `shadow`, an NPC's name (`named` on the server); `verse`, a verse and
+ * the item it describes (`verse`); `place`, a place on the world map, so this server needs
  * its tiles; `item`, an item. `components/suggest/forms.ts` maps each to its component.
  */
 export type EditorKind = 'shadow' | 'verse' | 'place' | 'item'
@@ -183,9 +186,9 @@ export interface Choice {
   host: string
   /** For a question: the types its editor offers. */
   types: readonly SuggestedType[]
-  /** Whether a multiple-choice question may carry a quotation: `QUOTE_MODES` on the server. */
+  /** Whether a multiple-choice question may carry a quotation: `quote` on the server. */
   quote?: boolean
-  /** Whether a question may carry an explanation: false for `NO_EXPLANATION_MODES` on the server. */
+  /** Whether a question may carry an explanation: `explanation` on the server. */
   explanation?: boolean
   /** The question a new one starts with, and whether it may be changed. */
   prompt?: RoundPrompt
@@ -193,9 +196,9 @@ export interface Choice {
   options?: readonly [number, number]
   /** What the form calls the prompt and the options, where the round turns them round. */
   wording?: FormWording
-  /** Whether only a wiki page proves it: `WIKI_MODES` on the server. */
+  /** Whether only a wiki page proves it: `wiki_only` on the server. */
   wikiOnly?: boolean
-  /** Whether it may name an item to picture: `PICTURE_ITEM_MODES` on the server. */
+  /** Whether it may name an item to picture: `picture_item` on the server. */
   pictureItem?: boolean
   /** The form of its own that writes it, where the shared question forms do not. */
   editor?: EditorKind
@@ -207,145 +210,105 @@ export interface Choice {
 
 export interface RoundPrompt {
   text: string
-  /** `FIXED_PROMPTS` on the server: the round asks only this. */
+  /** `fixed_prompt` on the server: the round asks only this. */
   fixed: boolean
 }
 
-/** What most of a round's questions ask, so a suggestion need not type it. */
-const ROUND_PROMPTS: Record<string, RoundPrompt> = {
-  who_said_that: { text: 'Who said that?', fixed: false },
-  odd_one_out: { text: "Which one doesn't belong?", fixed: true },
-  whos_that_npc: { text: "Who's that NPC?", fixed: true },
-}
-
-/** Rounds that take four-button questions, built or not, with `ROUND_TYPES`: `QUESTION_MODES` on the server. */
-const CHOICE_ROUNDS = [
-  'guess_examine',
-  'bestiary',
-  'drop_table',
-  'odd_one_out',
-  'minigame_madness',
-  'who_said_that',
-  'know_your_content_creator',
-  'scaperune',
-  'tales_of_gielinor',
-  'uris_unravelling',
-  'slayer_master',
+/**
+ * The order a type picker offers a round's types in: the shadow before the buttons, as Who's
+ * That NPC? asks, then Create's, then the rest.
+ */
+const TYPE_ORDER: readonly SuggestedType[] = [
+  'pick_from_list',
+  ...CUSTOM_TYPES,
+  'ordering',
+  'matching',
+  'map_pin',
 ]
 
-function choiceRound(
-  id: string,
-): { id: string; label: string; hint: string; host: string } | undefined {
-  const built = MODES[id]
-  if (built !== undefined) return { id, label: built.label, hint: built.hint, host: built.host.id }
-  return UPCOMING_MODES.find((mode) => mode.id === id)
-}
-
-/** A round whose editor offers more than four buttons. */
-const ROUND_TYPES: Record<string, readonly SuggestedType[]> = {
-  bestiary: [
-    'multiple_choice',
-    'free_text',
-    'closest_number',
-    'number_slider',
-    'pick_all_that_apply',
-    'ordering',
-    'matching',
-  ],
-  drop_table: [
-    'multiple_choice',
-    'free_text',
-    'closest_number',
-    'number_slider',
-    'pick_all_that_apply',
-    'matching',
-  ],
-  minigame_madness: [
-    'multiple_choice',
-    'free_text',
-    'closest_number',
-    'number_slider',
-    'pick_all_that_apply',
-    'ordering',
-    'matching',
-  ],
-  tales_of_gielinor: [
-    'multiple_choice',
-    'free_text',
-    'closest_number',
-    'number_slider',
-    'pick_all_that_apply',
-    'ordering',
-    'matching',
-  ],
-  uris_unravelling: [
-    'multiple_choice',
-    'free_text',
-    'closest_number',
-    'number_slider',
-    'pick_all_that_apply',
-    'ordering',
-    'matching',
-  ],
-  slayer_master: [
-    'multiple_choice',
-    'free_text',
-    'closest_number',
-    'number_slider',
-    'pick_all_that_apply',
-    'ordering',
-    'matching',
-  ],
-  know_your_content_creator: [
-    'multiple_choice',
-    'closest_number',
-    'number_slider',
-    'pick_all_that_apply',
-  ],
-}
-
-/** Rounds that hold their options to a range: `Mode.options` on the server. */
-const ROUND_OPTIONS: Record<string, readonly [number, number]> = {
-  guess_examine: [4, 6],
-  scaperune: [4, 4],
+function inTypeOrder(types: readonly string[]): SuggestedType[] {
+  return TYPE_ORDER.filter((type) => types.includes(type))
 }
 
 /** Rounds whose form names its fields otherwise: on the buttons, ScapeRune plays questions. */
 const ROUND_WORDING: Record<string, FormWording> = modeCopy('wording')
+const CARDS: Record<string, SuggestCard> = modeCopy('card')
 
-/** Rounds whose pack holds every question to its wiki page: `WIKI_MODES` on the server. */
-const WIKI_ROUNDS = ['guess_examine', 'whos_that_npc', 'mark_the_map']
+/** What a round's card says and who presents it: its card's own copy, else the mode's. */
+function cardCopy(id: string): { label: string; hint: string; host: string } | undefined {
+  const card = CARDS[id]
+  const built = MODES[id]
+  const upcoming = UPCOMING_MODES.find((mode) => mode.id === id)
+  const label = card?.label ?? built?.label ?? upcoming?.label
+  const hint = card?.hint ?? built?.hint ?? upcoming?.hint
+  const host = card?.host ?? built?.host.id ?? upcoming?.host
+  if (label === undefined || hint === undefined || host === undefined) return undefined
+  return { label, hint, host }
+}
 
-/** Rounds whose questions may name an item to picture: `PICTURE_ITEM_MODES` on the server. */
-const PICTURE_ITEM_ROUNDS = ['drop_table', 'minigame_madness']
+/**
+ * Which form a round's card opens, and so which fields its choice carries: the shared forms
+ * with nothing a round adds (`plain`) for the NPCs' questions and the rounds that only sort.
+ */
+function formOf(id: string, rules: SuggestRules): Exclude<EditorKind, 'item'> | 'choice' | 'plain' {
+  const only = rules.types.length === 1 ? rules.types[0] : undefined
+  if (rules.verse) return 'verse'
+  if (rules.named !== null) return 'shadow'
+  if (only === 'map_pin') return 'place'
+  if (!(rulesOf(id)?.is_round ?? true) || only === 'ordering') return 'plain'
+  return 'choice'
+}
 
-/** Rounds that show a quotation under the prompt. */
-const QUOTE_ROUNDS = ['who_said_that', 'know_your_content_creator', 'uris_unravelling']
+/** The card for a round a player may suggest for, or undefined for one with no copy. */
+function roundChoice(id: string, rules: SuggestRules): Choice | undefined {
+  const copy = cardCopy(id)
+  if (copy === undefined) return undefined
+  const card = CARDS[id]
+  const base: Choice = { id, kind: 'question', ...copy, types: inTypeOrder(rules.types) }
+  const explanation = rules.explanation
+  const prompt: RoundPrompt | undefined =
+    rules.fixed_prompt !== null
+      ? { text: rules.fixed_prompt, fixed: true }
+      : card?.prompt !== undefined
+        ? { text: card.prompt, fixed: false }
+        : undefined
+  switch (formOf(id, rules)) {
+    case 'plain':
+      return base
+    case 'choice':
+      return {
+        ...base,
+        quote: rules.quote,
+        explanation,
+        prompt,
+        options: card?.anyOptions ? undefined : (rulesOf(id)?.options ?? undefined),
+        wording: ROUND_WORDING[id],
+        wikiOnly: rules.wiki_only,
+        pictureItem: rules.picture_item,
+      }
+    case 'shadow':
+      return {
+        ...base,
+        prompt,
+        explanation,
+        wikiOnly: rules.wiki_only,
+        editor: 'shadow',
+        questionHint: "Players see the right answer's render. Name it as the wiki does.",
+        typeLabels: { pick_from_list: 'Shadow', multiple_choice: 'Render' },
+      }
+    case 'verse':
+      return { ...base, explanation, editor: 'verse' }
+    case 'place':
+      return { ...base, explanation, wikiOnly: rules.wiki_only, editor: 'place' }
+  }
+}
 
-/** Rounds whose questions carry no explanation: `NO_EXPLANATION_MODES` on the server. */
-export const NO_EXPLANATION_ROUNDS = [
-  'guess_examine',
-  'whos_that_npc',
-  'forgetful_bard',
-  'mark_the_map',
-]
-
-/** Rounds whose questions may carry an intro, an NPC's line before the prompt: `INTRO_MODES` on the server. */
-export const INTRO_ROUNDS = ['random_event']
-
-/** Rounds whose answer is an NPC's name: `NAMED_MODES` and `RENDER_MODES` on the server. */
-const NAMED_ROUNDS = ['whos_that_npc']
-
-/** Rounds whose question is a verse about an item: `VERSE_MODES` on the server. */
-const VERSE_ROUNDS = ['forgetful_bard']
-
-/** Rounds that ask for a place, set on the world map. */
-const MAP_ROUNDS = ['mark_the_map']
-
-/** Rounds that sort: `ordering` questions, the form with its tie boxes. */
-const ORDERING_ROUNDS = ['sort_it_out', 'release_order']
-/** What a card says to a player thinking of a question, where the round's tagline would not. */
-const ORDERING_HINTS: Record<string, string> = modeCopy('orderingHint')
+/** The rounds a player may suggest for, as cards, in their cards' order. */
+const ROUND_CHOICES: Choice[] = [...SUGGESTIBLE]
+  .map(([id, rules]) => ({ place: CARDS[id]?.place ?? Infinity, choice: roundChoice(id, rules) }))
+  .filter((entry): entry is { place: number; choice: Choice } => entry.choice !== undefined)
+  .sort((a, b) => a.place - b.place)
+  .map((entry) => entry.choice)
 
 /**
  * The card for a question that fits no round the player can name. It is no mode: it is
@@ -363,82 +326,7 @@ export const CHOICES: readonly Choice[] = [
     types: [],
     editor: 'item',
   },
-  {
-    id: 'random_event',
-    kind: 'question',
-    label: 'A random event question',
-    hint: 'Asked by an NPC in the middle of a round.',
-    host: 'sandwich_lady',
-    types: [...CUSTOM_TYPES, 'ordering', 'matching'],
-  },
-  ...CHOICE_ROUNDS.map(choiceRound)
-    .filter((mode) => mode !== undefined)
-    .map((mode): Choice => ({
-      id: mode.id,
-      kind: 'question',
-      label: mode.label,
-      hint: mode.hint,
-      host: mode.host,
-      types: ROUND_TYPES[mode.id] ?? ['multiple_choice'],
-      quote: QUOTE_ROUNDS.includes(mode.id),
-      explanation: !NO_EXPLANATION_ROUNDS.includes(mode.id),
-      prompt: ROUND_PROMPTS[mode.id],
-      options: ROUND_OPTIONS[mode.id],
-      wording: ROUND_WORDING[mode.id],
-      wikiOnly: WIKI_ROUNDS.includes(mode.id),
-      pictureItem: PICTURE_ITEM_ROUNDS.includes(mode.id),
-    })),
-  ...NAMED_ROUNDS.map(choiceRound)
-    .filter((mode) => mode !== undefined)
-    .map((mode): Choice => ({
-      id: mode.id,
-      kind: 'question',
-      label: mode.label,
-      hint: mode.hint,
-      host: mode.host,
-      types: ['pick_from_list', 'multiple_choice'],
-      prompt: ROUND_PROMPTS[mode.id],
-      explanation: !NO_EXPLANATION_ROUNDS.includes(mode.id),
-      wikiOnly: WIKI_ROUNDS.includes(mode.id),
-      editor: 'shadow',
-      questionHint: "Players see the right answer's render. Name it as the wiki does.",
-      typeLabels: { pick_from_list: 'Shadow', multiple_choice: 'Render' },
-    })),
-  ...VERSE_ROUNDS.map(choiceRound)
-    .filter((mode) => mode !== undefined)
-    .map((mode): Choice => ({
-      id: mode.id,
-      kind: 'question',
-      label: mode.label,
-      hint: 'A verse about an item, for Falo to sing.',
-      host: mode.host,
-      types: ['pick_from_list'],
-      explanation: !NO_EXPLANATION_ROUNDS.includes(mode.id),
-      editor: 'verse',
-    })),
-  ...MAP_ROUNDS.map(choiceRound)
-    .filter((mode) => mode !== undefined)
-    .map((mode): Choice => ({
-      id: mode.id,
-      kind: 'question',
-      label: mode.label,
-      hint: 'A place on the world map for players to pin.',
-      host: mode.host,
-      types: ['map_pin'],
-      explanation: !NO_EXPLANATION_ROUNDS.includes(mode.id),
-      wikiOnly: WIKI_ROUNDS.includes(mode.id),
-      editor: 'place',
-    })),
-  ...ORDERING_ROUNDS.map(choiceRound)
-    .filter((mode) => mode !== undefined)
-    .map((mode): Choice => ({
-      id: mode.id,
-      kind: 'question',
-      label: mode.label,
-      hint: ORDERING_HINTS[mode.id] ?? mode.hint,
-      host: mode.host,
-      types: ['ordering'],
-    })),
+  ...ROUND_CHOICES,
   {
     id: NO_ROUND,
     kind: 'question',
@@ -485,7 +373,7 @@ export function placedIn(content: QuestionContent, round: string): QuestionConte
   const { intro: _intro, ...plain } = payload
   return {
     ...rest,
-    payload: INTRO_ROUNDS.includes(round) ? payload : plain,
+    payload: takesIntro(round) ? payload : plain,
     ...(round === NO_ROUND ? {} : { mode: round }),
     ...(round === 'random_event' && npc !== undefined ? { random_event: npc } : {}),
   }
@@ -590,7 +478,7 @@ export function npcNameProblem(name: string, asked: readonly string[] = []): str
   return textProblem(name, NPC_NAME_MAX, 'the NPC’s name')
 }
 
-/** `VERSE_MODES`'s prompt limit: the schema's. */
+/** A verse's limit: the schema's `pick_from_list` prompt. */
 export const VERSE_MAX = limit(field('pick_from_list', 'prompt'), 'maxLength') ?? 0
 
 /** What the server's `normalize` keeps of a name, near enough to warn before a send. */
@@ -668,9 +556,7 @@ export interface SuggestStep {
 /** Whether a question choice offers the optional extras card (intro, picture item, or explanation). */
 export function hasExtras(choice: Choice): boolean {
   if (choice.kind !== 'question') return false
-  return (
-    (choice.explanation ?? true) || Boolean(choice.pictureItem) || INTRO_ROUNDS.includes(choice.id)
-  )
+  return (choice.explanation ?? true) || Boolean(choice.pictureItem) || takesIntro(choice.id)
 }
 
 /** The steps a suggestion editor walks through, with their completion and missing state. */
@@ -742,7 +628,7 @@ export const STATUS_LABELS: Record<SuggestionStatus, string> = {
 export function summary(suggestion: Pick<SuggestionBody, 'kind' | 'content'>): string {
   if (suggestion.kind === 'item') return (suggestion.content as ItemContent).name
   const content = suggestion.content as QuestionContent
-  if (content.mode === 'whos_that_npc') return answerOf(suggestion)
+  if (rulesOf(content.mode ?? NO_ROUND)?.report === 'npc') return answerOf(suggestion)
   return matchLine(content)
 }
 
@@ -783,14 +669,15 @@ export function similarKey(content: QuestionContent): string | null {
   const prompt = typeof payload.prompt === 'string' ? payload.prompt.trim() : ''
   const answer = answerOf({ kind: 'question', content }).trim()
   if (prompt === '' || answer === '') return null
-  const options = mode === 'odd_one_out' ? payload.options : null
+  const options = rulesOf(mode ?? NO_ROUND)?.compare === 'options' ? payload.options : null
   return JSON.stringify([type, prompt, payload.quote ?? null, answer, options])
 }
 
 /** One line naming a matched question as the operator reads it, without its answer. */
 export function matchLine(question: QuestionContent): string {
   const { mode, payload } = question
-  if (mode === 'odd_one_out') return (payload.options as string[]).join(', ')
+  if (rulesOf(mode ?? NO_ROUND)?.report === 'options')
+    return (payload.options as string[]).join(', ')
   const prompt = typeof payload.prompt === 'string' ? payload.prompt : ''
   return typeof payload.quote === 'string' ? `${prompt} “${payload.quote}”` : prompt
 }

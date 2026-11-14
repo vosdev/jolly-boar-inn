@@ -1,4 +1,4 @@
-import type { Mode } from '../modes'
+import type { Mode, SuggestCard } from '../modes'
 
 export const mode: Mode = {
   id: 'mark_the_map',
@@ -81,3 +81,5 @@ export const mode: Mode = {
   },
   stem: 'text',
 }
+
+export const card: SuggestCard = { place: 15, hint: 'A place on the world map for players to pin.' }
