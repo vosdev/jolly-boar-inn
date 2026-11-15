@@ -137,7 +137,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
   At `run`: `multiple_choice` 10 + 2/option and 4 + 0.5/option, `pick_all_that_apply` 10 + 3 and
   4 + 1, `ordering` and `matching` 10 + 5 and 4 + 2 per entry or field, `price_is_right` 15 and 6,
   `more_less` 10 and 5, `pick_from_list` 25 and 6, `free_text` 20 and 7, `closest_number` 20 and 8,
-  `number_slider` 15 and 8, `map_pin` 20 + 10 and 8 + 2 per pin.
+  `number_slider` 15 and 8, `map_pin` 20 + 10 and 8 + 2 per pin, `picture_pin` 20 and 10.
   `name_wrong_answers` adds 1 s to every reveal after the pace, for the names.
 - A game's minutes (`rooms/duration.py`) are a ceiling: every question's hold, answer and reveal,
   15 s per splash, standings between rounds. Create multiplies each round by its mode's `seconds`
@@ -195,9 +195,10 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   envelope fields stay out, so a mode rename rewrites no id.
 - Length caps live in the schema, not only in forms. Every choice array references
   `$defs/choices`, six at most, one per gem; `ordering.entries` and `matching.options` do too.
-- Assets are `item:<id>` or `npc:<id>`, never a URL. No `client_view` or `reveal` carries `image`:
-  for some modes that id is the answer. A pack question's picture goes out as `picture` (section 6),
-  a `matching` field's `icon` as the field's `picture`, added by the type's `pictured`.
+- Assets are `item:<id>` or `npc:<id>`, or `screenshot:<name>`, an own screenshot, never a URL. No
+  `client_view` or `reveal` carries one: for some modes that id is the answer. A pack question's
+  picture goes out as `picture` (section 6), a `matching` field's `icon` as the field's `picture`
+  and a `picture_pin`'s `screenshot` as the view's, added by the type's `pictured`.
 - `difficulty` on the envelope is `easy`, `medium` or `hard`. Every round-pack question has one; an
   event or host question without one counts as medium.
 - `random_event` on the envelope names the NPC who asks. Only event files and host questions carry it.
@@ -221,6 +222,7 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 | `ordering` | shown positions, first end first: all, or `picks` of them | per place: 1 for its rank; with `picks`, ½ for another picked one |
 | `matching` | a shown option position per field, in field order, distinct unless `bins` | right fields ÷ fields |
 | `map_pin` | a list of `{x, y}` in game tiles, one per target, inside `bounds` or the surface | mean of each pin's credit, at the pairing that scores best (section 8) |
+| `picture_pin` | one `{x, y}`, fractions 0..1 of the picture's width and height; on a grid its cell's middle | by distance from the box (section 8), or 1 or 0 on a grid |
 
 - Free text is NFKC-normalised, lowercased, stripped of punctuation and whitespace-collapsed, then
   matched within `max_distance` of an accepted answer. Levenshtein runs only inside that band, so it
@@ -252,6 +254,11 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   target. It plays in rounds only: `drawable` needs the tiles (`TILES` among `pictures`, from
   `CLIENT_MAP` or the client), so a pool with no tiles is empty, and an event has no pool to empty.
   Above five pinned players a several-pin map shows only your own, and the TV only the targets.
+- `picture_pin` is a `screenshot`, its `width` and `height` in pixels for its shape, and either a
+  `target` box in fractions with `reach`, or a `grid` of 1 to 16 `cols` and `rows` with target
+  `cells` (`{col, row}` from 0 at the top left, not every one). `check()` rejects a box under 0.02
+  of the longer side across. The open view has `picture`, the shape and any `grid`, never a target;
+  `drawable` needs the screenshot among `pictures`. Rounds only: a host's question names no picture.
 - `pick_all_that_apply` stores sorted `answer_indices` and an optional `picks`, shown open. `check()`
   rejects no option right, and a `picks` that is not their count. Every option right is allowed
   (owner's call); ticking all then earns only the right share.
@@ -418,7 +425,8 @@ PlayerResult { value, correct, credit, points }
   (section 12), or null: no image, a host's question, or a file the client lacks: `client/dist`,
   or `client/public` under `make dev`. Served immutable, and drawn under the stem, open and revealed,
   but for a `picture_at_reveal` round's, which only `question_closed` names. Devtools still show the
-  whole picture before it builds up or loses its shadow.
+  whole picture before it builds up or loses its shadow. A `picture_pin`'s screenshot is
+  `view.picture` instead, open and revealed, and its target only the reveal's.
 - `answerable_at` is `opened_at` plus the hold the question types in (`rooms/hold.py`): 0.4 s (0.9 s
   for an event), each line, a round's host's ask line counted as 50 letters, at 50 letters a second
   with a 0.5–1 s pause after it, then 0.2 s. Answers before it are `not_open`, and `ends_at` and timing count from it, so the typing
@@ -590,7 +598,7 @@ from taking the lock. `grade` returns credit; `scoring.py` turns it into points 
 | `SCORING` | Points | Types |
 |---|---|---|
 | `SPEED` | `round(bucket points × credit)` | `more_less`, `price_is_right`, `number_slider`, `multiple_choice`, `free_text`, `pick_all_that_apply`, `ordering`, `matching` |
-| `ACCURACY` | `round(1000 × credit)` | `closest_number`, `map_pin` |
+| `ACCURACY` | `round(1000 × credit)` | `closest_number`, `map_pin`, `picture_pin` |
 | `STEP` | `round(step points × credit)` | `pick_from_list` in a mode with `steps`, or Certer's |
 
 | Speed bucket | Fraction of the question's seconds | Points |
@@ -618,6 +626,10 @@ Map pin: 1.0 inside the target's box, then a straight line from its edge to 0 at
 question's own, else 100, or with `bounds` a fifth of their longer side up to 100. The client repeats
 the pairing (`lib/pins.ts`) to draw each pin's line: the server cannot send it in `value`, which is
 echoed while the question is open. `mapPins.fixture.json` holds both to the same answers.
+
+Picture pin: `map_pin`'s sum on the picture as drawn, distance and `reach` in fractions of its
+longer side, so a 16:9 screenshot grades evenly; `reach` 0 is all or nothing. On a grid, 1 on a
+target cell, else 0. `lib/picturePins.ts` repeats it, held by `picturePins.fixture.json`.
 
 Slider (`price_is_right`): 1.0 for a guess that rounds to the price at two figures, then falling
 linearly from that band's edge to 0 at a quarter of the log width; the reveal ticks every guess.
@@ -928,7 +940,8 @@ Right until it does (More/Less keeps `sample.json`'s five, which `live_packs` dr
   question.
 - `make fetch-assets` fetches `data/assets.json` (target under `client/src/assets/` to wiki title)
   into place, skipping files that exist. Images are never committed: every target must be
-  git-ignored. A question's picture, `pictures/<item|npc>/<id>.<ext>`, is staged in `.pictures/`;
+  git-ignored. A question's picture, `pictures/<item|npc>/<id>.<ext>`, is staged in `.pictures/`,
+  a screenshot by hand as `screenshot/<name>.<ext>`, kept as it is and refused off its questions' size;
   `build_pictures.py` then copies each one a pack uses to `client/public/pictures/<random>.<ext>`,
   out of the bundle, which would merge it with an identical item icon; an item's is cropped to its
   opaque box, padded square and shrunk to at most 512 px, as a deterministic PNG. `data/pictures.json`
