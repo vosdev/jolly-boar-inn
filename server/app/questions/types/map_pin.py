@@ -27,6 +27,7 @@ asked to find inside one they already know, and the whole map stays a pan away.
 """
 
 import math
+from collections.abc import Mapping
 from itertools import combinations, permutations
 from typing import Any
 from uuid import UUID
@@ -122,7 +123,7 @@ def _credit(pins: list[dict[str, int]], targets: list[dict[str, Any]], reach: fl
     return best / len(targets)
 
 
-def pin_credit(pin: dict[str, float], target: dict[str, Any], reach: float) -> float:
+def pin_credit(pin: Mapping[str, float], target: dict[str, Any], reach: float) -> float:
     """1.0 in ``target``'s box, falling in a straight line from its edge to 0 at ``reach``."""
     across = max(target["min_x"] - pin["x"], pin["x"] - target["max_x"], 0)
     up = max(target["min_y"] - pin["y"], pin["y"] - target["max_y"], 0)

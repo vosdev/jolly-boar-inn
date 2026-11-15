@@ -36,7 +36,7 @@ from app.questions.types.scoring import Scoring
 from app.questions.types.timing import Timing
 
 SCORING = Scoring.ACCURACY
-# One spot to find on a picture drawn whole: one map pin's time, with no panning to do.
+# One spot on a picture drawn whole: a map pin's base, with no map to pan or zoom.
 ANSWER = Timing(base=20)
 REVEAL = Timing(base=10)
 
