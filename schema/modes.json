@@ -883,6 +883,10 @@
     "map_pin": {
       "base": 20,
       "per_item": 10
+    },
+    "picture_pin": {
+      "base": 20,
+      "per_item": 0.0
     }
   },
   "min_answer": 5,
