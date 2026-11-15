@@ -227,6 +227,16 @@ describe('RevealTally', () => {
     ])
   })
 
+  it('groups picture pins by whether they scored', () => {
+    const spot = { x: 0.5, y: 0.5 }
+    const { container } = draw(
+      { a: right(spot, 1000), b: partly(0.3, spot), c: partly(0.8, spot), d: wrong(spot) },
+      { type: 'picture_pin', reveal: { width: 16, height: 9, reach: 0.2 } },
+    )
+    expect(count(container)).toBe('1 of 4 found the spot')
+    expect(lines(container)).toEqual(['Close (2): Lynx, Woox', 'Off the spot (1): Dorn'])
+  })
+
   it('groups a pick-all answer by its right picks, with picks set', () => {
     const answer = [0, 1, 2, 3]
     const { container } = draw(

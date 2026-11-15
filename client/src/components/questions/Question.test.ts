@@ -14,7 +14,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { serverNow } from '../../lib/clock'
 import type { OpenQuestion, PlayerResult, Scoring } from '../../lib/protocol'
 import { MODES, pickLines } from '../../lib/modes'
-import { answerAck, answerCount, players } from '../../lib/stores'
+import { answerAck, answerCount, players, you } from '../../lib/stores'
 import { clearVocabCache } from '../../lib/vocab'
 import QuestionStage from '../QuestionStage.svelte'
 import { STEMS, TYPE_VIEWS, viewFor } from './index'
@@ -277,6 +277,18 @@ const EVERY_TYPE: { type: string; mode: string; view: object; reveal: object }[]
       reach: 100,
     },
   },
+  {
+    type: 'picture_pin',
+    mode: 'custom',
+    view: { prompt: 'Where?', width: 1600, height: 900 },
+    reveal: {
+      prompt: 'Where?',
+      width: 1600,
+      height: 900,
+      target: { min_x: 0.4, max_x: 0.5, min_y: 0.4, max_y: 0.6 },
+      reach: 0.2,
+    },
+  },
 ]
 
 /** The types whose `reveal` carries the author's `explanation` (`questions/types/*.py`). */
@@ -290,6 +302,7 @@ const EXPLAINED = [
   'ordering',
   'matching',
   'map_pin',
+  'picture_pin',
 ]
 
 const entries = [{ id: 6585, name: 'Amulet of fury' }]
@@ -910,6 +923,17 @@ describe('a phone while the TV shows the question', () => {
     })
   }
 
+  it("draws a picture pin's picture all the same, since the picture is where it is answered", () => {
+    const view = { prompt: 'Where?', picture: '0123abcd.png', width: 1600, height: 900 }
+    const question = { ...open('picture_pin', 'custom', view), picture: null }
+    render(QuestionStage, { question, yourValue: null, onAnswer, answersOnly: true })
+    expect(document.querySelector('.answers img.shot')?.getAttribute('src')).toBe(
+      '/pictures/0123abcd.png',
+    )
+    expect(screen.getByRole('button', { name: 'Lock in' })).toBeTruthy()
+    expect(document.querySelector('.stage, .scroll, .paper, .npc')).toBeNull()
+  })
+
   it("draws a random event's answers without its NPC or card", () => {
     const question = {
       ...open('multiple_choice', 'random_event', {
@@ -1078,6 +1102,48 @@ describe("the room's TV", () => {
       expect(text).not.toContain(line)
     }
     expect(document.querySelector('.bubble')).toBeNull()
+  })
+
+  describe('a picture pin', () => {
+    const view = { prompt: 'Where is the safespot?', picture: 'f00d.png', width: 1600, height: 900 }
+    const question = open('picture_pin', 'custom', view)
+
+    beforeEach(() => {
+      you.set({ ...person('Lounge'), role: 'tv' })
+    })
+
+    afterEach(() => {
+      you.set(null)
+    })
+
+    it('shows its picture on the sheet while players pin, with nothing to pin', () => {
+      render(QuestionStage, { question, yourValue: null, onAnswer, tv: true })
+      const paper = document.querySelector('.paper')!
+      expect(paper.textContent).toContain(view.prompt)
+      expect(paper.querySelector('img.shot')?.getAttribute('src')).toBe('/pictures/f00d.png')
+      expect(screen.queryAllByRole('button')).toEqual([])
+      expect(document.querySelector('.tv-panel')?.textContent).toContain('1 of 3')
+    })
+
+    it('reveals the target and every pin on the sheet, and the tally in the panel', () => {
+      const target = { min_x: 0.4, max_x: 0.5, min_y: 0.4, max_y: 0.6 }
+      render(QuestionStage, {
+        question,
+        reveal: { ...view, target, reach: 0.2 },
+        yourValue: null,
+        results: {
+          Ann: { value: { x: 0.45, y: 0.5 }, correct: true, credit: 1, points: 1000 },
+          Dave: { value: { x: 0.9, y: 0.1 }, correct: false, credit: 0, points: 0 },
+        },
+        onAnswer,
+        tv: true,
+        children: tally,
+      })
+      const paper = document.querySelector('.paper')!
+      expect(paper.querySelector('rect.target')).toBeTruthy()
+      expect(paper.querySelectorAll('.pin')).toHaveLength(2)
+      expect(document.querySelector('.stage.tv .tv-panel')?.textContent).toContain(NAMES)
+    })
   })
 
   it("reveals a random event's tally and names the same way", () => {

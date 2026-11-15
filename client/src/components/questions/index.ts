@@ -39,6 +39,7 @@ import NumberSlider from './types/NumberSlider.svelte'
 import Ordering from './types/Ordering.svelte'
 import PickAllThatApply from './types/PickAllThatApply.svelte'
 import PickFromList from './types/PickFromList.svelte'
+import PicturePin from './types/PicturePin.svelte'
 import PriceIsRight from './types/PriceIsRight.svelte'
 
 export const TYPE_VIEWS: Record<string, Component<TypeViewProps>> = {
@@ -53,6 +54,7 @@ export const TYPE_VIEWS: Record<string, Component<TypeViewProps>> = {
   ordering: Ordering,
   matching: Matching,
   map_pin: MapPin,
+  picture_pin: PicturePin,
 }
 
 // Keyed on `StemId` rather than `string`, so naming a stem in `lib/modes.ts` that has no
