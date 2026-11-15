@@ -328,7 +328,7 @@
   }
 
   /* On the TV's sheet, where the quotes and the slant say it is the host's. */
-  :global(.content) .greeting {
+  :global([data-sheet]) .greeting {
     font-style: italic;
   }
 

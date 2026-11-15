@@ -128,3 +128,31 @@ describe('the sheet', () => {
     expect(sheet.dataset.sheet).toBe('slab')
   })
 })
+
+describe('the sheet on the stage', () => {
+  const guest = { guest: 'boar', returning: true }
+
+  function words(props: Record<string, unknown>) {
+    document.documentElement.dataset.theme = 'jolly'
+    const { container } = render(StageView, { paper, ...props })
+    return container.querySelector('.scroll .content') as HTMLElement
+  }
+
+  it('takes its words off when a random event hands the stage back, beside or under the bubble', () => {
+    expect(words({}).classList.contains('hidden')).toBe(false)
+    cleanup()
+    expect(words(guest).classList.contains('hidden')).toBe(true)
+    cleanup()
+    expect(words({ ...guest, bubble: 'on' }).classList.contains('hidden')).toBe(true)
+  })
+
+  it("stretches to the TV's height, and runs edge to edge on a phone everywhere", () => {
+    const phone = stage('jolly').sheet
+    expect(phone.classList.contains('fill')).toBe(false)
+    expect(phone.classList.contains('edge')).toBe(true)
+    cleanup()
+    document.documentElement.dataset.theme = 'jolly'
+    const { container } = render(StageView, { paper, tv: true })
+    expect(container.querySelector('.scroll')!.classList.contains('fill')).toBe(true)
+  })
+})

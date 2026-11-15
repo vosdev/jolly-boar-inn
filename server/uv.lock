@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = ">=3.14"
 resolution-markers = [
     "python_full_version >= '3.15'",
@@ -286,9 +286,8 @@ wheels = [
 
 [[package]]
 name = "jolly-boar-inn"
-version = "0.249.1"
+version = "0.249.2"
 source = { editable = "." }
-default-groups = ["data", "dev"]
 dependencies = [
     { name = "asyncpg" },
     { name = "fastapi" },

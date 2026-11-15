@@ -42,7 +42,7 @@
     overflow-wrap: anywhere;
   }
 
-  :global(.paper) .board {
+  :global([data-sheet]) .board {
     margin: 0;
     font-size: max(1rem, 1.2rem * var(--scroll-text, 1));
     line-height: 1.3;
