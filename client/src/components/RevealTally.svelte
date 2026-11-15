@@ -18,7 +18,7 @@
    * punishes misses and extras alike. Ordering groups by entries in place, read
    * off `credit`, and with `picks` also those out of place, read off the value. Grouping
    * by how many, not by which, keeps six entries to six lines. Matching groups the same
-   * way, by fields right, read off `credit`.
+   * way, by fields right, read off `credit`, and a sort into bins says "sorted" for "matched".
    *
    * Not answering is not getting it wrong (the points slot makes the same distinction),
    * so it is its own line, last and muted.
@@ -113,6 +113,7 @@
   const right = $derived(rows.filter(([, result]) => result.correct).length)
   const wrong = $derived(rows.filter(([, result]) => !result.correct))
   const options = $derived((reveal.options as unknown[] | undefined) ?? [])
+  const done = $derived(reveal.bins === true ? 'sorted' : 'matched')
   const count = new Intl.NumberFormat()
 
   let vocab = $state<Map<number, string> | null>(null)
@@ -349,7 +350,7 @@
       case 'ordering':
         return { label: 'All in place', gem: null }
       case 'matching':
-        return { label: 'All matched', gem: null }
+        return { label: `All ${done}`, gem: null }
       default:
         return { label: 'Right answer', gem: null }
     }
@@ -369,7 +370,7 @@
       // With no heading over them, matching's "2 of 4" says what it counts.
       ...groups.map((group) => ({
         ...group,
-        label: type === 'matching' ? `${group.label} matched` : group.label,
+        label: type === 'matching' ? `${group.label} ${done}` : group.label,
         right: false,
       })),
       { ...missed, right: false },

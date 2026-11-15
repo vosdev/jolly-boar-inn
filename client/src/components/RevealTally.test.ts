@@ -315,6 +315,22 @@ describe('RevealTally', () => {
     ).toEqual(['All matched', '2 of 4 matched', 'None matched'])
   })
 
+  it('says sorted, not matched, for a sort into bins', () => {
+    const fields = ['a', 'b', 'c', 'd'].map((text) => ({ text }))
+    const options = ['Saradomin', 'Zamorak'].map((text) => ({ text }))
+    const { container } = draw(
+      { a: partly(0.5), b: right(), e: wrong() },
+      {
+        type: 'matching',
+        reveal: { bins: true, fields, options, answer: [0, 1, 0, 1] },
+        panel: true,
+      },
+    )
+    expect(
+      [...container.querySelectorAll('.row .label')].map((label) => label.textContent),
+    ).toEqual(['All sorted', '2 of 4 sorted', 'None sorted'])
+  })
+
   it('with picks, groups an ordering answer by its value, in place and out of place', () => {
     const entries = [1, 2, 3, 4, 5, 6].map((rank) => ({ text: String(rank), rank }))
     const answered = (value: number[], credit: number): PlayerResult => ({

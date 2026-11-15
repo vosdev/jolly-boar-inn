@@ -1,7 +1,8 @@
 /**
  * `matching` on screen: dragging an option onto each field, from a pointer or the keyboard,
  * sending one back, starting over, sending with Submit or on its own before time runs
- * out, icon fields, and a reveal that sets each right option on its field.
+ * out, icon fields, and a reveal that sets each right option on its field. With `bins`,
+ * sorting entries into bins by tap, drag or keyboard, and a reveal grouped by bin.
  */
 
 import { fireEvent, render, screen } from '@testing-library/svelte'
@@ -258,5 +259,206 @@ describe('matching', () => {
     expect(rows[0]?.textContent).not.toContain('you:')
     expect(screen.getByText('Left over: Karuulm Slayer Dungeon')).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Submit' })).toBeNull()
+  })
+})
+
+const ENTRIES = ['Saradomin brew', 'Zamorak brew', 'Guthix rest', 'Saradomin sword']
+// As the server shuffles them: Armadyl holds nothing.
+const GODS = ['Zamorak', 'Saradomin', 'Guthix', 'Armadyl']
+const SORT = {
+  prompt: 'Which god does each belong to?',
+  bins: true,
+  fields: ENTRIES.map((text) => ({ text })),
+  options: GODS.map((text) => ({ text })),
+}
+const SORTED = [1, 0, 2, 1]
+
+const bin = (name: string) =>
+  screen.getByRole('button', { name: new RegExp(`^${name}( ?,|$)`) }) as HTMLButtonElement
+const chip = (name: string) =>
+  screen.getByRole('button', { name: new RegExp(`^${name}( ?,|$)`) }) as HTMLButtonElement
+/** The entries in each bin, in bin order, then the pool. */
+const sorted = () => [
+  ...[...document.querySelectorAll('ol.bins > li')].map((li) =>
+    [...li.querySelectorAll('.held .name')].map((name) => name.textContent),
+  ),
+  [...document.querySelectorAll('.pool .name')].map((name) => name.textContent),
+]
+
+/** Bins 100px apart from the left of the window, and the pool from 400px down. */
+function columns(): void {
+  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+    this: HTMLElement,
+  ) {
+    const inPool = this.dataset.tray !== undefined
+    const left = this.dataset.place !== undefined ? Number(this.dataset.place) * 100 : 0
+    const top = inPool ? 400 : 0
+    const width = inPool ? 400 : 90
+    const height = inPool ? 100 : 300
+    return {
+      top,
+      bottom: top + height,
+      left,
+      right: left + width,
+      width,
+      height,
+      x: left,
+      y: top,
+    } as DOMRect
+  })
+}
+
+async function dragAcross(name: string, x: number, y: number): Promise<void> {
+  const grip = handle(name)
+  await fireEvent.pointerDown(grip, { pointerId: 1, button: 0, clientX: 50, clientY: 450 })
+  await fireEvent.pointerMove(grip, { pointerId: 1, button: 0, clientX: x, clientY: y })
+  await fireEvent.pointerUp(grip, { pointerId: 1, button: 0, clientX: x, clientY: y })
+}
+
+describe('matching with bins', () => {
+  it('is drawn by the same view, the bins as columns over a pool of every entry', () => {
+    expect(viewFor('matching', 'custom').view).toBe(Matching)
+    render(Question, { question: open(SORT), yourValue: null, onAnswer: () => {} })
+    expect(screen.getByText('Tap one, then its bin, or drag it there')).toBeTruthy()
+    expect(sorted()).toEqual([[], [], [], [], ENTRIES])
+    expect(bin('Zamorak').disabled).toBe(true)
+    expect(submit().disabled).toBe(true)
+  })
+
+  it('sorts by a tap on an entry, then on its bin, many to a bin, and sends each bin', async () => {
+    const onAnswer = vi.fn()
+    render(Question, { question: open(SORT), yourValue: null, onAnswer })
+    await fireEvent.click(chip('Saradomin brew'))
+    expect(chip('Saradomin brew').getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getByRole('button', { name: /^Saradomin ?, put Saradomin brew here$/ })).toBe(
+      bin('Saradomin'),
+    )
+    await fireEvent.click(bin('Saradomin'))
+    await fireEvent.click(chip('Zamorak brew'))
+    await fireEvent.click(bin('Zamorak'))
+    await fireEvent.click(chip('Guthix rest'))
+    await fireEvent.click(bin('Armadyl'))
+    await fireEvent.click(chip('Saradomin sword'))
+    await fireEvent.click(bin('Saradomin'))
+    expect(sorted()).toEqual([
+      ['Zamorak brew'],
+      ['Saradomin brew', 'Saradomin sword'],
+      [],
+      ['Guthix rest'],
+      [],
+    ])
+    await fireEvent.click(chip('Guthix rest'))
+    await fireEvent.click(bin('Guthix'))
+    await fireEvent.click(submit())
+    expect(onAnswer).toHaveBeenCalledExactlyOnceWith(SORTED)
+  })
+
+  it('sorts by dragging a handle onto a bin, and back to the pool', async () => {
+    columns()
+    render(Question, { question: open(SORT), yourValue: null, onAnswer: () => {} })
+    await dragAcross('Guthix rest', 250, 100)
+    await dragAcross('Saradomin brew', 150, 100)
+    await dragAcross('Saradomin sword', 150, 100)
+    expect(sorted()).toEqual([
+      [],
+      ['Saradomin brew', 'Saradomin sword'],
+      ['Guthix rest'],
+      [],
+      ['Zamorak brew'],
+    ])
+    await dragAcross('Saradomin sword', 50, 450)
+    expect(sorted()).toEqual([
+      [],
+      ['Saradomin brew'],
+      ['Guthix rest'],
+      [],
+      ['Zamorak brew', 'Saradomin sword'],
+    ])
+  })
+
+  it('sorts from the keyboard: space lifts, the arrows step through the bins, space drops', async () => {
+    render(Question, { question: open(SORT), yourValue: null, onAnswer: () => {} })
+    await press('Guthix rest', ' ')
+    await press('Guthix rest', 'ArrowRight')
+    await press('Guthix rest', 'ArrowDown')
+    await press('Guthix rest', 'ArrowRight')
+    await press('Guthix rest', 'ArrowRight')
+    await press('Guthix rest', 'ArrowLeft')
+    expect(document.activeElement).toBe(handle('Guthix rest'))
+    await press('Guthix rest', ' ')
+    expect(sorted()).toEqual([
+      [],
+      [],
+      ['Guthix rest'],
+      [],
+      ['Saradomin brew', 'Zamorak brew', 'Saradomin sword'],
+    ])
+    await fireEvent.click(rewind())
+    expect(sorted()).toEqual([[], [], [], [], ENTRIES])
+  })
+
+  it('sends on its own a second before time runs out, unsorted entries in the first bin', async () => {
+    closingSoon()
+    const onAnswer = vi.fn()
+    render(Question, { question: open(SORT), yourValue: null, onAnswer })
+    await fireEvent.click(chip('Guthix rest'))
+    await fireEvent.click(bin('Guthix'))
+    vi.advanceTimersByTime(9_000)
+    expect(onAnswer).toHaveBeenCalledExactlyOnceWith([0, 0, 2, 0])
+  })
+
+  it('once sent, holds each entry in its bin with nothing to press', () => {
+    render(Question, { question: open(SORT), yourValue: SORTED, onAnswer: () => {} })
+    expect(sorted()).toEqual([
+      ['Zamorak brew'],
+      ['Saradomin brew', 'Saradomin sword'],
+      ['Guthix rest'],
+      [],
+      [],
+    ])
+    expect(
+      screen.queryAllByRole('button', { name: /^(Move|Saradomin|Zamorak|Guthix)/ }),
+    ).toHaveLength(0)
+    expect(screen.queryByRole('button', { name: 'Submit' })).toBeNull()
+  })
+
+  it('shows the TV the bins as columns and every entry listed under them', () => {
+    render(Question, { question: open(SORT, false), yourValue: null, onAnswer: () => {} })
+    expect(screen.getByText('Sort each into its bin')).toBeTruthy()
+    expect(
+      [...document.querySelectorAll('ol.bins > li .text, ol.bins > li .content')].map(
+        (el) => el.textContent,
+      ),
+    ).toEqual(GODS)
+    expect(sorted()).toEqual([[], [], [], [], ENTRIES])
+    expect(screen.queryAllByRole('button')).toHaveLength(0)
+  })
+
+  it('reveals each bin with its detail and its entries, ours put elsewhere faded', () => {
+    render(Question, {
+      question: open(SORT),
+      reveal: {
+        ...SORT,
+        options: GODS.map((text) => (text === 'Guthix' ? { text, detail: 'Balance' } : { text })),
+        answer: SORTED,
+      },
+      yourValue: [1, 0, 0, 1],
+      result: { value: [1, 0, 0, 1], correct: false, credit: 0.75, points: 675 },
+      onAnswer: () => {},
+    })
+    const bins = [...document.querySelectorAll('ol.bins > li')]
+    expect(bins.map((li) => li.querySelector('.text')?.textContent)).toEqual(GODS)
+    expect(bins[2]?.querySelector('.detail')?.textContent).toBe('Balance')
+    expect(sorted().slice(0, 4)).toEqual([
+      ['Zamorak brew'],
+      ['Saradomin brew', 'Saradomin sword'],
+      ['Guthix rest'],
+      [],
+    ])
+    const guthix = bins[2]?.querySelector('.chip')
+    expect(guthix?.classList.contains('faded')).toBe(true)
+    expect(guthix?.textContent).toContain('you: Zamorak')
+    expect(bins[1]?.querySelector('.chip')?.classList.contains('faded')).toBe(false)
+    expect(bins[3]?.textContent).toContain('None')
   })
 })

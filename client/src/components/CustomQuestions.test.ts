@@ -180,6 +180,38 @@ describe('CustomQuestions', () => {
     })
   })
 
+  it('writes a sort into bins, hinting at a third bin without holding Save up', async () => {
+    const panel = await loaded()
+    await click(panel, 'Write a question')
+    await pick(editor(), 'Match them up')
+    const form = editor()
+    await pick(form, 'Sort into bins')
+    await type(form, 'Question', 'Free-to-play or members?')
+    await click(form, 'Remove bin 3')
+    expect(form.textContent).toContain('Three or more bins work best')
+    await type(form, 'Bin 1', 'Free-to-play')
+    await type(form, 'Bin 2', 'Members')
+    const items = ['Rune scimitar', 'Dragon dagger', 'Lobster', 'Shark']
+    for (const [i, item] of items.entries()) {
+      await type(form, `Entry ${i + 1}`, item)
+      const bin = within(form).getByRole('combobox', { name: `Bin of entry ${i + 1}` })
+      await fireEvent.change(bin, { target: { value: String(i % 2) } })
+    }
+    await click(form, 'Add question')
+    expect(panel.textContent).toContain('Sort into bins · Random NPC')
+    const [sent] = await submitted()
+    expect(sent).toEqual({
+      type: 'matching',
+      payload: {
+        prompt: 'Free-to-play or members?',
+        bins: true,
+        fields: items.map((text) => ({ text })),
+        options: [{ text: 'Free-to-play' }, { text: 'Members' }],
+        answer: [0, 1, 0, 1],
+      },
+    })
+  })
+
   it('adds, edits, deletes and reorders all three types, and sends them in that order', async () => {
     const panel = await loaded()
     await setFrequency('More')
