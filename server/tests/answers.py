@@ -88,6 +88,33 @@ def _other_side_of_the_map(payload: dict[str, Any]) -> list[dict[str, int]]:
     return [{"x": x, "y": area["min_y"]} for _ in payload["targets"]]
 
 
+def _on_target(payload: dict[str, Any]) -> dict[str, float]:
+    if "grid" in payload:
+        cell = payload["cells"][0]
+        grid = payload["grid"]
+        return {"x": (cell["col"] + 0.5) / grid["cols"], "y": (cell["row"] + 0.5) / grid["rows"]}
+    box = payload["target"]
+    return {"x": (box["min_x"] + box["max_x"]) / 2, "y": (box["min_y"] + box["max_y"]) / 2}
+
+
+def _off_target(payload: dict[str, Any]) -> dict[str, float]:
+    # Short of every target cell, or the picture's corner furthest from the box.
+    if "grid" in payload:
+        grid = payload["grid"]
+        targets = {(cell["col"], cell["row"]) for cell in payload["cells"]}
+        col, row = next(
+            (col, row)
+            for row in range(grid["rows"])
+            for col in range(grid["cols"])
+            if (col, row) not in targets
+        )
+        return {"x": (col + 0.5) / grid["cols"], "y": (row + 0.5) / grid["rows"]}
+    box = payload["target"]
+    west = box["min_x"] + box["max_x"] > 1
+    north = box["min_y"] + box["max_y"] > 1
+    return {"x": 0.0 if west else 1.0, "y": 0.0 if north else 1.0}
+
+
 _RIGHT: dict[str, Callable[[dict[str, Any]], Any]] = {
     "more_less": lambda payload: payload["answer_index"],
     "price_is_right": lambda payload: payload["value"],
@@ -101,6 +128,7 @@ _RIGHT: dict[str, Callable[[dict[str, Any]], Any]] = {
     # With ``picks`` only the first places are played, and a longer answer is refused.
     "ordering": lambda payload: ordering.reveal(payload)["answer"][: ordering.places(payload)],
     "matching": lambda payload: matching.reveal(payload)["answer"],
+    "picture_pin": _on_target,
 }
 
 _WRONG: dict[str, Callable[[dict[str, Any]], Any]] = {
@@ -118,6 +146,7 @@ _WRONG: dict[str, Callable[[dict[str, Any]], Any]] = {
     "matching": lambda payload: (lambda right: right[1:] + right[:1])(
         matching.reveal(payload)["answer"]
     ),
+    "picture_pin": _off_target,
 }
 
 

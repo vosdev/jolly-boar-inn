@@ -142,6 +142,32 @@ EXAMPLES: dict[str, Example] = {
         scoring=Scoring.ACCURACY,
         seconds=(40, 12),
     ),
+    "picture_pin": Example(
+        payload={
+            "intro": "A ranger asks for help.",
+            "prompt": "Where is the safespot?",
+            "screenshot": "screenshot:ice-demon-safespot",
+            "width": 1600,
+            "height": 900,
+            "target": {"min_x": 0.4, "max_x": 0.5, "min_y": 0.4, "max_y": 0.6},
+            "reach": 0.2,
+            "explanation": "Behind the rock.",
+        },
+        valid=[{"x": 0, "y": 0}, {"x": 1, "y": 1}, {"x": 0.6, "y": 0.5}],
+        invalid=[
+            [{"x": 0.45, "y": 0.5}],
+            {"x": 0.45},
+            {"x": -0.1, "y": 0.5},
+            {"x": 0.45, "y": 1.1},
+            {"x": "0.45", "y": 0.5},
+            "0.45,0.5",
+        ],
+        right={"x": 0.45, "y": 0.5},
+        wrong={"x": 0.9, "y": 0.1},
+        secret=frozenset({"target", "min_x", "max_x", "min_y", "max_y", "reach", "explanation"}),
+        scoring=Scoring.ACCURACY,
+        seconds=(20, 10),
+    ),
     "closest_number": Example(
         payload={
             "prompt": "How many Zulrah kills did it take?",

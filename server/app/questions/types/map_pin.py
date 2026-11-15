@@ -114,7 +114,7 @@ def _reach(payload: dict[str, Any]) -> float:
 
 
 def _credit(pins: list[dict[str, int]], targets: list[dict[str, Any]], reach: float) -> float:
-    table = [[_pin_credit(pin, target, reach) for target in targets] for pin in pins]
+    table = [[pin_credit(pin, target, reach) for target in targets] for pin in pins]
     best = max(
         sum(row[column] for row, column in zip(table, order, strict=True))
         for order in permutations(range(len(targets)))
@@ -122,10 +122,15 @@ def _credit(pins: list[dict[str, int]], targets: list[dict[str, Any]], reach: fl
     return best / len(targets)
 
 
-def _pin_credit(pin: dict[str, int], target: dict[str, Any], reach: float) -> float:
+def pin_credit(pin: dict[str, float], target: dict[str, Any], reach: float) -> float:
+    """1.0 in ``target``'s box, falling in a straight line from its edge to 0 at ``reach``."""
     across = max(target["min_x"] - pin["x"], pin["x"] - target["max_x"], 0)
     up = max(target["min_y"] - pin["y"], pin["y"] - target["max_y"], 0)
-    return max(0.0, 1.0 - math.hypot(across, up) / reach)
+    off = math.hypot(across, up)
+    # A reach of 0 is all or nothing: ``picture_pin`` allows it, where a near miss is wrong.
+    if reach <= 0:
+        return 1.0 if off == 0 else 0.0
+    return max(0.0, 1.0 - off / reach)
 
 
 def check(payload: dict[str, Any]) -> list[str]:

@@ -26,6 +26,7 @@ NOT_CHOICES = {
     "/$defs/matching/properties/fields": "the places options are dropped on, never buttons",
     "/$defs/matching/properties/answer": "the option on each field, never buttons",
     "/$defs/map_pin/properties/targets": "places on the map, a pin each, never buttons",
+    "/$defs/picture_pin/properties/cells": "the right cells of a grid, tapped, never buttons",
 }
 
 

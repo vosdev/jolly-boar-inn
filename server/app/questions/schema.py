@@ -160,8 +160,8 @@ def mode_errors(question: dict[str, Any]) -> list[str]:
 # event, ``price_is_right`` would never name its item, and ``more_less``, whose view is its
 # whole question, would show nothing while the NPC holds it. Until each has a stem that
 # works outside its round, a host or NPC pack writing one would set a question nobody can
-# answer.
-_ROUND_ONLY = frozenset({"more_less", "price_is_right", "map_pin"})
+# answer. A host's ``picture_pin`` would have no picture at all: only a pack's is named.
+_ROUND_ONLY = frozenset({"more_less", "price_is_right", "map_pin", "picture_pin"})
 
 
 def event_errors(question: dict[str, Any]) -> list[str]:

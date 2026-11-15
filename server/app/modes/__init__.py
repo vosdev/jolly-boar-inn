@@ -225,8 +225,10 @@ TILES = "map:tiles"
 
 def drawable(question: dict[str, Any], pictures: Collection[str]) -> bool:
     """Whether a room may draw ``question``: in a ``pictured`` mode, only with its picture,
-    and on the map only with the tiles."""
+    on the map only with the tiles, and on a screenshot only with that."""
     if question.get("type") == "map_pin" and TILES not in pictures:
+        return False
+    if question.get("type") == "picture_pin" and question["payload"]["screenshot"] not in pictures:
         return False
     return not needs_picture(question) or question["payload"].get("image") in pictures
 

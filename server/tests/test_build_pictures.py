@@ -13,7 +13,7 @@ from PIL import Image
 
 from app.config import REPO_ROOT
 from app.questions import vocab
-from app.questions.packs import load_packs
+from app.questions.packs import Pack, load_packs
 
 sys.path.insert(0, str(REPO_ROOT / "server" / "scripts"))
 
@@ -187,6 +187,51 @@ def test_an_item_is_written_as_png_and_an_npc_as_it_came(install: Install) -> No
     whip = install.out / f"{names['item:4151']}.png"
     assert whip.read_bytes() == build_pictures.squared(webp.getvalue())
     assert (install.out / f"{names['npc:2042']}.png").read_bytes() == PNG + b"zulrah"
+
+
+def test_a_screenshot_is_copied_as_it_is_under_a_random_name(install: Install) -> None:
+    body = picture(size=(160, 90), box=(0, 0, 160, 90))
+    install.stage("screenshot:ice-demon", body)
+    install.build("screenshot:ice-demon")
+    name = install.names()["screenshot:ice-demon"]
+    assert re.fullmatch(r"[0-9a-f]{16}", name)
+    assert (install.out / f"{name}.png").read_bytes() == body
+
+
+def test_a_screenshot_of_another_shape_than_its_question_says_writes_nothing(
+    install: Install,
+) -> None:
+    install.stage("screenshot:ice-demon", picture(size=(160, 90)))
+    with pytest.raises(ValueError, match="screenshot:ice-demon"):
+        build_pictures.build(
+            ["screenshot:ice-demon"],
+            install.staging,
+            install.out,
+            install.mapping,
+            sizes={"screenshot:ice-demon": {(1600, 900)}},
+        )
+    assert not install.mapping.exists() and install.files() == set()
+    install.build("screenshot:ice-demon")
+    sizes = {"screenshot:ice-demon": {(160, 90)}}
+    build_pictures.build(
+        ["screenshot:ice-demon"], install.staging, install.out, install.mapping, sizes=sizes
+    )
+    assert set(install.names()) == {"screenshot:ice-demon"}
+
+
+def test_the_screenshots_and_their_sizes_come_from_the_pin_questions() -> None:
+    payload = {
+        "prompt": "Where?",
+        "screenshot": "screenshot:ice-demon",
+        "width": 160,
+        "height": 90,
+        "target": {"min_x": 0.1, "max_x": 0.3, "min_y": 0.1, "max_y": 0.3},
+        "reach": 0,
+    }
+    question = {"type": "picture_pin", "mode": "pin_round", "payload": payload}
+    packs = [Pack(name="pins", generated_at=None, questions=(question,), path=Path("pins.json"))]
+    assert build_pictures.used_assets(packs) == ["screenshot:ice-demon"]
+    assert build_pictures.screenshot_sizes(packs) == {"screenshot:ice-demon": {(160, 90)}}
 
 
 def test_a_picture_that_is_not_staged_has_no_entry_and_no_file(install: Install) -> None:

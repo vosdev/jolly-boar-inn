@@ -3,7 +3,10 @@
 A pack question's ``image``, and a ``matching`` field's ``icon``, is an asset id, ``item:<id>``
 or ``npc:<id>``, and for Who's That NPC? and Pixel Hunt that id is the answer.
 ``fetch_assets.py`` stages the files under those ids in ``.pictures/<kind>/<id>.<ext>``,
-outside the client. This copies every one a pack uses
+outside the client. A ``picture_pin``'s ``screenshot``, ``screenshot:<name>``, is an own
+screenshot staged by hand as ``.pictures/screenshot/<name>.<ext>``, copied as it is, and must
+be the ``width`` by ``height`` its question says: the question grades on that shape.
+This copies every one a pack uses
 to ``client/public/pictures/<random>.<ext>`` and records ``asset -> file`` in
 ``data/pictures.json``, which the server loads to name a question's picture. Both are
 git-ignored, so every install has its own names. ``public/`` because Vite copies it as it is:
@@ -32,7 +35,7 @@ import io
 import json
 import secrets
 import sys
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -65,15 +68,35 @@ class Report:
 
 
 def used_assets(packs: Iterable[Pack]) -> list[str]:
-    """Every asset a pack question shows, as its ``image`` or a field's ``icon``, sorted."""
+    """Every asset a pack question shows, as its ``image``, a field's ``icon`` or its
+    ``screenshot``, sorted."""
     used: set[str] = set()
     for pack in packs:
         for q in pack.questions:
             payload = q["payload"]
-            if "image" in payload:
-                used.add(payload["image"])
+            for key in ("image", "screenshot"):
+                if key in payload:
+                    used.add(payload[key])
             used.update(field["icon"] for field in payload.get("fields", []) if "icon" in field)
     return sorted(used)
+
+
+def screenshot_sizes(packs: Iterable[Pack]) -> dict[str, set[tuple[int, int]]]:
+    """Each screenshot a pack question pins on, to the ``(width, height)`` its questions say."""
+    sizes: dict[str, set[tuple[int, int]]] = {}
+    for pack in packs:
+        for q in pack.questions:
+            payload = q["payload"]
+            if "screenshot" in payload:
+                size = (payload["width"], payload["height"])
+                sizes.setdefault(payload["screenshot"], set()).add(size)
+    return sizes
+
+
+def misshapen(body: bytes, sizes: set[tuple[int, int]]) -> bool:
+    """Whether the screenshot in ``body`` is any other size than all of ``sizes``."""
+    with Image.open(io.BytesIO(body)) as opened:
+        return sizes != {opened.size}
 
 
 def staged(staging: Path, asset: str) -> Path | None:
@@ -121,9 +144,20 @@ def build(
     out: Path,
     mapping_path: Path,
     *,
+    sizes: Mapping[str, set[tuple[int, int]]] | None = None,
     fresh: Callable[[], str] = lambda: secrets.token_hex(8),
 ) -> Report:
-    """Bring ``out`` and ``mapping_path`` in line with ``assets`` and what ``staging`` holds."""
+    """Bring ``out`` and ``mapping_path`` in line with ``assets`` and what ``staging`` holds.
+
+    Raises ``ValueError``, writing nothing, for a screenshot of another size than ``sizes`` says.
+    """
+    wrong = [
+        asset
+        for asset, shapes in (sizes or {}).items()
+        if (source := staged(staging, asset)) is not None and misshapen(source.read_bytes(), shapes)
+    ]
+    if wrong:
+        raise ValueError(f"not the width and height their questions say: {', '.join(wrong)}")
     old = load_mapping(mapping_path)
     taken = {Path(entry["file"]).stem for entry in old.values()}
     report = Report()
@@ -168,7 +202,8 @@ def main(argv: list[str], out: Callable[[str], None] = print) -> int:
     argparse.ArgumentParser(description=__doc__.split("\n\n")[0]).parse_args(argv)
     try:
         vocab.load_all()
-        assets = used_assets(load_packs(PACKS))
+        packs = load_packs(PACKS)
+        assets = used_assets(packs)
         written = [MAPPING, OUT / "0.png"]
         tracked = sorted(set(written) - git_ignored(written))
         if tracked:
@@ -176,7 +211,7 @@ def main(argv: list[str], out: Callable[[str], None] = print) -> int:
                 "git would commit these, and they are game assets; ignore them in .gitignore:\n"
                 + "\n".join(f"  {path.relative_to(REPO_ROOT)}" for path in tracked)
             )
-        report = build(assets, PICTURES, OUT, MAPPING)
+        report = build(assets, PICTURES, OUT, MAPPING, sizes=screenshot_sizes(packs))
     except PackError as exc:
         for line in exc.errors:
             print(line, file=sys.stderr)

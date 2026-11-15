@@ -32,6 +32,7 @@ from app.questions.types import (
     ordering,
     pick_all_that_apply,
     pick_from_list,
+    picture_pin,
     price_is_right,
 )
 from app.questions.types.scoring import Scoring
@@ -49,6 +50,7 @@ TYPES: dict[str, ModuleType] = {
     "ordering": ordering,
     "matching": matching,
     "map_pin": map_pin,
+    "picture_pin": picture_pin,
 }
 
 

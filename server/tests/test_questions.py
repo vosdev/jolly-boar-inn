@@ -35,6 +35,7 @@ from app.questions.types import (
     ordering,
     pick_all_that_apply,
     pick_from_list,
+    picture_pin,
     price_is_right,
 )
 from tests.packs import PACKS_DIR
@@ -549,6 +550,7 @@ def test_registry_has_every_shipped_type() -> None:
         "ordering": ordering,
         "matching": matching,
         "map_pin": map_pin,
+        "picture_pin": picture_pin,
     }
     for module in TYPES.values():
         for name in ("client_view", "reveal", "grade", "parse_value", "check"):
