@@ -127,3 +127,19 @@ def test_a_host_question_claiming_another_mode_or_source_is_refused(
     with pytest.raises(schema.QuestionError) as info:
         custom.envelopes([WRITTEN, {**WRITTEN, **claims}])
     assert info.value.errors == [f"custom_questions[1] {problem}" for problem in refused]
+
+
+def test_a_host_may_write_a_bins_matching() -> None:
+    names = ("Rune scimitar", "Dragon dagger", "Lobster", "Shark")
+    sorting = {
+        "type": "matching",
+        "payload": {
+            "prompt": "Free-to-play or members?",
+            "bins": True,
+            "fields": [{"text": name} for name in names],
+            "options": [{"text": "Free-to-play"}, {"text": "Members"}],
+            "answer": [0, 1, 0, 1],
+        },
+    }
+    (envelope,) = custom.envelopes([sorting])
+    assert envelope["payload"] == sorting["payload"]

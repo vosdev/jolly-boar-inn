@@ -1,4 +1,6 @@
-"""``matching``: three to six fields, and the player puts the option that belongs on each."""
+"""``matching``: three to six fields, and the player puts the option that belongs on each.
+
+With ``bins``, four to six entries sorted into two to four bins."""
 
 import copy
 import json
@@ -70,6 +72,41 @@ ICONS: dict[str, Any] = {
     ],
     "answer": [0, 1, 2, 3],
 }
+
+
+GODS = ["Saradomin", "Zamorak", "Guthix"]
+# Two entries to Saradomin, two to Zamorak, one to Guthix.
+SORT: dict[str, Any] = {
+    "type": "matching",
+    "mode": "custom",
+    "source": "room",
+    "tags": [],
+    "payload": {
+        "prompt": "Which god does each belong to?",
+        "bins": True,
+        "fields": [
+            {"text": "Saradomin brew"},
+            {"text": "Zamorak brew"},
+            {"text": "Guthix rest"},
+            {"text": "Saradomin sword"},
+            {"text": "Zamorakian spear"},
+        ],
+        "options": [
+            {"text": "Saradomin", "detail": "Order"},
+            {"text": "Zamorak"},
+            {"text": "Guthix"},
+        ],
+        "answer": [0, 1, 2, 0, 1],
+    },
+}
+SORT["id"] = schema.content_id(SORT)
+SORTED = ["Saradomin", "Zamorak", "Guthix", "Saradomin", "Zamorak"]
+
+
+def sort(**changes: Any) -> dict[str, Any]:
+    p = copy.deepcopy(SORT["payload"])
+    p.update(changes)
+    return p
 
 
 def payload(**changes: Any) -> dict[str, Any]:
@@ -361,3 +398,129 @@ def test_a_question_plays_end_to_end(table, matching_round: str, db) -> None:
     full, partial = closed["results"][zezima.id], closed["results"][woox.id]
     assert full["value"] == right and full["correct"] is True and full["points"] == 1000
     assert partial["value"] == half and partial["credit"] == 0.5 and partial["correct"] is False
+
+
+def test_the_schema_and_check_take_a_bins_question_with_a_bin_left_empty() -> None:
+    assert schema.schema_errors(SORT) == []
+    assert matching.check(SORT["payload"]) == []
+    empty = sort(options=[*SORT["payload"]["options"], {"text": "Armadyl"}])
+    assert matching.check(empty) == []
+
+
+def test_the_schema_refuses_bins_false_so_one_question_keeps_one_id() -> None:
+    q = {**SORT, "payload": sort(bins=False)}
+    q["id"] = schema.content_id(q)
+    assert any(p.startswith("$.payload.bins:") for p in schema.schema_errors(q))
+
+
+@pytest.mark.parametrize(
+    ("changes", "errors"),
+    [
+        (
+            {"options": [{"text": "Saradomin"}], "answer": [0, 0, 0, 0, 0]},
+            ["options: 1 bins; a sort takes 2 to 4"],
+        ),
+        (
+            {"options": _options(5)},
+            ["options: 5 bins; a sort takes 2 to 4"],
+        ),
+        (
+            {"answer": [0, 1, 3, 0, 1]},
+            ["answer: [3] are not options; there are only 3"],
+        ),
+        (
+            {"fields": [{"text": f"Entry {n}"} for n in range(3)], "answer": [0, 1, 2]},
+            ["fields: 3 entries; a sort takes 4 to 6"],
+        ),
+    ],
+    ids=["one bin", "five bins", "an answer past the bins", "three entries"],
+)
+def test_check_refuses_a_bins_question_out_of_its_bounds(
+    changes: dict[str, Any], errors: list[str]
+) -> None:
+    assert matching.check(sort(**changes)) == errors
+
+
+def test_check_takes_a_repeated_answer_only_with_bins() -> None:
+    assert matching.check(SORT["payload"]) == []
+    assert "answer: uses an option on two fields" in matching.check(
+        {key: value for key, value in SORT["payload"].items() if key != "bins"}
+    )
+
+
+def test_a_bins_value_may_put_one_option_on_several_fields_and_a_plain_one_may_not() -> None:
+    assert matching.parse_value(SORT["payload"], [2, 2, 2, 2, 2]) == [2, 2, 2, 2, 2]
+    assert matching.parse_value(SORT["payload"], [0, 1, 0, 1, 0]) == [0, 1, 0, 1, 0]
+    assert matching.parse_value(SORT["payload"], [0, 1, 3, 1, 0]) is None
+    assert matching.parse_value(SORT["payload"], [0, 1, 2, 1]) is None
+    assert matching.parse_value(EXAMPLE["payload"], [0, 0, 1, 2]) is None
+
+
+def test_the_open_view_says_bins_and_never_the_answer() -> None:
+    view = matching.client_view(SORT["payload"])
+    assert set(view) == {"prompt", "bins", "fields", "options"}
+    assert view["bins"] is True
+    assert sorted(shown(SORT["payload"])) == sorted(GODS)
+    assert "bins" not in matching.client_view(EXAMPLE["payload"])
+
+
+def test_bins_are_never_rotated_off_a_shuffle(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(random.Random, "shuffle", lambda self, items: None)
+    one_each = sort(fields=SORT["payload"]["fields"][:4], answer=[0, 1, 2, 3])
+    one_each["options"] = [*one_each["options"], {"text": "Armadyl"}]
+    assert matching.shown_order(one_each) == [0, 1, 2, 3]
+    assert matching.shown_order(SORT["payload"]) == [0, 1, 2]
+
+
+def test_credit_is_the_entries_in_their_bin_over_the_entries() -> None:
+    p = SORT["payload"]
+    assert credit_for(p, SORTED) == 1.0
+    assert credit_for(p, ["Saradomin"] * 5) == 0.4
+    assert credit_for(p, ["Guthix", "Zamorak", "Guthix", "Zamorak", "Zamorak"]) == 0.6
+
+
+def test_the_reveal_names_each_entry_s_bin_with_the_bins_details() -> None:
+    p = SORT["payload"]
+    revealed = matching.reveal(p)
+    order = shown(p)
+    assert revealed["bins"] is True
+    assert revealed["answer"] == [order.index(god) for god in SORTED]
+    assert revealed["options"][order.index("Saradomin")] == {"text": "Saradomin", "detail": "Order"}
+
+
+@pytest.mark.parametrize(("entries", "answer"), [(4, 30), (6, 40)])
+def test_a_sort_is_timed_as_any_matching(entries: int, answer: int) -> None:
+    p = sort(
+        fields=[{"text": f"Entry {n}"} for n in range(entries)],
+        answer=[n % 3 for n in range(entries)],
+    )
+    assert answer_seconds("matching", p, "run") == answer
+
+
+@pytest.fixture
+def sorting_round(app: FastAPI, client: TestClient) -> Iterator[str]:
+    """A round of the gods question, as a pack's."""
+    question = {"id": "q_matching_bins", "type": "matching", "source": "pack", "tags": []}
+    question["payload"] = SORT["payload"]
+    yield from stub_mode(app, "sorting_round", "matching", [question])
+
+
+def test_a_bins_question_plays_end_to_end(table, sorting_round: str, db) -> None:
+    game = table("Zezima", "Woox", modes=[sorting_round], questions=1, seconds=30)
+    admin, zezima, woox = game.seats
+    game.start()
+    view = game.opened(0)[0]["question"]["view"]
+    assert view["bins"] is True and "answer" not in view
+
+    order = [option["text"] for option in view["options"]]
+    right = [order.index(god) for god in SORTED]
+    all_saradomin = [order.index("Saradomin")] * 5
+    answer_after(game, zezima, 0, right, 1.0)
+    answer_after(game, woox, 0, all_saradomin, 3.0)
+    game.skip()
+
+    closed = admin.take("question_closed")
+    assert closed["reveal"]["answer"] == right
+    full, partial = closed["results"][zezima.id], closed["results"][woox.id]
+    assert full["value"] == right and full["correct"] is True and full["points"] == 1000
+    assert partial["value"] == all_saradomin and partial["credit"] == 0.4

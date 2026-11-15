@@ -2,7 +2,7 @@
 
 Payload shape (schema ``$defs/matching``)::
 
-    {"intro"?: str, "prompt": str, "image"?: asset,
+    {"intro"?: str, "prompt": str, "image"?: asset, "bins"?: true,
      "fields": [{"text"?: str, "icon"?: asset}, ...],
      "options": [{"text": str, "detail"?: str}, ...], "answer": [int, ...],
      "explanation"?: str}
@@ -16,6 +16,10 @@ The fields are shown in the author's order, the options in a shuffle seeded by t
 payload (``shuffle``), and a value is one shown option position per field. An icon goes
 out as its picture's random name (``pictured``), never its asset id, which may be the
 answer. Credit is the fields that hold their option, over the fields.
+
+With ``bins`` the options are two to four bins and the fields four to six entries sorted
+into them: free-to-play or members, which god an item belongs to. A bin takes any number
+of entries, none included, so ``answer`` and a value may repeat an option.
 """
 
 from collections.abc import Mapping
@@ -33,6 +37,8 @@ SCORING = Scoring.SPEED
 # with its detail beside it, as ordering does.
 ANSWER = Timing(base=10, per_item=5)
 REVEAL = Timing(base=4, per_item=2)
+BINS = (2, 4)
+BIN_ENTRIES = (4, 6)
 
 
 def items(payload: dict[str, Any]) -> int:
@@ -40,12 +46,15 @@ def items(payload: dict[str, Any]) -> int:
     return len(payload["fields"])
 
 
-_OPEN_KEYS = ("intro", "prompt")
+# ``bins`` tells the view to draw bins, and gives nothing away.
+_OPEN_KEYS = ("intro", "prompt", "bins")
 
 
 def shown_order(payload: dict[str, Any]) -> list[int]:
     """The payload index of each option, in the order the open view shows them."""
     order = seeded_order("matching", payload, len(payload["options"]))
+    if payload.get("bins"):
+        return order
     # Every field's option beside it would hand out full credit for dropping them in as
     # they lie. Moving the first to the end moves each of them up one, off its field.
     if all(order.index(option) == field for field, option in enumerate(payload["answer"])):
@@ -102,7 +111,8 @@ def grade(payload: dict[str, Any], submissions: list[Submission]) -> dict[UUID, 
 
 
 def parse_value(payload: dict[str, Any], value: Any) -> list[int] | None:
-    """One distinct shown option position per field, in field order; else ``None``."""
+    """One shown option position per field, in field order, distinct unless ``bins``; else
+    ``None``."""
     count = len(payload["options"])
     # Measured before anything is read, so a huge list is refused without walking it.
     if not isinstance(value, list) or len(value) != len(payload["fields"]):
@@ -113,7 +123,7 @@ def parse_value(payload: dict[str, Any], value: Any) -> list[int] | None:
         if shown is None or not 0 <= shown < count:
             return None
         positions.append(shown)
-    if len(set(positions)) != len(positions):
+    if not payload.get("bins") and len(set(positions)) != len(positions):
         return None
     return positions
 
@@ -123,18 +133,27 @@ def _key(text: str) -> str:
 
 
 def check(payload: dict[str, Any]) -> list[str]:
-    """Consistency: an option per field, none used twice, at least as many options as
-    fields, and no field or option that reads like another."""
+    """Consistency: an option per field, and no field or option that reads like another.
+    Without ``bins``, none used twice and at least as many options as fields; with it, two
+    to four options and four to six fields."""
     errors: list[str] = []
     fields, options, answer = payload["fields"], payload["options"], payload["answer"]
-    if len(options) < len(fields):
+    bins = bool(payload.get("bins"))
+    if bins:
+        if not BINS[0] <= len(options) <= BINS[1]:
+            errors.append(f"options: {len(options)} bins; a sort takes {BINS[0]} to {BINS[1]}")
+        if not BIN_ENTRIES[0] <= len(fields) <= BIN_ENTRIES[1]:
+            errors.append(
+                f"fields: {len(fields)} entries; a sort takes {BIN_ENTRIES[0]} to {BIN_ENTRIES[1]}"
+            )
+    elif len(options) < len(fields):
         errors.append(f"options: {len(options)} for {len(fields)} fields; each field needs one")
     if len(answer) != len(fields):
         errors.append(f"answer: must name one option for each of the {len(fields)} fields")
     out_of_range = [index for index in answer if not 0 <= index < len(options)]
     if out_of_range:
         errors.append(f"answer: {out_of_range} are not options; there are only {len(options)}")
-    if len(set(answer)) != len(answer):
+    if not bins and len(set(answer)) != len(answer):
         errors.append("answer: uses an option on two fields")
     seen: dict[tuple[str, str], int] = {}
     for index, field in enumerate(fields):

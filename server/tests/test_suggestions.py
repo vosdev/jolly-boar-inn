@@ -562,6 +562,34 @@ def test_a_matching_suggestion_is_refused_where_it_does_not_fit(
     assert said in response.text
 
 
+SORTING = _with(
+    MATCHING,
+    payload={
+        "prompt": "Which god does each belong to?",
+        "bins": True,
+        "fields": [
+            {"text": "Saradomin brew"},
+            {"text": "Zamorak brew"},
+            {"text": "Guthix rest"},
+            {"text": "Saradomin sword"},
+        ],
+        "options": [{"text": "Saradomin"}, {"text": "Zamorak"}, {"text": "Guthix"}],
+        "answer": [0, 1, 2, 0],
+    },
+)
+
+
+def test_a_bins_matching_is_suggested_tried_and_exported(client: TestClient) -> None:
+    payload = SORTING["content"]["payload"]
+    shown = matching.shown_order(payload)
+    right = [shown.index(bin_) for bin_ in payload["answer"]]
+    result = tried(client, SORTING, right)["result"]
+    assert (result["correct"], result["points"]) == (True, 1000)
+    approve(client, suggest(client, SORTING))
+    (question,) = export(client)["questions"]
+    assert question["payload"] == payload
+
+
 def test_an_npc_may_ask_a_matching_and_one_may_come_with_no_round(client: TestClient) -> None:
     npc = _with(MATCHING, mode="random_event", random_event="bob")
     for body in (npc, _without(MATCHING, "mode")):
