@@ -205,6 +205,10 @@
         "prompt": { "$ref": "#/$defs/prompt" },
         "intro": { "$ref": "#/$defs/intro" },
         "image": { "$ref": "#/$defs/asset" },
+        "bins": {
+          "$comment": "The options are bins and the fields the entries sorted into them, any number to a bin (check: 2 to 4 bins, 4 to 6 entries). Left out when false, so one question has one id.",
+          "type": "boolean", "enum": [true]
+        },
         "fields": {
           "$comment": "Where the options go, each a name, an icon or both.",
           "type": "array", "minItems": 3, "maxItems": 6,
@@ -219,8 +223,8 @@
           }
         },
         "options": {
-          "$comment": "At least one per field (check), the rest decoys.",
-          "$ref": "#/$defs/choices", "minItems": 3,
+          "$comment": "At least one per field (check), the rest decoys; with bins, the bins.",
+          "$ref": "#/$defs/choices",
           "items": {
             "type": "object",
             "required": ["text"],
@@ -232,7 +236,7 @@
           }
         },
         "answer": {
-          "$comment": "The option index that belongs on each field, in field order.",
+          "$comment": "The option index that belongs on each field, in field order; with bins, repeats allowed.",
           "type": "array", "minItems": 3, "maxItems": 6,
           "items": { "type": "integer", "minimum": 0, "maximum": 5 }
         },

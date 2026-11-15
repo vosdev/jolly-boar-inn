@@ -52,6 +52,11 @@ export const HOST_TYPE_LABELS: Record<HostQuestion['type'], string> = {
   matching: 'Match them up',
 }
 
+/** What Create's list calls `question`: its type's label, or a sort's own. */
+export function hostTypeLabel(question: HostQuestion): string {
+  return question.payload.bins === true ? 'Sort into bins' : HOST_TYPE_LABELS[question.type]
+}
+
 const ENVELOPE_KEYS = ['type', 'payload', 'random_event']
 const ROSTER = new Set(ASKERS.map((npc) => npc.id))
 

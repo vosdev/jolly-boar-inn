@@ -893,6 +893,41 @@ describe('Suggest', () => {
     })
   })
 
+  it('writes a Bestiary sort into bins, previewed as bins, and sends it', async () => {
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /Bestiary/ }))
+    await fireEvent.click(screen.getByLabelText('Match them up'))
+    await fireEvent.click(screen.getByLabelText('Sort into bins'))
+    expect(screen.queryByText(/Three or more bins/)).toBeNull()
+    await type('Question', 'Which slayer master assigns each?')
+    const masters = ['Turael', 'Mazchna', 'Vannaka']
+    for (const [i, master] of masters.entries()) await type(`Bin ${i + 1}`, master)
+    const monsters = ['Banshee', 'Cave crawler', 'Ghoul', 'Kalphite']
+    for (const [i, monster] of monsters.entries()) {
+      await type(`Entry ${i + 1}`, monster)
+      await fireEvent.change(screen.getByLabelText(`Bin of entry ${i + 1}`), {
+        target: { value: String([0, 0, 1, 2][i]) },
+      })
+    }
+    const preview = within(screen.getByRole('region', { name: 'Preview' }))
+    expect(preview.getByText('Tap one, then its bin, or drag it there')).toBeTruthy()
+    await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Slayer_Masters')
+    await fireEvent.click(screen.getByRole('radio', { name: 'Medium' }))
+    await type('Your name', 'AFKFisher')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
+    expect(vi.mocked(api.sendSuggestion).mock.calls[0]![0].content).toMatchObject({
+      type: 'matching',
+      mode: 'bestiary',
+      payload: {
+        bins: true,
+        fields: monsters.map((text) => ({ text })),
+        options: masters.map((text) => ({ text })),
+        answer: [0, 0, 1, 2],
+      },
+    })
+  })
+
   it('lets an NPC ask an order, with its intro, previewed on the NPC’s card', async () => {
     played()
     render(Suggest, { navigate })

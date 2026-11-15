@@ -6,7 +6,9 @@
    * Each pair is a field and the answer that belongs on it, side by side, so `answer`
    * follows and the author never types an index. Decoys follow, answers that belong on no
    * field, up to the gems there are in all. With `icons`, a field may be an `item:` or
-   * `npc:` picture as well as or instead of a name: only a pack question shows one.
+   * `npc:` picture as well as or instead of a name: only a pack question shows one. Sort
+   * into bins writes the bins instead, then each entry with the bin it goes in; a hint
+   * suggests a third bin, and never holds Save up.
    * `fields` adds a caller's own fields below the question's, and `onattempt` checks those
    * on every Save. A caller that also takes other types passes them in `picker`, and
    * picking one hands it back. Who asks it is `asker`, as in `CustomQuestionForm`.
@@ -18,11 +20,17 @@
   import type { Snippet } from 'svelte'
 
   import {
+    BINS_MAX,
+    BINS_MIN,
+    BINS_SUGGESTED,
     DETAIL_MAX,
+    ENTRIES_MAX,
+    ENTRIES_MIN,
     FIELDS_MAX,
     FIELDS_MIN,
     OPTIONS_MAX,
     TEXT_MAX,
+    blankEntry,
     draftOf,
     previewOf,
     problems,
@@ -120,6 +128,20 @@
   )
   const total = $derived(draft.pairs.length + draft.decoys.length)
 
+  const KINDS = [
+    { value: false, label: 'Match pairs' },
+    { value: true, label: 'Sort into bins' },
+  ]
+
+  /** Bin `index` gone, its entries to the first bin and the later bins' down one. */
+  function removeBin(index: number): void {
+    draft.bins.splice(index, 1)
+    for (const entry of draft.entries) {
+      if (entry.bin === index) entry.bin = 0
+      else if (entry.bin > index) entry.bin -= 1
+    }
+  }
+
   /** Paths the form has a place for; anything else is listed under the form. */
   const PLACED =
     /^(payload\.(prompt|fields(\[\d+\](\.(text|icon))?)?|options(\[\d+\](\.(text|detail))?)?|explanation)|random_event)$/
@@ -156,99 +178,193 @@
 {/snippet}
 
 {#snippet payload()}
-  <fieldset class="field">
-    <legend>Pairs: each field and the answer that goes on it</legend>
-    {#each draft.pairs as pair, index (index)}
-      <div class="pair">
-        <div class="inputs">
-          <input
-            type="text"
-            aria-label="Field {index + 1}"
-            placeholder="Field {index + 1}, such as Zulrah"
-            bind:value={pair.field}
-          />
-          {#if icons}
+  <Segmented legend="Match or sort" options={KINDS} bind:value={draft.sorting} />
+
+  {#if draft.sorting}
+    <fieldset class="field">
+      <legend>Bins: where the entries go</legend>
+      {#each draft.bins as bin, index (index)}
+        <div class="pair">
+          <div class="inputs">
             <input
               type="text"
-              aria-label="Picture of field {index + 1}"
-              placeholder="item:4151 or npc:2042, optional"
-              bind:value={pair.icon}
+              aria-label="Bin {index + 1}"
+              placeholder="Bin {index + 1}, such as Saradomin"
+              bind:value={bin.option}
             />
-          {/if}
-          <input
-            type="text"
-            aria-label="Answer for field {index + 1}"
-            placeholder="Its answer, such as Zul-Andra"
-            bind:value={pair.option}
-          />
-          <input
-            type="text"
-            aria-label="Detail of answer {index + 1}"
-            placeholder="Shown at the reveal, optional"
-            bind:value={pair.detail}
-          />
+            <input
+              type="text"
+              aria-label="Detail of bin {index + 1}"
+              placeholder="Shown at the reveal, optional"
+              bind:value={bin.detail}
+            />
+          </div>
+          <button
+            type="button"
+            class="small"
+            aria-label="Remove bin {index + 1}"
+            disabled={draft.bins.length <= BINS_MIN}
+            onclick={() => removeBin(index)}>✕</button
+          >
         </div>
-        <button
-          type="button"
-          class="small"
-          aria-label="Remove pair {index + 1}"
-          disabled={draft.pairs.length <= FIELDS_MIN}
-          onclick={() => draft.pairs.splice(index, 1)}>✕</button
-        >
-      </div>
-      {@render errors([`payload.fields[${index}].text`, `payload.fields[${index}].icon`])}
-      {@render errors([`payload.options[${index}].text`, `payload.options[${index}].detail`])}
-    {/each}
-    <button
-      type="button"
-      class="small"
-      disabled={draft.pairs.length >= FIELDS_MAX || total >= OPTIONS_MAX}
-      onclick={() => draft.pairs.push({ field: '', icon: '', option: '', detail: '' })}
-      >Add a pair</button
-    >
-    {@render errors(['payload.fields'])}
-  </fieldset>
+        {@render errors([`payload.options[${index}].text`, `payload.options[${index}].detail`])}
+      {/each}
+      <button
+        type="button"
+        class="small"
+        disabled={draft.bins.length >= BINS_MAX}
+        onclick={() => draft.bins.push({ option: '', detail: '' })}>Add a bin</button
+      >
+      {#if draft.bins.length < BINS_SUGGESTED}
+        <p class="note">
+          Three or more bins work best: with two, a blind guess gets about half of them right.
+        </p>
+      {/if}
+      {@render errors(['payload.options'])}
+    </fieldset>
 
-  <fieldset class="field">
-    <legend>Left over: answers that go on no field</legend>
-    {#each draft.decoys as decoy, index (index)}
-      {@const at = draft.pairs.length + index}
-      <div class="pair">
-        <div class="inputs">
-          <input
-            type="text"
-            aria-label="Left-over answer {index + 1}"
-            placeholder="An answer that fits no field"
-            bind:value={decoy.option}
-          />
-          <input
-            type="text"
-            aria-label="Detail of left-over answer {index + 1}"
-            placeholder="Shown at the reveal, optional"
-            bind:value={decoy.detail}
-          />
+    <fieldset class="field">
+      <legend>Entries: each and the bin it goes in</legend>
+      {#each draft.entries as entry, index (index)}
+        <div class="pair">
+          <div class="inputs">
+            <input
+              type="text"
+              aria-label="Entry {index + 1}"
+              placeholder="Entry {index + 1}, such as Saradomin brew"
+              bind:value={entry.field}
+            />
+            {#if icons}
+              <input
+                type="text"
+                aria-label="Picture of entry {index + 1}"
+                placeholder="item:4151 or npc:2042, optional"
+                bind:value={entry.icon}
+              />
+            {/if}
+            <select aria-label="Bin of entry {index + 1}" bind:value={entry.bin}>
+              {#each draft.bins as bin, at (at)}
+                <option value={at}>{bin.option.trim() || `Bin ${at + 1}`}</option>
+              {/each}
+            </select>
+          </div>
+          <button
+            type="button"
+            class="small"
+            aria-label="Remove entry {index + 1}"
+            disabled={draft.entries.length <= ENTRIES_MIN}
+            onclick={() => draft.entries.splice(index, 1)}>✕</button
+          >
         </div>
-        <button
-          type="button"
-          class="small"
-          aria-label="Remove left-over answer {index + 1}"
-          onclick={() => draft.decoys.splice(index, 1)}>✕</button
-        >
-      </div>
-      {@render errors([`payload.options[${at}].text`, `payload.options[${at}].detail`])}
-    {/each}
-    <button
-      type="button"
-      class="small"
-      disabled={total >= OPTIONS_MAX}
-      onclick={() => draft.decoys.push({ option: '', detail: '' })}>Add a left-over answer</button
-    >
-    <p class="note">
-      {FIELDS_MIN} to {FIELDS_MAX} pairs and {OPTIONS_MAX} answers in all, up to {TEXT_MAX} characters
-      each and {DETAIL_MAX} for a detail. Left-over answers keep the last field from being a giveaway.
-    </p>
-    {@render errors(['payload.options'])}
-  </fieldset>
+        {@render errors([`payload.fields[${index}].text`, `payload.fields[${index}].icon`])}
+      {/each}
+      <button
+        type="button"
+        class="small"
+        disabled={draft.entries.length >= ENTRIES_MAX}
+        onclick={() => draft.entries.push(blankEntry())}>Add an entry</button
+      >
+      <p class="note">
+        {BINS_MIN} to {BINS_MAX} bins and {ENTRIES_MIN} to {ENTRIES_MAX} entries, up to {TEXT_MAX}
+        characters each and {DETAIL_MAX} for a detail. A bin may stay empty.
+      </p>
+      {@render errors(['payload.fields'])}
+    </fieldset>
+  {:else}
+    <fieldset class="field">
+      <legend>Pairs: each field and the answer that goes on it</legend>
+      {#each draft.pairs as pair, index (index)}
+        <div class="pair">
+          <div class="inputs">
+            <input
+              type="text"
+              aria-label="Field {index + 1}"
+              placeholder="Field {index + 1}, such as Zulrah"
+              bind:value={pair.field}
+            />
+            {#if icons}
+              <input
+                type="text"
+                aria-label="Picture of field {index + 1}"
+                placeholder="item:4151 or npc:2042, optional"
+                bind:value={pair.icon}
+              />
+            {/if}
+            <input
+              type="text"
+              aria-label="Answer for field {index + 1}"
+              placeholder="Its answer, such as Zul-Andra"
+              bind:value={pair.option}
+            />
+            <input
+              type="text"
+              aria-label="Detail of answer {index + 1}"
+              placeholder="Shown at the reveal, optional"
+              bind:value={pair.detail}
+            />
+          </div>
+          <button
+            type="button"
+            class="small"
+            aria-label="Remove pair {index + 1}"
+            disabled={draft.pairs.length <= FIELDS_MIN}
+            onclick={() => draft.pairs.splice(index, 1)}>✕</button
+          >
+        </div>
+        {@render errors([`payload.fields[${index}].text`, `payload.fields[${index}].icon`])}
+        {@render errors([`payload.options[${index}].text`, `payload.options[${index}].detail`])}
+      {/each}
+      <button
+        type="button"
+        class="small"
+        disabled={draft.pairs.length >= FIELDS_MAX || total >= OPTIONS_MAX}
+        onclick={() => draft.pairs.push({ field: '', icon: '', option: '', detail: '' })}
+        >Add a pair</button
+      >
+      {@render errors(['payload.fields'])}
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Left over: answers that go on no field</legend>
+      {#each draft.decoys as decoy, index (index)}
+        {@const at = draft.pairs.length + index}
+        <div class="pair">
+          <div class="inputs">
+            <input
+              type="text"
+              aria-label="Left-over answer {index + 1}"
+              placeholder="An answer that fits no field"
+              bind:value={decoy.option}
+            />
+            <input
+              type="text"
+              aria-label="Detail of left-over answer {index + 1}"
+              placeholder="Shown at the reveal, optional"
+              bind:value={decoy.detail}
+            />
+          </div>
+          <button
+            type="button"
+            class="small"
+            aria-label="Remove left-over answer {index + 1}"
+            onclick={() => draft.decoys.splice(index, 1)}>✕</button
+          >
+        </div>
+        {@render errors([`payload.options[${at}].text`, `payload.options[${at}].detail`])}
+      {/each}
+      <button
+        type="button"
+        class="small"
+        disabled={total >= OPTIONS_MAX}
+        onclick={() => draft.decoys.push({ option: '', detail: '' })}>Add a left-over answer</button
+      >
+      <p class="note">
+        {FIELDS_MIN} to {FIELDS_MAX} pairs and {OPTIONS_MAX} answers in all, up to {TEXT_MAX} characters
+        each and {DETAIL_MAX} for a detail. Left-over answers keep the last field from being a giveaway.
+      </p>
+      {@render errors(['payload.options'])}
+    </fieldset>
+  {/if}
 {/snippet}
 
 <QuestionFormShell

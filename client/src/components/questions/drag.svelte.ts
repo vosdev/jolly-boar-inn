@@ -27,11 +27,17 @@ export interface Board {
   movable(): boolean
   /** `shown` dropped on place `at`, from another place or the tray. */
   drop(slots: Slots, shown: number, at: number): Slots
-  /** One keyboard step, up (-1) or down (1). */
+  /** One keyboard step, up (-1) or down (1), or left and right with `sideways`. */
   step(slots: Slots, shown: number, by: -1 | 1): Slots
   /** The element holding the places and the tray. */
   area(): HTMLElement | undefined
+  /** `shown` dropped on the tray; left out, its place empties (`toTray`). */
+  back?(slots: Slots, shown: number): Slots
+  /** The places stand side by side, so the left and right arrows step too. */
+  sideways?: boolean
 }
+
+const BACK = new Set(['ArrowUp', 'ArrowLeft'])
 
 /** How close to the edge of what scrolls a dragged row scrolls it. */
 const EDGE_PX = 48
@@ -116,12 +122,9 @@ export class Dragging {
       } else {
         this.lifted = { shown, before: [...board.slots()] }
       }
-    } else if (
-      this.lifted?.shown === shown &&
-      (event.key === 'ArrowUp' || event.key === 'ArrowDown')
-    ) {
+    } else if (this.lifted?.shown === shown && this.#steps(event.key)) {
       event.preventDefault()
-      const by = event.key === 'ArrowUp' ? -1 : 1
+      const by = BACK.has(event.key) ? -1 : 1
       void this.moved(shown, () => board.set(board.step(board.slots(), shown, by)), true)
     } else if (this.lifted?.shown === shown && event.key === 'Escape') {
       event.preventDefault()
@@ -129,6 +132,11 @@ export class Dragging {
       this.lifted = null
       void this.moved(shown, () => board.set(before), true)
     }
+  }
+
+  #steps(key: string): boolean {
+    if (key === 'ArrowUp' || key === 'ArrowDown') return true
+    return this.#board.sideways === true && (key === 'ArrowLeft' || key === 'ArrowRight')
   }
 
   /** A lifted row is let go when focus leaves for something else on the page. */
@@ -205,8 +213,10 @@ export class Dragging {
     const target = this.targetAt(event.clientX, event.clientY)
     this.letGo()
     const slots = this.#board.slots()
-    if (target === 'tray') void this.moved(shown, () => this.#board.set(toTray(slots, shown)))
-    else if (target !== null) {
+    if (target === 'tray') {
+      const back = this.#board.back?.(slots, shown) ?? toTray(slots, shown)
+      void this.moved(shown, () => this.#board.set(back))
+    } else if (target !== null) {
       void this.moved(shown, () => this.#board.set(this.#board.drop(slots, shown, target)))
     }
   }

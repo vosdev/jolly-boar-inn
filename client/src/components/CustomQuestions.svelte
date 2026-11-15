@@ -17,6 +17,7 @@
     HOST_TYPE_LABELS,
     askedBy,
     exportText,
+    hostTypeLabel,
     importText,
     overCap,
     type HostQuestion,
@@ -225,7 +226,7 @@
             <div class="words">
               <p class="prompt">{entry.question.payload.prompt}</p>
               <p class="note">
-                {HOST_TYPE_LABELS[entry.question.type]} · {askedBy(entry.question)}
+                {hostTypeLabel(entry.question)} · {askedBy(entry.question)}
               </p>
             </div>
             <div class="row actions">

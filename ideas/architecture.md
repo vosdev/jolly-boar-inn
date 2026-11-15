@@ -172,6 +172,8 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 Create lists the unbuilt ones from their files in `lib/modes/`, in `UPCOMING` then `PLANNED` order.
 
 - Sort It Out and Release Order are two modes over one type: their splash, prompt and pool differ.
+  So is a sort into bins: `matching` with `bins` (section 4), which every round with `matching`
+  takes, timed and scored alike; players read "Sort" where a plain one says "Match".
 - Who's That NPC?'s shadows use a strict list, not free text: free text needs an alias list and a
   typo argument per item. Mostly monsters: people look alike in shadow. A render, for lesser-known
   NPCs, is the whole picture over look-alikes on buttons, its NPC off the list. Guess the Examine dropped its list for buttons: players found it too hard.
@@ -217,7 +219,7 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 | `pick_from_list` | an entry id of the question's vocabulary | 1 or 0 |
 | `pick_all_that_apply` | distinct shown positions, sorted, at least one; exactly `picks` if set | right picks ÷ options right or picked |
 | `ordering` | shown positions, first end first: all, or `picks` of them | per place: 1 for its rank; with `picks`, ½ for another picked one |
-| `matching` | a distinct shown option position per field, in field order | right fields ÷ fields |
+| `matching` | a shown option position per field, in field order, distinct unless `bins` | right fields ÷ fields |
 | `map_pin` | a list of `{x, y}` in game tiles, one per target, inside `bounds` or the surface | mean of each pin's credit, at the pairing that scores best (section 8) |
 
 - Free text is NFKC-normalised, lowercased, stripped of punctuation and whitespace-collapsed, then
@@ -235,7 +237,10 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   reveal-only `detail`, at least one per field, the rest decoys, and `answer`, an option index per
   field. `check()` rejects a repeated field or option, an option used twice and too few options.
   `client_view` shows the fields in order and the options shuffled, rotated by one if every
-  field's option would sit at its own position.
+  field's option would sit at its own position. With `bins: true` (never `false`, one question
+  one id) the options are two to four bins and the fields four to six entries; `answer` and a
+  value may repeat a bin, a bin may stay empty, an entry has one bin, and there is no rotation.
+  The open view and the reveal carry `bins`; the client groups the reveal's entries by bin.
 - `multiple_choice`, `pick_all_that_apply`, `ordering` and `matching` show options or entries in a shuffle
   seeded by the payload (`types/shuffle.py`): one order for every socket and restart, and the
   authored order (often answer first) never leaks. Values and the reveal name shown positions.
@@ -600,6 +605,8 @@ from taking the lock. `grade` returns credit; `scoring.py` turns it into points 
   network difference irrelevant, so there is no RTT compensation.
 - An answer from `ends_at` on is `not_open`, even if the close runs late.
 - Partial credit rides the bucket: 0.6 in bucket 2 is 540.
+- `matching` with `bins` grades as without, entries in their bin over the entries, with no floor
+  for chance: a blind guess over two bins averages half, so the editors suggest three or more.
 - A team game (`settings.teams` non-empty) drops speed: `SPEED` pays `round(1000 × credit)` and
   `answer_ack.band` is null. `ACCURACY` and `STEP` score as ever.
 

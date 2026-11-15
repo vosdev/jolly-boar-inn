@@ -118,6 +118,12 @@ learns the position, which is worth more than variety.
   back, and an unsent answer fills empty fields from the top of the tray. The reveal sets the right
   option on each field with its `detail`, fades a wrong one with "you: …" under it, and lists the
   decoys as "Left over".
+- `matching` with `bins` stands its bins as gem columns, two abreast on a phone when there are
+  four, over a pool of entry chips. Tap a chip, then its bin; or drag its handle, the arrow keys
+  stepping it through the pool and the bins. A bin takes any number; Submit waits for every chip,
+  and an unsent answer puts the rest in the first bin. The reveal, the TV's too, lists each bin
+  with its `detail` and its entries, ours put elsewhere faded with "you: …", an empty one "None".
+  The open TV shows the columns over every entry. It says "Sort" where matching says "Match".
 - Gems are for `multiple_choice`, `pick_all_that_apply`, `ordering` and `matching`; `price_is_right` is a slider. `more_less` keeps `--more` and
   `--less`, because its buttons carry item pictures, which a gem fill would drown.
   `pick_from_list` has a list of hundreds, answered through a combobox, with no gems.

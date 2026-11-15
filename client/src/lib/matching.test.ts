@@ -19,6 +19,20 @@ function written(pairs: number, decoys: number): MatchingDraft {
   return draft
 }
 
+/** A sort into `bins` bins, entries taking the first two bins in turn. */
+function sorting(bins: number, entries: number): MatchingDraft {
+  const draft = draftOf()
+  draft.prompt = 'Which god does each belong to?'
+  draft.sorting = true
+  draft.bins = Array.from({ length: bins }, (_, i) => ({ option: `God ${i + 1}`, detail: '' }))
+  draft.entries = Array.from({ length: entries }, (_, i) => ({
+    field: `Item ${i + 1}`,
+    icon: '',
+    bin: i % Math.min(bins, 2),
+  }))
+  return draft
+}
+
 const paths = (draft: MatchingDraft, icons = false) =>
   problems(questionOf(draft), icons).map((problem) => problem.path)
 
@@ -110,6 +124,61 @@ describe('matching drafts', () => {
     const back = importText(text)
     expect(back).toEqual({ ok: true, questions: [question] })
     expect(exportText(back.ok ? back.questions : [])).toBe(text)
+  })
+
+  it('start a sort with three blank bins and four entries, in the first bin', () => {
+    const draft = draftOf()
+    expect(draft.sorting).toBe(false)
+    expect(draft.bins).toHaveLength(3)
+    expect(draft.entries).toEqual(
+      Array.from({ length: 4 }, () => ({ field: '', icon: '', bin: 0 })),
+    )
+  })
+
+  it('build a sort check() passes, many entries to a bin and a bin left empty', () => {
+    const draft = sorting(3, 5)
+    draft.bins[0]!.detail = ' Order '
+    const { payload } = questionOf(draft)
+    expect(payload).toEqual({
+      prompt: 'Which god does each belong to?',
+      bins: true,
+      fields: [1, 2, 3, 4, 5].map((n) => ({ text: `Item ${n}` })),
+      options: [{ text: 'God 1', detail: 'Order' }, { text: 'God 2' }, { text: 'God 3' }],
+      answer: [0, 1, 0, 1, 0],
+    })
+    expect(problems(questionOf(draft))).toEqual([])
+  })
+
+  it('open a stored sort as its bins and entries, and line it up for a reviewer', () => {
+    const payload = questionOf(sorting(3, 4)).payload
+    const draft = draftOf({ type: 'matching', payload })
+    expect(draft.sorting).toBe(true)
+    expect(draft.bins.map((bin) => bin.option)).toEqual(['God 1', 'God 2', 'God 3'])
+    expect(draft.entries.map((entry) => [entry.field, entry.bin])).toEqual([
+      ['Item 1', 0],
+      ['Item 2', 1],
+      ['Item 3', 0],
+      ['Item 4', 1],
+    ])
+    expect(questionOf(draft).payload).toEqual(payload)
+    expect(answerLine(payload)).toBe('God 1: Item 1, Item 3; God 2: Item 2, Item 4; God 3: none')
+  })
+
+  it('hold a sort to two to four bins and four to six entries', () => {
+    expect(paths(sorting(1, 4))).toContain('payload.options')
+    expect(paths(sorting(5, 4))).toContain('payload.options')
+    expect(paths(sorting(3, 3))).toContain('payload.fields')
+    expect(paths(sorting(3, 7))).toContain('payload.fields')
+    expect(paths(sorting(2, 4))).toEqual([])
+    expect(paths(sorting(4, 6))).toEqual([])
+  })
+
+  it('refuse a repeated option on fields only without bins', () => {
+    const plain = questionOf(written(3, 1))
+    plain.payload.answer = [0, 0, 1]
+    expect(problems(plain).map((problem) => problem.message)).toContain(
+      'Uses an answer on two fields.',
+    )
   })
 
   it('import nothing from a file whose matching question the server would refuse', () => {
