@@ -1,0 +1,146 @@
+[
+  {
+    "about": "inside the box",
+    "question": {
+      "width": 1000,
+      "height": 1000,
+      "target": { "min_x": 0.4, "max_x": 0.5, "min_y": 0.4, "max_y": 0.5 },
+      "reach": 0.2
+    },
+    "point": { "x": 0.45, "y": 0.42 },
+    "value": { "x": 0.45, "y": 0.42 },
+    "credit": 1.0
+  },
+  {
+    "about": "on the edge of the box",
+    "question": {
+      "width": 1000,
+      "height": 1000,
+      "target": { "min_x": 0.4, "max_x": 0.5, "min_y": 0.4, "max_y": 0.5 },
+      "reach": 0.2
+    },
+    "point": { "x": 0.5, "y": 0.4 },
+    "value": { "x": 0.5, "y": 0.4 },
+    "credit": 1.0
+  },
+  {
+    "about": "half the reach east of a wide picture's box",
+    "question": {
+      "width": 1000,
+      "height": 500,
+      "target": { "min_x": 0.4, "max_x": 0.5, "min_y": 0.4, "max_y": 0.6 },
+      "reach": 0.2
+    },
+    "point": { "x": 0.6, "y": 0.5 },
+    "value": { "x": 0.6, "y": 0.5 },
+    "credit": 0.5
+  },
+  {
+    "about": "as many pixels south of the same box, a fifth of its height",
+    "question": {
+      "width": 1000,
+      "height": 500,
+      "target": { "min_x": 0.4, "max_x": 0.5, "min_y": 0.4, "max_y": 0.6 },
+      "reach": 0.2
+    },
+    "point": { "x": 0.45, "y": 0.8 },
+    "value": { "x": 0.45, "y": 0.8 },
+    "credit": 0.5
+  },
+  {
+    "about": "off a corner of a tall picture's box, measured to the corner",
+    "question": {
+      "width": 500,
+      "height": 1000,
+      "target": { "min_x": 0.2, "max_x": 0.4, "min_y": 0.2, "max_y": 0.3 },
+      "reach": 0.1
+    },
+    "point": { "x": 0.46, "y": 0.34 },
+    "value": { "x": 0.46, "y": 0.34 },
+    "credit": 0.5
+  },
+  {
+    "about": "past the reach",
+    "question": {
+      "width": 1000,
+      "height": 1000,
+      "target": { "min_x": 0.4, "max_x": 0.5, "min_y": 0.4, "max_y": 0.5 },
+      "reach": 0.2
+    },
+    "point": { "x": 1, "y": 0 },
+    "value": { "x": 1.0, "y": 0.0 },
+    "credit": 0.0
+  },
+  {
+    "about": "next to the box with a reach of 0",
+    "question": {
+      "width": 1000,
+      "height": 1000,
+      "target": { "min_x": 0.4, "max_x": 0.5, "min_y": 0.4, "max_y": 0.5 },
+      "reach": 0
+    },
+    "point": { "x": 0.501, "y": 0.45 },
+    "value": { "x": 0.501, "y": 0.45 },
+    "credit": 0.0
+  },
+  {
+    "about": "on the edge with a reach of 0",
+    "question": {
+      "width": 1000,
+      "height": 1000,
+      "target": { "min_x": 0.4, "max_x": 0.5, "min_y": 0.4, "max_y": 0.5 },
+      "reach": 0
+    },
+    "point": { "x": 0.5, "y": 0.45 },
+    "value": { "x": 0.5, "y": 0.45 },
+    "credit": 1.0
+  },
+  {
+    "about": "a tap on an inventory's target cell, snapped to its middle",
+    "question": {
+      "width": 400,
+      "height": 700,
+      "grid": { "cols": 4, "rows": 7 },
+      "cells": [{ "col": 2, "row": 3 }]
+    },
+    "point": { "x": 0.6, "y": 0.45 },
+    "value": { "x": 0.625, "y": 0.5 },
+    "credit": 1.0
+  },
+  {
+    "about": "the next cell along is plain wrong",
+    "question": {
+      "width": 400,
+      "height": 700,
+      "grid": { "cols": 4, "rows": 7 },
+      "cells": [{ "col": 2, "row": 3 }]
+    },
+    "point": { "x": 0.76, "y": 0.45 },
+    "value": { "x": 0.875, "y": 0.5 },
+    "credit": 0.0
+  },
+  {
+    "about": "the far corner belongs to the last cell",
+    "question": {
+      "width": 800,
+      "height": 800,
+      "grid": { "cols": 8, "rows": 8 },
+      "cells": [{ "col": 7, "row": 7 }]
+    },
+    "point": { "x": 1, "y": 1 },
+    "value": { "x": 0.9375, "y": 0.9375 },
+    "credit": 1.0
+  },
+  {
+    "about": "a line between two cells belongs to the one after it",
+    "question": {
+      "width": 800,
+      "height": 800,
+      "grid": { "cols": 2, "rows": 2 },
+      "cells": [{ "col": 1, "row": 0 }]
+    },
+    "point": { "x": 0.5, "y": 0.25 },
+    "value": { "x": 0.75, "y": 0.25 },
+    "credit": 1.0
+  }
+]

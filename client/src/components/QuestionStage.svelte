@@ -39,7 +39,9 @@
    *
    * A `map_pin` question's answers are the world map, which fills the stage (`StageView`).
    * The TV shows no map while players pin, like any other answers; its reveal has the map
-   * with the panel beside it.
+   * with the panel beside it. A `picture_pin` question's answers are its picture, which every
+   * screen shows: under the answers on a phone beside the TV too, and on the TV's sheet under
+   * the stem, open and revealed, the panel beside it.
    */
   import { untrack, type Snippet } from 'svelte'
   import { get } from 'svelte/store'
@@ -101,6 +103,7 @@
 
   const pinned = $derived(question.type === 'map_pin')
   const onMap = $derived(pinned && (!tv || reveal !== null))
+  const onPicture = $derived(question.type === 'picture_pin')
   const host = $derived(hostOf(question.mode))
   const yours = $derived(!tv && question.you_can_answer)
   const lines = $derived(
@@ -156,7 +159,10 @@
 {#snippet staged(stem: Snippet, answers: Snippet | null)}
   {#snippet sheet()}
     {#if tv}
-      <div class="tv-stem">{@render stem()}</div>
+      <div class="tv-stem">
+        {@render stem()}
+        {#if onPicture}{@render answers?.()}{/if}
+      </div>
       <div class="said">
         {#if reveal !== null}
           <p class="line">{lines.reveal}</p>
@@ -192,7 +198,7 @@
       {@render answers?.()}
       {#if tv}{@render tvPanel(null)}{:else}{@render children?.()}{/if}
     {:else if tv}
-      {@render tvPanel(answers)}
+      {@render tvPanel(onPicture ? null : answers)}
     {:else if (answers !== null && !stemOnly) || children}
       <section class="panel answers">
         {#if !stemOnly}{@render answers?.()}{/if}

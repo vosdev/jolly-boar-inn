@@ -440,10 +440,10 @@ chrome or circle around them), on in `--ok`, in lobby and splash;
   *above* it, clear of the keyboard. Typed text reads as a search; only a selection lights Submit.
   No visible label, "Search the list" for a screen reader.
 - Answered and waiting shows your answer held and dimmed.
-- **With a TV connected** a phone draws no stage: no host, scroll, stem, picture or event NPC.
-  The answers and the table's strip take the screen, and the reveal puts your points on their
-  plaque above your marked answers, with no tally, counts, others' guesses or explanation. A
-  TV that drops gives phones the whole question back.
+- **With a TV connected** a phone draws no stage: no host, scroll, stem, picture or event NPC,
+  bar a picture pin's picture, which is its answers. The answers and the table's strip take the
+  screen, and the reveal puts your points on their plaque above your marked answers, with no
+  tally, counts, others' guesses or explanation. A TV that drops gives phones the whole question back.
 
 On reveal everything recedes except the correct answer and your points. Buttons fade (§3); a typed,
 picked or numeric answer fades beside the correct value. Your points go on a chip on the
@@ -473,6 +473,11 @@ one placed or moved. Stacked, the sheet crosses the top and the bubble the foot.
 then pulls back to fit every pin, so the worst lands last: far pins are named first, the furthest
 in `--bad`, and the table ranks them all. The TV shows no map until the reveal. One map stays up into
 the reveal and the next map question: the old pins fade with the words as it glides on.
+
+**The picture.** `picture_pin`'s answers are its picture, whole and full width, at most 55% of the
+screen's height, Lock in under it; no zoom. Your pet is your pin, its exact spot a dot; on a grid the
+lines are drawn and the tapped cell lights in `--accent`. The reveal draws the target box or cells,
+every pet and a dashed line from each miss, yours tagged You. The TV shows it under the stem.
 
 ## 11. Standings
 

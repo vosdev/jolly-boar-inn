@@ -163,10 +163,18 @@ def test_the_file_maps_each_asset_whose_picture_is_built_to_its_file(tmp_path: P
     assert load_pictures(path, client) == {"item:4151": WHIP}
 
 
+def test_a_screenshot_is_named_like_any_other_picture(tmp_path: Path) -> None:
+    path = tmp_path / "pictures.json"
+    path.write_text(json.dumps({"screenshot:ice-demon": {"file": WHIP, "sha256": "ab"}}))
+    (tmp_path / WHIP).write_bytes(b"\x89PNG")
+    assert load_pictures(path, tmp_path) == {"screenshot:ice-demon": WHIP}
+
+
 @pytest.mark.parametrize(
     "mapping",
     [
         [],
+        {"screenshot:Ice Demon": {"file": WHIP}},
         {"item:4151": {"file": "abyssal_whip.png"}},
         {"item:4151": {"file": "0123456789abcdef"}},
         {"item:4151": {"file": "0123456789abcdef.gif"}},

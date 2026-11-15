@@ -33,6 +33,7 @@ from app.ws import handler as ws_handler
 from app.ws.handler import MAX_FRAME, RATE_BURST, TokenBucket
 from tests.conftest import BASE, stub_mode
 from tests.rooms_api import closed_with, create, hello, next_of
+from tests.test_type_contract import EXAMPLES
 
 
 def until_pong(ws: WebSocketTestSession) -> list[dict[str, Any]]:
@@ -276,13 +277,27 @@ def _deep_answer(question_id: str, shape: str) -> str:
     return head + value + "}"
 
 
+def _unshipped(app: FastAPI, type_id: str) -> list[dict[str, Any]] | None:
+    """``type_id``'s contract example as a pack question, for a type no pack plays yet."""
+    if any(q["type"] == type_id for pack in app.state.packs for q in pack.questions):
+        return None
+    payload = EXAMPLES[type_id].payload
+    if "screenshot" in payload:
+        app.state.rooms.pictures = {
+            **app.state.rooms.pictures,
+            payload["screenshot"]: "fedcba9876543210.png",
+        }
+    return [{"type": type_id, "source": "pack", "tags": [], "payload": payload}]
+
+
 @pytest.mark.usefixtures("pictures")
 @pytest.mark.parametrize("shape", ["list", "object"])
 @pytest.mark.parametrize("type_id", sorted(TYPES))
 def test_an_answer_nested_past_any_recursion_limit_is_bad_value_for_every_type(
     app: FastAPI, table, type_id: str, shape: str
 ) -> None:
-    with contextmanager(stub_mode)(app, f"deep_{type_id}", type_id) as mode:
+    questions = _unshipped(app, type_id)
+    with contextmanager(stub_mode)(app, f"deep_{type_id}", type_id, questions) as mode:
         game = table("Zezima", modes=[mode], seconds=30)
         game.start()
         game.opened(0)

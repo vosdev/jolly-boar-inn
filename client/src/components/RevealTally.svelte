@@ -33,7 +33,8 @@
    * members' points on this question, in the room's order of gods rather than ranked,
    * because a reveal carries no standings.
    *
-   * A map question ranks its pins instead (`PinRanking`), in either form.
+   * A map question ranks its pins instead (`PinRanking`), in either form. A picture pin's misses
+   * are "Close" while they still scored and "Off the spot" after.
    *
    * Last, the player who suggested the question, when they asked to be named. It sits off
    * the scroll and under everything else, so the reveal reads the same with or without it.
@@ -302,6 +303,23 @@
         }
         return byCredit([...lines.values()])
       }
+      case 'picture_pin': {
+        const lines: Group[] = [
+          {
+            key: 'close',
+            label: 'Close',
+            gem: null,
+            players: wrong.filter(([, r]) => r.credit > 0).map(([id]) => who(id)),
+          },
+          {
+            key: 'off',
+            label: 'Off the spot',
+            gem: null,
+            players: wrong.filter(([, r]) => r.credit === 0).map(([id]) => who(id)),
+          },
+        ]
+        return lines.filter((line) => line.players.length > 0)
+      }
       default:
         return grouped(
           () => 'wrong',
@@ -351,6 +369,8 @@
         return { label: 'All in place', gem: null }
       case 'matching':
         return { label: `All ${done}`, gem: null }
+      case 'picture_pin':
+        return { label: 'On the spot', gem: null }
       default:
         return { label: 'Right answer', gem: null }
     }
@@ -420,7 +440,9 @@
           ? 'guessed it exactly'
           : type === 'matching'
             ? 'got them all'
-            : 'got it right'}
+            : type === 'picture_pin'
+              ? 'found the spot'
+              : 'got it right'}
       </p>
     {/if}
     {#if type !== 'map_pin'}<ul class="rows">
@@ -471,7 +493,9 @@
           ? 'guessed it exactly'
           : type === 'matching'
             ? 'got them all'
-            : 'got it right'}
+            : type === 'picture_pin'
+              ? 'found the spot'
+              : 'got it right'}
       </p>
       {#if shown.length > 0}
         <p class="head">Got it wrong</p>
