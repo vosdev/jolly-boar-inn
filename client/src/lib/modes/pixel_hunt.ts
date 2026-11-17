@@ -9,6 +9,8 @@ export const mode: Mode = {
   greeting: 'Step up to the flax field. Let us see how sharp your eyes really are.',
   blurb:
     'I will reveal an item a few pixels at a time. Name it from the list before the full icon shows - the fewer pixels you need, the more points you earn.',
+  // Answering early means naming it from less of the picture, so steps still pay in a team game.
+  teams: 'Speed is off for teams, but not here: the earlier you name it, the more it pays.',
   ask: [
     'A new master challenge. What item is this?',
     'Squint at the pixels. Which item do you see?',

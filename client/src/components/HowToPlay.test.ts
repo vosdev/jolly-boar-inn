@@ -83,6 +83,7 @@ describe('HowToPlay', () => {
     expect(document.querySelector('.teams')?.textContent).toBe(`Teams. ${TEAMS_PARAGRAPH}`)
     expect(TEAMS_PARAGRAPH).toContain("Speed doesn't count")
     expect(TEAMS_PARAGRAPH).toContain('average')
+    expect(TEAMS_PARAGRAPH).toContain('Pixel Hunt is the exception')
     expect(screen.queryByText(SCORING_LINE)).toBeNull()
   })
 

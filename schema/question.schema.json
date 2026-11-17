@@ -212,7 +212,7 @@
         "intro": { "$ref": "#/$defs/intro" },
         "image": { "$ref": "#/$defs/asset" },
         "bins": {
-          "$comment": "The options are bins and the fields the entries sorted into them, any number to a bin (check: 2 to 4 bins, 4 to 6 entries). Left out when false, so one question has one id.",
+          "$comment": "The options are bins and the fields the entries sorted into them, any number to a bin (check: 3 or 4 bins, 4 to 6 entries). Left out when false, so one question has one id.",
           "type": "boolean", "enum": [true]
         },
         "fields": {

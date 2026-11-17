@@ -624,7 +624,7 @@ from taking the lock. `grade` returns credit; `scoring.py` turns it into points 
   `swaps` the pairs put the wrong way round, so a random order of five averages 0.16. With `picks`,
   1 per exact place and half for a picked entry elsewhere. The reveal counts places from the value.
 - `matching` with `bins` grades as without, entries in their bin over the entries, with no floor
-  for chance: a blind guess over two bins averages half, so the editors suggest three or more.
+  for chance: a blind guess over two bins averages half, so `check` wants three or four.
 - A team game (`settings.teams` non-empty) drops speed: `SPEED` pays `round(1000 × credit)` and
   `answer_ack.band` is null. `ACCURACY` and `STEP` score as ever.
 

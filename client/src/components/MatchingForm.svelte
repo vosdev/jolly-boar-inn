@@ -7,8 +7,7 @@
    * follows and the author never types an index. Decoys follow, answers that belong on no
    * field, up to the gems there are in all. With `icons`, a field may be an `item:` or
    * `npc:` picture as well as or instead of a name: only a pack question shows one. Sort
-   * into bins writes the bins instead, then each entry with the bin it goes in; a hint
-   * suggests a third bin, and never holds Save up.
+   * into bins writes the bins instead, then each entry with the bin it goes in.
    * `fields` adds a caller's own fields below the question's, and `onattempt` checks those
    * on every Save. A caller that also takes other types passes them in `picker`, and
    * picking one hands it back. Who asks it is `asker`, as in `CustomQuestionForm`.
@@ -22,7 +21,6 @@
   import {
     BINS_MAX,
     BINS_MIN,
-    BINS_SUGGESTED,
     DETAIL_MAX,
     ENTRIES_MAX,
     ENTRIES_MIN,
@@ -215,11 +213,6 @@
         disabled={draft.bins.length >= BINS_MAX}
         onclick={() => draft.bins.push({ option: '', detail: '' })}>Add a bin</button
       >
-      {#if draft.bins.length < BINS_SUGGESTED}
-        <p class="note">
-          Three or more bins work best: with two, a blind guess gets about half of them right.
-        </p>
-      {/if}
       {@render errors(['payload.options'])}
     </fieldset>
 

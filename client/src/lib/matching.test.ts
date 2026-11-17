@@ -164,12 +164,13 @@ describe('matching drafts', () => {
     expect(answerLine(payload)).toBe('God 1: Item 1, Item 3; God 2: Item 2, Item 4; God 3: none')
   })
 
-  it('hold a sort to two to four bins and four to six entries', () => {
+  it('hold a sort to three or four bins and four to six entries', () => {
     expect(paths(sorting(1, 4))).toContain('payload.options')
+    expect(paths(sorting(2, 4))).toContain('payload.options')
     expect(paths(sorting(5, 4))).toContain('payload.options')
     expect(paths(sorting(3, 3))).toContain('payload.fields')
     expect(paths(sorting(3, 7))).toContain('payload.fields')
-    expect(paths(sorting(2, 4))).toEqual([])
+    expect(paths(sorting(3, 4))).toEqual([])
     expect(paths(sorting(4, 6))).toEqual([])
   })
 

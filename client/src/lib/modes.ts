@@ -195,6 +195,8 @@ export interface Mode extends HostLines {
   hint: string
   /** One or two sentences, for the splash, in the host's voice. Say what to do, not how it is scored. */
   blurb: string
+  /** After the blurb in a team game, for a mode that keeps paying for speed there. */
+  teams?: string
   /**
    * What goes on the clue scroll above the answers, or null for a mode drawn by its
    * view alone. Named here and drawn in `components/questions/index.ts`, so

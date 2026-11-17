@@ -180,22 +180,24 @@ describe('CustomQuestions', () => {
     })
   })
 
-  it('writes a sort into bins, hinting at a third bin without holding Save up', async () => {
+  it('writes a sort into three bins, and never offers to take one away', async () => {
     const panel = await loaded()
     await click(panel, 'Write a question')
     await pick(editor(), 'Match them up')
     const form = editor()
     await pick(form, 'Sort into bins')
-    await type(form, 'Question', 'Free-to-play or members?')
-    await click(form, 'Remove bin 3')
-    expect(form.textContent).toContain('Three or more bins work best')
-    await type(form, 'Bin 1', 'Free-to-play')
-    await type(form, 'Bin 2', 'Members')
-    const items = ['Rune scimitar', 'Dragon dagger', 'Lobster', 'Shark']
+    await type(form, 'Question', 'Which god does each belong to?')
+    for (const n of [1, 2, 3]) {
+      const remove = within(form).getByRole('button', { name: `Remove bin ${n}` })
+      expect((remove as HTMLButtonElement).disabled).toBe(true)
+    }
+    const gods = ['Saradomin', 'Zamorak', 'Guthix']
+    for (const [i, god] of gods.entries()) await type(form, `Bin ${i + 1}`, god)
+    const items = ['Saradomin brew', 'Zamorak brew', 'Guthix rest', 'Saradomin sword']
     for (const [i, item] of items.entries()) {
       await type(form, `Entry ${i + 1}`, item)
       const bin = within(form).getByRole('combobox', { name: `Bin of entry ${i + 1}` })
-      await fireEvent.change(bin, { target: { value: String(i % 2) } })
+      await fireEvent.change(bin, { target: { value: String(i % 3) } })
     }
     await click(form, 'Add question')
     expect(panel.textContent).toContain('Sort into bins · Random NPC')
@@ -203,11 +205,11 @@ describe('CustomQuestions', () => {
     expect(sent).toEqual({
       type: 'matching',
       payload: {
-        prompt: 'Free-to-play or members?',
+        prompt: 'Which god does each belong to?',
         bins: true,
         fields: items.map((text) => ({ text })),
-        options: [{ text: 'Free-to-play' }, { text: 'Members' }],
-        answer: [0, 1, 0, 1],
+        options: gods.map((text) => ({ text })),
+        answer: [0, 1, 2, 0],
       },
     })
   })

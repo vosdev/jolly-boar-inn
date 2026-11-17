@@ -130,15 +130,15 @@ def test_a_host_question_claiming_another_mode_or_source_is_refused(
 
 
 def test_a_host_may_write_a_bins_matching() -> None:
-    names = ("Rune scimitar", "Dragon dagger", "Lobster", "Shark")
+    names = ("Saradomin brew", "Zamorak brew", "Guthix rest", "Saradomin sword")
     sorting = {
         "type": "matching",
         "payload": {
-            "prompt": "Free-to-play or members?",
+            "prompt": "Which god does each belong to?",
             "bins": True,
             "fields": [{"text": name} for name in names],
-            "options": [{"text": "Free-to-play"}, {"text": "Members"}],
-            "answer": [0, 1, 0, 1],
+            "options": [{"text": "Saradomin"}, {"text": "Zamorak"}, {"text": "Guthix"}],
+            "answer": [0, 1, 2, 0],
         },
     }
     (envelope,) = custom.envelopes([sorting])

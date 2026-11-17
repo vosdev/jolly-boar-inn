@@ -135,6 +135,43 @@ describe('Splash stage', () => {
     expect(bubble().classList.contains('on')).toBe(true)
   })
 
+  it("adds Pixel Hunt's team line after its blurb in a team game, and only there", () => {
+    const hunt = { ...SEGMENT, mode: 'pixel_hunt' }
+    const line = MODES.pixel_hunt!.teams!
+    expect(line).toBe(
+      'Speed is off for teams, but not here: the earlier you name it, the more it pays.',
+    )
+    const shown = (settings: RoomSettings) => {
+      render(Splash, {
+        segment: hunt,
+        endsAt: null,
+        players: players(false),
+        youId: 'a',
+        onReady: () => {},
+        settings,
+      })
+      const text = spoken(bubble().querySelector('.blurb')!)
+      cleanup()
+      return text
+    }
+    expect(shown({ ...SETTINGS, teams: ['saradomin', 'zamorak'] })).toBe(
+      `${MODES.pixel_hunt!.blurb} ${line}`,
+    )
+    expect(shown(SETTINGS)).toBe(MODES.pixel_hunt!.blurb)
+  })
+
+  it('says no team line for a mode that scores a team game like any other', () => {
+    render(Splash, {
+      segment: SEGMENT,
+      endsAt: null,
+      players: players(false),
+      youId: 'a',
+      onReady: () => {},
+      settings: { ...SETTINGS, teams: ['saradomin', 'zamorak'] },
+    })
+    expect(spoken(bubble().querySelector('.blurb')!)).toBe(MODES.more_less!.blurb)
+  })
+
   it('has the house present a mode this build lacks, in the generic greeting', () => {
     splash({ ...SEGMENT, mode: 'zoom_quiz' })
     expect(bubble().textContent).toContain(GENERIC_HOST.greeting)
