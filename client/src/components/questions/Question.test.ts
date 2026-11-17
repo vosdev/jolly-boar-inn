@@ -13,6 +13,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { serverNow } from '../../lib/clock'
 import type { OpenQuestion, PlayerResult, Scoring } from '../../lib/protocol'
+import { ANSWER_RULES } from '../../lib/modeRules'
 import { MODES, pickLines } from '../../lib/modes'
 import { answerAck, answerCount, players, you } from '../../lib/stores'
 import { clearVocabCache } from '../../lib/vocab'
@@ -521,6 +522,22 @@ describe('every type on the stage', () => {
       expect(plain).toContain(waitingFor({ scoring: 'accuracy', band: null }))
       expect(plain).toContain(waitingFor(null))
     })
+
+    it.each([
+      ['price_is_right', 'price_is_right', { subject: { name: 'Abyssal whip' }, min: 1, max: 9 }],
+      ['number_slider', 'bestiary', { prompt: 'How many?', min: 1, max: 99, scale: 'linear' }],
+    ])(
+      'shows no speed band on %s while it is open, with the ack its scoring sends',
+      (type, mode, view) => {
+        const scoring = ANSWER_RULES.scoring[type]!
+        expect(scoring).toBe('accuracy')
+        answerAck.set({ scoring, band: null })
+        render(QuestionStage, { question: open(type, mode, view), yourValue: 1, onAnswer })
+        const pace = Object.values(MODES[mode]!.pace).flat()
+        expect(MODES[mode]!.waiting).toContain(said())
+        expect(pace).not.toContain(said())
+      },
+    )
 
     it('says it under the answers on a phone while the TV has the stage', () => {
       answerAck.set({ scoring: 'speed', band: 5 })

@@ -173,6 +173,31 @@ describe('samples', () => {
     expect(sampleResult(sample, sample.answer, 15000, rules).points).toBe(500)
   })
 
+  it('pay The Price is Right on closeness alone, as the generated file says', () => {
+    expect(ANSWER_RULES.scoring.price_is_right).toBe('accuracy')
+    const sample = sampleOf('price_is_right', 'price_is_right')
+    const last = sampleSeconds(sample) * 1000 - 500
+    expect(sampleResult(sample, sample.value, last).points).toBe(1000)
+    const guess = 120000
+    const share = credit(sample.view.min as number, sample.view.max as number, sample.value, guess)
+    expect(share).toBeGreaterThan(0)
+    expect(share).toBeLessThan(1)
+    for (const at of [500, last]) {
+      expect(sampleResult(sample, guess, at).points).toBe(Math.round(1000 * share))
+    }
+  })
+
+  it("follow each type's scoring from the generated file, not a list of its own", () => {
+    const sample = SAMPLES.more_less as OneAnswerSample
+    const late = sampleSeconds(sample) * 1000 - 500
+    const rules: AnswerRules = {
+      ...ANSWER_RULES,
+      scoring: { ...ANSWER_RULES.scoring, more_less: 'accuracy' },
+    }
+    expect(sampleResult(sample, sample.answer, late).points).toBe(600)
+    expect(sampleResult(sample, sample.answer, late, rules).points).toBe(1000)
+  })
+
   it("never open a sample for less than the server's floor", () => {
     const sample = SAMPLES.more_less!
     const rules = { ...ANSWER_RULES, answer: { more_less: { base: 1, per_item: 0 } } }

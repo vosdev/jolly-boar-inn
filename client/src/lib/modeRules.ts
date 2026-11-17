@@ -9,6 +9,7 @@
  */
 
 import RULES from '../../../schema/modes.json'
+import type { Scoring } from './protocol'
 
 /** `Suggest` on the server: what a player may suggest for a mode. */
 export interface SuggestRules {
@@ -57,12 +58,14 @@ export interface Timing {
   per_item: number
 }
 
-/** What a question's answer time and its speed points are made of, as the server holds them. */
+/** What a question's answer time and its points are made of, as the server holds them. */
 export interface AnswerRules {
   /** Each type's `ANSWER`. */
   answer: Record<string, Timing>
   /** `MIN_ANSWER`: no question is open for less, whatever the pace. */
   min_answer: number
+  /** Each type's `SCORING`: whether the clock counts toward its points. */
+  scoring: Record<string, Scoring>
   /** `rooms/scoring.py`'s `BUCKETS`: the fraction of the time used, and its points. */
   buckets: [number, number][]
 }
@@ -75,7 +78,7 @@ interface Rules extends AnswerRules {
 
 const DATA = RULES as unknown as Rules
 
-/** The answer timings and speed buckets this build's server applies. */
+/** The answer timings, scorings and speed buckets this build's server applies. */
 export const ANSWER_RULES: AnswerRules = DATA
 
 /** Every mode this build plays, in the registry's order, which is the create form's. */

@@ -890,6 +890,20 @@
     }
   },
   "min_answer": 5,
+  "scoring": {
+    "more_less": "speed",
+    "price_is_right": "accuracy",
+    "pick_from_list": "step",
+    "multiple_choice": "speed",
+    "closest_number": "accuracy",
+    "number_slider": "accuracy",
+    "free_text": "speed",
+    "pick_all_that_apply": "speed",
+    "ordering": "speed",
+    "matching": "speed",
+    "map_pin": "accuracy",
+    "picture_pin": "accuracy"
+  },
   "buckets": [
     [
       0.1,

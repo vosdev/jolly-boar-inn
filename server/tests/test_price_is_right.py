@@ -64,7 +64,7 @@ def grid(low: int, high: int) -> list[int]:
 def test_mode_plays_its_own_type() -> None:
     assert MODES["price_is_right"].types == {"price_is_right"}
     assert TYPES["price_is_right"] is price_is_right
-    assert scoring_of("price_is_right") is Scoring.SPEED
+    assert scoring_of("price_is_right") is Scoring.ACCURACY
 
 
 def test_fifteen_seconds_to_answer_and_six_to_reveal_at_run() -> None:

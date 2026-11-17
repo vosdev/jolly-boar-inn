@@ -65,7 +65,7 @@ export const HOW_TO_ROWS: HowToRow[] = [
   {
     types: ['price_is_right', 'number_slider'],
     title: 'Slide to your guess',
-    text: 'Slide to your guess, then press Submit. The closer you are, the more points you score.',
+    text: "Slide to your guess, then press Submit. Speed doesn't count - the closer you are, the more points you score.",
     drawing: 'slider',
   },
   {

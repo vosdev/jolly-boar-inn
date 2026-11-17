@@ -96,12 +96,12 @@ module lists mode ids, which a test greps for.
 - `is_round` is explicit, so an empty `types` never turns a round into an event pool. Only `custom`
   and `random_event` are not rounds. They state no types and no numbers.
 - Copy (label, hint, blurb, host lines, suggestion card) lives on the client in `lib/modes/`. `make
-  gen-modes` writes every entry, `UPCOMING`, `PLANNED`, each type's `ANSWER` and the speed buckets
-  to `schema/modes.json`, committed; the client reads its per-mode rules (`lib/modeRules.ts`), its
-  mode order and How to play's timings and points from it, and keeps no list of mode ids. A server
-  test fails while the file is stale, a client test while a mode file is not in it. `stem` is also
-  typed in each mode file, for `rooms/hold.py`, and a server test holds the two equal;
-  `hold_counts_prompt` keeps Pixel Hunt's prompt in the hold.
+  gen-modes` writes every entry, `UPCOMING`, `PLANNED`, each type's `ANSWER` and `SCORING` and the
+  speed buckets to `schema/modes.json`, committed; the client reads its per-mode rules
+  (`lib/modeRules.ts`), its mode order and How to play's timings and points from it, and keeps no
+  list of mode ids. A server test fails while the file is stale, a client test while a mode file is
+  not in it. `stem` is also typed in each mode file, for `rooms/hold.py`, and a server test holds
+  the two equal; `hold_counts_prompt` keeps Pixel Hunt's prompt in the hold.
 - `suggest` is a frozen `Suggest` record of what `/suggest` takes (section 11), its `types` the
   mode's own unless stated; `TRIVIA_TYPES` names the seven most rounds take. `UPCOMING` maps a
   round not built yet to its `Suggest`; `PLANNED` lists those that take no suggestions yet. `report` is `item`, `options` or `npc` where the report form
@@ -597,8 +597,8 @@ from taking the lock. `grade` returns credit; `scoring.py` turns it into points 
 
 | `SCORING` | Points | Types |
 |---|---|---|
-| `SPEED` | `round(bucket points × credit)` | `more_less`, `price_is_right`, `number_slider`, `multiple_choice`, `free_text`, `pick_all_that_apply`, `ordering`, `matching` |
-| `ACCURACY` | `round(1000 × credit)` | `closest_number`, `map_pin`, `picture_pin` |
+| `SPEED` | `round(bucket points × credit)` | `more_less`, `multiple_choice`, `free_text`, `pick_all_that_apply`, `ordering`, `matching` |
+| `ACCURACY` | `round(1000 × credit)` | `closest_number`, `price_is_right`, `number_slider`, `map_pin`, `picture_pin` |
 | `STEP` | `round(step points × credit)` | `pick_from_list` in a mode with `steps`, or Certer's |
 
 | Speed bucket | Fraction of the question's seconds | Points |

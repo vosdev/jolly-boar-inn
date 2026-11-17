@@ -1,12 +1,18 @@
 """A team game scores on accuracy alone: the ack carries no speed band and the close pays
 ``1000 x credit``, while ``ACCURACY`` and ``STEP`` questions pay what they always paid."""
 
+from collections.abc import Iterator
 from typing import Any
 from uuid import UUID
 
+import pytest
+from fastapi import FastAPI
+
 from app.questions.types import more_less
 from app.questions.types.scoring import Scoring
+from tests.conftest import stub_mode
 from tests.game_api import AFTER, Game, answer_after, assert_memory_matches_db
+from tests.test_slider_scoring import SLIDERS, partial
 
 
 def team_table(table: Any, *names: str, **settings: Any) -> Game:
@@ -83,3 +89,24 @@ def test_a_step_question_pays_the_frame_the_answer_arrived_on(table, pictures) -
     game.skip()
     closed = game.admin.take("question_closed")
     assert points_by_name(game, closed) == {"Zezima": 1000, "Woox": 929}
+
+
+@pytest.fixture(params=SLIDERS)
+def slider_round(request: pytest.FixtureRequest, app: FastAPI) -> Iterator[str]:
+    yield from stub_mode(app, f"{request.param}_round", request.param)
+
+
+def test_a_slider_pays_what_it_paid_before_it_left_speed(table, slider_round: str) -> None:
+    """``SPEED`` in a team game was already ``1000 x credit``, as ``ACCURACY`` is."""
+    game = team_table(table, "Zezima", "Woox", modes=[slider_round], questions=1)
+    zezima, woox = game.players
+    game.start()
+    game.opened(0)
+    question = game.question(0)
+    guess, credit = partial(question.type, question.payload)
+    for seat, value, bucket in ((zezima, game.right(0), 5), (woox, guess, 1)):
+        ack = answer_after(game, seat, 0, value, AFTER[bucket])
+        assert (ack["scoring"], ack["band"]) == ("accuracy", None)
+    game.skip()
+    closed = game.admin.take("question_closed")
+    assert points_by_name(game, closed) == {"Zezima": 1000, "Woox": round(1000 * credit)}

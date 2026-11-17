@@ -75,7 +75,7 @@ EXAMPLES: dict[str, Example] = {
         right=1600000,
         wrong=3000000,
         secret=frozenset({"value"}),
-        scoring=Scoring.SPEED,
+        scoring=Scoring.ACCURACY,
         seconds=(15, 6),
     ),
     "pick_from_list": Example(
@@ -201,7 +201,7 @@ EXAMPLES: dict[str, Example] = {
         right=85,
         wrong=50,
         secret=frozenset({"answer", "explanation"}),
-        scoring=Scoring.SPEED,
+        scoring=Scoring.ACCURACY,
         seconds=(15, 8),
     ),
     "free_text": Example(

@@ -193,6 +193,9 @@ export function sampleCredit(sample: Sample, value: unknown): number {
   }
 }
 
+/** `rooms/scoring.py`'s `ACCURACY_TOP`: what full credit pays where the clock does not count. */
+const ACCURACY_TOP = 1000
+
 /** Points for an answer `elapsedMs` into `seconds`, as the room scores one on speed. */
 export function speedPoints(
   credit: number,
@@ -228,6 +231,7 @@ function samplePoints(
   if (sample.type === 'pick_from_list' && sample.steps !== undefined) {
     return Math.round(stepPoints(elapsedMs, seconds, sample.steps) * credit)
   }
+  if (rules.scoring[sample.type] === 'accuracy') return Math.round(ACCURACY_TOP * credit)
   return speedPoints(credit, elapsedMs, seconds, rules)
 }
 

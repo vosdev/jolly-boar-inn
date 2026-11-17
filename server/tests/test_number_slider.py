@@ -51,9 +51,9 @@ def log_grid(low: int, high: int) -> list[int]:
 # --- registry ---------------------------------------------------------------------------
 
 
-def test_it_scores_on_speed_beside_closest_number() -> None:
+def test_it_scores_on_accuracy_beside_closest_number() -> None:
     assert TYPES["number_slider"] is number_slider
-    assert scoring_of("number_slider") is Scoring.SPEED
+    assert scoring_of("number_slider") is Scoring.ACCURACY
     for mode, types in QUESTION_MODES.items():
         assert ("closest_number" in types) == ("number_slider" in types), mode
     for mode in MODES.values():
