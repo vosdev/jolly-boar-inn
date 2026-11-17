@@ -23,7 +23,7 @@ final. The licence is AGPL-3.0.
 ```
 Dockerfile, docker-compose.yml     three-stage image + data, logo, map; app + postgres:18 (+ .dev.yml, .data.yml)
 Makefile, .github/workflows/ci.yml all, setup, dev, lint, test, gen-*, import-suggestions, edit-packs,
-                                   edit-roster, rehash-questions, fetch-assets, logo, image, loadtest(-smoke); CI: audit, loadtest, release
+                                   edit-roster, rehash-questions, fetch-assets, logo, image, loadtest(-smoke); CI: audit, loadtest, release; map.yml renders the map when its inputs change
 schema/                            question.schema.json (4), protocol.schema.json (6), modes.json (3)
 data/packs/                        prices (generated, ignored), examine, sample (stale), random_events/
 data/                              assets, pets, popular-items/-npcs, player-names, room-words
