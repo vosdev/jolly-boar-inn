@@ -2242,8 +2242,12 @@ def play_right_and_wrong(game: Game, index: int) -> dict[str, Any]:
     assert closed["reveal"] == expected
     zezimas, wooxs = (closed["results"][seat.id] for seat in (zezima, woox))
     assert (zezimas["correct"], zezimas["points"] > 0) == (True, True)
-    assert wooxs["correct"] is False
-    assert wooxs["points"] == 0
+    # Partial credit is the rule now, and some questions pay a wrong answer some: a pick-all
+    # with more picks than wrong options must tick a right one. The contract tests hold the
+    # wrong answer to no credit wherever a question allows it.
+    assert wooxs["correct"] is False and wooxs["credit"] < 1
+    assert wooxs["points"] < zezimas["points"]
+    assert (wooxs["points"] == 0) == (wooxs["credit"] == 0)
     return closed
 
 
