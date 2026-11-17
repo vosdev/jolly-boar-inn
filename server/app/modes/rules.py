@@ -2,8 +2,8 @@
 
 The client imports the file (``client/src/lib/modeRules.ts``) instead of keeping its own
 lists of which modes take a quote or how a round's picture shows, so a rule changed in
-``MODES`` reaches the forms in the same build. Each type's answer timing and scoring and the
-speed buckets ride along, so How to play's sample questions stay open and pay as long and as
+``MODES`` reaches the forms in the same build. Each type's answer timing, scoring and grace and
+the speed buckets ride along, so How to play's sample questions stay open and pay as long and as
 much as a room. Every field of ``Mode`` is written, not only those the client reads today, so a new
 rule needs no change here. A test fails when the committed file differs from what the
 registry produces.
@@ -15,7 +15,7 @@ from typing import Any
 
 from app.config import REPO_ROOT
 from app.modes import MODES, PLANNED, UPCOMING
-from app.questions.types import TYPES, scoring_of
+from app.questions.types import TYPES, grace_of, scoring_of
 from app.questions.types.timing import MIN_ANSWER
 from app.rooms import scoring
 
@@ -36,8 +36,8 @@ def _plain(value: Any) -> Any:
 
 def mode_rules() -> dict[str, Any]:
     """Every mode in registry order, the upcoming rounds' suggestion rules, the planned ids,
-    each type's answer timing at run pace with its floor, each type's scoring, and the speed
-    buckets."""
+    each type's answer timing at run pace with its floor, each type's scoring and grace, and the
+    speed buckets."""
     return {
         "modes": [_plain(mode) for mode in MODES.values()],
         "upcoming": [{"id": key, "suggest": _plain(rules)} for key, rules in UPCOMING.items()],
@@ -45,6 +45,7 @@ def mode_rules() -> dict[str, Any]:
         "answer": {type_id: _plain(module.ANSWER) for type_id, module in TYPES.items()},
         "min_answer": MIN_ANSWER,
         "scoring": {type_id: scoring_of(type_id).value for type_id in TYPES},
+        "grace": {type_id: grace_of(type_id) for type_id in TYPES},
         "buckets": _plain(scoring.BUCKETS),
     }
 

@@ -96,8 +96,8 @@ module lists mode ids, which a test greps for.
 - `is_round` is explicit, so an empty `types` never turns a round into an event pool. Only `custom`
   and `random_event` are not rounds. They state no types and no numbers.
 - Copy (label, hint, blurb, host lines, suggestion card) lives on the client in `lib/modes/`. `make
-  gen-modes` writes every entry, `UPCOMING`, `PLANNED`, each type's `ANSWER` and `SCORING` and the
-  speed buckets to `schema/modes.json`, committed; the client reads its per-mode rules
+  gen-modes` writes every entry, `UPCOMING`, `PLANNED`, each type's `ANSWER`, `SCORING` and `GRACE`
+  and the speed buckets to `schema/modes.json`, committed; the client reads its per-mode rules
   (`lib/modeRules.ts`), its mode order and How to play's timings and points from it, and keeps no
   list of mode ids. A server test fails while the file is stale, a client test while a mode file is
   not in it. `stem` is also typed in each mode file, for `rooms/hold.py`, and a server test holds
@@ -123,6 +123,7 @@ def grade(payload, submissions) -> dict[player_id, float]   # credit, 0.0 to 1.0
 def check(payload) -> list[str]       # the stored answer follows from the stored facts
 def pictured(view, payload, pictures) # optional: a pack question's pictures inside its view
 SCORING: Scoring                      # SPEED by default (section 8)
+GRACE: float                          # 0 up to 1: the share of ANSWER the speed buckets skip
 ANSWER, REVEAL: Timing                # base + per_item seconds, at run pace
 def items(payload) -> int             # optional: options or entries; 0 without it
 ```
@@ -609,6 +610,10 @@ from taking the lock. `grade` returns credit; `scoring.py` turns it into points 
 | 4 | ≤ 0.75 | 700 |
 | 5 | ≤ 1.00 | 600 |
 
+- A type's `GRACE`, for an answer that takes building, moves each edge to `grace + edge × (1 −
+  grace)`: 0.2 ends bucket 1 at 0.28 and bucket 5 at 1.0. Every type states 0 for now; `STEP`,
+  `ACCURACY` and team games ignore it. `lib/samples.ts` repeats the edges, held by
+  `speedEdges.fixture.json`.
 - Fractions, not seconds, so quick and slow rounds score alike. Five coarse buckets make a 50–150 ms
   network difference irrelevant, so there is no RTT compensation.
 - An answer from `ends_at` on is `not_open`, even if the close runs late.

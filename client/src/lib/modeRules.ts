@@ -66,6 +66,8 @@ export interface AnswerRules {
   min_answer: number
   /** Each type's `SCORING`: whether the clock counts toward its points. */
   scoring: Record<string, Scoring>
+  /** Each type's `GRACE`: the share of the time its speed buckets skip before they count. */
+  grace: Record<string, number>
   /** `rooms/scoring.py`'s `BUCKETS`: the fraction of the time used, and its points. */
   buckets: [number, number][]
 }
@@ -78,7 +80,7 @@ interface Rules extends AnswerRules {
 
 const DATA = RULES as unknown as Rules
 
-/** The answer timings, scorings and speed buckets this build's server applies. */
+/** The answer timings, scorings, graces and speed buckets this build's server applies. */
 export const ANSWER_RULES: AnswerRules = DATA
 
 /** Every mode this build plays, in the registry's order, which is the create form's. */

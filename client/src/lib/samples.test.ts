@@ -12,12 +12,14 @@ import {
   sampleReveal,
   samplePicture,
   sampleSeconds,
+  speedEdges,
   speedPoints,
   stepPoints,
   type OneAnswerSample,
   type Sample,
 } from './samples'
 import { credit, middle, onTrack } from './slider'
+import EDGES from './speedEdges.fixture.json'
 
 /** The sample of `mode`, narrowed to its type. */
 function sampleOf<T extends Sample['type']>(mode: string, type: T): Extract<Sample, { type: T }> {
@@ -154,6 +156,32 @@ describe('samples', () => {
     expect(speedPoints(1, 20000, 20)).toBe(600)
     expect(speedPoints(1, 20001, 20)).toBe(0)
     expect(speedPoints(0, 1000, 20)).toBe(0)
+  })
+
+  it.each(EDGES)('end the speed buckets where the server does: $about', ({ grace, edges }) => {
+    const ours = speedEdges(grace)
+    expect(ours).toHaveLength(edges.length)
+    edges.forEach((edge, at) => expect(ours[at]).toBeCloseTo(edge, 12))
+    expect(ours.at(-1)).toBe(1)
+  })
+
+  it('leave every bucket edge where it was with no grace', () => {
+    expect(speedEdges(0)).toEqual(ANSWER_RULES.buckets.map(([edge]) => edge))
+  })
+
+  it("score on the buckets a type's grace moves", () => {
+    expect(speedPoints(1, 5600, 20, ANSWER_RULES, 0.2)).toBe(1000)
+    expect(speedPoints(1, 5601, 20, ANSWER_RULES, 0.2)).toBe(900)
+    expect(speedPoints(1, 20000, 20, ANSWER_RULES, 0.2)).toBe(600)
+    expect(speedPoints(1, 20001, 20, ANSWER_RULES, 0.2)).toBe(0)
+    const sample = SAMPLES.more_less as OneAnswerSample
+    const rules: AnswerRules = {
+      ...ANSWER_RULES,
+      answer: { ...ANSWER_RULES.answer, more_less: { base: 20, per_item: 0 } },
+      grace: { ...ANSWER_RULES.grace, more_less: 0.2 },
+    }
+    expect(sampleResult(sample, sample.answer, 5000, rules).points).toBe(1000)
+    expect(sampleResult(sample, sample.answer, 5000, { ...rules, grace: {} }).points).toBe(900)
   })
 
   it("stay open and pay as the generated file's timings and buckets say", () => {

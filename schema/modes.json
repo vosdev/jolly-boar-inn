@@ -904,6 +904,20 @@
     "map_pin": "accuracy",
     "picture_pin": "accuracy"
   },
+  "grace": {
+    "more_less": 0.0,
+    "price_is_right": 0.0,
+    "pick_from_list": 0.0,
+    "multiple_choice": 0.0,
+    "closest_number": 0.0,
+    "number_slider": 0.0,
+    "free_text": 0.0,
+    "pick_all_that_apply": 0.0,
+    "ordering": 0.0,
+    "matching": 0.0,
+    "map_pin": 0.0,
+    "picture_pin": 0.0
+  },
   "buckets": [
     [
       0.1,

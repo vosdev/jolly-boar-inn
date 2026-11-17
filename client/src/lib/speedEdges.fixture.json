@@ -1,0 +1,12 @@
+[
+  {
+    "about": "no grace leaves every edge where it was",
+    "grace": 0,
+    "edges": [0.1, 0.25, 0.5, 0.75, 1.0]
+  },
+  {
+    "about": "a fifth of grace moves the first edge most and the last not at all",
+    "grace": 0.2,
+    "edges": [0.28, 0.4, 0.6, 0.8, 1.0]
+  }
+]

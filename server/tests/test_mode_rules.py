@@ -4,7 +4,7 @@ import json
 
 from app.modes import MODES, PLANNED, UPCOMING
 from app.modes.rules import MODES_PATH, REGENERATE, mode_rules, render
-from app.questions.types import TYPES, scoring_of
+from app.questions.types import TYPES, grace_of, scoring_of
 from app.questions.types.timing import MIN_ANSWER
 from app.rooms import scoring
 
@@ -48,3 +48,10 @@ def test_each_type_s_scoring_lands_in_the_file() -> None:
     assert scorings == {type_id: str(scoring_of(type_id)) for type_id in TYPES}
     assert scorings["number_slider"] == scorings["price_is_right"] == "accuracy"
     assert scorings["more_less"] == "speed"
+
+
+def test_each_type_s_grace_lands_in_the_file(monkeypatch) -> None:
+    graces = mode_rules()["grace"]
+    assert graces == {type_id: grace_of(type_id) for type_id in TYPES}
+    monkeypatch.setattr(TYPES["ordering"], "GRACE", 0.2)
+    assert mode_rules()["grace"]["ordering"] == 0.2

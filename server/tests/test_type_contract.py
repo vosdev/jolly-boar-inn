@@ -19,7 +19,13 @@ from app.modes import type_questions
 from app.questions import schema
 from app.questions.packs import load_packs
 from app.questions.submission import Submission
-from app.questions.types import TYPES, answer_seconds, reveal_seconds, scoring_of
+from app.questions.types import (
+    TYPES,
+    answer_seconds,
+    grace_of,
+    reveal_seconds,
+    scoring_of,
+)
 from app.questions.types.scoring import Scoring
 from tests import answers
 from tests.packs import PACKS_DIR
@@ -481,6 +487,14 @@ def test_each_type_states_its_timing_and_its_scoring(type_id: str) -> None:
     assert timing == ex.seconds
     questions = type_questions(type_id)
     assert (questions.default, questions.minimum, questions.maximum) == ex.questions
+
+
+@per_type
+def test_each_type_states_a_grace_from_zero_up_to_one(type_id: str) -> None:
+    grace = TYPES[type_id].GRACE
+    assert isinstance(grace, float)
+    assert 0.0 <= grace < 1.0
+    assert grace_of(type_id) == grace
 
 
 @per_type

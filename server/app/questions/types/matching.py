@@ -33,6 +33,7 @@ from app.questions.types.shuffle import seeded_order
 from app.questions.types.timing import Timing
 
 SCORING = Scoring.SPEED
+GRACE = 0.0
 # Each field is read and filled one by one, and the reveal sets each option on its field
 # with its detail beside it, as ordering does.
 ANSWER = Timing(base=10, per_item=5)

@@ -25,6 +25,7 @@ from app.questions.types.scoring import Scoring
 from app.questions.types.timing import Timing
 
 SCORING = Scoring.ACCURACY
+GRACE = 0.0
 ANSWER = Timing(base=15)
 REVEAL = Timing(base=6)
 

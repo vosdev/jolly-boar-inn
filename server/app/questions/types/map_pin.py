@@ -37,6 +37,7 @@ from app.questions.types.scoring import Scoring
 from app.questions.types.timing import Timing
 
 SCORING = Scoring.ACCURACY
+GRACE = 0.0
 # Finding a place takes panning and zooming, and a phone is slow at both. Each pin adds that
 # again, and a reveal has more lines to read.
 ANSWER = Timing(base=20, per_item=10)

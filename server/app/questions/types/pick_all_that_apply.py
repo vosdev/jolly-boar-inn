@@ -30,6 +30,7 @@ from app.questions.types.shuffle import seeded_order
 from app.questions.types.timing import Timing
 
 SCORING = Scoring.SPEED
+GRACE = 0.0
 # Each option is a yes or a no to weigh, and the reveal is the right set against yours.
 ANSWER = Timing(base=10, per_item=3)
 REVEAL = Timing(base=4, per_item=1)

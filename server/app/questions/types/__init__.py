@@ -6,7 +6,9 @@ ideas/architecture.md section 1) plus ``check(payload)``, the consistency rules 
 submitted value into the one form the room stores, echoes and grades, or ``None`` to refuse
 it. ``grade`` returns credit, 0.0 to 1.0 per player, and never points: what an answer is
 worth is ``rooms/scoring.py``'s business, told how to go about it by the module's optional
-``SCORING``, and by its mode's ``steps`` for a picture that builds up.
+``SCORING``, and by its mode's ``steps`` for a picture that builds up. ``GRACE``, a share
+of the answer time from 0 up to 1, moves the speed buckets later for an answer that takes
+building.
 
 A type is an answer shape, not a round: the rounds are modes (``app/modes``), and several
 of them may share one type. The type alone says how long a question stays open and how
@@ -57,6 +59,11 @@ TYPES: dict[str, ModuleType] = {
 def scoring_of(type_id: str) -> Scoring:
     """How a question of this type turns credit into points: its ``SCORING``, or ``SPEED``."""
     return getattr(TYPES[type_id], "SCORING", Scoring.SPEED)
+
+
+def grace_of(type_id: str) -> float:
+    """The share of this type's answer time the speed buckets skip: its ``GRACE``, or 0."""
+    return getattr(TYPES[type_id], "GRACE", 0.0)
 
 
 def pictured(

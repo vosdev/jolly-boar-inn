@@ -41,6 +41,7 @@ from app.questions.types.shuffle import seeded_order
 from app.questions.types.timing import Timing
 
 SCORING = Scoring.SPEED
+GRACE = 0.0
 # Every entry is read and placed one by one, and the reveal sets each in its place with
 # its detail beside it: the slowest shape on both counts.
 ANSWER = Timing(base=10, per_item=5)

@@ -32,6 +32,7 @@ from app.questions.types.scoring import Scoring
 from app.questions.types.timing import Timing
 
 SCORING = Scoring.ACCURACY
+GRACE = 0.0
 # A number to think about and type; the reveal lists everyone's guesses.
 ANSWER = Timing(base=20)
 REVEAL = Timing(base=8)
