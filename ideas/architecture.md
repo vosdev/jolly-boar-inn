@@ -615,6 +615,9 @@ from taking the lock. `grade` returns credit; `scoring.py` turns it into points 
 - Partial credit rides the bucket: 0.6 in bucket 2 is 540.
 - `pick_all_that_apply` without `picks` pays `max(0, right ticked ÷ right − wrong ticked ÷ wrong)`
   (no wrong option: wrong share 0), so ticking everything pays 0.
+- `ordering` without `picks` pays `max(0, 1 − 2 × swaps ÷ pairs)` over pairs of different ranks,
+  `swaps` the pairs put the wrong way round, so a random order of five averages 0.16. With `picks`,
+  1 per exact place and half for a picked entry elsewhere. The reveal counts places from the value.
 - `matching` with `bins` grades as without, entries in their bin over the entries, with no floor
   for chance: a blind guess over two bins averages half, so the editors suggest three or more.
 - A team game (`settings.teams` non-empty) drops speed: `SPEED` pays `round(1000 × credit)` and

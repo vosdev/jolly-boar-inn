@@ -20,10 +20,15 @@ socket and every reconnect sees one order, and a value is that shown order's pos
 first end first. The entries themselves carry no key: an author writes them in answer
 order, so any index or key from the payload would give the answer away.
 
-Credit is per place, over the places played: 1 for an entry of the rank that belongs
-there. With ``picks``, an entry that belongs among the picked but in another place earns
-half, so the right three in the wrong order is not scored like three wrong ones. Without
-``picks`` every entry belongs somewhere, so the half would pay for any answer at all.
+Without ``picks``, credit counts swaps: pairs of entries of different ranks the player put
+the wrong way round, which is also the swaps of neighbours that would repair the answer.
+Credit is ``1 - 2 × swaps / pairs``, floored at 0, over the pairs of different ranks, so a
+random order averages little and one entry moved to the front still pays for the rest
+being in order. Places would score that answer 0.
+
+With ``picks`` credit is per place played: 1 for an entry of the rank that belongs there,
+and half for one that belongs among the picked but sits in another place, so the right
+three in the wrong order is not scored like three wrong ones.
 """
 
 from typing import Any
@@ -92,22 +97,33 @@ def reveal(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def grade(payload: dict[str, Any], submissions: list[Submission]) -> dict[UUID, float]:
-    """Per place played, 1 for the rank that belongs there, and with ``picks`` half for one
-    that belongs in another."""
+    """Without ``picks`` by swaps away from the right order, with ``picks`` per place played."""
     ranks = [payload["entries"][index]["rank"] for index in shown_order(payload)]
+    if "picks" not in payload:
+        pairs = _swaps(sorted(ranks, reverse=True))
+        return {
+            s.player_id: max(0.0, 1.0 - 2 * _swaps([ranks[shown] for shown in s.value]) / pairs)
+            if pairs
+            else 1.0
+            for s in submissions
+        }
     wanted = sorted(ranks)[: places(payload)]
-    # Ties at the cut count as picked: either of two equal fourths may be the third.
-    half = 0.5 if "picks" in payload else 0.0
     credit: dict[UUID, float] = {}
     for s in submissions:
         earned = 0.0
         for shown, rank in zip(s.value, wanted, strict=True):
             if ranks[shown] == rank:
                 earned += 1.0
+            # Ties at the cut count as picked: either of two equal fourths may be the third.
             elif ranks[shown] <= wanted[-1]:
-                earned += half
+                earned += 0.5
         credit[s.player_id] = earned / len(wanted)
     return credit
+
+
+def _swaps(ranks: list[int]) -> int:
+    """Pairs of different ranks where the higher comes first; equal ranks never count."""
+    return sum(1 for i, before in enumerate(ranks) for after in ranks[i + 1 :] if before > after)
 
 
 def parse_value(payload: dict[str, Any], value: Any) -> list[int] | None:
