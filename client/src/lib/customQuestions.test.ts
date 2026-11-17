@@ -92,6 +92,15 @@ describe('problems', () => {
     ])
   })
 
+  it('refuses one wrong answer in a pick all that apply, unless players are told how many', () => {
+    const { picks: _, ...open } = PICK_ALL.payload
+    const oneWrong = { ...open, options: ['Hellhound', 'Gargoyle', 'Imp'], answer_indices: [0, 2] }
+    expect(paths({ ...PICK_ALL, payload: oneWrong })).toEqual([
+      'payload.options: One wrong answer is too few: add another, or say how many to tick.',
+    ])
+    expect(paths({ ...PICK_ALL, payload: { ...oneWrong, picks: 2 } })).toEqual([])
+  })
+
   it('refuses a pick all that apply with no answer right, but allows every one', () => {
     const { picks: _, ...open } = PICK_ALL.payload
     expect(paths({ ...PICK_ALL, payload: { ...open, answer_indices: [] } })).toContain(
@@ -99,7 +108,10 @@ describe('problems', () => {
     )
     expect(paths({ ...PICK_ALL, payload: { ...open, answer_indices: [0, 1, 2] } })).toEqual([])
     expect(
-      paths({ ...PICK_ALL, payload: { ...open, options: ['Imp', 'imp', 'Hellhound'] } }),
+      paths({
+        ...PICK_ALL,
+        payload: { ...open, options: ['Imp', 'imp', 'Hellhound', 'Gargoyle'] },
+      }),
     ).toEqual(['payload.options[1]: Same as answer 1.'])
   })
 

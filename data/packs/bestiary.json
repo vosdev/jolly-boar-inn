@@ -707,7 +707,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_e1407949db268dd3",
+      "id": "q_a4a75ebf7e2a91c2",
       "type": "pick_all_that_apply",
       "mode": "bestiary",
       "source": "pack",
@@ -732,7 +732,8 @@
           2,
           3,
           4
-        ]
+        ],
+        "picks": 5
       }
     },
     {
@@ -901,7 +902,7 @@
       }
     },
     {
-      "id": "q_32eb6ec08e7a1127",
+      "id": "q_e09f7a169e333d66",
       "type": "pick_all_that_apply",
       "mode": "bestiary",
       "source": "pack",
@@ -925,7 +926,8 @@
           1,
           2,
           4
-        ]
+        ],
+        "picks": 4
       }
     },
     {

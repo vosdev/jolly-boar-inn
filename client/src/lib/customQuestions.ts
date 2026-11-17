@@ -118,6 +118,13 @@ function consistency(type: CustomType, payload: Record<string, unknown>): Proble
     if (type === 'pick_all_that_apply' && Array.isArray(right)) {
       if (right.length === 0) {
         found.push(at('payload.answer_indices', 'Tick at least one right answer.', 'missing'))
+      } else if (payload.picks === undefined && options.length - new Set(right).size === 1) {
+        found.push(
+          at(
+            'payload.options',
+            'One wrong answer is too few: add another, or say how many to tick.',
+          ),
+        )
       }
     }
     const seen = new Map<string, number>()
