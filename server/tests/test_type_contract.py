@@ -19,7 +19,13 @@ from app.modes import type_questions
 from app.questions import schema
 from app.questions.packs import load_packs
 from app.questions.submission import Submission
-from app.questions.types import TYPES, answer_seconds, reveal_seconds, scoring_of
+from app.questions.types import (
+    TYPES,
+    answer_seconds,
+    grace_of,
+    reveal_seconds,
+    scoring_of,
+)
 from app.questions.types.scoring import Scoring
 from tests import answers
 from tests.packs import PACKS_DIR
@@ -75,7 +81,7 @@ EXAMPLES: dict[str, Example] = {
         right=1600000,
         wrong=3000000,
         secret=frozenset({"value"}),
-        scoring=Scoring.SPEED,
+        scoring=Scoring.ACCURACY,
         seconds=(15, 6),
     ),
     "pick_from_list": Example(
@@ -201,7 +207,7 @@ EXAMPLES: dict[str, Example] = {
         right=85,
         wrong=50,
         secret=frozenset({"answer", "explanation"}),
-        scoring=Scoring.SPEED,
+        scoring=Scoring.ACCURACY,
         seconds=(15, 8),
     ),
     "free_text": Example(
@@ -426,6 +432,25 @@ def test_the_game_tests_answers_hold_for_every_shipped_question(question: dict[s
     assert sorted(credit.values())[-1] == 1.0 > sorted(credit.values())[0]
 
 
+def _can_earn_nothing(question: dict[str, Any]) -> bool:
+    # A pick-all with more picks than wrong options must tick a right one.
+    payload = question["payload"]
+    if question["type"] != "pick_all_that_apply" or "picks" not in payload:
+        return True
+    return len(payload["options"]) - len(payload["answer_indices"]) >= payload["picks"]
+
+
+@pytest.mark.parametrize(
+    "question", [q for q in SHIPPED if _can_earn_nothing(q)], ids=lambda q: q["id"]
+)
+def test_the_game_tests_wrong_answer_earns_nothing(question: dict[str, Any]) -> None:
+    """``test_a_round_of_every_mode…`` expects no points for it, whichever question it draws."""
+    module, payload = TYPES[question["type"]], question["payload"]
+    wrong = module.parse_value(payload, answers.wrong_value(question["type"], payload))
+    player = uuid4()
+    assert module.grade(payload, [Submission(player, wrong)]).get(player, 0.0) == 0.0
+
+
 @per_type
 def test_nobody_answering_grades_to_nothing(type_id: str) -> None:
     assert TYPES[type_id].grade(example(type_id).payload, []) == {}
@@ -481,6 +506,14 @@ def test_each_type_states_its_timing_and_its_scoring(type_id: str) -> None:
     assert timing == ex.seconds
     questions = type_questions(type_id)
     assert (questions.default, questions.minimum, questions.maximum) == ex.questions
+
+
+@per_type
+def test_each_type_states_a_grace_from_zero_up_to_one(type_id: str) -> None:
+    grace = TYPES[type_id].GRACE
+    assert isinstance(grace, float)
+    assert 0.0 <= grace < 1.0
+    assert grace_of(type_id) == grace
 
 
 @per_type

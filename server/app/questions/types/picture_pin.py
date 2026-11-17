@@ -36,6 +36,7 @@ from app.questions.types.scoring import Scoring
 from app.questions.types.timing import Timing
 
 SCORING = Scoring.ACCURACY
+GRACE = 0.0
 # One spot on a picture drawn whole: a map pin's base, with no map to pan or zoom.
 ANSWER = Timing(base=20)
 REVEAL = Timing(base=10)

@@ -44,6 +44,31 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.256.1',
+    date: '2026-11-17',
+    text: 'Steadier checks behind the scenes, nothing changes in play.',
+  },
+  {
+    version: '0.256.0',
+    date: '2026-11-17',
+    text: 'Pixel Hunt says why speed still pays in team games, and a sort into bins needs three bins.',
+  },
+  {
+    version: '0.255.0',
+    date: '2026-11-17',
+    text: 'Groundwork for full speed points on answers you build, such as orderings.',
+  },
+  {
+    version: '0.254.0',
+    date: '2026-11-17',
+    text: 'Slider questions now score on how close you get alone, however long you take to slide.',
+  },
+  {
+    version: '0.253.0',
+    date: '2026-11-17',
+    text: 'How fast answers come in is now recorded, without names, so we can balance scoring fairly.',
+  },
+  {
     version: '0.252.0',
     date: '2026-11-17',
     text: 'Put in order: one entry out of place no longer costs the whole answer. Each swap away costs a share.',

@@ -16,6 +16,10 @@ scored on how fast you were for that round: a 30-second question buckets at 3 / 
 22.5 / 30 s, a 10-second one at 1 / 2.5 / 5 / 7.5 / 10 s. Steps are fractions of it too:
 Pixel Hunt's 17 build-up steps are a 25th each, and the whole picture is the 18th.
 
+A type whose answer has to be built, an order or a set of pairs, may state a ``GRACE``: a
+share of the time no answer could beat, which the edges skip before they start counting.
+With grace 0.2 bucket 1 ends at 0.28 and bucket 5 still at the full time.
+
 The *band* is what an answer earns the moment it arrives, before anything is graded: its
 bucket, its step, or nothing at all for ``ACCURACY``, where the clock does not count.
 ``answer_ack`` carries it, and ``points_for`` reads it back at the close.
@@ -45,7 +49,16 @@ ACCURACY_TOP = 1000
 STEP_TOP, STEP_BOTTOM = 1000, 400
 
 
-def bucket(elapsed_s: float, question_s: int) -> int:
+def edges(grace: float = 0.0) -> tuple[float, ...]:
+    """Where each speed bucket ends, as fractions of the question's time, after ``grace``."""
+    if not 0.0 <= grace < 1.0:
+        raise ValueError(f"grace {grace} is outside 0 up to 1")
+    # ``grace + edge * (1 - grace)``, written so that grace 0 leaves every edge bit for bit
+    # where it was and the last one always lands on exactly 1.0.
+    return tuple(edge + grace * (1.0 - edge) for edge, _ in BUCKETS)
+
+
+def bucket(elapsed_s: float, question_s: int, grace: float = 0.0) -> int:
     """Which speed bucket, 1..5, an answer that took ``elapsed_s`` lands in.
 
     Edges are inclusive: exactly a tenth of the question's time is still bucket 1.
@@ -53,7 +66,7 @@ def bucket(elapsed_s: float, question_s: int) -> int:
     answer that arrives from ``ends_at`` on.
     """
     fraction = elapsed_s / question_s
-    for index, (edge, _) in enumerate(BUCKETS, start=1):
+    for index, edge in enumerate(edges(grace), start=1):
         if fraction <= edge:
             return index
     return SLOWEST
@@ -95,13 +108,19 @@ def effective(scoring: Scoring, steps: Steps | None) -> Scoring:
 
 
 def band(
-    scoring: Scoring, elapsed_s: float, question_s: int, steps: Steps | None, *, team: bool = False
+    scoring: Scoring,
+    elapsed_s: float,
+    question_s: int,
+    steps: Steps | None,
+    *,
+    team: bool = False,
+    grace: float = 0.0,
 ) -> int | None:
-    """What an answer has earned on arrival: its bucket, its step, or ``None`` for
-    ``ACCURACY`` and for ``SPEED`` in a team game."""
+    """What an answer has earned on arrival: its bucket after the type's ``grace``, its step,
+    or ``None`` for ``ACCURACY`` and for ``SPEED`` in a team game."""
     match how := effective(scoring, steps):
         case Scoring.SPEED:
-            return None if team else bucket(elapsed_s, question_s)
+            return None if team else bucket(elapsed_s, question_s, grace)
         case Scoring.STEP:
             assert steps is not None  # ``effective`` made it SPEED otherwise
             return step(elapsed_s, question_s, steps)

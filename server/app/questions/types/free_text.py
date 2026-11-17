@@ -31,6 +31,7 @@ from app.questions.types.scoring import Scoring
 from app.questions.types.timing import Timing
 
 SCORING = Scoring.SPEED
+GRACE = 0.0
 # A typed or accepted answer, before normalising and after: the wire and the schema
 # hold the first, and ``parse_value`` and ``check`` the second.
 MAX_LENGTH = 80

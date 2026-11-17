@@ -185,7 +185,9 @@ def test_unsupported_type_is_reported(monkeypatch: pytest.MonkeyPatch) -> None:
     """A type the schema knows and this build cannot play is refused, so packs cannot ship
     one ahead of its module. Now every type in the schema file has a module, so one
     is taken out of the registry to show it."""
-    monkeypatch.delitem(TYPES, "closest_number")
+    # A copy, not delitem: monkeypatch puts a deleted key back at the end, which reorders
+    # the registry for every later test in the worker, modes.json's stale check among them.
+    monkeypatch.setattr(schema, "TYPES", {k: v for k, v in TYPES.items() if k != "closest_number"})
     q = {
         "type": "closest_number",
         "mode": "more_less",

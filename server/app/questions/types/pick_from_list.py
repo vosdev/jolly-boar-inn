@@ -34,6 +34,7 @@ from app.questions.types.scoring import Scoring
 from app.questions.types.timing import Timing
 
 SCORING = Scoring.STEP
+GRACE = 0.0
 # A picture to watch build up, then a search to type and an entry to pick.
 ANSWER = Timing(base=25)
 REVEAL = Timing(base=6)

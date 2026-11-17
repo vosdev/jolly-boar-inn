@@ -34,17 +34,25 @@ def counts(question: RoomQuestion) -> bool:
     )
 
 
+def players(room: Room, question: RoomQuestion, credit: Mapping[UUID, float]) -> set[UUID]:
+    """Who a close of ``question`` counts, answered or not; nobody if it counts not at all."""
+    if not counts(question):
+        return set()
+    present = {pid for pid in room.sockets if room.can_answer(question, pid)} | set(credit)
+    counted = {pid for pid in present if not room.is_admin(pid)}
+    if len(counted) < (1 if room.daily is not None else MIN_PLAYERS):
+        return set()
+    return counted
+
+
 async def record(
     conn: asyncpg.Connection, room: Room, question: RoomQuestion, credit: Mapping[UUID, float]
 ) -> None:
     """Add a graded close's answers, with ``credit`` per player who answered, to its row."""
-    if not counts(question):
+    counted = players(room, question, credit)
+    if not counted:
         return
-    present = {pid for pid in room.sockets if room.can_answer(question, pid)} | set(credit)
-    players = {pid for pid in present if not room.is_admin(pid)}
-    if len(players) < (1 if room.daily is not None else MIN_PLAYERS):
-        return
-    got = [credit[pid] for pid in players if pid in credit]
+    got = [credit[pid] for pid in counted if pid in credit]
     await conn.execute(
         "insert into question_stats"
         " (question_id, mode, answers, credit_sum, correct, unanswered, games)"
@@ -61,7 +69,7 @@ async def record(
         len(got),
         sum(got),
         sum(1 for c in got if c >= 1.0),
-        len(players) - len(got),
+        len(counted) - len(got),
     )
 
 

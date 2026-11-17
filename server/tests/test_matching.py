@@ -1,6 +1,6 @@
 """``matching``: three to six fields, and the player puts the option that belongs on each.
 
-With ``bins``, four to six entries sorted into two to four bins."""
+With ``bins``, four to six entries sorted into three or four bins."""
 
 import copy
 import json
@@ -418,11 +418,15 @@ def test_the_schema_refuses_bins_false_so_one_question_keeps_one_id() -> None:
     [
         (
             {"options": [{"text": "Saradomin"}], "answer": [0, 0, 0, 0, 0]},
-            ["options: 1 bins; a sort takes 2 to 4"],
+            ["options: 1 bins; a sort takes 3 to 4"],
+        ),
+        (
+            {"options": [{"text": "Saradomin"}, {"text": "Zamorak"}], "answer": [0, 1, 0, 0, 1]},
+            ["options: 2 bins; a sort takes 3 to 4"],
         ),
         (
             {"options": _options(5)},
-            ["options: 5 bins; a sort takes 2 to 4"],
+            ["options: 5 bins; a sort takes 3 to 4"],
         ),
         (
             {"answer": [0, 1, 3, 0, 1]},
@@ -433,12 +437,17 @@ def test_the_schema_refuses_bins_false_so_one_question_keeps_one_id() -> None:
             ["fields: 3 entries; a sort takes 4 to 6"],
         ),
     ],
-    ids=["one bin", "five bins", "an answer past the bins", "three entries"],
+    ids=["one bin", "two bins", "five bins", "an answer past the bins", "three entries"],
 )
 def test_check_refuses_a_bins_question_out_of_its_bounds(
     changes: dict[str, Any], errors: list[str]
 ) -> None:
     assert matching.check(sort(**changes)) == errors
+
+
+@pytest.mark.parametrize("bins", [3, 4])
+def test_check_takes_a_sort_into_three_or_four_bins(bins: int) -> None:
+    assert matching.check(sort(options=_options(bins), answer=[0, 1, 2, 0, 1])) == []
 
 
 def test_check_takes_a_repeated_answer_only_with_bins() -> None:

@@ -96,12 +96,12 @@ module lists mode ids, which a test greps for.
 - `is_round` is explicit, so an empty `types` never turns a round into an event pool. Only `custom`
   and `random_event` are not rounds. They state no types and no numbers.
 - Copy (label, hint, blurb, host lines, suggestion card) lives on the client in `lib/modes/`. `make
-  gen-modes` writes every entry, `UPCOMING`, `PLANNED`, each type's `ANSWER` and the speed buckets
-  to `schema/modes.json`, committed; the client reads its per-mode rules (`lib/modeRules.ts`), its
-  mode order and How to play's timings and points from it, and keeps no list of mode ids. A server
-  test fails while the file is stale, a client test while a mode file is not in it. `stem` is also
-  typed in each mode file, for `rooms/hold.py`, and a server test holds the two equal;
-  `hold_counts_prompt` keeps Pixel Hunt's prompt in the hold.
+  gen-modes` writes every entry, `UPCOMING`, `PLANNED`, each type's `ANSWER`, `SCORING` and `GRACE`
+  and the speed buckets to `schema/modes.json`, committed; the client reads its per-mode rules
+  (`lib/modeRules.ts`), its mode order and How to play's timings and points from it, and keeps no
+  list of mode ids. A server test fails while the file is stale, a client test while a mode file is
+  not in it. `stem` is also typed in each mode file, for `rooms/hold.py`, and a server test holds
+  the two equal; `hold_counts_prompt` keeps Pixel Hunt's prompt in the hold.
 - `suggest` is a frozen `Suggest` record of what `/suggest` takes (section 11), its `types` the
   mode's own unless stated; `TRIVIA_TYPES` names the seven most rounds take. `UPCOMING` maps a
   round not built yet to its `Suggest`; `PLANNED` lists those that take no suggestions yet. `report` is `item`, `options` or `npc` where the report form
@@ -123,6 +123,7 @@ def grade(payload, submissions) -> dict[player_id, float]   # credit, 0.0 to 1.0
 def check(payload) -> list[str]       # the stored answer follows from the stored facts
 def pictured(view, payload, pictures) # optional: a pack question's pictures inside its view
 SCORING: Scoring                      # SPEED by default (section 8)
+GRACE: float                          # 0 up to 1: the share of ANSWER the speed buckets skip
 ANSWER, REVEAL: Timing                # base + per_item seconds, at run pace
 def items(payload) -> int             # optional: options or entries; 0 without it
 ```
@@ -597,8 +598,8 @@ from taking the lock. `grade` returns credit; `scoring.py` turns it into points 
 
 | `SCORING` | Points | Types |
 |---|---|---|
-| `SPEED` | `round(bucket points × credit)` | `more_less`, `price_is_right`, `number_slider`, `multiple_choice`, `free_text`, `pick_all_that_apply`, `ordering`, `matching` |
-| `ACCURACY` | `round(1000 × credit)` | `closest_number`, `map_pin`, `picture_pin` |
+| `SPEED` | `round(bucket points × credit)` | `more_less`, `multiple_choice`, `free_text`, `pick_all_that_apply`, `ordering`, `matching` |
+| `ACCURACY` | `round(1000 × credit)` | `closest_number`, `price_is_right`, `number_slider`, `map_pin`, `picture_pin` |
 | `STEP` | `round(step points × credit)` | `pick_from_list` in a mode with `steps`, or Certer's |
 
 | Speed bucket | Fraction of the question's seconds | Points |
@@ -609,6 +610,10 @@ from taking the lock. `grade` returns credit; `scoring.py` turns it into points 
 | 4 | ≤ 0.75 | 700 |
 | 5 | ≤ 1.00 | 600 |
 
+- A type's `GRACE`, for an answer that takes building, moves each edge to `grace + edge × (1 −
+  grace)`: 0.2 ends bucket 1 at 0.28 and bucket 5 at 1.0. Every type states 0 for now; `STEP`,
+  `ACCURACY` and team games ignore it. `lib/samples.ts` repeats the edges, held by
+  `speedEdges.fixture.json`.
 - Fractions, not seconds, so quick and slow rounds score alike. Five coarse buckets make a 50–150 ms
   network difference irrelevant, so there is no RTT compensation.
 - An answer from `ends_at` on is `not_open`, even if the close runs late.
@@ -619,7 +624,7 @@ from taking the lock. `grade` returns credit; `scoring.py` turns it into points 
   `swaps` the pairs put the wrong way round, so a random order of five averages 0.16. With `picks`,
   1 per exact place and half for a picked entry elsewhere. The reveal counts places from the value.
 - `matching` with `bins` grades as without, entries in their bin over the entries, with no floor
-  for chance: a blind guess over two bins averages half, so the editors suggest three or more.
+  for chance: a blind guess over two bins averages half, so `check` wants three or four.
 - A team game (`settings.teams` non-empty) drops speed: `SPEED` pays `round(1000 × credit)` and
   `answer_ack.band` is null. `ACCURACY` and `STEP` score as ever.
 
@@ -654,6 +659,8 @@ the picture builds up, then the whole picture as step 18. Points fall from 1000 
 - `correct` is `credit >= 1.0`: three of five in order scores, and is not "correct".
 - `host_only` and the TV score nobody and get `excluded`. Authors score on their own questions. A kicked
   player's answers are deleted.
+
+Bucket edges and points are tuned on `answer_timings` (section 11), queried by hand.
 
 Standings sort by points, then correct answers, then `joined_at`. Rank is dense over points and
 correct answers; join time only orders players who share a rank. `points_gained` is what the round
@@ -836,6 +843,10 @@ key into them, so cleanup leaves it.
   `/api/admin/questions/stats?mode=…` (every editable mode without one) returns each pack
   question whole with its totals, zeros if never counted; a row for an id the packs lost is
   left out. Bands and suggestions are the client's (`lib/questionStats.ts`), advice only.
+- `answer_timings` (`app/answer_timings.py`), also outside the cascade, adds a row per answer
+  `question_stats` counts (`question_stats.players`; a miss adds none) in the same transaction:
+  `type`, `mode`, `scoring`, `pace`, `items`, `seconds`, `elapsed_ms`, `credit`, `team` and
+  `played_on`, no player, room or question id. It is read with SQL; no page shows it.
 - Only the browser knows which join failures its player saw (it retries a taken name, and a
   missing room may be a Past party games link), so it reports each to `POST /api/stats/join-failure
   {reason}`, 30 an hour per address, and the server counts no failure itself.

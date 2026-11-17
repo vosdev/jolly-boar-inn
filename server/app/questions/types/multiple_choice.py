@@ -32,6 +32,7 @@ from app.questions.types.shuffle import seeded_order
 from app.questions.types.timing import Timing
 
 SCORING = Scoring.SPEED
+GRACE = 0.0
 # A sentence and its answers to read, two seconds an option; the reveal is one answer lit.
 ANSWER = Timing(base=10, per_item=2)
 REVEAL = Timing(base=4, per_item=0.5)

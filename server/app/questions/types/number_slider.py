@@ -6,9 +6,9 @@ Payload shape (schema ``$defs/number_slider``)::
      "scale": "linear" | "log", "unit"?: str, "image"?: asset, "explanation"?: str}
 
 ``closest_number``'s sibling for questions where close is good enough: less typing, and
-credit by how far along the slider a guess lands (``slider.accuracy``) rather than by rank,
-so it rides the speed buckets. Where the exact number is the point, a drop rate of 1/1024
-say, a question stays ``closest_number``.
+credit by how far along the slider a guess lands (``slider.accuracy``). Like it, the clock
+does not count. Where the exact number is the point, a drop rate of 1/1024 say, a question
+stays ``closest_number``.
 
 A ``linear`` track steps by one; a ``log`` one snaps to three significant figures, so its
 answer and ends must sit on that grid for the slider to reach them. The answer lies
@@ -24,7 +24,8 @@ from app.questions.types import slider
 from app.questions.types.scoring import Scoring
 from app.questions.types.timing import Timing
 
-SCORING = Scoring.SPEED
+SCORING = Scoring.ACCURACY
+GRACE = 0.0
 ANSWER = Timing(base=15)
 REVEAL = Timing(base=8)
 

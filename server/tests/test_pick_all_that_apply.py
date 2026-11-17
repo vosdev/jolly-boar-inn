@@ -242,10 +242,25 @@ def test_schema_rejects(mutate: Any, path: str) -> None:
     assert any(p.startswith(path + ":") for p in problems), problems
 
 
-@pytest.fixture
-def shipped_round(app: FastAPI, client: TestClient) -> Iterator[str]:
-    """A round of the shipped, hand-written ``pick_all_that_apply`` questions."""
-    yield from stub_mode(app, "pick_all_round", type_id="pick_all_that_apply")
+SHAPES = {
+    "several right": lambda p: "picks" not in p and len(p["answer_indices"]) > 1,
+    "one right": lambda p: "picks" not in p and len(p["answer_indices"]) == 1,
+    "picks": lambda p: "picks" in p,
+}
+
+
+@pytest.fixture(params=list(SHAPES))
+def shipped_round(
+    request: pytest.FixtureRequest, app: FastAPI, client: TestClient
+) -> Iterator[str]:
+    """A round of one shipped ``pick_all_that_apply`` question of each shape the packs hold."""
+    shipped = [q for pack in app.state.packs for q in pack.questions]
+    question = next(
+        q
+        for q in shipped
+        if q["type"] == "pick_all_that_apply" and SHAPES[request.param](q["payload"])
+    )
+    yield from stub_mode(app, "pick_all_round", "pick_all_that_apply", [question])
 
 
 def test_a_shipped_question_plays_end_to_end(table, shipped_round: str, db) -> None:
@@ -254,6 +269,16 @@ def test_a_shipped_question_plays_end_to_end(table, shipped_round: str, db) -> N
     question = game.question(0)
     assert question.type == "pick_all_that_apply"
     right = pick_all_that_apply.reveal(question.payload)["answer_indices"]
+    wrong = [i for i in range(len(question.payload["options"])) if i not in right]
+    # One right tick alone is no partial answer on a one-right question, nor a legal one
+    # where ``picks`` fixes the count, so swap a right tick for a wrong one or add one.
+    if "picks" in question.payload:
+        partial_value, partial_credit = (
+            sorted(right[1:] + wrong[:1]),
+            (len(right) - 1) / (len(right) + 1),
+        )
+    else:
+        partial_value, partial_credit = sorted(right + wrong[:1]), 1 - 1 / len(wrong)
     game.start()
     opened = game.opened(0)[1]["question"]
     assert opened["view"]["options"] == pick_all_that_apply.client_view(question.payload)["options"]
@@ -263,7 +288,7 @@ def test_a_shipped_question_plays_end_to_end(table, shipped_round: str, db) -> N
     zezima.take("answer_ack")
     game.answer(woox, 0, [])
     assert woox.take("error")["code"] == "bad_value"
-    game.answer(woox, 0, right[:1])
+    game.answer(woox, 0, partial_value)
     woox.take("answer_ack")
     game.skip()
 
@@ -271,7 +296,7 @@ def test_a_shipped_question_plays_end_to_end(table, shipped_round: str, db) -> N
     assert closed["reveal"]["answer_indices"] == right
     full, partial = closed["results"][zezima.id], closed["results"][woox.id]
     assert full["value"] == right and full["correct"] is True
-    assert partial["value"] == right[:1] and partial["correct"] is False
-    assert partial["credit"] == pytest.approx(1 / len(right))
+    assert partial["value"] == partial_value and partial["correct"] is False
+    assert partial["credit"] == pytest.approx(partial_credit)
     assert 0 < partial["points"] < full["points"]
     assert admin.id not in closed["results"]

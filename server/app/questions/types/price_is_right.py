@@ -6,8 +6,9 @@ Payload shape (schema ``$defs/price_is_right``)::
      "min": int, "max": int, "as_of": "YYYY-MM-DD"}
 
 The answer is a price in gp on the slider's grid (``types/slider.py``), and credit is by
-how close it lands. Writing ``1650000`` the way the game writes coins is the client's job
-(``lib/gp.ts``), so a pack never bakes in one build's idea of what a coin amount looks like.
+how close it lands, however late. Writing ``1650000`` the way the game writes coins is the
+client's job (``lib/gp.ts``), so a pack never bakes in one build's idea of what a coin
+amount looks like.
 
 ``value`` is the Grand Exchange price rounded to two significant figures, the grid the
 game's own coin notation lands on exactly, and ``min`` and ``max`` sit on that grid too.
@@ -23,7 +24,8 @@ from app.questions.types import slider
 from app.questions.types.scoring import Scoring
 from app.questions.types.timing import Timing
 
-SCORING = Scoring.SPEED
+SCORING = Scoring.ACCURACY
+GRACE = 0.0
 ANSWER = Timing(base=15)
 REVEAL = Timing(base=6)
 

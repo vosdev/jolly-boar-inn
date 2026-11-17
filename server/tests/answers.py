@@ -41,17 +41,19 @@ def _only_wrong(payload: dict[str, Any]) -> list[int]:
     return sorted([*right[:-1], wrong[0]])
 
 
-def _rotated_past_ties(payload: dict[str, Any]) -> list[int]:
-    # Rotated by its largest tie, the right order moves every rank off its place, so a round
-    # can expect no points; that holds wherever the entries number twice that tie or more.
-    # The first place is always wrong, so it grades below 1.0 even then, picks or not.
-    # With ``picks`` a rotated pick still earns its half, so entries past the cut go first.
+def _wrong_order(payload: dict[str, Any]) -> list[int]:
+    # Without ``picks`` the right order reversed puts every pair of different ranks the wrong
+    # way round, so it earns nothing. With ``picks`` a misplaced pick still earns its half, so
+    # entries past the cut go first; short of enough of them, the picks rotated by the
+    # largest tie move every rank off its place, and the first place is always wrong.
     shown = ordering.reveal(payload)
     right = shown["answer"]
+    if "picks" not in payload:
+        return right[::-1]
     ranks = [shown["entries"][index]["rank"] for index in right]
     places = ordering.places(payload)
     unpicked = [index for index, rank in zip(right, ranks, strict=True) if rank > ranks[places - 1]]
-    if "picks" in payload and len(unpicked) >= places:
+    if len(unpicked) >= places:
         return unpicked[:places]
     tie = max(ranks.count(rank) for rank in ranks)
     return (right[tie:] + right[:tie])[:places]
@@ -141,7 +143,7 @@ _WRONG: dict[str, Callable[[dict[str, Any]], Any]] = {
     "number_slider": _far_bound,
     "free_text": _nothing_like_it,
     "pick_all_that_apply": _only_wrong,
-    "ordering": _rotated_past_ties,
+    "ordering": _wrong_order,
     # Each field's option moved to the next field: no field holds its own.
     "matching": lambda payload: (lambda right: right[1:] + right[:1])(
         matching.reveal(payload)["answer"]

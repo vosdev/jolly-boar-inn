@@ -46,7 +46,7 @@ from app.config import APP_VERSION, Settings
 from app.daily import number_of
 from app.modes import MODES
 from app.questions.packs import Pack
-from app.questions.types import TYPES
+from app.questions.types import TYPES, grace_of
 from app.questions.types.scoring import Scoring
 from app.questions.types.timing import MIN_REVEAL
 from app.rooms import codes, scoring, selection
@@ -1003,7 +1003,12 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
             assert question.seconds is not None  # set when the question opened
             how = question.scoring
             band = scoring.band(
-                how, elapsed, question.seconds, question.steps, team=bool(room.settings.teams)
+                how,
+                elapsed,
+                question.seconds,
+                question.steps,
+                team=bool(room.settings.teams),
+                grace=grace_of(question.type),
             )
             async with pool.acquire() as conn:
                 try:

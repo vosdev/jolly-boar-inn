@@ -9,7 +9,7 @@ module declares ``SCORING`` and ``rooms/scoring.py`` does the arithmetic; sectio
 ideas/architecture.md has the three tables.
 
 ``SPEED`` is the default, and a module that says nothing gets it: it is what every type
-but two wants, and what ``more_less`` has always been scored on.
+but six wants, and what ``more_less`` has always been scored on.
 
 Its own module for the reason ``Bounds`` has one: every type module may need it, and
 ``types/__init__.py`` imports every type module.

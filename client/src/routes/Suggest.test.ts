@@ -899,7 +899,6 @@ describe('Suggest', () => {
     await fireEvent.click(await screen.findByRole('button', { name: /Bestiary/ }))
     await fireEvent.click(screen.getByLabelText('Match them up'))
     await fireEvent.click(screen.getByLabelText('Sort into bins'))
-    expect(screen.queryByText(/Three or more bins/)).toBeNull()
     await type('Question', 'Which slayer master assigns each?')
     const masters = ['Turael', 'Mazchna', 'Vannaka']
     for (const [i, master] of masters.entries()) await type(`Bin ${i + 1}`, master)

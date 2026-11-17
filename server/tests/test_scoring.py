@@ -14,6 +14,7 @@ the same answer speed buckets the same way whatever the question length.
 """
 
 import asyncio
+import json
 import math
 from datetime import UTC, datetime, timedelta
 from types import ModuleType
@@ -22,6 +23,7 @@ from uuid import uuid4
 
 import pytest
 
+from app.config import REPO_ROOT
 from app.questions.types import TYPES, scoring_of
 from app.questions.types.scoring import Scoring, Steps
 from app.rooms.models import Player, Room, Totals
@@ -30,6 +32,7 @@ from app.rooms.scoring import (
     SLOWEST,
     band,
     bucket,
+    edges,
     effective,
     points_for,
     settle_credit,
@@ -121,6 +124,75 @@ def test_an_answer_from_before_the_question_opened_is_the_fastest_bucket() -> No
 @pytest.mark.parametrize("elapsed_s", [-5.0, 0.0, 0.1, 3.0, 29.0, 30.0, 1e6])
 def test_bucket_is_always_a_valid_bucket(elapsed_s: float) -> None:
     assert 1 <= bucket(elapsed_s, 30) <= SLOWEST
+
+
+# --- grace: a type's head start before the edges count -------------------------------
+
+# Shared with the client's ``samples.test.ts``, so both sides end the buckets alike.
+GRACE_FIXTURE = REPO_ROOT / "client" / "src" / "lib" / "speedEdges.fixture.json"
+GRACE_CASES = json.loads(GRACE_FIXTURE.read_text(encoding="utf-8"))
+
+
+def test_no_grace_leaves_every_edge_where_it_is() -> None:
+    assert edges() == edges(0.0) == tuple(edge for edge, _ in SECTION_6)
+
+
+@pytest.mark.parametrize(("fraction", "expected"), EDGES)
+def test_no_grace_buckets_as_without_one(fraction: float, expected: int) -> None:
+    assert bucket(fraction, 1, 0.0) == bucket(fraction, 1) == expected
+
+
+@pytest.mark.parametrize("case", GRACE_CASES, ids=lambda case: case["about"])
+def test_grace_moves_the_edges_as_the_shared_fixture_says(case: dict) -> None:
+    moved = edges(case["grace"])
+    assert moved == pytest.approx(case["edges"], abs=1e-12)
+    assert moved[-1] == 1.0
+
+
+@pytest.mark.parametrize("case", GRACE_CASES, ids=lambda case: case["about"])
+@pytest.mark.parametrize("question_s", [1, 20, 35])
+def test_an_answer_on_a_moved_edge_is_still_inside_it(case: dict, question_s: int) -> None:
+    for number, edge in enumerate(edges(case["grace"]), start=1):
+        assert bucket(edge * question_s, question_s, case["grace"]) == number
+        assert bucket((edge + 1e-6) * question_s, question_s, case["grace"]) == min(number + 1, 5)
+
+
+@pytest.mark.parametrize("grace", [-0.01, 1.0, 1.5, math.nan])
+def test_a_grace_outside_zero_up_to_one_is_refused(grace: float) -> None:
+    with pytest.raises(ValueError, match="grace"):
+        edges(grace)
+    with pytest.raises(ValueError, match="grace"):
+        band(Scoring.SPEED, 1.0, 10, None, grace=grace)
+
+
+GRACES = [0.0, 0.2, 0.5, 0.95]
+
+
+@pytest.mark.parametrize("grace", GRACES)
+@pytest.mark.parametrize("elapsed_s", [0.0, 2.6, 7.0, 16.0, 24.9])
+@pytest.mark.parametrize("credit", [1.0, 0.6, 0.0])
+def test_step_accuracy_and_team_games_pay_the_same_with_any_grace(
+    grace: float, elapsed_s: float, credit: float
+) -> None:
+    def paid(scoring: Scoring, steps: Steps | None, team: bool) -> int:
+        got = band(scoring, elapsed_s, 25, steps, team=team, grace=grace)
+        return points_for(scoring, credit, got, steps, team=team)
+
+    def ungraced(scoring: Scoring, steps: Steps | None, team: bool) -> int:
+        got = band(scoring, elapsed_s, 25, steps, team=team)
+        return points_for(scoring, credit, got, steps, team=team)
+
+    for team in (False, True):
+        assert paid(Scoring.STEP, PIXEL_HUNT, team) == ungraced(Scoring.STEP, PIXEL_HUNT, team)
+        assert paid(Scoring.ACCURACY, None, team) == ungraced(Scoring.ACCURACY, None, team)
+    assert paid(Scoring.SPEED, None, True) == ungraced(Scoring.SPEED, None, True)
+    assert paid(Scoring.SPEED, None, True) == round(1000 * credit)
+
+
+def test_grace_moves_a_speed_answer_into_a_faster_bucket() -> None:
+    """The one place grace pays differently: ``SPEED`` outside a team game."""
+    assert band(Scoring.SPEED, 7.0, 25, None) == 3
+    assert band(Scoring.SPEED, 7.0, 25, None, grace=0.2) == 1
 
 
 # --- which scoring ------------------------------------------------------------------

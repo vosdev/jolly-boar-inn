@@ -12,8 +12,8 @@
    * the override, and ends it for everyone at once.
    *
    * The host says its greeting and the blurb in its bubble above the scroll (the TV's scroll
-   * holds them). The name is there whole; the
-   * greeting and the blurb type in once the stage has come over from the screen before,
+   * holds them), in a team game the mode's `teams` line after the blurb. The name is there
+   * whole; the greeting and the blurb type in once the stage has come over from the screen before,
    * at the questions' pace (`lib/interlude.ts`). The splash has no hold to
    * fit, so nothing waits on the typing. The scroll holds, under the name, its Create hint, then
    * which round this is and how many questions it holds, and a price round's date, said
@@ -90,7 +90,11 @@
 
   // The bubble says who speaks; the TV's sheet has no bubble, so it quotes the host.
   const greeting = $derived(tv ? `“${host.greeting}”` : host.greeting)
-  const letters = $derived([greeting, mode?.blurb ?? ''].map(lettersOf))
+  const teamGame = $derived((settings?.teams.length ?? 0) > 0)
+  const blurb = $derived(
+    mode === null ? '' : teamGame && mode.teams ? `${mode.blurb} ${mode.teams}` : mode.blurb,
+  )
+  const letters = $derived([greeting, blurb].map(lettersOf))
   const typeFrom = untrack(() =>
     Math.max(SPLASH_TYPE_FROM_MS, stageArrival({ host: host.host.id })),
   )
@@ -182,7 +186,7 @@
 {#snippet words()}
   <p class="greeting"><Typed line={greeting} shown={typist.shown[0]} /></p>
   {#if mode !== null}
-    <p class="blurb"><Typed line={mode.blurb} shown={typist.shown[1]} /></p>
+    <p class="blurb"><Typed line={blurb} shown={typist.shown[1]} /></p>
   {/if}
 {/snippet}
 

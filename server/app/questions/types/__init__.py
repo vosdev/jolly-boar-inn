@@ -6,7 +6,9 @@ ideas/architecture.md section 1) plus ``check(payload)``, the consistency rules 
 submitted value into the one form the room stores, echoes and grades, or ``None`` to refuse
 it. ``grade`` returns credit, 0.0 to 1.0 per player, and never points: what an answer is
 worth is ``rooms/scoring.py``'s business, told how to go about it by the module's optional
-``SCORING``, and by its mode's ``steps`` for a picture that builds up.
+``SCORING``, and by its mode's ``steps`` for a picture that builds up. ``GRACE``, a share
+of the answer time from 0 up to 1, moves the speed buckets later for an answer that takes
+building.
 
 A type is an answer shape, not a round: the rounds are modes (``app/modes``), and several
 of them may share one type. The type alone says how long a question stays open and how
@@ -59,6 +61,11 @@ def scoring_of(type_id: str) -> Scoring:
     return getattr(TYPES[type_id], "SCORING", Scoring.SPEED)
 
 
+def grace_of(type_id: str) -> float:
+    """The share of this type's answer time the speed buckets skip: its ``GRACE``, or 0."""
+    return getattr(TYPES[type_id], "GRACE", 0.0)
+
+
 def pictured(
     type_id: str, view: dict[str, Any], payload: dict[str, Any], pictures: Mapping[str, str]
 ) -> dict[str, Any]:
@@ -67,16 +74,17 @@ def pictured(
     return view if hook is None else hook(view, payload, pictures)
 
 
-def _items(type_id: str, payload: dict[str, Any]) -> int:
+def items_of(type_id: str, payload: dict[str, Any]) -> int:
+    """The items ``payload`` is timed on, by the type's optional ``items``; 0 without it."""
     hook = getattr(TYPES[type_id], "items", None)
     return 0 if hook is None else hook(payload)
 
 
 def answer_seconds(type_id: str, payload: dict[str, Any], pace: str, extra: int = 0) -> int:
     """How long this question stays open at ``pace``, with its mode's ``extra`` seconds."""
-    return TYPES[type_id].ANSWER.seconds(_items(type_id, payload), pace, MIN_ANSWER, extra)
+    return TYPES[type_id].ANSWER.seconds(items_of(type_id, payload), pace, MIN_ANSWER, extra)
 
 
 def reveal_seconds(type_id: str, payload: dict[str, Any], pace: str) -> int:
     """How long this question's reveal holds at ``pace``."""
-    return TYPES[type_id].REVEAL.seconds(_items(type_id, payload), pace, MIN_REVEAL)
+    return TYPES[type_id].REVEAL.seconds(items_of(type_id, payload), pace, MIN_REVEAL)

@@ -65,7 +65,7 @@ export const HOW_TO_ROWS: HowToRow[] = [
   {
     types: ['price_is_right', 'number_slider'],
     title: 'Slide to your guess',
-    text: 'Slide to your guess, then press Submit. The closer you are, the more points you score.',
+    text: "Slide to your guess, then press Submit. Speed doesn't count - the closer you are, the more points you score.",
     drawing: 'slider',
   },
   {
@@ -80,7 +80,7 @@ export const SCORING_LINE = 'Quicker and correct answers score more.'
 
 /** A team game scores otherwise, so a room with teams shows this in place of the line above. */
 export const TEAMS_PARAGRAPH =
-  "In a team game, everyone joins a god's team in the lobby. Speed doesn't count - your team scores the average of its members' points."
+  "In a team game, everyone joins a god's team in the lobby. Speed doesn't count - your team scores the average of its members' points. Pixel Hunt is the exception: the earlier you name it, the more it pays."
 
 export type WayId = 'free' | 'teams' | 'sofa'
 

@@ -84,12 +84,10 @@ export const DETAIL_MAX =
   ) ?? 0
 
 /** What `matching.check()` holds a `bins` question to. */
-export const BINS_MIN = 2
+export const BINS_MIN = 3
 export const BINS_MAX = 4
 export const ENTRIES_MIN = 4
 export const ENTRIES_MAX = FIELDS_MAX
-/** Fewer bins than this and a blind guess pays well; the form says so, and takes it. */
-export const BINS_SUGGESTED = 3
 
 const EDITED = new Set(['intro', 'prompt', 'bins', 'fields', 'options', 'answer', 'explanation'])
 
@@ -128,7 +126,7 @@ export function draftOf(question?: MatchingQuestion): MatchingDraft {
       }))
     : []
   while ((question === undefined || sorting) && pairs.length < FIELDS_MIN) pairs.push(blank())
-  while (!sorting && bins.length < BINS_SUGGESTED) bins.push(blankBin())
+  while (!sorting && bins.length < BINS_MIN) bins.push(blankBin())
   while (!sorting && entries.length < ENTRIES_MIN) entries.push(blankEntry())
   return {
     intro: text(p.intro),

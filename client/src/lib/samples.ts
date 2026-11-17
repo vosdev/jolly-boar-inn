@@ -193,16 +193,26 @@ export function sampleCredit(sample: Sample, value: unknown): number {
   }
 }
 
+/** `rooms/scoring.py`'s `ACCURACY_TOP`: what full credit pays where the clock does not count. */
+const ACCURACY_TOP = 1000
+
+/** `rooms/scoring.py`'s `edges`: where each speed bucket ends, as shares of the time. */
+export function speedEdges(grace: number, rules: AnswerRules = ANSWER_RULES): number[] {
+  // The server's form of `grace + edge × (1 - grace)`, so both sides round alike.
+  return rules.buckets.map(([edge]) => edge + grace * (1 - edge))
+}
+
 /** Points for an answer `elapsedMs` into `seconds`, as the room scores one on speed. */
 export function speedPoints(
   credit: number,
   elapsedMs: number,
   seconds: number,
   rules: AnswerRules = ANSWER_RULES,
+  grace = 0,
 ): number {
   const fraction = elapsedMs / (seconds * 1000)
-  const bucket = rules.buckets.find(([upTo]) => fraction <= upTo)
-  return bucket === undefined ? 0 : Math.round(bucket[1] * credit)
+  const at = speedEdges(grace, rules).findIndex((upTo) => fraction <= upTo)
+  return at === -1 ? 0 : Math.round(rules.buckets[at]![1] * credit)
 }
 
 /** `rooms/scoring.py`'s `step` and `step_points`: what `elapsedMs` pays while a picture builds up. */
@@ -228,7 +238,8 @@ function samplePoints(
   if (sample.type === 'pick_from_list' && sample.steps !== undefined) {
     return Math.round(stepPoints(elapsedMs, seconds, sample.steps) * credit)
   }
-  return speedPoints(credit, elapsedMs, seconds, rules)
+  if (rules.scoring[sample.type] === 'accuracy') return Math.round(ACCURACY_TOP * credit)
+  return speedPoints(credit, elapsedMs, seconds, rules, rules.grace[sample.type] ?? 0)
 }
 
 /** The row a room's reveal would give this answer, `elapsedMs` into the sample. */

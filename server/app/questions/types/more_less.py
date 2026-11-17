@@ -22,6 +22,7 @@ from app.questions.types import exact
 from app.questions.types.timing import Timing
 
 DIRECTIONS = ("more", "less")
+GRACE = 0.0
 # Two names and one word to read: meant to be quick.
 ANSWER = Timing(base=10)
 REVEAL = Timing(base=5)

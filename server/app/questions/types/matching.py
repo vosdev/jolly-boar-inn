@@ -17,7 +17,7 @@ payload (``shuffle``), and a value is one shown option position per field. An ic
 out as its picture's random name (``pictured``), never its asset id, which may be the
 answer. Credit is the fields that hold their option, over the fields.
 
-With ``bins`` the options are two to four bins and the fields four to six entries sorted
+With ``bins`` the options are three or four bins and the fields four to six entries sorted
 into them: free-to-play or members, which god an item belongs to. A bin takes any number
 of entries, none included, so ``answer`` and a value may repeat an option.
 """
@@ -33,11 +33,13 @@ from app.questions.types.shuffle import seeded_order
 from app.questions.types.timing import Timing
 
 SCORING = Scoring.SPEED
+GRACE = 0.0
 # Each field is read and filled one by one, and the reveal sets each option on its field
 # with its detail beside it, as ordering does.
 ANSWER = Timing(base=10, per_item=5)
 REVEAL = Timing(base=4, per_item=2)
-BINS = (2, 4)
+# Over two bins a blind sort averages half credit, a coin flip with partial credit.
+BINS = (3, 4)
 BIN_ENTRIES = (4, 6)
 
 
@@ -134,8 +136,8 @@ def _key(text: str) -> str:
 
 def check(payload: dict[str, Any]) -> list[str]:
     """Consistency: an option per field, and no field or option that reads like another.
-    Without ``bins``, none used twice and at least as many options as fields; with it, two
-    to four options and four to six fields."""
+    Without ``bins``, none used twice and at least as many options as fields; with it, three
+    or four options and four to six fields."""
     errors: list[str] = []
     fields, options, answer = payload["fields"], payload["options"], payload["answer"]
     bins = bool(payload.get("bins"))
