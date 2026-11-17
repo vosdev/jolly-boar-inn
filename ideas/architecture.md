@@ -655,6 +655,8 @@ the picture builds up, then the whole picture as step 18. Points fall from 1000 
 - `host_only` and the TV score nobody and get `excluded`. Authors score on their own questions. A kicked
   player's answers are deleted.
 
+Bucket edges and points are tuned on `answer_timings` (section 11), queried by hand.
+
 Standings sort by points, then correct answers, then `joined_at`. Rank is dense over points and
 correct answers; join time only orders players who share a rank. `points_gained` is what the round
 of the latest close added and `previous_rank` the rank before that round by the same rule, null
@@ -836,6 +838,10 @@ key into them, so cleanup leaves it.
   `/api/admin/questions/stats?mode=…` (every editable mode without one) returns each pack
   question whole with its totals, zeros if never counted; a row for an id the packs lost is
   left out. Bands and suggestions are the client's (`lib/questionStats.ts`), advice only.
+- `answer_timings` (`app/answer_timings.py`), also outside the cascade, adds a row per answer
+  `question_stats` counts (`question_stats.players`; a miss adds none) in the same transaction:
+  `type`, `mode`, `scoring`, `pace`, `items`, `seconds`, `elapsed_ms`, `credit`, `team` and
+  `played_on`, no player, room or question id. It is read with SQL; no page shows it.
 - Only the browser knows which join failures its player saw (it retries a taken name, and a
   missing room may be a Past party games link), so it reports each to `POST /api/stats/join-failure
   {reason}`, 30 an hour per address, and the server counts no failure itself.

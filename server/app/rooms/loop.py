@@ -27,7 +27,7 @@ import logging
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
-from app import metrics, question_stats
+from app import answer_timings, metrics, question_stats
 from app.questions.submission import Submission
 from app.questions.types import TYPES, pictured
 from app.rooms import ready, scoring
@@ -647,9 +647,9 @@ class Loop(RoomHost):
                             for pid, (_, correct, points) in graded.items()
                         ],
                     )
-                await question_stats.record(
-                    conn, room, question, {pid: got for pid, (got, _, _) in graded.items()}
-                )
+                settled = {pid: got for pid, (got, _, _) in graded.items()}
+                await answer_timings.record(conn, room, question, settled, closed_at)
+                await question_stats.record(conn, room, question, settled)
                 round_start = _round_start(room, question.position)
                 totals = await _fetch_totals(conn, room.id, round_start)
             question.closed_at = closed_at
