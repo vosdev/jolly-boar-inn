@@ -108,7 +108,10 @@ describe('problems', () => {
     )
     expect(paths({ ...PICK_ALL, payload: { ...open, answer_indices: [0, 1, 2] } })).toEqual([])
     expect(
-      paths({ ...PICK_ALL, payload: { ...open, options: ['Imp', 'imp', 'Hellhound', 'Gargoyle'] } }),
+      paths({
+        ...PICK_ALL,
+        payload: { ...open, options: ['Imp', 'imp', 'Hellhound', 'Gargoyle'] },
+      }),
     ).toEqual(['payload.options[1]: Same as answer 1.'])
   })
 
