@@ -432,6 +432,25 @@ def test_the_game_tests_answers_hold_for_every_shipped_question(question: dict[s
     assert sorted(credit.values())[-1] == 1.0 > sorted(credit.values())[0]
 
 
+def _can_earn_nothing(question: dict[str, Any]) -> bool:
+    # A pick-all with more picks than wrong options must tick a right one.
+    payload = question["payload"]
+    if question["type"] != "pick_all_that_apply" or "picks" not in payload:
+        return True
+    return len(payload["options"]) - len(payload["answer_indices"]) >= payload["picks"]
+
+
+@pytest.mark.parametrize(
+    "question", [q for q in SHIPPED if _can_earn_nothing(q)], ids=lambda q: q["id"]
+)
+def test_the_game_tests_wrong_answer_earns_nothing(question: dict[str, Any]) -> None:
+    """``test_a_round_of_every_mode…`` expects no points for it, whichever question it draws."""
+    module, payload = TYPES[question["type"]], question["payload"]
+    wrong = module.parse_value(payload, answers.wrong_value(question["type"], payload))
+    player = uuid4()
+    assert module.grade(payload, [Submission(player, wrong)]).get(player, 0.0) == 0.0
+
+
 @per_type
 def test_nobody_answering_grades_to_nothing(type_id: str) -> None:
     assert TYPES[type_id].grade(example(type_id).payload, []) == {}
