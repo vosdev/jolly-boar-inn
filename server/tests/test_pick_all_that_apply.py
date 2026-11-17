@@ -95,31 +95,42 @@ def test_answers_written_first_are_shown_in_every_place() -> None:
     assert min(places.values()) >= 30
 
 
+FOUR_RIGHT = payload(answer_indices=[0, 1, 2, 4])
+
+
+def graded(p: dict[str, Any], picked: list[int]) -> float:
+    player = uuid4()
+    value = pick_all_that_apply.parse_value(p, shown(picked, p))
+    assert value is not None
+    return pick_all_that_apply.grade(p, [Submission(player, value)])[player]
+
+
 @pytest.mark.parametrize(
     ("picked", "credit"),
     [
-        ([1, 4], 1.0),  # both right, nothing else
-        ([0, 1, 4], 2 / 3),  # both right and one wrong
-        ([1], 1 / 2),  # one right
-        ([0, 1], 1 / 3),  # one right and one wrong
-        ([0, 1, 2, 3, 4, 5], 2 / 6),  # all six
-        ([0, 2], 0.0),  # only wrong ones
+        ([0, 1, 2, 3, 4, 5], 0.0),  # everything ticked
+        ([0, 1], 0.5),  # two right, nothing wrong
+        ([0, 1, 2, 4, 5], 0.5),  # all four right, one wrong
+        ([0, 1, 3], 0.0),  # two right, one wrong
+        ([0, 1, 2, 4], 1.0),  # the exact set
+        ([3, 5], 0.0),  # only wrong ones
     ],
 )
-def test_credit_is_right_picks_over_right_or_picked(picked: list[int], credit: float) -> None:
-    player = uuid4()
-    value = pick_all_that_apply.parse_value(EXAMPLE["payload"], shown(picked))
-    assert value is not None
-    assert pick_all_that_apply.grade(EXAMPLE["payload"], [Submission(player, value)]) == {
-        player: pytest.approx(credit)
-    }
+def test_credit_is_right_share_minus_wrong_share(picked: list[int], credit: float) -> None:
+    assert graded(FOUR_RIGHT, picked) == pytest.approx(credit)
 
 
-def test_ticking_all_six_when_four_are_right_is_not_full_credit() -> None:
-    four = payload(answer_indices=[0, 1, 2, 4])
-    player = uuid4()
-    credit = pick_all_that_apply.grade(four, [Submission(player, [0, 1, 2, 3, 4, 5])])
-    assert credit == {player: pytest.approx(4 / 6)}
+def test_with_picks_credit_is_right_picks_over_right_or_picked() -> None:
+    p = payload(picks=2)
+    assert graded(p, [1, 4]) == 1.0
+    assert graded(p, [1, 0]) == pytest.approx(1 / 3)
+    assert graded(p, [0, 2]) == 0.0
+
+
+def test_no_wrong_option_pays_full_for_the_full_set_without_dividing_by_zero() -> None:
+    p = payload(options=["Sarachnis", "Venenatis", "Kalphite Queen"], answer_indices=[0, 1, 2])
+    assert graded(p, [0, 1, 2]) == 1.0
+    assert graded(p, [0, 1]) == pytest.approx(2 / 3)
 
 
 def test_grade_takes_every_answer_at_once() -> None:
@@ -160,6 +171,14 @@ def test_with_picks_exactly_that_many_are_taken() -> None:
 def test_check_passes_a_consistent_payload() -> None:
     assert pick_all_that_apply.check(EXAMPLE["payload"]) == []
     assert pick_all_that_apply.check(payload(picks=2)) == []
+
+
+def test_check_refuses_one_wrong_option_unless_picks_is_set() -> None:
+    one_wrong = payload(options=["A", "B", "C", "D"], answer_indices=[0, 1, 2])
+    assert pick_all_that_apply.check(one_wrong) == [
+        "options: one wrong option is too few without picks; add another or set picks"
+    ]
+    assert pick_all_that_apply.check({**one_wrong, "picks": 3}) == []
 
 
 def test_check_fails_no_right_option() -> None:

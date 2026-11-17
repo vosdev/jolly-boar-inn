@@ -12,10 +12,12 @@ an author's habit of listing the right ones first never shows. ``picks`` is how 
 player must pick, said to them while the question is open, and then it is also how many
 are right. Without it, any number from one to all of them may be picked.
 
-Credit is the right picks over every option that is right or picked: the exact set is full
-credit, and each missed right option or extra wrong one costs, so ticking everything earns
-only the share of options that are right. ``check`` refuses a question where no option is
-right, and allows one where every option is: a host or suggester may ask that on purpose.
+Without ``picks`` the credit is the share of right options ticked minus the share of wrong
+options ticked, never below zero, so ticking everything earns nothing and a blind answer never
+beats partial knowledge. With ``picks`` the count is fixed, so credit is the right picks over
+every option that is right or picked. ``check`` refuses a question where no option is right,
+and allows one where every option is: a host or suggester may ask that on purpose. Without
+``picks`` it also wants two wrong options, since one wrong tick would otherwise cost everything.
 """
 
 from typing import Any
@@ -67,12 +69,17 @@ def reveal(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def grade(payload: dict[str, Any], submissions: list[Submission]) -> dict[UUID, float]:
-    """Right picks over every option that is right or picked: 1.0 only for the exact set."""
+    """Full credit only for the exact set; see the module docstring for what the rest earns."""
     right = set(_shown_answers(payload))
+    wrong = len(payload["options"]) - len(right)
     credit: dict[UUID, float] = {}
     for s in submissions:
         picked = set(s.value)
-        credit[s.player_id] = len(picked & right) / len(picked | right)
+        if "picks" in payload:
+            credit[s.player_id] = len(picked & right) / len(picked | right)
+        else:
+            wrong_share = len(picked - right) / wrong if wrong else 0.0
+            credit[s.player_id] = max(0.0, len(picked & right) / len(right) - wrong_share)
     return credit
 
 
@@ -96,7 +103,7 @@ def parse_value(payload: dict[str, Any], value: Any) -> list[int] | None:
 
 
 def check(payload: dict[str, Any]) -> list[str]:
-    """Consistency: at least one option right, ``picks`` says how many, no repeats."""
+    """Consistency: one option right, ``picks`` its count or two wrong options, no repeats."""
     errors: list[str] = []
     options, answers = payload["options"], payload["answer_indices"]
     if not answers:
@@ -110,6 +117,11 @@ def check(payload: dict[str, Any]) -> list[str]:
         errors.append("answer_indices: must be in ascending order, each once")
     if "picks" in payload and payload["picks"] != len(answers):
         errors.append(f"picks: is {payload['picks']} but {len(answers)} options are right")
+    wrong = len(options) - len({index for index in answers if 0 <= index < len(options)})
+    if "picks" not in payload and answers and wrong == 1:
+        errors.append(
+            "options: one wrong option is too few without picks; add another or set picks"
+        )
     seen: dict[str, int] = {}
     for index, option in enumerate(options):
         key = " ".join(option.split()).casefold()

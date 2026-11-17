@@ -218,7 +218,7 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 | `closest_number` | number | by distance within `within` (section 8) |
 | `number_slider` | an integer on the slider's track, in `[min, max]` | by distance (section 8) |
 | `pick_from_list` | an entry id of the question's vocabulary | 1 or 0 |
-| `pick_all_that_apply` | distinct shown positions, sorted, at least one; exactly `picks` if set | right picks ÷ options right or picked |
+| `pick_all_that_apply` | distinct shown positions, sorted, at least one; exactly `picks` if set | right share − wrong share, at least 0; with `picks`, right picks ÷ options right or picked |
 | `ordering` | shown positions, first end first: all, or `picks` of them | per place: 1 for its rank; with `picks`, ½ for another picked one |
 | `matching` | a shown option position per field, in field order, distinct unless `bins` | right fields ÷ fields |
 | `map_pin` | a list of `{x, y}` in game tiles, one per target, inside `bounds` or the surface | mean of each pin's credit, at the pairing that scores best (section 8) |
@@ -260,8 +260,8 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   of the longer side across. The open view has `picture`, the shape and any `grid`, never a target;
   `drawable` needs the screenshot among `pictures`. Rounds only: a host's question names no picture.
 - `pick_all_that_apply` stores sorted `answer_indices` and an optional `picks`, shown open. `check()`
-  rejects no option right, and a `picks` that is not their count. Every option right is allowed
-  (owner's call); ticking all then earns only the right share.
+  rejects no option right, a `picks` that is not their count, and, without `picks`, fewer than two
+  wrong options. Every option right is allowed (owner's call).
 - `pick_from_list` answers through one strict WAI-ARIA combobox. Typing only searches, by word
   prefix, ignoring case and accents. Only a selected entry can be submitted, with its own button;
   the mode, not the payload, sets its `steps` (section 8).
@@ -613,6 +613,8 @@ from taking the lock. `grade` returns credit; `scoring.py` turns it into points 
   network difference irrelevant, so there is no RTT compensation.
 - An answer from `ends_at` on is `not_open`, even if the close runs late.
 - Partial credit rides the bucket: 0.6 in bucket 2 is 540.
+- `pick_all_that_apply` without `picks` pays `max(0, right ticked ÷ right − wrong ticked ÷ wrong)`
+  (no wrong option: wrong share 0), so ticking everything pays 0.
 - `matching` with `bins` grades as without, entries in their bin over the entries, with no floor
   for chance: a blind guess over two bins averages half, so the editors suggest three or more.
 - A team game (`settings.teams` non-empty) drops speed: `SPEED` pays `round(1000 × credit)` and

@@ -121,7 +121,7 @@
       }
     },
     {
-      "id": "q_358bbae149b60667",
+      "id": "q_0af97859191d6937",
       "type": "pick_all_that_apply",
       "mode": "random_event",
       "source": "pack",
@@ -145,7 +145,8 @@
           1,
           3,
           4
-        ]
+        ],
+        "picks": 4
       }
     }
   ]
