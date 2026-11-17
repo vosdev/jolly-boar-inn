@@ -15,8 +15,8 @@
    * and fold the rest into one. A number's misses, typed or slid, are "close" while they
    * still scored and "further off" after, every name carrying its guess. Pick all that
    * apply groups by right picks against the reveal's `answer_indices`, because its credit
-   * punishes misses and extras alike. Ordering groups by entries in place, read
-   * off `credit`, and with `picks` also those out of place, read off the value. Grouping
+   * punishes misses and extras alike. Ordering groups by entries in place, and
+   * with `picks` also those out of place, read off the value: its credit counts swaps. Grouping
    * by how many, not by which, keeps six entries to six lines. Matching groups the same
    * way, by fields right, read off `credit`, and a sort into bins says "sorted" for "matched".
    *
@@ -51,7 +51,7 @@
   import { team as god, teamMeans, type TeamId } from '../lib/teams'
   import { loadVocab } from '../lib/vocab'
   import { GEMS, type Gem } from './questions/GemButton.svelte'
-  import { inPlace, placement } from './questions/types/Ordering.svelte'
+  import { placement } from './questions/types/Ordering.svelte'
   import PinRanking from './PinRanking.svelte'
   import TeamLogo from './TeamLogo.svelte'
 
@@ -180,13 +180,6 @@
       ? reveal.picks
       : ((reveal.entries as unknown[] | undefined)?.length ?? 0),
   )
-  /** An ordering answer's places right and, with `picks`, its right picks out of place. */
-  function placed(credit: number, value: unknown): { inPlace: number; outOfPlace: number } {
-    return 'picks' in reveal
-      ? placement(reveal, value)
-      : { inPlace: inPlace(credit, places), outOfPlace: 0 }
-  }
-
   const answers = $derived(new Set((reveal.answer_indices as number[] | undefined) ?? []))
   /** A pick-all answer's right picks and, unless `picks` made it pick that many, its wrong ones. */
   function picked(value: unknown): { hits: number; extras: number } {
@@ -277,8 +270,11 @@
       }
       case 'ordering': {
         const lines = new Map<string, Group & { credit: number; hits: number }>()
-        for (const [id, { credit, value }] of wrong) {
-          const { inPlace: hits, outOfPlace } = placed(credit, value)
+        for (const [id, { value }] of wrong) {
+          const { inPlace: hits, outOfPlace } = placement(reveal, value)
+          // Without `picks` credit counts swaps, so answers with as many in place differ in
+          // credit; this orders the groups by what their labels say.
+          const credit = (hits + outOfPlace / 2) / places
           const key = `${hits}/${outOfPlace}`
           const label =
             hits === 0 && outOfPlace === 0

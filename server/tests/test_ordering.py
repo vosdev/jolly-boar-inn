@@ -118,24 +118,26 @@ def test_example_validates() -> None:
     schema.validate({**tied, "id": schema.content_id(tied)})
 
 
-def test_three_of_five_in_place_is_credit_0_6_and_540_points_in_bucket_2() -> None:
+def test_one_swap_is_credit_0_8_and_720_points_in_bucket_2() -> None:
     swapped = ["Bronze", "Iron", "Steel", "Adamant", "Mithril"]
     credit = credit_for(EXAMPLE["payload"], value_for(EXAMPLE["payload"], swapped))
-    assert credit == 0.6
-    assert points_for(Scoring.SPEED, credit, 2, None) == 540
+    assert credit == pytest.approx(0.8)
+    assert points_for(Scoring.SPEED, credit, 2, None) == 720
 
 
 @pytest.mark.parametrize(
     ("order", "credit"),
     [
         (METALS, 1.0),
-        (list(reversed(METALS)), 0.2),  # only Steel, in the middle
-        (["Iron", "Bronze", "Steel", "Mithril", "Adamant"], 0.6),
-        (["Adamant", "Bronze", "Iron", "Steel", "Mithril"], 0.0),
+        (["Iron", "Bronze", "Steel", "Mithril", "Adamant"], 0.8),  # one swap
+        (["Bronze", "Iron", "Adamant", "Steel", "Mithril"], 0.6),  # two swaps
+        (["Adamant", "Bronze", "Iron", "Steel", "Mithril"], 0.2),  # four swaps
+        (list(reversed(METALS)), 0.0),  # ten swaps, floored
     ],
 )
-def test_credit_is_the_fraction_in_the_right_place(order: list[str], credit: float) -> None:
-    assert credit_for(EXAMPLE["payload"], value_for(EXAMPLE["payload"], order)) == credit
+def test_credit_falls_by_a_fifth_per_swap_of_ten_pairs(order: list[str], credit: float) -> None:
+    got = credit_for(EXAMPLE["payload"], value_for(EXAMPLE["payload"], order))
+    assert got == pytest.approx(credit)
 
 
 def test_two_entries_sharing_a_rank_score_full_credit_in_either_order() -> None:
@@ -143,9 +145,11 @@ def test_two_entries_sharing_a_rank_score_full_credit_in_either_order() -> None:
     second = ["Demon Slayer", "Cook's Assistant", "Dragon Slayer I", "Monkey Madness I"]
     assert credit_for(TIED, value_for(TIED, first)) == 1.0
     assert credit_for(TIED, value_for(TIED, second)) == 1.0
-    # A tied entry is right in either tied place, and only there.
-    late = ["Dragon Slayer I", "Demon Slayer", "Cook's Assistant", "Monkey Madness I"]
-    assert credit_for(TIED, value_for(TIED, late)) == 0.5
+
+
+def test_with_a_tie_one_real_swap_of_five_pairs_pays_0_6() -> None:
+    swapped = ["Cook's Assistant", "Dragon Slayer I", "Demon Slayer", "Monkey Madness I"]
+    assert credit_for(TIED, value_for(TIED, swapped)) == pytest.approx(0.6)
 
 
 def test_grade_takes_every_answer_at_once() -> None:
@@ -155,7 +159,7 @@ def test_grade_takes_every_answer_at_once() -> None:
         p,
         [
             Submission(right, value_for(p, METALS)),
-            Submission(wrong, value_for(p, ["Adamant", "Bronze", "Iron", "Steel", "Mithril"])),
+            Submission(wrong, value_for(p, list(reversed(METALS)))),
         ],
     )
     assert credit == {right: 1.0, wrong: 0.0}
@@ -319,9 +323,11 @@ def test_with_picks_a_right_entry_in_the_wrong_place_earns_half(
     assert credit_for(PICKED, value_for(PICKED, order)) == pytest.approx(credit)
 
 
-def test_without_picks_a_misplaced_entry_earns_nothing() -> None:
+def test_without_picks_one_entry_moved_to_the_end_still_pays_for_the_rest() -> None:
     order = ["Iron", "Steel", "Mithril", "Adamant", "Bronze"]
-    assert credit_for(EXAMPLE["payload"], value_for(EXAMPLE["payload"], order)) == 0.0
+    assert credit_for(EXAMPLE["payload"], value_for(EXAMPLE["payload"], order)) == pytest.approx(
+        0.2
+    )
 
 
 def test_with_picks_a_tie_at_the_cut_counts_as_picked() -> None:
@@ -444,16 +450,16 @@ def test_a_question_plays_end_to_end(table, ordering_round: str, db) -> None:
     assert all(set(entry) == {"text"} for entry in views[0]["entries"])
 
     right = [order.index(text) for text in METALS]
-    three = [order.index(t) for t in ["Bronze", "Iron", "Steel", "Adamant", "Mithril"]]
+    swapped = [order.index(t) for t in ["Bronze", "Iron", "Steel", "Adamant", "Mithril"]]
     answer_after(game, zezima, 0, right, 1.0)
     game.answer(woox, 0, right[:4])
     assert woox.take("error")["code"] == "bad_value"
-    answer_after(game, woox, 0, three, 3.0)
+    answer_after(game, woox, 0, swapped, 3.0)
     game.skip()
 
     closed = admin.take("question_closed")
     assert closed["reveal"]["answer"] == right
     full, partial = closed["results"][zezima.id], closed["results"][woox.id]
     assert full["value"] == right and full["correct"] is True and full["points"] == 1000
-    assert partial["value"] == three and partial["correct"] is False
-    assert partial["credit"] == 0.6 and partial["points"] == 540
+    assert partial["value"] == swapped and partial["correct"] is False
+    assert partial["credit"] == pytest.approx(0.8) and partial["points"] == 720

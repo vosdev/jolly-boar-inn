@@ -6,25 +6,22 @@
     return ranks.map((rank) => ranks.indexOf(rank) + 1)
   }
 
-  /** How many places of `credit` were right, out of `count`. */
-  export function inPlace(credit: number, count: number): number {
-    return Math.round(credit * count)
-  }
-
   /**
-   * A value against a `picks` reveal: places holding their rank, and picks that belong
-   * among the picked but sit elsewhere, which earn half. Credit cannot tell one in place
-   * and two halves from two in place, so this reads the value, as the server grades it.
+   * A value against the reveal: places holding their rank and, with `picks`, picks that
+   * belong among the picked but sit elsewhere, which earn half. Credit cannot say either:
+   * without `picks` it counts swaps, and with them one in place and two halves pay alike.
    */
   export function placement(
     reveal: Record<string, unknown>,
     value: unknown,
   ): { inPlace: number; outOfPlace: number } {
     const entries = (reveal.entries as { rank?: number }[] | undefined) ?? []
-    const picks = Number(reveal.picks)
     const ranks = entries.map((entry) => entry.rank ?? 0)
-    const wanted = [...ranks].sort((a, b) => a - b).slice(0, picks)
-    const cut = wanted[wanted.length - 1] ?? -Infinity
+    const picked = typeof reveal.picks === 'number'
+    const wanted = [...ranks]
+      .sort((a, b) => a - b)
+      .slice(0, picked ? Number(reveal.picks) : undefined)
+    const cut = picked ? (wanted[wanted.length - 1] ?? -Infinity) : -Infinity
     let placed = 0
     let elsewhere = 0
     ;(Array.isArray(value) ? (value as number[]) : []).forEach((shown, index) => {
@@ -202,8 +199,6 @@
   }
   const verdict = $derived.by(() => {
     if (result == null || answer.length === 0) return null
-    if (q.picks === undefined)
-      return `You had ${inPlace(result.credit, places)} of ${places} in place`
     const { inPlace: placed, outOfPlace } = placement(data, result.value)
     return `You had ${placed} of ${places} in place${outOfPlace > 0 ? `, ${outOfPlace} out of place` : ''}`
   })

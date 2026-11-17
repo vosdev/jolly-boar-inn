@@ -428,6 +428,24 @@ describe('ordering', () => {
     expect(screen.queryByText(/Tap in order/)).toBeNull()
   })
 
+  it('counts the verdict off the value, and marks nothing displaced as wrong', () => {
+    // Adamant first, the rest in order: four swaps pay 0.2, and nothing is in its place.
+    const value = [2, 1, 3, 4, 0]
+    render(Question, {
+      question: open(),
+      reveal: REVEAL,
+      yourValue: value,
+      result: { value, correct: false, credit: 0.2, points: 180 },
+      onAnswer: () => {},
+    })
+    expect(screen.getByText('You had 0 of 5 in place')).toBeTruthy()
+    for (const name of SHOWN) {
+      expect(gem(name).classList.contains('faded')).toBe(true)
+      expect(gem(name).classList.contains('wrong')).toBe(false)
+      expect(gem(name).textContent).not.toMatch(/wrong/)
+    }
+  })
+
   it('reveals a tie under one number, and a tied entry in either tied place as in place', () => {
     const entries = [
       { text: 'Demon Slayer', rank: 1 },

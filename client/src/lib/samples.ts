@@ -137,22 +137,35 @@ export function sampleReveal(sample: Sample): Record<string, unknown> {
   }
 }
 
+/** Pairs of different ranks where the higher comes first; equal ranks never count. */
+function swaps(ranks: number[]): number {
+  return ranks.reduce(
+    (sum, before, i) => sum + ranks.slice(i + 1).filter((after) => before > after).length,
+    0,
+  )
+}
+
 /**
- * `ordering.grade`: per place played, 1 for the rank that belongs there, and with `picks`
- * half for one that belongs in another. `ranks` are in shown order, as `value`'s positions.
+ * `ordering.grade`: without `picks`, `1 - 2 × swaps / pairs` floored at 0; with them, per
+ * place played, 1 for the rank that belongs there and half for one that belongs in another.
+ * `ranks` are in shown order, as `value`'s positions.
  */
 export function orderingCredit(
   ranks: number[],
   picks: number | undefined,
   value: number[],
 ): number {
-  const wanted = [...ranks].sort((a, b) => a - b).slice(0, picks ?? ranks.length)
+  if (picks === undefined) {
+    const pairs = swaps([...ranks].sort((a, b) => b - a))
+    if (pairs === 0) return 1
+    return Math.max(0, 1 - (2 * swaps(value.map((shown) => ranks[shown]!))) / pairs)
+  }
+  const wanted = [...ranks].sort((a, b) => a - b).slice(0, picks)
   const cut = wanted[wanted.length - 1]!
-  const half = picks === undefined ? 0 : 0.5
   const earned = wanted.reduce((sum, rank, place) => {
     const placed = ranks[value[place]!]!
     if (placed === rank) return sum + 1
-    return placed <= cut ? sum + half : sum
+    return placed <= cut ? sum + 0.5 : sum
   }, 0)
   return earned / wanted.length
 }

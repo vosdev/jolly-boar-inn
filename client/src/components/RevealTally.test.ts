@@ -279,17 +279,26 @@ describe('RevealTally', () => {
     ])
   })
 
-  it('groups an ordering answer by its entries in place, read off its credit', () => {
-    const entries = ['a', 'b', 'c', 'd', 'e'].map((text) => ({ text }))
+  it('groups an ordering answer by its entries in place, read off its value', () => {
+    const entries = ['a', 'b', 'c', 'd', 'e'].map((text, index) => ({ text, rank: index + 1 }))
     const { container } = draw(
-      { a: partly(0.6), b: right(), c: partly(0.6), d: partly(0.2), e: wrong() },
+      {
+        // Three swaps and one: credit 0.4 and 0.8, both three in place.
+        a: partly(0.4, [0, 3, 2, 1, 4]),
+        b: right([0, 1, 2, 3, 4]),
+        c: partly(0.8, [1, 0, 2, 3, 4]),
+        // One entry moved to the front: four swaps, credit 0.2, none in place.
+        d: partly(0.2, [4, 0, 1, 2, 3]),
+        // Reversed: credit 0, the middle one in place.
+        e: wrong([4, 3, 2, 1, 0]),
+      },
       { type: 'ordering', reveal: { entries, answer: [0, 1, 2, 3, 4] } },
     )
     expect(count(container)).toBe('1 of 5 got it right')
     expect(lines(container)).toEqual([
       '3 of 5 in place (2): Zezima (you), Lynx',
-      '1 of 5 in place (1): Dorn',
-      'None in place (1): Alkan',
+      '1 of 5 in place (1): Alkan',
+      'None in place (1): Dorn',
     ])
   })
 
