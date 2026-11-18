@@ -201,7 +201,7 @@ jobs:
           docker compose up -d --wait --wait-timeout 120
           body=$(curl -fsS http://localhost:8000/api/health)
           echo "health: $body"
-          test "$body" = '{"ok":true,"db":true}'
+          test "$body" = "{\"ok\":true,\"db\":true,\"version\":\"$(cat VERSION)\"}"
           curl -fsS http://localhost:8000/ | grep -q '<title>The Jolly Boar Inn</title>'
 
       # A player opening the host's link lands on /r/CODE, which exists only in the
