@@ -25,6 +25,9 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal
 from uuid import UUID
 
+from app.questions.types.scoring import Scoring
+from app.rooms import scoring
+
 if TYPE_CHECKING:
     from app.rooms.models import RoomQuestion
 
@@ -77,12 +80,76 @@ class Item:
     charges: int | None = None
     on_answer: Callable[[Worn, Answered], Effect] | None = None
     settle: Callable[[Worn, Mapping[UUID, int]], Mapping[UUID, int]] | None = None
-    """At the round's end: the wearer's base points per answered question of the round in,
-    item points to add per question out."""
+    """At the round's end: the wearer's base points per answered question of the round, in
+    question order, in; item points to add per question out."""
 
 
-# The items players can find. Empty until the first ones ship; the tests deal their own.
-ITEMS: tuple[Item, ...] = ()
+def _answerable(questions: Sequence[RoomQuestion]) -> list[RoomQuestion]:
+    return [question for question in questions if not question.host_only]
+
+
+# How many speed buckets one dose of Super restore moves an answer up.
+RESTORE_BUCKETS = 2
+# What Ring of Life raises a low answer to.
+LIFE_FLOOR = 500
+# The fewest questions a round needs for Phoenix necklace: one to replace, two to average.
+PHOENIX_QUESTIONS = 3
+
+
+def _restore_fits(questions: Sequence[RoomQuestion]) -> bool:
+    return any(q.scoring is Scoring.SPEED for q in _answerable(questions))
+
+
+def _restore(worn: Worn, answered: Answered) -> Effect:
+    """A dose on a speed answer with credit: paid as though two buckets quicker."""
+    band, charges = answered.band, worn.charges or 0
+    if answered.question.scoring is not Scoring.SPEED or band is None or charges <= 0:
+        return Effect(0, worn)
+    quicker = max(1, band - RESTORE_BUCKETS)
+    boosted = scoring.points_for(Scoring.SPEED, answered.credit, quicker, None)
+    # Bucket 1, a wrong answer, or credit too small to round up: the dose would not help.
+    if boosted <= answered.points:
+        return Effect(0, worn)
+    left = charges - 1
+    return Effect(boosted - answered.points, Worn(worn.item, worn.round, left) if left else None)
+
+
+def _anything(questions: Sequence[RoomQuestion]) -> bool:
+    return bool(_answerable(questions))
+
+
+def _life(worn: Worn, answered: Answered) -> Effect:
+    """The first answer under the floor is raised to it, and the ring breaks."""
+    if answered.points >= LIFE_FLOOR:
+        return Effect(0, worn)
+    return Effect(LIFE_FLOOR - answered.points, None)
+
+
+def _phoenix_fits(questions: Sequence[RoomQuestion]) -> bool:
+    return len(_answerable(questions)) >= PHOENIX_QUESTIONS
+
+
+def _phoenix(worn: Worn, answered: Mapping[UUID, int]) -> Mapping[UUID, int]:
+    """The worst answered question rises to the average of the others, if that is higher.
+
+    ``answered`` is in question order, so of two equally bad answers the earlier rises.
+    """
+    if len(answered) < 2:
+        return {}
+    worst = min(answered, key=lambda question: answered[question])
+    others = [points for question, points in answered.items() if question != worst]
+    # Half up, as the team standings round their averages.
+    average = (2 * sum(others) + len(others)) // (2 * len(others))
+    gain = average - answered[worst]
+    return {worst: gain} if gain > 0 else {}
+
+
+SUPER_RESTORE = Item("super_restore", "mild", _restore_fits, charges=4, on_answer=_restore)
+RING_OF_LIFE = Item("ring_of_life", "strong", _anything, on_answer=_life)
+PHOENIX_NECKLACE = Item("phoenix_necklace", "strong", _phoenix_fits, settle=_phoenix)
+
+# The items players can find.
+ITEMS: tuple[Item, ...] = (SUPER_RESTORE, RING_OF_LIFE, PHOENIX_NECKLACE)
 
 
 def receivers(rows: Sequence[tuple[UUID, int]]) -> dict[UUID, Tier]:

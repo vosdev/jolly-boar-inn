@@ -659,7 +659,8 @@ class Loop(RoomHost):
             "select a.player_id, a.question_id, a.points from answers a"
             " join questions q on q.id = a.question_id"
             " where q.room_id = $1 and q.position between $2 and $3"
-            " and a.points is not null and a.player_id = any($4::uuid[])",
+            " and a.points is not null and a.player_id = any($4::uuid[])"
+            " order by q.position",
             room.id,
             segment.start,
             segment.start + segment.count - 1,

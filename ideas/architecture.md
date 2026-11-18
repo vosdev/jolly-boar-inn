@@ -682,7 +682,13 @@ questions, events included), seeded by sha256 of room code, round, player uuid a
 `item_charges`), broken at the end of its round. An item's `on_answer` runs after `points_for`
 and its `settle` at the close of its round's last question or `end_round`; what they give is
 `answers.item_points` (and `answers.item`), never credit, so `question_stats` and
-`answer_timings` keep base credit. `ITEMS` ships empty; the tests deal from their own table.
+`answer_timings` keep base credit. A question only the host answers fits no item.
+
+| Item | Tier | Fits a round with | Effect |
+|---|---|---|---|
+| `super_restore` (4 charges) | mild | a `SPEED` question (effective scoring) | Credit > 0 on `SPEED` is paid two buckets quicker, bucket 1 at best; a charge only where that pays more; breaks on the last. `answer_ack.band` stays the real bucket. |
+| `ring_of_life` | strong | anything | The first answer under 500 gets `500 − points`, then breaks. |
+| `phoenix_necklace` | strong | three questions or more | `settle`: the worst answered question (the earlier of a tie) rises to the others' average base points, rounded half up, if higher. |
 
 Standings sort by points (item points included), then correct answers, then `joined_at`. Rank is dense over points and
 correct answers; join time only orders players who share a rank. `points_gained` is what the round
