@@ -398,7 +398,7 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 | `question_open` | `question` | A question opens. |
 | `answer_ack` | `question_id`, `scoring`, `band`, `answered`, `of` | Answer committed. Never correctness. |
 | `answer_count` | `question_id`, `answered`, `of`, `waiting` | Another player's answer, connect, disconnect or kick moved the count. Who is still to, never what. |
-| `question_closed` | `question_id`, `reveal`, `picture`, `results`, `unanswered`, `standings`, `team_standings`, `next_at`, `reveal_seconds`, `suggested_by`? | Closed. `unanswered`: connected players who could answer and did not. `next_at` ends the reveal, the last one's too. `reveal_seconds` is its length, null in a daily room. `suggested_by` is a shown `credit`. |
+| `question_closed` | `question_id`, `reveal`, `picture`, `results`, `unanswered`, `settled`, `standings`, `team_standings`, `next_at`, `reveal_seconds`, `suggested_by`? | Closed. `unanswered`: connected players who could answer and did not. `settled`: `{player_id: {item, points}}`, what a `settle` added on the round's last close, whichever question it raised; `{}` on every other close. `next_at` ends the reveal, the last one's too. `reveal_seconds` is its length, null in a daily room. `suggested_by` is a shown `credit`. |
 | `game_finished` | `standings`, `team_standings` | Final. `team_standings` is null outside a team game. |
 | `pong` | `server_time` | Reply to `ping`. |
 | `error` | `code`, `message` | `bad_hello`, `bad_message`, `not_admin`, `not_open`, `already_answered`, `excluded`, `bad_value`, `bad_state`, `bad_name`, `name_taken`, `bad_avatar`. |
@@ -680,9 +680,10 @@ its lower side. The draw is uniform over the tier's items that fit the next roun
 questions, events included), seeded by sha256 of room code, round, player uuid and
 `rooms.rematches`; nothing fits, no item. One slot (`players.item`, `item_round`,
 `item_charges`), broken at the end of its round. An item's `on_answer` runs after `points_for`
-and its `settle` at the close of its round's last question or `end_round`; what they give is
-`answers.item_points` (and `answers.item`), never credit, so `question_stats` and
-`answer_timings` keep base credit. A question only the host answers fits no item.
+and its `settle` at the close of its round's last question (in `question_closed.settled`) or
+`end_round` (in `points_gained` alone); what they give is `answers.item_points` (and
+`answers.item`), never credit, so `question_stats` and `answer_timings` keep base credit. A
+question only the host answers fits no item.
 
 | Item | Tier | Fits a round with | Effect |
 |---|---|---|---|

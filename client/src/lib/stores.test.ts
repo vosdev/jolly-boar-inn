@@ -205,6 +205,7 @@ describe('applyServerMessage', () => {
     applyServerMessage({
       t: 'question_closed',
       unanswered: [],
+      settled: {},
       question_id: 'q1',
       reveal: {},
       results: {},
@@ -224,6 +225,7 @@ describe('applyServerMessage', () => {
     applyServerMessage({
       t: 'question_closed',
       unanswered: [],
+      settled: {},
       question_id: 'q1',
       reveal: {},
       results: {},
@@ -242,6 +244,7 @@ describe('applyServerMessage', () => {
     applyServerMessage({
       t: 'question_closed',
       unanswered: [],
+      settled: {},
       question_id: 'q1',
       reveal: {},
       results: {},

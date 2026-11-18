@@ -262,6 +262,7 @@ describe('Room', () => {
     applyServerMessage({
       t: 'question_closed',
       unanswered: [],
+      settled: {},
       question_id: 'q1',
       reveal: { ...open.view, answer_index: 0, values: [1, 2] },
       results: {},
@@ -322,6 +323,7 @@ describe('Room', () => {
     applyServerMessage({
       t: 'question_closed',
       unanswered: [],
+      settled: {},
       question_id: 'q1',
       reveal: { ...open.view, answer_index: 0 },
       results: {
@@ -378,6 +380,7 @@ describe('Room', () => {
     applyServerMessage({
       t: 'question_closed',
       unanswered: [],
+      settled: {},
       question_id: 'q1',
       reveal: { ...open.view, answer_index: 0 },
       results: {
@@ -489,6 +492,7 @@ describe('Room', () => {
       applyServerMessage({
         t: 'question_closed',
         unanswered: [],
+        settled: {},
         question_id: 'q1',
         reveal: {},
         results: {
@@ -706,6 +710,7 @@ describe('the room’s frame', () => {
     applyServerMessage({
       t: 'question_closed',
       unanswered,
+      settled: {},
       question_id: 'q1',
       reveal: {
         answer_index: 0,
@@ -1080,6 +1085,7 @@ describe('a random event’s way out', () => {
     applyServerMessage({
       t: 'question_closed',
       unanswered: [],
+      settled: {},
       question_id: 'q_bob',
       reveal: { prompt: PROMPT, options: ['Catspeak', 'Camulet'], answer_index: 0 },
       results: {},
@@ -1319,6 +1325,7 @@ describe('the shared stage', () => {
     applyServerMessage({
       t: 'question_closed',
       unanswered: [],
+      settled: {},
       question_id: 'q1',
       reveal: { values: [100, 50], answer_index: 0 },
       results: {},
@@ -1480,6 +1487,7 @@ describe('the shared stage', () => {
     applyServerMessage({
       t: 'question_closed',
       unanswered: [],
+      settled: {},
       question_id: 'q1',
       reveal: {
         ...first.view,
@@ -1904,6 +1912,7 @@ describe('a daily room', () => {
     applyServerMessage({
       t: 'question_closed',
       unanswered: [],
+      settled: {},
       question_id: open.question_id,
       reveal: { ...open.view, answer_index: 0, values: [1, 2] },
       results: {},

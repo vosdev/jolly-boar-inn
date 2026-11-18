@@ -626,6 +626,14 @@ export interface QuestionClosed {
    * Connected players who could have answered and did not, for the reveal's "No answer".
    */
   unanswered: string[]
+  /**
+   * Each wearer whose item settled on this close, the round's last: whichever of the
+   * round's questions the points landed on, so the reveal can show them. Empty on every other
+   * close.
+   */
+  settled: {
+    [k: string]: SettledItem
+  }
   standings: Standing[]
   team_standings: TeamStanding[] | null
   next_at: string | null
@@ -657,6 +665,13 @@ export interface PlayerResult {
    * The item that added `item_points`; null when none did.
    */
   item: string | null
+}
+/**
+ * What an item's `settle` added to one player's round, for its line on the reveal.
+ */
+export interface SettledItem {
+  item: string
+  points: number
 }
 export interface GameFinished {
   t: 'game_finished'

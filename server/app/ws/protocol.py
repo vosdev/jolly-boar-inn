@@ -533,6 +533,13 @@ class PlayerResult(_Message):
     """The item that added ``item_points``; null when none did."""
 
 
+class SettledItem(_Message):
+    """What an item's ``settle`` added to one player's round, for its line on the reveal."""
+
+    item: str
+    points: int
+
+
 class QuestionClosed(_Message):
     t: Literal["question_closed"] = "question_closed"
     question_id: str
@@ -542,6 +549,10 @@ class QuestionClosed(_Message):
     results: dict[UUID, PlayerResult]
     unanswered: list[UUID]
     """Connected players who could have answered and did not, for the reveal's "No answer"."""
+    settled: dict[UUID, SettledItem]
+    """Each wearer whose item settled on this close, the round's last: whichever of the
+    round's questions the points landed on, so the reveal can show them. Empty on every other
+    close."""
     standings: list[Standing]
     team_standings: list[TeamStanding] | None
     next_at: datetime | None

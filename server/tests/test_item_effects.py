@@ -216,10 +216,16 @@ def test_phoenix_necklace_in_a_game(table, second_mode, db) -> None:
 
     # Ann: 900, 600, then wrong; the 0 rises to 750, on the round's last question.
     # Admin: no answer, 600, 1000; the unanswered question is no part of it, the 600 rises.
-    play(game, 1, {"Ann": 2})
-    play(game, 2, {"Ann": 5, "Admin": 5})
+    assert play(game, 1, {"Ann": 2})["settled"] == {}
+    assert play(game, 2, {"Ann": 5, "Admin": 5})["settled"] == {}
     closed = play(game, 3, {"Admin": 1}, wrong=["Ann"])
     assert result(closed, ann.id) == (0, 750, "phoenix_necklace")
+    # Admin's raise is on question 2, so only ``settled`` carries it to this reveal.
+    assert result(closed, admin.id) == (1000, 0, None)
+    assert closed["settled"] == {
+        ann.id: {"item": "phoenix_necklace", "points": 750},
+        admin.id: {"item": "phoenix_necklace", "points": 400},
+    }
     gained = {s["player_id"]: s["points_gained"] for s in closed["standings"]}
     assert gained[ann.id] == 900 + 600 + 750
     assert gained[admin.id] == 1000 + 1000
@@ -229,6 +235,38 @@ def test_phoenix_necklace_in_a_game(table, second_mode, db) -> None:
         " where a.item = 'phoenix_necklace' order by p.display_name"
     )
     assert [tuple(r) for r in rows] == [("Admin", 2, 600, 400), ("Ann", 3, 0, 750)]
+    assert_memory_matches_db(game, db)
+
+
+@pytest.fixture
+def last_round(app: FastAPI, client: TestClient) -> Iterator[str]:
+    yield from stub_mode(app, "last_round")
+
+
+def test_a_round_cut_short_settles_phoenix_into_points_gained_only(
+    table, second_mode, last_round, db
+) -> None:
+    modes = [*two_rounds(second_mode, 3), {"mode": last_round, "questions": 1}]
+    game = seated(table, *NAMES, table_items=(PHOENIX_NECKLACE,), modes=modes, reveal_seconds=30)
+    game.start()
+    play(game, 0, BUCKETS)
+    game.skip()
+    to_standings(game)
+    game.skip()
+    ann = game.players[4]
+
+    # Ann: wrong, then 900; the 0 rises to 900 when the host ends the round in the reveal.
+    closes = [play(game, 1, {}, wrong=["Ann"])]
+    game.skip()
+    closes.append(play(game, 2, {"Ann": 2}))
+    game.admin.send(t="end_round", index=2)
+    frame = to_standings(game)
+    gained = {s["player_id"]: s["points_gained"] for s in frame["standings"]}
+    assert gained[ann.id] == 0 + 900 + 900
+    assert [closed["settled"] for closed in closes] == [{}, {}]
+    assert all(m["settled"] == {} for m in game.admin.seen if m["t"] == "question_closed")
+    rows = db("select item_points from answers where item = 'phoenix_necklace'")
+    assert [r["item_points"] for r in rows] == [900]
     assert_memory_matches_db(game, db)
 
 

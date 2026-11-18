@@ -893,6 +893,16 @@
           },
           "type": "array"
         },
+        "settled": {
+          "additionalProperties": {
+            "$ref": "#/$defs/SettledItem"
+          },
+          "description": "Each wearer whose item settled on this close, the round's last: whichever of the\nround's questions the points landed on, so the reveal can show them. Empty on every other\nclose.",
+          "propertyNames": {
+            "format": "uuid"
+          },
+          "type": "object"
+        },
         "standings": {
           "items": {
             "$ref": "#/$defs/Standing"
@@ -946,6 +956,7 @@
         "picture",
         "results",
         "unanswered",
+        "settled",
         "standings",
         "team_standings",
         "next_at",
@@ -1558,6 +1569,24 @@
         "on"
       ],
       "title": "SetTv",
+      "type": "object"
+    },
+    "SettledItem": {
+      "additionalProperties": false,
+      "description": "What an item's ``settle`` added to one player's round, for its line on the reveal.",
+      "properties": {
+        "item": {
+          "type": "string"
+        },
+        "points": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "item",
+        "points"
+      ],
+      "title": "SettledItem",
       "type": "object"
     },
     "Skip": {

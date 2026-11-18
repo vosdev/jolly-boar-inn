@@ -60,6 +60,7 @@ from app.ws.protocol import (
     QuestionClosed,
     QuestionOpen,
     Segment,
+    SettledItem,
 )
 
 log = logging.getLogger("app.rooms")
@@ -869,6 +870,10 @@ class Loop(RoomHost):
                     for pid in room.sockets
                     if room.can_answer(question, pid) and pid not in question.answers
                 ],
+                settled={
+                    pid: SettledItem(item=item, points=sum(gained.values()))
+                    for pid, (item, gained) in settled.items()
+                },
                 standings=room.standings(),
                 team_standings=room.team_standings(),
                 next_at=room.next_at,
