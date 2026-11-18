@@ -17,24 +17,32 @@ picture, and a question inside a round never stops for one.
 
 Scoring is ``rooms/scoring.py``. An answer's band -- its speed bucket, or its
 step -- is fixed when it arrives; at the close the type's ``grade`` gives credit, and
-``points_for`` pays out on the two. The answers table is the source of truth for
-standings: close writes ``correct`` and ``points``, then re-reads ``sum(points)`` per
-player into ``Room.totals``. Nothing adds to a running total in memory.
+``points_for`` pays out on the two, and a worn item (``rooms/items.py``) may add item
+points beside them. The answers table is the source of truth for standings: close writes
+``correct``, ``points`` and ``item_points``, then re-reads their sum per player into
+``Room.totals``. Nothing adds to a running total in memory.
+
+Every change of round breaks the items of the round that ended and deals the next round's,
+written before the standings go out, whether or not the standings are shown.
 """
 
 import asyncio
 import logging
+from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
+
+import asyncpg
 
 from app import answer_timings, metrics, question_stats
 from app.questions.submission import Submission
 from app.questions.types import TYPES, pictured
-from app.rooms import ready, scoring
+from app.rooms import items, ready, scoring
 from app.rooms.daily_room import finish_attempt, record_close
 from app.rooms.errors import BadState
 from app.rooms.hold import hold_seconds, typed_lines
 from app.rooms.host import RoomHost
+from app.rooms.items import Answered, Worn
 from app.rooms.models import Broadcast, Player, Room, RoomQuestion, _require_admin
 from app.rooms.queries import (
     _count_round_finished,
@@ -45,7 +53,15 @@ from app.rooms.queries import (
 )
 from app.stats import Metric, bump, duration_bucket
 from app.ws.outbox import Frame
-from app.ws.protocol import GameFinished, PlayerResult, QuestionClosed, QuestionOpen, Segment
+from app.ws.protocol import (
+    Drop,
+    GameFinished,
+    PlayerResult,
+    QuestionClosed,
+    QuestionOpen,
+    Segment,
+    SettledItem,
+)
 
 log = logging.getLogger("app.rooms")
 # Seconds the reveal waits once everyone has answered early, so the last tap is seen to land
@@ -107,6 +123,16 @@ def _waiting(room: Room, question: RoomQuestion) -> list[str]:
         for pid in room.sockets
         if room.can_answer(question, pid) and pid not in question.answers
     ]
+
+
+def _removed(
+    table: Sequence[items.Item], room: Room, question: RoomQuestion, pid: UUID
+) -> tuple[int, ...]:
+    """The options ``pid``'s worn item takes off ``question`` for them, if they may answer it."""
+    player = room.players.get(pid)
+    if player is None or not room.can_answer(question, pid):
+        return ()
+    return items.removed(table, player.item, question, room.code, pid)
 
 
 def _recount_splash(room: Room, now: float, unready: bool = False) -> None:
@@ -175,6 +201,55 @@ def _round_under_way(room: Room) -> Segment | None:
     first = room.questions[segment.start]
     last = room.questions[segment.start + segment.count - 1]
     return segment if first.shown_at is not None and last.closed_at is None else None
+
+
+def _last_of_round(room: Room, position: int) -> Segment | None:
+    """The round ``position`` ends, if it is that round's last question."""
+    segment = room.segment_at(position)
+    if segment is None or position != segment.start + segment.count - 1:
+        return None
+    return segment
+
+
+def _deals_items(room: Room) -> bool:
+    """Whether this room deals items at all: on, and neither a team game nor a daily."""
+    return room.settings.items and not room.settings.teams and room.daily is None
+
+
+async def _write_slots(conn: asyncpg.Connection, slots: Mapping[UUID, Worn | None]) -> None:
+    """Store each player's item slot as ``slots`` has it, ``None`` for an empty one."""
+    await conn.executemany(
+        "update players set item = $2, item_round = $3, item_charges = $4 where id = $1",
+        [
+            (pid, None, None, None) if worn is None else (pid, worn.item, worn.round, worn.charges)
+            for pid, worn in slots.items()
+        ],
+    )
+
+
+async def _break_items(conn: asyncpg.Connection, room: Room) -> None:
+    """Empty every slot in the room: the round they were for is over. Writes only if any is held."""
+    if any(player.item is not None for player in room.players.values()):
+        await conn.execute(
+            "update players set item = null, item_round = null, item_charges = null"
+            " where room_id = $1 and item is not null",
+            room.id,
+        )
+
+
+# What ``settle`` added, per wearer: the item, and its points per question.
+Settled = dict[UUID, tuple[str, dict[UUID, int]]]
+
+
+def _keep_settled(room: Room, settled: Settled) -> None:
+    """Copy what ``settle`` added onto the answers memory still holds. Lock held."""
+    questions = {question.id: question for question in room.questions}
+    for pid, (item, gained) in settled.items():
+        for qid, points in gained.items():
+            answer = questions[qid].answers.get(pid)
+            if answer is not None:
+                answer.item_points += points
+                answer.item = item
 
 
 def _closed_by(room: Room, question: RoomQuestion) -> Metric:
@@ -256,6 +331,7 @@ class Loop(RoomHost):
             await bump(conn, Metric.ENDED_EARLY_AT_ROUND, _round_key(room))
             if cut_short is not None:
                 await bump(conn, Metric.ROUNDS_ENDED_EARLY, cut_short.mode)
+            await _break_items(conn, room)
         metrics.GAMES.labels(outcome="ended_early").inc()
         _stop_timer(room)
         if voiding is not None:
@@ -302,12 +378,14 @@ class Loop(RoomHost):
                     )
                     if cut_short is not None:
                         await bump(conn, Metric.ROUNDS_ENDED_EARLY, cut_short.mode)
+                    settled = await self._settle_items(conn, room, segment)
                     # Re-read from this round's start: one cut on its splash gained nothing,
                     # and the standings must not repeat the round before's gains.
                     totals = await _fetch_totals(conn, room.id, segment.start)
                 _stop_timer(room)
                 if voiding is not None:
                     voiding.closed_at, voiding.voided = closed_at, True
+                _keep_settled(room, settled)
                 room.totals, room.totals_round = totals, segment.start
                 room.clear_deadline()
                 self._start_timer(room, following, standings_after=following - 1)
@@ -358,12 +436,17 @@ class Loop(RoomHost):
         ``standings_after`` is the last question of a round ``end_round`` cut short: its
         standings come first, then ``index`` opens as usual.
 
+        A resumed reveal has lost its round's standings, if it had any, but not its drop:
+        the items change hands all the same, unseen.
+
         A step that raises restarts the room (``_restart``) rather than leaving it in
         memory with nothing to move it on.
         """
         try:
             if resume_at is not None:
                 await self._sleep_until(room, resume_at)
+                if not await self._standings(room, index, shown=False):
+                    return
                 following = await self._advance(room, index)
                 if following is None:
                     return
@@ -489,30 +572,34 @@ class Loop(RoomHost):
                 return
             await _wait_for_either(room.advance, room.rescheduled, delay)
 
-    async def _standings(self, room: Room, index: int) -> bool:
-        """Hold the standings up if ``index`` ended a round. False: the room is gone.
+    async def _standings(self, room: Room, index: int, shown: bool = True) -> bool:
+        """Change items and hold the standings up if ``index`` ended a round. False: the
+        room is gone.
 
         Only a round's last question ends one, and never the game's last: that one goes
-        to ``finished``, whose final screen is these same standings. ``standings_seconds``
-        at zero turns the phase off. ``room_updated`` carries the standings: a round
-        ``end_round`` cut short had no reveal to carry them.
+        to ``finished``, whose final screen is these same standings. The round's items
+        break and the next round's are dealt first (``_deal``), even with the phase off:
+        ``standings_seconds`` at zero, or not ``shown``. A drop with receivers holds the
+        standings ``items.DROP_SECONDS`` longer. ``room_updated`` carries the standings
+        and the drop: a round ``end_round`` cut short had no reveal to carry them.
 
-        Like the splash, nothing is written: ``phase`` is not a column, and a restart
-        here resumes in the reveal (``_recover``) and moves straight on, which costs that
-        round its standings and nothing else.
+        Like the splash, the phase is not written, and a restart here resumes in the
+        reveal (``_recover``) and moves straight on, which costs that round its standings
+        and nothing else: the drop was written before them, and dealing it again deals the
+        same.
         """
         async with room.lock:
             if not self._live(room):
                 return False
-            segment = room.segment_at(index)
-            seconds = room.settings.standings_seconds
-            if (
-                seconds <= 0
-                or segment is None
-                or index != segment.start + segment.count - 1
-                or index + 1 >= len(room.questions)
-            ):
+            segment = _last_of_round(room, index)
+            if segment is None or index + 1 >= len(room.questions):
                 return True
+            drops = await self._deal(room, segment)
+            seconds = room.settings.standings_seconds
+            if seconds <= 0 or not shown:
+                return True
+            if drops:
+                seconds += items.DROP_SECONDS
             now = self.clock()
             # Clears ``advance``: a skip that landed during the reveal was spent on it.
             room.enter("standings", seconds=seconds, now=now, wall=datetime.now(UTC))
@@ -521,6 +608,94 @@ class Loop(RoomHost):
         self._broadcast(update)
         await self._sleep_until(room, ends)
         return True
+
+    async def _deal(self, room: Room, ended: Segment) -> list[Drop]:
+        """Break the items of round ``ended`` and deal the next round's. Lock held.
+
+        Every slot is written before memory, so a restart finds the new items and no old
+        one. Returns the drop in standings order, which ``room.drops`` keeps for the view.
+        """
+        following = room.segments[ended.index + 1]
+        standings = room.standings()
+        dealt: dict[UUID, Worn] = {}
+        if _deals_items(room):
+            dealt = items.deal(
+                self.items,
+                [(s.player_id, s.rank) for s in standings],
+                room.code,
+                following.index,
+                room.questions[following.start : following.start + following.count],
+                room.rematches,
+            )
+        if dealt or any(player.item is not None for player in room.players.values()):
+            pool = await self._pool()
+            async with pool.acquire() as conn, conn.transaction():
+                await _break_items(conn, room)
+                await _write_slots(conn, dealt)
+        for player in room.players.values():
+            player.item = dealt.get(player.id)
+        room.drops = [
+            Drop(player_id=s.player_id, item=dealt[s.player_id].item)
+            for s in standings
+            if s.player_id in dealt
+        ]
+        return room.drops
+
+    async def _settle_items(
+        self,
+        conn: asyncpg.Connection,
+        room: Room,
+        segment: Segment,
+        slots: Mapping[UUID, Worn | None] | None = None,
+    ) -> Settled:
+        """Run each worn item's ``settle`` on its wearer's graded answers of ``segment``,
+        and add what it gives to those rows. ``slots`` are the ones this close changed and
+        memory does not have yet: an item that broke on it settles nothing.
+        """
+        slots = slots or {}
+        worn_now = {
+            player.id: slots[player.id] if player.id in slots else player.item
+            for player in room.players.values()
+        }
+        wearers = {
+            pid: (worn, item)
+            for pid, worn in worn_now.items()
+            if worn is not None
+            and (item := items.by_id(self.items, worn.item)) is not None
+            and item.settle is not None
+        }
+        if not wearers:
+            return {}
+        rows = await conn.fetch(
+            "select a.player_id, a.question_id, a.points from answers a"
+            " join questions q on q.id = a.question_id"
+            " where q.room_id = $1 and q.position between $2 and $3"
+            " and a.points is not null and a.player_id = any($4::uuid[])"
+            " order by q.position",
+            room.id,
+            segment.start,
+            segment.start + segment.count - 1,
+            list(wearers),
+        )
+        answered: dict[UUID, dict[UUID, int]] = {pid: {} for pid in wearers}
+        for row in rows:
+            answered[row["player_id"]][row["question_id"]] = row["points"]
+        settled: Settled = {}
+        for pid, (worn, item) in wearers.items():
+            assert item.settle is not None
+            gained = {q: points for q, points in item.settle(worn, answered[pid]).items() if points}
+            if gained:
+                settled[pid] = (worn.item, gained)
+        await conn.executemany(
+            "update answers set item_points = item_points + $1, item = $2"
+            " where question_id = $3 and player_id = $4",
+            [
+                (points, item, qid, pid)
+                for pid, (item, gained) in settled.items()
+                for qid, points in gained.items()
+            ],
+        )
+        return settled
 
     async def _open_question(self, room: Room, index: int) -> RoomQuestion | None:
         """``pending → open``: stamp ``shown_at``, broadcast ``question_open``.
@@ -562,11 +737,14 @@ class Loop(RoomHost):
             room.enter("open", now=now, wall=shown_at)
             count = _answer_count(room, question)
             waiting = _waiting(room, question)
-            # Only ``you_can_answer`` tells sockets apart, so there are two frames at most.
-            frames: dict[bool, Frame] = {}
+            # ``you_can_answer`` and a wearer's removed options tell sockets apart, so
+            # everyone without an item that removes shares one of two frames.
+            frames: dict[tuple[bool, tuple[int, ...]], Frame] = {}
 
-            def frame(can: bool) -> Frame:
-                if can not in frames:
+            def frame(pid: UUID) -> Frame:
+                can = room.can_answer(question, pid)
+                removed = _removed(self.items, room, question, pid)
+                if (can, removed) not in frames:
                     view = question.view(
                         room.total,
                         can,
@@ -575,13 +753,14 @@ class Loop(RoomHost):
                         self._open_picture(question),
                         self._pictures(question),
                         waiting,
+                        removed=removed,
                     )
-                    frames[can] = Frame(QuestionOpen(question=view).model_dump(mode="json"))
-                return frames[can]
+                    frames[can, removed] = Frame(
+                        QuestionOpen(question=view).model_dump(mode="json")
+                    )
+                return frames[can, removed]
 
-            opened = Broadcast(
-                [(out, frame(room.can_answer(question, pid))) for pid, out in room.sockets.items()]
-            )
+            opened = Broadcast([(out, frame(pid)) for pid, out in room.sockets.items()])
         self._broadcast(opened)
         return question
 
@@ -592,6 +771,12 @@ class Loop(RoomHost):
         stopped playing underneath us. This is the only place ``answers.correct`` and
         ``answers.points`` are written, and the standings that go out with the reveal are
         the table's own sum, re-read here once the points are in.
+
+        A worn item's ``on_answer`` runs on each answer after ``points_for``, an item used on
+        the question pays its ``Use`` instead and is gone, one that took options off it
+        spends a charge, and the round's last question settles every worn item's ``settle``.
+        All add item points, never credit: ``question_stats`` and ``answer_timings`` get the
+        type's credit alone, and nothing of a Book answer.
 
         Grading and the reveal run before the write, because a type's bug shows up there,
         and nothing in memory changes until the write has committed. A close that fails
@@ -608,19 +793,47 @@ class Loop(RoomHost):
             module = TYPES[question.type]
             # Everything in ``answers`` passed ``can_answer`` on the way in, so grading
             # never has to re-check the exclusions.
+            # A Book answer has no value to grade: it is full credit, whatever the type.
             credit = module.grade(
                 question.payload,
-                [Submission(pid, answer.value) for pid, answer in question.answers.items()],
+                [
+                    Submission(pid, answer.value)
+                    for pid, answer in question.answers.items()
+                    if not answer.by_book
+                ],
             )
             how = question.scoring
             team = bool(room.settings.teams)
             graded: dict[UUID, tuple[float, bool, int]] = {}
+            boosts: dict[UUID, tuple[int, str]] = {}
+            # An item used on this question is spent on it, answered or not.
+            slots: dict[UUID, Worn | None] = dict.fromkeys(question.used)
             for pid, answer in question.answers.items():
-                got = scoring.settle_credit(question.type, credit.get(pid, 0.0))
+                got = 1.0 if answer.by_book else credit.get(pid, 0.0)
+                got = scoring.settle_credit(question.type, got)
                 points = scoring.points_for(how, got, answer.band, question.steps, team=team)
                 # Full marks only. Three of five in the right order scores, and is not
                 # "correct" for the standings tie-break ("Scoring").
                 graded[pid] = (got, got >= 1.0, points)
+                answered = Answered(question, got, answer.band, points)
+                worn = room.players[pid].item
+                item = None if worn is None else items.by_id(self.items, worn.item)
+                if pid in question.used:
+                    used = items.by_id(self.items, question.used[pid])
+                    extra = 0 if used is None or used.use is None else used.use.pays(answered)
+                    if extra:
+                        boosts[pid] = (extra, question.used[pid])
+                elif worn is not None and item is not None and item.on_answer is not None:
+                    effect = item.on_answer(worn, answered)
+                    if effect.points:
+                        boosts[pid] = (effect.points, worn.item)
+                    if effect.worn != worn:
+                        slots[pid] = effect.worn
+            # Options taken off the question cost a charge, answered or not.
+            for pid, player in room.players.items():
+                if player.item is not None and _removed(self.items, room, question, pid):
+                    slots[pid] = items.spent(player.item)
+            ending = _last_of_round(room, question.position)
             reveal = pictured(
                 question.type,
                 module.reveal(question.payload),
@@ -640,22 +853,36 @@ class Loop(RoomHost):
                     await record_close(conn, room, got, points)
                 if graded:
                     await conn.executemany(
-                        "update answers set correct = $1, points = $2"
-                        " where question_id = $3 and player_id = $4",
+                        "update answers set correct = $1, points = $2, item_points = $3,"
+                        " item = $4 where question_id = $5 and player_id = $6",
                         [
-                            (correct, points, question.id, pid)
+                            (correct, points, *boosts.get(pid, (0, None)), question.id, pid)
                             for pid, (_, correct, points) in graded.items()
                         ],
                     )
-                settled = {pid: got for pid, (got, _, _) in graded.items()}
-                await answer_timings.record(conn, room, question, settled, closed_at)
-                await question_stats.record(conn, room, question, settled)
+                if slots:
+                    await _write_slots(conn, slots)
+                # The Book's answers count for the standings, and for neither table.
+                got_credit = {
+                    pid: got
+                    for pid, (got, _, _) in graded.items()
+                    if not question.answers[pid].by_book
+                }
+                await answer_timings.record(conn, room, question, got_credit, closed_at)
+                await question_stats.record(conn, room, question, got_credit)
+                settled: Settled = {}
+                if ending is not None:
+                    settled = await self._settle_items(conn, room, ending, slots)
                 round_start = _round_start(room, question.position)
                 totals = await _fetch_totals(conn, room.id, round_start)
             question.closed_at = closed_at
             for pid, (got, correct, points) in graded.items():
                 answer = question.answers[pid]
                 answer.credit, answer.correct, answer.points = got, correct, points
+                answer.item_points, answer.item = boosts.get(pid, (0, None))
+            for pid, slot in slots.items():
+                room.players[pid].item = slot
+            _keep_settled(room, settled)
             room.totals = totals
             room.totals_round = round_start
             hold, shown = self._reveal_hold(room, question)
@@ -671,6 +898,9 @@ class Loop(RoomHost):
                         correct=bool(answer.correct),
                         credit=answer.credit or 0.0,
                         points=answer.points or 0,
+                        item_points=answer.item_points,
+                        item=answer.item,
+                        by_book=answer.by_book,
                     )
                     for pid, answer in question.answers.items()
                 },
@@ -679,6 +909,10 @@ class Loop(RoomHost):
                     for pid in room.sockets
                     if room.can_answer(question, pid) and pid not in question.answers
                 ],
+                settled={
+                    pid: SettledItem(item=item, points=sum(gained.values()))
+                    for pid, (item, gained) in settled.items()
+                },
                 standings=room.standings(),
                 team_standings=room.team_standings(),
                 next_at=room.next_at,
@@ -686,6 +920,10 @@ class Loop(RoomHost):
                 suggested_by=question.suggested_by,
             )
             closed = Broadcast.to_all(room, message.model_dump(mode="json"))
+            if slots:
+                # A spent charge or a broken item changes the worn slots everyone sees, and
+                # ``question_closed`` carries no players.
+                self._players_updated(room, room.view())
         self._broadcast(closed)
         return reveal_ends
 
@@ -713,6 +951,7 @@ class Loop(RoomHost):
                         room.id,
                         finished_at,
                     )
+                    await _break_items(conn, room)
                     if room.daily is not None:
                         await finish_attempt(conn, room, finished_at)
                     else:
@@ -745,6 +984,8 @@ class Loop(RoomHost):
         room.status = "finished"
         room.finished_at = finished_at
         room.enter("idle", now=self.clock(), wall=finished_at)
+        for player in room.players.values():
+            player.item = None
         finished = GameFinished(standings=room.standings(), team_standings=room.team_standings())
         return [
             self._room_updated(room),

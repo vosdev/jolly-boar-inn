@@ -246,6 +246,7 @@ NOT_A_RULE = {
     ("app/questions/schema.py", "price_is_right"): "a type",
     ("app/rooms/hold.py", "more_less"): "a type",
     ("app/rooms/hold.py", "price_is_right"): "a type",
+    ("app/rooms/items.py", "more_less"): "a type",
     ("app/questions/custom.py", "custom"): "a host's questions",
     ("app/questions/schema.py", "custom"): "a host's questions",
     ("scripts/gen_locations.py", "mark_the_map"): "the pack it drafts",

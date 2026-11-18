@@ -28,6 +28,7 @@ const HOST: PlayerView = {
   ready: false,
   editing: false,
   team: null,
+  item: null,
 }
 const WOOX: PlayerView = {
   id: 'b',
@@ -38,6 +39,7 @@ const WOOX: PlayerView = {
   ready: false,
   editing: false,
   team: null,
+  item: null,
 }
 
 const ROOM: RoomView = {
@@ -54,6 +56,7 @@ const ROOM: RoomView = {
     max_players: 50,
     name_wrong_answers: false,
     teams: [],
+    items: true,
   },
   current_index: null,
   total: 5,
@@ -474,6 +477,7 @@ describe('Lobby', () => {
       ready: false,
       editing: false,
       team: null,
+      item: null,
     }
     lobby([{ ...HOST, ready: true }, WOOX, { ...away, ready: true }])
     await fireEvent.click(screen.getByRole('button', { name: 'Start the game' }))
@@ -501,6 +505,7 @@ describe('Lobby', () => {
       ready: false,
       editing: false,
       team: null,
+      item: null,
     }
     lobby([{ ...HOST, ready: true }, WOOX, lynx])
     expect(heading('Ready')).toBe('Ready 1')
@@ -551,6 +556,7 @@ describe('Lobby', () => {
       ready: false,
       editing: false,
       team: null,
+      item: null,
     }
     lobby([
       { ...HOST, ready: true },
@@ -581,6 +587,7 @@ describe('Lobby', () => {
       ready: false,
       editing: false,
       team: null,
+      item: null,
     }
     lobby([HOST, WOOX, lynx])
     expect(pets().map((pet) => pet.querySelector('.status')?.textContent ?? '')).toEqual([

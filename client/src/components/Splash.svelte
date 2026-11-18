@@ -34,6 +34,7 @@
   import { get } from 'svelte/store'
 
   import { asOfDate } from '../lib/dates'
+  import { GONE_THIS_ROUND, shownItems } from '../lib/heldItems'
   import { SETTLED, SPLASH_TYPE_FROM_MS, interludeFor, reducedMotion } from '../lib/interlude'
   import { MODES, hostOf } from '../lib/modes'
   import { msUntil, serverNow } from '../lib/clock'
@@ -47,6 +48,7 @@
   import { Typist, lettersOf } from '../lib/typing.svelte'
   import AtTable from './AtTable.svelte'
   import FullScreenSwitch from './FullScreenSwitch.svelte'
+  import ItemSlot from './ItemSlot.svelte'
   import Switch from './Switch.svelte'
   import Mystery from './Mystery.svelte'
   import RosterPet from './RosterPet.svelte'
@@ -116,6 +118,11 @@
   const youReady = $derived(players.some((player) => player.id === youId && player.ready === true))
   const summary = $derived(`${readyCount} of ${present.length} ready`)
   const seating = new Seating()
+  const yourItem = $derived(
+    youId === null
+      ? null
+      : ($shownItems.get(youId) ?? players.find((player) => player.id === youId)?.item ?? null),
+  )
   const seated = $derived(
     seating.seat(players, youId, (p) => p.ready === true, segment.index, settings?.teams ?? []),
   )
@@ -267,6 +274,14 @@
         {@render row(narrow, 'narrow')}
       </section>
       <AtTable>
+        {#if yourItem !== null}
+          <!-- With no standings the drop was never shown, so the splash is where it is found. -->
+          <ItemSlot
+            held={yourItem}
+            last={GONE_THIS_ROUND}
+            title={settings?.standings_seconds === 0 ? 'You found' : null}
+          />
+        {/if}
         <TablePanel groups={seated} {youId} labels={['Ready', 'Not ready yet']}>
           <div class="starts">
             {#if startsIn !== null}

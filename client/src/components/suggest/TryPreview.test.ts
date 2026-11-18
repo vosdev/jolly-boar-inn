@@ -51,7 +51,15 @@ beforeEach(() => {
       ? TRIAL
       : {
           ...TRIAL,
-          result: { value, correct: value === 1, credit: 0, points: value === 1 ? 1000 : 0 },
+          result: {
+            value,
+            correct: value === 1,
+            credit: 0,
+            points: value === 1 ? 1000 : 0,
+            item_points: 0,
+            item: null,
+            by_book: false,
+          },
         },
   )
 })

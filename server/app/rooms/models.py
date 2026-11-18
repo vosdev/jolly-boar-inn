@@ -24,6 +24,7 @@ from app.questions.types import (
 from app.questions.types.scoring import Scoring, Steps
 from app.rooms import codes, duration, scoring, segments
 from app.rooms.errors import BadName, NotAdmin
+from app.rooms.items import Worn
 from app.rooms.plan import Plan
 from app.rooms.settings import RoomSettings
 from app.rooms.teams import God
@@ -31,6 +32,8 @@ from app.stats import Arrival
 from app.ws.outbox import Frame, Outbox
 from app.ws.protocol import (
     Daily,
+    Drop,
+    HeldItem,
     JoinRequestView,
     OpenQuestion,
     PlayerView,
@@ -114,6 +117,8 @@ class Player:
     editing_changed_at: float = field(default=-math.inf, repr=False)
     # Clears ``editing`` once it has gone ``EDITING_SECONDS`` without being sent again.
     editing_expiry: asyncio.Task[None] | None = field(default=None, repr=False)
+    # The one item slot, as ``players`` stores it, so a restart finds it.
+    item: Worn | None = None
 
     def view(self) -> PlayerView:
         return PlayerView(
@@ -125,6 +130,9 @@ class Player:
             connected=self.connected,
             ready=self.ready,
             editing=self.editing,
+            item=None
+            if self.item is None
+            else HeldItem(id=self.item.item, charges=self.item.charges),
         )
 
     def stop_editing(self) -> bool:
@@ -179,7 +187,8 @@ class Submitted:
     ``credit``, ``correct`` and ``points`` stay ``None`` until the question closes and
     grading writes them here, and the last two to the ``answers`` row. ``credit`` has no
     column: it goes out once with the reveal, and the table keeps what the standings are
-    built from.
+    built from. ``item_points`` and ``item`` are what a worn item added beside ``points``.
+    ``by_book`` marks the Book of Knowledge's answer: ``value`` ``None``, full credit.
     """
 
     value: Any
@@ -188,6 +197,9 @@ class Submitted:
     credit: float | None = None
     correct: bool | None = None
     points: int | None = None
+    item_points: int = 0
+    item: str | None = None
+    by_book: bool = False
 
 
 @dataclass(slots=True)
@@ -254,6 +266,9 @@ class RoomQuestion:
     answerable_mono: float | None = None
     ends_mono: float | None = None
     answers: dict[UUID, Submitted] = field(default_factory=dict)
+    used: dict[UUID, str] = field(default_factory=dict)
+    """The items players used on it while open, by player; memory only, since a question
+    open at a restart is voided and its items stay with their wearers."""
     _client_view: dict[str, Any] | None = field(default=None, repr=False, compare=False)
 
     @property
@@ -290,10 +305,13 @@ class RoomQuestion:
         picture: str | None = None,
         pictures: Mapping[str, str] | None = None,
         waiting: Iterable[str] = (),
+        item_used: bool = False,
+        removed: Iterable[int] = (),
     ) -> OpenQuestion:
         """The open question as a player sees it. ``count`` is ``_answer_count``'s,
-        ``pictures`` names the pictures the view shows inside it, and ``waiting`` is who is
-        still to answer."""
+        ``pictures`` names the pictures the view shows inside it, ``waiting`` is who is
+        still to answer, ``item_used`` whether this player used their item on it, and
+        ``removed`` the options their item took off it."""
         assert self.shown_at is not None and self.ends_at is not None
         assert self.answerable_at is not None
         return OpenQuestion(
@@ -313,6 +331,8 @@ class RoomQuestion:
             answered=count[0],
             of=count[1],
             waiting=list(waiting),
+            item_used=item_used,
+            removed=list(removed),
         )
 
 
@@ -368,6 +388,10 @@ class Room:
     custom_author: UUID | None = None
     # Pack content ids shown in this room's earlier games, which a rematch draws around.
     played_ids: frozenset[str] = field(default_factory=frozenset, repr=False)
+    # Games played here before this one, which the item draw is seeded with.
+    rematches: int = 0
+    # What the latest standings dealt, sent only while the room is in them.
+    drops: list[Drop] = field(default_factory=list, repr=False)
     # A lobby's numbers, until ``questions`` holds the real ones.
     plan: Plan | None = field(default=None, repr=False)
     # Rebuilt from ``sum(answers.points)`` at every close, never added to.
@@ -570,6 +594,7 @@ class Room:
             key=self.invite_key if admin else None,
             requests=self.waiting_requests() if admin and self.invite_key is not None else None,
             daily=self.daily,
+            drops=list(self.drops) if self.phase == "standings" else None,
         )
 
     def waiting_requests(self) -> list[JoinRequestView]:

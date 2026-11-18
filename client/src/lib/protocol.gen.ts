@@ -11,6 +11,7 @@ export type ClientMessage =
   | Hello
   | Ping
   | Answer
+  | UseItem
   | StartGame
   | Skip
   | Promote
@@ -34,6 +35,7 @@ export type ServerMessage =
   | PlayersUpdated
   | QuestionOpen
   | AnswerAck
+  | ItemUsed
   | AnswerCount
   | QuestionClosed
   | GameFinished
@@ -55,6 +57,13 @@ export interface Answer {
   t: 'answer'
   question_id: string
   value: unknown
+}
+/**
+ * Use the held item on the open question: one tap, no confirm.
+ */
+export interface UseItem {
+  t: 'use_item'
+  question_id: string
 }
 export interface StartGame {
   t: 'start_game'
@@ -267,6 +276,11 @@ export interface RoomView {
    * A daily room's day. Its reveal waits for the player's `skip` instead of a countdown.
    */
   daily?: Daily
+  /**
+   * The items this round's standings dealt, in standings order, sent only in that phase.
+   * Each is also on its finder's `PlayerView.item` from then on.
+   */
+  drops?: Drop[]
 }
 /**
  * A room's settings as stored in and read back from `rooms.settings`.
@@ -311,6 +325,12 @@ export interface RoomSettings {
    * setting only says whether the client prints the names.
    */
   name_wrong_answers: boolean
+  /**
+   * Items for the lower half of the standings between rounds (`rooms/items.py`). Ignored
+   * in team games and daily rooms, which never deal any. A room stored before the setting
+   * existed reads as on.
+   */
+  items: boolean
   /**
    * Surprise rounds: a non-admin is sent only the rounds that have started (`Room.view`).
    * Left off the wire while false, so a room without it reads exactly as one created before it
@@ -396,6 +416,16 @@ export interface Daily {
    */
   number: number
 }
+/**
+ * One item found on the standings: who, and which.
+ */
+export interface Drop {
+  player_id: string
+  /**
+   * An item id (`rooms/items.py`); the client has the name, the picture and the line.
+   */
+  item: string
+}
 export interface PlayerView {
   id: string
   display_name: string
@@ -418,6 +448,21 @@ export interface PlayerView {
    * Is typing a name in the lobby: "picking a name…". Advice, never a gate.
    */
   editing: boolean
+  /**
+   * What they hold or wear, in the open for everyone; null between its round's end and the
+   * next drop.
+   */
+  item: HeldItem | null
+}
+/**
+ * The item in a player's one slot, for the round it was found for.
+ */
+export interface HeldItem {
+  id: string
+  /**
+   * What is left of an item spent a charge at a time; null for the rest.
+   */
+  charges: number | null
 }
 /**
  * What every socket sees while a question is open: `client_view` only, never the
@@ -480,6 +525,17 @@ export interface OpenQuestion {
    * what anyone answered. The TV's waiting panel shows them; `answer_count` keeps it current.
    */
   waiting: string[]
+  /**
+   * Whether this socket's player used their item on the question, so a reload keeps it
+   * spent. Only in their own `welcome`; with the Book of Knowledge it means answered too.
+   */
+  item_used: boolean
+  /**
+   * The wrong options, by shown position, that this socket's player's Ring of wealth took
+   * off the question. Only on the wearer's own socket, open and in a `welcome`; an answer
+   * naming one is `bad_value`.
+   */
+  removed: number[]
 }
 export interface Standing {
   player_id: string
@@ -488,10 +544,14 @@ export interface Standing {
    * As on `PlayerView`.
    */
   avatar: string | null
+  /**
+   * Answers' points and item points together.
+   */
   points: number
   rank: number
   /**
-   * What the round of the latest close added, and the rank before it; None in the first.
+   * What the round of the latest close added, item points included, and the rank before it;
+   * None in the first.
    */
   points_gained: number
   previous_rank: number | null
@@ -554,6 +614,15 @@ export interface AnswerAck {
   of: number
 }
 /**
+ * The wearer's item went into the open question, to them alone: everyone else sees it on
+ * the reveal. A Book of Knowledge answer is followed by its `answer_ack`.
+ */
+export interface ItemUsed {
+  t: 'item_used'
+  question_id: string
+  item: string
+}
+/**
  * The open question's count moved: how many have answered, of how many can, and who is
  * still to. Sent on another player's answer, connect, disconnect or kick.
  *
@@ -586,6 +655,14 @@ export interface QuestionClosed {
    * Connected players who could have answered and did not, for the reveal's "No answer".
    */
   unanswered: string[]
+  /**
+   * Each wearer whose item settled on this close, the round's last: whichever of the
+   * round's questions the points landed on, so the reveal can show them. Empty on every other
+   * close.
+   */
+  settled: {
+    [k: string]: SettledItem
+  }
   standings: Standing[]
   team_standings: TeamStanding[] | null
   next_at: string | null
@@ -604,12 +681,29 @@ export interface QuestionClosed {
  *
  * `credit` is what the type's `grade` returned. It is here so a reveal can say
  * "three of five in the right place"; `correct` is the tie-break's boolean, and is
- * `credit >= 1.0`.
+ * `credit >= 1.0`. `points` is the answer's own; an item's are `item_points`, its own
+ * line on the reveal.
  */
 export interface PlayerResult {
   value: unknown
   correct: boolean
   credit: number
+  points: number
+  item_points: number
+  /**
+   * The item that added `item_points`; null when none did.
+   */
+  item: string | null
+  /**
+   * The Book of Knowledge gave this answer: full credit, and `value` null.
+   */
+  by_book: boolean
+}
+/**
+ * What an item's `settle` added to one player's round, for its line on the reveal.
+ */
+export interface SettledItem {
+  item: string
   points: number
 }
 export interface GameFinished {

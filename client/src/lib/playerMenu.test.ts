@@ -14,6 +14,7 @@ function player(id: string, role: PlayerView['role']): PlayerView {
     ready: false,
     editing: false,
     team: id === 'b' ? 'saradomin' : null,
+    item: null,
   }
 }
 

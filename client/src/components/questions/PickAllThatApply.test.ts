@@ -37,6 +37,8 @@ function open(view: Record<string, unknown> = VIEW, youCanAnswer = true): OpenQu
     answered: 0,
     of: 0,
     waiting: [],
+    item_used: false,
+    removed: [],
   }
 }
 
@@ -240,7 +242,15 @@ describe('pick_all_that_apply', () => {
       question: open(),
       reveal: REVEAL,
       yourValue: [1, 2],
-      result: { value: [1, 2], correct: false, credit: 1 / 3, points: 300 },
+      result: {
+        value: [1, 2],
+        correct: false,
+        credit: 1 / 3,
+        points: 300,
+        item_points: 0,
+        item: null,
+        by_book: false,
+      },
       onAnswer: () => {},
     })
     const state = (name: string) =>

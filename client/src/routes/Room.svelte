@@ -69,6 +69,7 @@
   import SoundChip from '../components/SoundChip.svelte'
   import SharedStageView from '../components/stage/SharedStageView.svelte'
   import { barWhere, whereOf } from '../lib/barWhere'
+  import { BOOK, itemPoints } from '../lib/heldItems'
   import { hostMenu, type HostAction } from '../lib/hostMenu'
   import { historyPath, latestPastGame } from '../lib/history'
   import { answersOnly } from '../lib/tv'
@@ -83,6 +84,7 @@
     applyServerMessage,
     connection,
     endedLive,
+    itemUsed,
     lastClosed,
     noteAnswerSent,
     players,
@@ -274,6 +276,15 @@
   const yourResult = $derived(
     $you === null || $lastClosed === null ? null : ($lastClosed.results[$you.id] ?? null),
   )
+  /** What your item added on this close, for its part of your points chip. */
+  const yourItem = $derived(
+    $you === null || $lastClosed === null
+      ? null
+      : (itemPoints($lastClosed.results, $lastClosed.settled ?? {}, $players).find(
+          // The Book's points are the answer's own, already the chip's first part.
+          (row) => row.playerId === $you.id && row.byBook !== true,
+        ) ?? null),
+  )
   const phone = $derived(answersOnly($players, $you))
   /** The question's own heading, for the heading line and the title. */
   const questionTitle = $derived(`Question ${number} of ${total}`)
@@ -445,6 +456,14 @@
     hostMenu.set(hostActions)
   })
 
+  /** The Book of Knowledge answered the open question for us. */
+  const booked = $derived($itemUsed === BOOK)
+
+  function useItem(): void {
+    const open = $question
+    if (open !== null) socket?.send({ t: 'use_item', question_id: open.question_id })
+  }
+
   function answer(value: unknown): void {
     const open = $question
     if (open === null || socket === null) return
@@ -468,6 +487,7 @@
       youId={$you?.id ?? null}
       showNames={$room?.settings.name_wrong_answers === true}
       suggestedBy={$lastClosed.suggested_by ?? null}
+      items={itemPoints($lastClosed.results, $lastClosed.settled ?? {}, $players)}
       teams={$room?.settings.teams ?? []}
       teamOf={teamsOf($players)}
       {panel}
@@ -594,6 +614,10 @@
               stacked={framed === null}
               unanswered={$lastClosed?.unanswered ?? []}
               outcome={$room.phase !== 'open' && $lastClosed?.was != null ? results : undefined}
+              openQuestion={$room.phase === 'open' ? $question : null}
+              answered={$yourAnswer !== null || booked}
+              used={$itemUsed}
+              onUse={useItem}
             />
           </AtTable>
         {/if}
@@ -608,11 +632,13 @@
             youId={$you?.id ?? null}
             stacked={framed === null}
             tv={$you?.role === 'tv'}
+            drops={$room.drops ?? []}
           />
         {:else if $room.phase === 'open' && $question !== null}
           <QuestionStage
             question={$question}
             yourValue={$yourAnswer}
+            {booked}
             onAnswer={answer}
             live={$questionLive}
             answersOnly={phone}
@@ -624,6 +650,7 @@
             reveal={$lastClosed.reveal}
             yourValue={$yourAnswer}
             result={yourResult}
+            item={yourItem}
             results={$lastClosed.results}
             onAnswer={() => {}}
             nextAt={$room.next_at}

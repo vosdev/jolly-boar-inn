@@ -7,14 +7,22 @@
    *
    * In a reveal with its results the panel is the `outcome` instead (section 10), and the
    * strip says "5 of 9 got it right" with the faces of who did.
+   *
+   * The item you found heads the panel, and on a phone is a square at the strip's right
+   * end that opens what it does. An item you use has its button under the slot, and on a
+   * phone a bar over the strip (`ItemUse`).
    */
   import type { Snippet } from 'svelte'
+  import { GONE_THIS_ROUND, itemName, shownItems } from '../lib/heldItems'
 
   import { petOf } from '../lib/pets'
-  import type { PlayerResult, PlayerView } from '../lib/protocol'
+  import type { OpenQuestion, PlayerResult, PlayerView } from '../lib/protocol'
   import { Seating } from '../lib/tableGroups'
   import type { TeamId } from '../lib/teams'
   import Icon from './Icon.svelte'
+  import ItemIcon from './ItemIcon.svelte'
+  import ItemSlot from './ItemSlot.svelte'
+  import ItemUse from './ItemUse.svelte'
   import Pet from './Pet.svelte'
   import Sheet from './Sheet.svelte'
   import TablePanel from './TablePanel.svelte'
@@ -30,6 +38,10 @@
     stacked = false,
     unanswered = [],
     outcome,
+    openQuestion = null,
+    answered = false,
+    used = null,
+    onUse = () => {},
   }: {
     players: PlayerView[]
     youId: string | null
@@ -46,6 +58,13 @@
     unanswered?: string[]
     /** The reveal's results, which take the panel's place. */
     outcome?: Snippet
+    /** The question while it is open, for the item's button; null in its reveal. */
+    openQuestion?: OpenQuestion | null
+    /** We have answered it. */
+    answered?: boolean
+    /** The item we used on it, through its reveal. */
+    used?: string | null
+    onUse?: () => void
   } = $props()
 
   const FACES = 4
@@ -91,6 +110,15 @@
   )
   const title = $derived(revealing ? 'Results' : 'At the table')
 
+  const held = $derived(
+    youId === null
+      ? null
+      : ($shownItems.get(youId) ??
+          players.find((player) => player.id === youId)?.item ??
+          (used === null ? null : { id: used, charges: null })),
+  )
+  let itemOpen = $state(false)
+
   /** The question the sheet was opened on: a new one closes it. */
   let openedOn = $state<string | null>(null)
   const open = $derived(openedOn === questionId)
@@ -105,11 +133,42 @@
 {/snippet}
 
 {#if !stacked}
+  {#if held !== null}
+    <div class="slot">
+      <ItemSlot {held} last={GONE_THIS_ROUND} used={used === held.id} />
+      <ItemUse {held} question={openQuestion} {answered} {used} {onUse} />
+    </div>
+  {/if}
   {@render panel()}
 {:else}
+  {#if held !== null}
+    <button
+      type="button"
+      class="item-square"
+      aria-haspopup="dialog"
+      aria-expanded={itemOpen}
+      aria-label="{itemName(held.id, held.charges)}: what it does"
+      onclick={() => (itemOpen = true)}
+    >
+      <ItemIcon id={held.id} charges={held.charges} size={36} label="" />
+    </button>
+    {#if itemOpen}
+      <Sheet label="Your item" outside onclose={() => (itemOpen = false)}>
+        <div class="sheet-head">
+          <h2>Your item</h2>
+          <button type="button" class="glyph" aria-label="Close" onclick={() => (itemOpen = false)}>
+            <Icon name="close" />
+          </button>
+        </div>
+        <ItemSlot {held} last={GONE_THIS_ROUND} used={used === held.id} bare />
+      </Sheet>
+    {/if}
+  {/if}
+  <ItemUse {held} question={openQuestion} {answered} {used} {onUse} bar />
   <button
     type="button"
     class="strip"
+    class:beside={held !== null}
     aria-haspopup="dialog"
     aria-expanded={open}
     onclick={() => (openedOn = questionId)}
@@ -136,6 +195,12 @@
 {/if}
 
 <style>
+  .slot {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
   .strip {
     position: fixed;
     right: 0.75rem;
@@ -154,6 +219,26 @@
     box-shadow: var(--shadow);
     font-size: 0.95rem;
     text-align: left;
+  }
+
+  .strip.beside {
+    right: calc(0.75rem + 52px + 0.5rem);
+  }
+
+  .item-square {
+    position: fixed;
+    right: 0.75rem;
+    bottom: calc(0.75rem + env(safe-area-inset-bottom));
+    z-index: 5;
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    padding: 0;
+    background: var(--panel-raised);
+    border: var(--border-width) solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
   }
 
   .faces {

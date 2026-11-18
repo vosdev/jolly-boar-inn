@@ -14,15 +14,20 @@
    * Names and pets come from the live player list when the player is in it, as a rename
    * or a re-roll mid-game arrives there first; the row's rank and points are the
    * standing's either way.
+   *
+   * `drops` puts a column of Mystery Boxes between the name and the numbers, one on each
+   * finder's row, so the boxes stand under each other; they open from `opening` on, each a
+   * beat after the one above.
    */
   import { cubicOut } from 'svelte/easing'
   import { flip } from 'svelte/animate'
 
   import { arrivalDelay, movement, pointsBefore, SHUFFLE, type Movement } from '../lib/hiscores'
   import { petOf } from '../lib/pets'
-  import type { Standing } from '../lib/protocol'
+  import type { Drop, Standing } from '../lib/protocol'
   import { players } from '../lib/stores'
   import CountUp from './CountUp.svelte'
+  import MysteryBox, { BOX_BEAT_MS } from './MysteryBox.svelte'
   import Pet from './Pet.svelte'
 
   let {
@@ -34,6 +39,9 @@
     instant = false,
     changes = true,
     columns = false,
+    drops = [],
+    opening = false,
+    boxInstant = false,
   }: {
     rows: Standing[]
     youId?: string | null
@@ -49,6 +57,12 @@
     changes?: boolean
     /** One line a row, the move and the gain in columns of their own. */
     columns?: boolean
+    /** The items this standings dealt, in standings order. */
+    drops?: Drop[]
+    /** The rows have moved: the boxes open. */
+    opening?: boolean
+    /** The boxes are shown open: reduced motion, or a screen that missed the drop. */
+    boxInstant?: boolean
   } = $props()
 
   const numbers = new Intl.NumberFormat()
@@ -77,6 +91,10 @@
   >
 {/snippet}
 
+{#snippet boxHead()}
+  <th scope="col" class="box"><span class="sr">Mystery Box</span></th>
+{/snippet}
+
 <table class="hiscores" class:arriving class:columns>
   <thead>
     <tr>
@@ -84,12 +102,14 @@
         <th scope="col" class="rank">Rank</th>
         {#if changes}<th scope="col" class="moved"><span class="sr">Moved</span></th>{/if}
         <th scope="col" class="name">Name</th>
+        {#if drops.length > 0}{@render boxHead()}{/if}
         {#if changes}<th scope="col" class="round">This round</th>{/if}
       {:else}
         <th scope="col" class="rank"
           ><span aria-hidden="true">#</span><span class="sr">Rank</span></th
         >
         <th scope="col" class="name">Name</th>
+        {#if drops.length > 0}{@render boxHead()}{/if}
       {/if}
       <th scope="col" class="points">Points</th>
     </tr>
@@ -117,6 +137,19 @@
             >
           </span>
         </td>
+        {#if drops.length > 0}
+          {@const drop = drops.findIndex((d) => d.player_id === standing.player_id)}
+          <td class="box">
+            {#if drop >= 0}
+              <MysteryBox
+                item={drops[drop]?.item ?? ''}
+                {opening}
+                instant={boxInstant}
+                delay={drop * BOX_BEAT_MS}
+              />
+            {/if}
+          </td>
+        {/if}
         {#if columns && changes}<td class="round">{@render gained(standing)}</td>{/if}
         <td class="points">
           <span class="total"
@@ -188,6 +221,11 @@
   .moved {
     width: 3rem;
     text-align: left;
+  }
+
+  .box {
+    width: 2.5rem;
+    text-align: center;
   }
 
   .round,

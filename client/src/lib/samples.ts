@@ -251,7 +251,7 @@ export function sampleResult(
 ): PlayerResult {
   const credit = sampleCredit(sample, value)
   const points = samplePoints(sample, credit, elapsedMs, rules)
-  return { value, correct: credit >= 1, credit, points }
+  return { value, correct: credit >= 1, credit, points, item_points: 0, item: null, by_book: false }
 }
 
 /** The mode to try after `mode`, in `order`, wrapping round; only modes with a sample. */

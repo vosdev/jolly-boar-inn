@@ -74,6 +74,7 @@ const LIVE: RoomView = {
     max_players: 50,
     name_wrong_answers: false,
     teams: [],
+    items: true,
   },
   current_index: 0,
   total: 1,
@@ -109,6 +110,8 @@ const QUESTION: OpenQuestion = {
   answered: 0,
   of: 0,
   waiting: [],
+  item_used: false,
+  removed: [],
 }
 
 beforeEach(() => {
@@ -128,6 +131,7 @@ beforeEach(() => {
       ready: false,
       editing: false,
       team: null,
+      item: null,
     },
   })
 })
@@ -213,6 +217,7 @@ describe('App', () => {
       ready: false,
       editing: false,
       team: null,
+      item: null,
     }
     applyServerMessage({
       t: 'welcome',
@@ -252,6 +257,7 @@ describe('App', () => {
       ready: false,
       editing: false,
       team: null,
+      item: null,
     }
     const daily = { ...LIVE, daily: { day: '2026-11-01', number: 2 } }
     const message = {
@@ -509,6 +515,7 @@ describe('App, in a team game', () => {
     ready: false,
     editing: false,
     team,
+    item: null,
   })
   const frame = () => document.documentElement.dataset.team
   const hanging = () => bar().querySelector('.hang')?.textContent?.trim() ?? null

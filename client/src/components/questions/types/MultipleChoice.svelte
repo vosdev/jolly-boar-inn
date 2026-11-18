@@ -41,6 +41,7 @@
     onAnswer,
     results = null,
     stacked = false,
+    removed = [],
   }: TypeViewProps<Index> = $props()
 
   const q = $derived(data as unknown as Data)
@@ -60,6 +61,7 @@
   {onAnswer}
   named
   {stacked}
+  removed={new Set(removed)}
 >
   {#snippet label(option: string)}{option}{/snippet}
 </GemChoices>

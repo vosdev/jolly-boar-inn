@@ -18,6 +18,7 @@ function player(id: string, name: string): PlayerView {
     connected: true,
     ready: false,
     editing: false,
+    item: null,
   }
 }
 

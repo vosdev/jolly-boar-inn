@@ -8,12 +8,14 @@
 
   import type { ModePacing } from '../lib/api'
   import {
+    ITEMS_LINE,
     SCORING_LINE,
     TEAMS_PARAGRAPH,
     allTypes,
     loadModes,
     roomTypes,
     rowsFor,
+    showsItems,
     showsTeams,
     type HowToRow,
   } from '../lib/howToPlay'
@@ -53,6 +55,9 @@
     <p class="note">Loading…</p>
   {:else}
     <AnswerRows {rows} />
+    {#if showsItems(room?.settings ?? null)}
+      <p class="items">{ITEMS_LINE}</p>
+    {/if}
     {#if room === null || !showsTeams(room.settings)}
       <p class="scoring">{SCORING_LINE}</p>
     {/if}
@@ -71,6 +76,10 @@
 
   .note {
     margin: 0;
+  }
+
+  .items {
+    margin: 1rem 0 0;
   }
 
   .scoring {

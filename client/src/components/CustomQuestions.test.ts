@@ -55,6 +55,7 @@ beforeEach(() => {
       ready: false,
       editing: false,
       team: null,
+      item: null,
     },
   })
   profile.set({ name: 'Zezima', pet: 'aggy' })

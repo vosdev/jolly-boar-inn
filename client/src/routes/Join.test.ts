@@ -41,6 +41,7 @@ const CREDENTIALS: api.Credentials = {
     ready: false,
     editing: false,
     team: null,
+    item: null,
   },
 }
 const taken = () => new ApiFailure(409, 'name_taken', 'that name is taken')

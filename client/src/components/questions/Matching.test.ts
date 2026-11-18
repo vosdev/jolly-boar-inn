@@ -48,6 +48,8 @@ function open(view: Record<string, unknown> = VIEW, youCanAnswer = true): OpenQu
     answered: 0,
     of: 0,
     waiting: [],
+    item_used: false,
+    removed: [],
   }
 }
 
@@ -242,7 +244,15 @@ describe('matching', () => {
       question: open(),
       reveal: REVEAL,
       yourValue: [1, 4, 3, 0],
-      result: { value: [1, 4, 3, 0], correct: false, credit: 0.75, points: 675 },
+      result: {
+        value: [1, 4, 3, 0],
+        correct: false,
+        credit: 0.75,
+        points: 675,
+        item_points: 0,
+        item: null,
+        by_book: false,
+      },
       onAnswer: () => {},
     })
     const rows = [...document.querySelectorAll('ol.fields > li')]
@@ -443,7 +453,15 @@ describe('matching with bins', () => {
         answer: SORTED,
       },
       yourValue: [1, 0, 0, 1],
-      result: { value: [1, 0, 0, 1], correct: false, credit: 0.75, points: 675 },
+      result: {
+        value: [1, 0, 0, 1],
+        correct: false,
+        credit: 0.75,
+        points: 675,
+        item_points: 0,
+        item: null,
+        by_book: false,
+      },
       onAnswer: () => {},
     })
     const bins = [...document.querySelectorAll('ol.bins > li')]

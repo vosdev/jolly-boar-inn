@@ -144,6 +144,7 @@ describe('History', () => {
         connected: true,
         ready: false,
         editing: false,
+        item: null,
       },
     ])
     render(History, { code: 'Abyssal', stamp: historyStamp(FINISHED), navigate: vi.fn() })

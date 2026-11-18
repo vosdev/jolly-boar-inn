@@ -42,6 +42,7 @@
   import type { Snippet } from 'svelte'
 
   import { serverNow } from '../../lib/clock'
+  import { BOOK, afterUse } from '../../lib/heldItems'
   import { MODES } from '../../lib/modes'
   import type { Build } from '../../lib/pixelHunt'
   import type { OpenQuestion, PlayerResult } from '../../lib/protocol'
@@ -56,6 +57,7 @@
     pictureUrl = null,
     reveal = null,
     yourValue,
+    booked = false,
     result = null,
     results = null,
     onAnswer,
@@ -71,6 +73,8 @@
     /** `question_closed.reveal`, or null while the question is open. */
     reveal?: Record<string, unknown> | null
     yourValue: unknown
+    /** The Book of Knowledge answered for you: its line takes the answers' place while open. */
+    booked?: boolean
     result?: PlayerResult | null
     /** `question_closed.results`, every player's row; null while open. */
     results?: Record<string, PlayerResult> | null
@@ -182,7 +186,12 @@
 {/snippet}
 
 {#snippet view()}
-  {#if View !== null}
+  {#if View !== null && booked && !revealed}
+    <div class="booked">
+      <p>{afterUse(BOOK)}</p>
+      <button type="button" disabled>Answered</button>
+    </div>
+  {:else if View !== null}
     <View
       {data}
       {revealed}
@@ -192,10 +201,14 @@
       {results}
       {timing}
       stacked={MODES[question.mode]?.stacked}
+      removed={question.removed}
       {onAnswer}
     />
     {#if !question.you_can_answer && !revealed}
       <p class="note unscored">This one is not scored for you — sit back and watch.</p>
+    {/if}
+    {#if revealed && result?.by_book === true}
+      <p class="note by-book">Answered by the Book of Knowledge</p>
     {/if}
     {#if explanation !== null}
       <p class="explanation">{explanation}</p>
@@ -257,8 +270,26 @@
   }
 
   .unscored,
+  .by-book,
   .explanation {
     margin: 1rem 0 0;
+  }
+
+  .booked {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .booked p {
+    margin: 0;
+    font-weight: 650;
+  }
+
+  .booked button {
+    min-height: 44px;
   }
 
   .explanation {

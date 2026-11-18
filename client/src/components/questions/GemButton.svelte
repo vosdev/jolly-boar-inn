@@ -124,6 +124,7 @@
     votes = null,
     pickers = null,
     tag = 'button',
+    struck = false,
     disabled = false,
     onclick,
     end,
@@ -149,6 +150,8 @@
     /** On a reveal: who picked it, named under the label; null for none. */
     pickers?: Pickers | null
     tag?: 'button' | 'div'
+    /** Taken off the question for us: struck through, whatever `status` says. */
+    struck?: boolean
     disabled?: boolean
     onclick?: () => void
     /** Something pressable of its own at the right edge; only on a `div`. */
@@ -160,6 +163,7 @@
   /** What lit, faded and the "you" say, in words, for a screen reader. */
   const spoken = $derived(
     said ??
+      (struck ? ', taken off' : undefined) ??
       {
         idle: '',
         waiting: ', your answer',
@@ -172,7 +176,10 @@
 
 {#snippet inside()}
   <span class="content"
-    >{@render children()}{#if pickers !== null}<span class="pickers" aria-hidden="true"
+    >{#if struck}<s>{@render children()}</s
+      >{:else}{@render children()}{/if}{#if pickers !== null}<span
+        class="pickers"
+        aria-hidden="true"
         >{#each pickers.shown as picker (picker.id)}<span class="picker" class:me={picker.you}
             ><Pet pet={picker.pet} size={24} label="" />{picker.name}</span
           >{/each}{#if pickers.more > 0}<span class="picker more">and {pickers.more} more</span

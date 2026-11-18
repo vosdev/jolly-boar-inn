@@ -65,6 +65,7 @@
     settings = null,
     hidden,
     own = true,
+    teams = false,
     onchange,
     onquestions,
     onproblems,
@@ -75,6 +76,8 @@
     hidden: boolean
     /** This browser holds the host's question bank. */
     own?: boolean
+    /** A team game, which never deals items. */
+    teams?: boolean
     onchange: (settings: TonightSettings) => void
     /** The questions ticked, after a change; a new panel has said nothing yet. */
     onquestions: (questions: HostQuestion[]) => void
@@ -91,6 +94,7 @@
   let modeOrder = $state<'listed' | 'random'>('random')
   let closeWhenAllAnswered = $state(true)
   let nameWrongAnswers = $state(true)
+  let items = $state(true)
   /** The server draws the rounds unseen, rather than the host picking them. */
   // A room that stops hiding its rounds cannot keep them a surprise, so any change of
   // `hidden` clears it; it is only ever set while hidden.
@@ -193,6 +197,7 @@
       (eventCount > 0 ? `, plus ${eventCount} random event${eventCount === 1 ? '' : 's'}.` : '.'),
   )
   const built = $derived<TonightSettings>({
+    items,
     ...(surprise ? { surprise_modes: randomRounds } : { modes: rounds }),
     mode_order: surprise ? 'random' : modeOrder,
     random_event_frequency: frequency,
@@ -220,6 +225,7 @@
     standingsSeconds = from.standings_seconds
     closeWhenAllAnswered = from.close_when_all_answered
     nameWrongAnswers = from.name_wrong_answers
+    items = from.items
     known = tonightKey(from)
   }
 
@@ -393,6 +399,8 @@
       bind:standingsSeconds
       bind:closeWhenAllAnswered
       bind:nameWrongAnswers
+      bind:items
+      {teams}
     />
   </div>
 

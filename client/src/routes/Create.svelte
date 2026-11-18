@@ -57,6 +57,7 @@
     standings_seconds: 10,
     close_when_all_answered: true,
     name_wrong_answers: true,
+    items: true,
   }
 
   /** What a reload must not lose. */
@@ -130,6 +131,7 @@
     connected: true,
     ready: false,
     editing: false,
+    item: null,
   })
   const seated = $derived(tableGroups([host], host.id, () => false, [], []))
 
@@ -282,6 +284,7 @@
       <TonightPanel
         settings={draft.tonight}
         hidden={hideRounds}
+        teams={teamGame}
         onchange={(next) => (tonight = next)}
         onquestions={(questions) => (customQuestions = questions)}
         onproblems={(toOpen, toStart) => {

@@ -31,7 +31,15 @@ function room(options: { on?: boolean; showNames?: boolean } = {}): RevealPicker
 }
 
 function picked(value: unknown, correct: boolean): PlayerResult {
-  return { value, correct, credit: correct ? 1 : 0, points: correct ? 800 : 0 }
+  return {
+    value,
+    correct,
+    credit: correct ? 1 : 0,
+    points: correct ? 800 : 0,
+    item_points: 0,
+    item: null,
+    by_book: false,
+  }
 }
 
 function open(type: string, view: Record<string, unknown>): OpenQuestion {
@@ -52,6 +60,8 @@ function open(type: string, view: Record<string, unknown>): OpenQuestion {
     answered: 0,
     of: 0,
     waiting: [],
+    item_used: false,
+    removed: [],
   }
 }
 

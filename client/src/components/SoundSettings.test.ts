@@ -18,6 +18,7 @@ function player(id: string, role: PlayerView['role']): PlayerView {
     connected: true,
     ready: false,
     editing: false,
+    item: null,
   }
 }
 

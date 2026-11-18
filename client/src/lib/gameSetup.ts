@@ -17,6 +17,7 @@ export function tonightKey(settings: TonightSettings): string {
     settings.standings_seconds,
     settings.close_when_all_answered,
     settings.name_wrong_answers,
+    settings.items,
   ])
 }
 

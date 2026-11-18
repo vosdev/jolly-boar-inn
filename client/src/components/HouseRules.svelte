@@ -17,13 +17,21 @@
     standingsSeconds = $bindable(),
     closeWhenAllAnswered = $bindable(),
     nameWrongAnswers = $bindable(),
+    items = $bindable(),
+    teams = false,
   }: {
     pace: Pace
     difficulty: Difficulty
     standingsSeconds: number
     closeWhenAllAnswered: boolean
     nameWrongAnswers: boolean
+    items: boolean
+    /** A team game, which never deals items: the control reads Off and cannot change. */
+    teams?: boolean
   } = $props()
+
+  const ITEMS_NOTE =
+    'Between rounds, the bottom half of the hiscores each find an item to help them. Off in team games.'
 </script>
 
 <div class="rules">
@@ -51,6 +59,15 @@
       bind:value={closeWhenAllAnswered}
     />
     <Segmented legend="Name who got it wrong" options={OFF_ON} bind:value={nameWrongAnswers} />
+    <div>
+      <Segmented
+        legend="Mystery Boxes"
+        options={OFF_ON}
+        bind:value={() => (teams ? false : items), (value) => (items = value)}
+        disabled={teams}
+      />
+      <p class="note">{ITEMS_NOTE}</p>
+    </div>
   </div>
 </div>
 

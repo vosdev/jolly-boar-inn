@@ -87,6 +87,14 @@ class JoinRequestView(_Message):
     """As on ``PlayerView``."""
 
 
+class Drop(_Message):
+    """One item found on the standings: who, and which."""
+
+    player_id: UUID
+    item: str
+    """An item id (``rooms/items.py``); the client has the name, the picture and the line."""
+
+
 class RoomView(_Message):
     code: str
     status: RoomStatus
@@ -141,6 +149,18 @@ class RoomView(_Message):
     """
     daily: Daily | None = Field(default=None, exclude_if=lambda daily: daily is None)
     """A daily room's day. Its reveal waits for the player's ``skip`` instead of a countdown."""
+    drops: list[Drop] | None = Field(default=None, exclude_if=lambda drops: drops is None)
+    """The items this round's standings dealt, in standings order, sent only in that phase.
+    Each is also on its finder's ``PlayerView.item`` from then on.
+    """
+
+
+class HeldItem(_Message):
+    """The item in a player's one slot, for the round it was found for."""
+
+    id: str
+    charges: int | None
+    """What is left of an item spent a charge at a time; null for the rest."""
 
 
 class PlayerView(_Message):
@@ -158,6 +178,9 @@ class PlayerView(_Message):
     """
     editing: bool
     """Is typing a name in the lobby: "picking a name…". Advice, never a gate."""
+    item: HeldItem | None
+    """What they hold or wear, in the open for everyone; null between its round's end and the
+    next drop."""
 
 
 class Standing(_Message):
@@ -166,9 +189,11 @@ class Standing(_Message):
     avatar: str | None
     """As on ``PlayerView``."""
     points: int
+    """Answers' points and item points together."""
     rank: int
     points_gained: int
-    """What the round of the latest close added, and the rank before it; None in the first."""
+    """What the round of the latest close added, item points included, and the rank before it;
+    None in the first."""
     previous_rank: int | None
 
 
@@ -234,6 +259,15 @@ class OpenQuestion(_Message):
     """Who is still to answer, as player ids: connected, allowed to, and not yet in. Never
     what anyone answered. The TV's waiting panel shows them; ``answer_count`` keeps it current.
     """
+    item_used: bool = False
+    """Whether this socket's player used their item on the question, so a reload keeps it
+    spent. Only in their own ``welcome``; with the Book of Knowledge it means answered too.
+    """
+    removed: list[int] = Field(default_factory=list)
+    """The wrong options, by shown position, that this socket's player's Ring of wealth took
+    off the question. Only on the wearer's own socket, open and in a ``welcome``; an answer
+    naming one is ``bad_value``.
+    """
 
 
 # --- Client → server --------------------------------------------------------------
@@ -252,6 +286,13 @@ class Answer(_Message):
     t: Literal["answer"]
     question_id: str = Field(min_length=1, max_length=200)
     value: Any
+
+
+class UseItem(_Message):
+    """Use the held item on the open question: one tap, no confirm."""
+
+    t: Literal["use_item"]
+    question_id: str = Field(min_length=1, max_length=200)
 
 
 class StartGame(_Message):
@@ -380,6 +421,7 @@ ClientMessage = Annotated[
     Hello
     | Ping
     | Answer
+    | UseItem
     | StartGame
     | Skip
     | Promote
@@ -473,6 +515,15 @@ class AnswerAck(_Message):
     of: int
 
 
+class ItemUsed(_Message):
+    """The wearer's item went into the open question, to them alone: everyone else sees it on
+    the reveal. A Book of Knowledge answer is followed by its ``answer_ack``."""
+
+    t: Literal["item_used"] = "item_used"
+    question_id: str
+    item: str
+
+
 class AnswerCount(_Message):
     """The open question's count moved: how many have answered, of how many can, and who is
     still to. Sent on another player's answer, connect, disconnect or kick.
@@ -495,12 +546,25 @@ class PlayerResult(_Message):
 
     ``credit`` is what the type's ``grade`` returned. It is here so a reveal can say
     "three of five in the right place"; ``correct`` is the tie-break's boolean, and is
-    ``credit >= 1.0``.
+    ``credit >= 1.0``. ``points`` is the answer's own; an item's are ``item_points``, its own
+    line on the reveal.
     """
 
     value: Any
     correct: bool
     credit: float = Field(ge=0.0, le=1.0)
+    points: int
+    item_points: int
+    item: str | None
+    """The item that added ``item_points``; null when none did."""
+    by_book: bool = False
+    """The Book of Knowledge gave this answer: full credit, and ``value`` null."""
+
+
+class SettledItem(_Message):
+    """What an item's ``settle`` added to one player's round, for its line on the reveal."""
+
+    item: str
     points: int
 
 
@@ -513,6 +577,10 @@ class QuestionClosed(_Message):
     results: dict[UUID, PlayerResult]
     unanswered: list[UUID]
     """Connected players who could have answered and did not, for the reveal's "No answer"."""
+    settled: dict[UUID, SettledItem]
+    """Each wearer whose item settled on this close, the round's last: whichever of the
+    round's questions the points landed on, so the reveal can show them. Empty on every other
+    close."""
     standings: list[Standing]
     team_standings: list[TeamStanding] | None
     next_at: datetime | None
@@ -546,6 +614,7 @@ ServerMessage = (
     | PlayersUpdated
     | QuestionOpen
     | AnswerAck
+    | ItemUsed
     | AnswerCount
     | QuestionClosed
     | GameFinished

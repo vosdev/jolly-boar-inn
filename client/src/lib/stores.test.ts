@@ -18,6 +18,7 @@ import {
   answerCount,
   applyServerMessage,
   endedLive,
+  itemUsed,
   lastClosed,
   lastError,
   players,
@@ -39,6 +40,7 @@ const me: PlayerView = {
   avatar: null,
   editing: false,
   team: null,
+  item: null,
 }
 const host: PlayerView = { ...me, id: 'p0', display_name: 'Host', role: 'admin' }
 
@@ -73,6 +75,8 @@ function open(id: string): OpenQuestion {
     answered: 0,
     of: 2,
     waiting: [],
+    item_used: false,
+    removed: [],
     picture: null,
     random_event: null,
     answerable_at: new Date(0).toISOString(),
@@ -126,6 +130,23 @@ describe('applyServerMessage', () => {
     expect(get(players)).toEqual([host, readied])
     expect(get(you)).toEqual(readied)
     expect(get(room)).toEqual(lobby)
+  })
+
+  it('keeps the item used on the open question through its reveal, from a reply or a welcome', () => {
+    applyServerMessage(welcome({ question: open('q1') }))
+    applyServerMessage({ t: 'item_used', question_id: 'q0', item: 'kebab' })
+    expect(get(itemUsed)).toBeNull()
+    applyServerMessage({ t: 'item_used', question_id: 'q1', item: 'kebab' })
+    expect(get(itemUsed)).toBe('kebab')
+    applyServerMessage({ t: 'question_open', question: open('q2') })
+    expect(get(itemUsed)).toBeNull()
+    applyServerMessage(
+      welcome({
+        you: { ...me, item: { id: 'book_of_knowledge', charges: null } },
+        question: { ...open('q2'), item_used: true },
+      }),
+    )
+    expect(get(itemUsed)).toBe('book_of_knowledge')
   })
 
   it('drops an answer_ack for a question that is no longer open', () => {
@@ -204,6 +225,7 @@ describe('applyServerMessage', () => {
     applyServerMessage({
       t: 'question_closed',
       unanswered: [],
+      settled: {},
       question_id: 'q1',
       reveal: {},
       results: {},
@@ -223,6 +245,7 @@ describe('applyServerMessage', () => {
     applyServerMessage({
       t: 'question_closed',
       unanswered: [],
+      settled: {},
       question_id: 'q1',
       reveal: {},
       results: {},
@@ -241,6 +264,7 @@ describe('applyServerMessage', () => {
     applyServerMessage({
       t: 'question_closed',
       unanswered: [],
+      settled: {},
       question_id: 'q1',
       reveal: {},
       results: {},

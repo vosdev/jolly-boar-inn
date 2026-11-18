@@ -4,17 +4,22 @@
    * it is too wide for its column, yours in bold.
    *
    * An away player's pet fades to grey and says "away"; the TV carries a screen on its
-   * corner. Which half a pet sits in says the rest, so there is no tick here.
+   * corner, and a found item sits on its shoulder. Which half a pet sits in says the rest,
+   * so there is no tick here.
    */
+  import { shownItems } from '../lib/heldItems'
   import { petOf } from '../lib/pets'
   import type { PlayerView } from '../lib/protocol'
   import Pet from './Pet.svelte'
+  import WornItem from './WornItem.svelte'
 
   let {
     player,
     you = false,
     status = '',
   }: { player: PlayerView; you?: boolean; status?: string } = $props()
+
+  const held = $derived($shownItems.get(player.id) ?? player.item ?? null)
 </script>
 
 <span class="table-pet" class:you class:away={!player.connected}>
@@ -26,6 +31,7 @@
         <path d="M6 12.5h4" />
       </svg>
     {/if}
+    {#if held !== null}<WornItem {held} />{/if}
   </span>
   <span class="pet-name" title={player.display_name}>{player.display_name}</span>
   {#if status !== ''}<span class="status" class:editing={player.editing === true}>{status}</span

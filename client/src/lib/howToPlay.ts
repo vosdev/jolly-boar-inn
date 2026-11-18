@@ -78,6 +78,15 @@ export const HOW_TO_ROWS: HowToRow[] = [
 
 export const SCORING_LINE = 'Quicker and correct answers score more.'
 
+/** Mystery Boxes, before the scoring line wherever a game deals them. */
+export const ITEMS_LINE =
+  "Behind on points? Between rounds, the bottom half of the hiscores each find a Mystery Box. What's inside helps you in the next round and never costs anyone else a point. Some items work by themselves; the rest have a button to use them on a question."
+
+/** Whether How to play tells of Mystery Boxes: a room with them on and no teams, or no room. */
+export function showsItems(settings: RoomSettings | null): boolean {
+  return settings === null || (settings.items && settings.teams.length === 0)
+}
+
 /** A team game scores otherwise, so a room with teams shows this in place of the line above. */
 export const TEAMS_PARAGRAPH =
   "In a team game, everyone joins a god's team in the lobby. Speed doesn't count - your team scores the average of its members' points. Pixel Hunt is the exception: the earlier you name it, the more it pays."

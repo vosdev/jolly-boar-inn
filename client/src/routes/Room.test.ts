@@ -75,6 +75,7 @@ function roomView(patch: Partial<RoomView>): RoomView {
       max_players: 50,
       name_wrong_answers: false,
       teams: [],
+      items: true,
     },
     current_index: 0,
     total: 2,
@@ -121,6 +122,7 @@ function welcome(room: RoomView, role: 'admin' | 'player' = 'player'): Welcome {
     ready: false,
     editing: false,
     team: null,
+    item: null,
   }
   return {
     t: 'welcome',
@@ -137,6 +139,7 @@ function welcome(room: RoomView, role: 'admin' | 'player' = 'player'): Welcome {
         ready: false,
         editing: false,
         team: null,
+        item: null,
       },
     ],
     question: null,
@@ -253,12 +256,15 @@ describe('Room', () => {
       answered: 0,
       of: 0,
       waiting: [],
+      item_used: false,
+      removed: [],
     }
     await arrive(welcome(roomView({ phase: 'open', next_at: null })))
     applyServerMessage({ t: 'question_open', question: open })
     applyServerMessage({
       t: 'question_closed',
       unanswered: [],
+      settled: {},
       question_id: 'q1',
       reveal: { ...open.view, answer_index: 0, values: [1, 2] },
       results: {},
@@ -292,6 +298,8 @@ describe('Room', () => {
       answered: 0,
       of: 2,
       waiting: [],
+      item_used: false,
+      removed: [],
       picture: null,
       random_event: null,
       answerable_at: new Date().toISOString(),
@@ -319,9 +327,20 @@ describe('Room', () => {
     applyServerMessage({
       t: 'question_closed',
       unanswered: [],
+      settled: {},
       question_id: 'q1',
       reveal: { ...open.view, answer_index: 0 },
-      results: { a: { value: 0, correct: true, credit: 1, points: 850 } },
+      results: {
+        a: {
+          value: 0,
+          correct: true,
+          credit: 1,
+          points: 850,
+          item_points: 0,
+          item: null,
+          by_book: false,
+        },
+      },
       standings: [{ ...STANDINGS[0]!, points: 1850 }, STANDINGS[1]!],
       team_standings: null,
       next_at: new Date(Date.now() + 16_000).toISOString(),
@@ -363,6 +382,8 @@ describe('Room', () => {
       answered: 0,
       of: 0,
       waiting: [],
+      item_used: false,
+      removed: [],
     }
     await arrive(welcome(roomView({ phase: 'open', next_at: null })))
     applyServerMessage({ t: 'question_open', question: open })
@@ -373,9 +394,20 @@ describe('Room', () => {
     applyServerMessage({
       t: 'question_closed',
       unanswered: [],
+      settled: {},
       question_id: 'q1',
       reveal: { ...open.view, answer_index: 0 },
-      results: { a: { value: 0, correct: true, credit: 1, points: 850 } },
+      results: {
+        a: {
+          value: 0,
+          correct: true,
+          credit: 1,
+          points: 850,
+          item_points: 0,
+          item: null,
+          by_book: false,
+        },
+      },
       standings: [{ ...STANDINGS[0]!, points: 1850 }, STANDINGS[1]!],
       team_standings: null,
       next_at: new Date(Date.now() + 8_000).toISOString(),
@@ -421,6 +453,8 @@ describe('Room', () => {
         answered: 0,
         of: 0,
         waiting: [],
+        item_used: false,
+        removed: [],
       }
       render(Room, { code: 'ABYSSAL', navigate: () => {} })
       applyServerMessage({
@@ -472,6 +506,8 @@ describe('Room', () => {
         answered: 0,
         of: 0,
         waiting: [],
+        item_used: false,
+        removed: [],
       }
       await arrive(welcome(roomView({ phase: 'open', next_at: null })))
       applyServerMessage({ t: 'question_open', question: open })
@@ -482,9 +518,20 @@ describe('Room', () => {
       applyServerMessage({
         t: 'question_closed',
         unanswered: [],
+        settled: {},
         question_id: 'q1',
         reveal: {},
-        results: { b: { value: 0, correct: true, credit: 1, points: 900 } },
+        results: {
+          b: {
+            value: 0,
+            correct: true,
+            credit: 1,
+            points: 900,
+            item_points: 0,
+            item: null,
+            by_book: false,
+          },
+        },
         standings: STANDINGS,
         team_standings: null,
         next_at: new Date(Date.now() + 8_000).toISOString(),
@@ -558,6 +605,8 @@ function tableQuestion(id: string, waiting: string[]): OpenQuestion {
     answered: 2 - waiting.length,
     of: 2,
     waiting,
+    item_used: false,
+    removed: [],
     picture: null,
     random_event: null,
     answerable_at: new Date().toISOString(),
@@ -653,6 +702,8 @@ describe('the room’s frame', () => {
         answered: 0,
         of: 2,
         waiting: [],
+        item_used: false,
+        removed: [],
         picture: null,
         random_event: null,
         answerable_at: new Date().toISOString(),
@@ -697,6 +748,7 @@ describe('the room’s frame', () => {
     applyServerMessage({
       t: 'question_closed',
       unanswered,
+      settled: {},
       question_id: 'q1',
       reveal: {
         answer_index: 0,
@@ -723,7 +775,20 @@ describe('the room’s frame', () => {
       ),
     )
     applyServerMessage({ t: 'question_open', question: tableQuestion('q1', ['a', 'b']) })
-    closeWith({ b: { value: 1, correct: false, credit: 0, points: 0 } }, ['a'])
+    closeWith(
+      {
+        b: {
+          value: 1,
+          correct: false,
+          credit: 0,
+          points: 0,
+          item_points: 0,
+          item: null,
+          by_book: false,
+        },
+      },
+      ['a'],
+    )
     const panel = await screen.findByRole('group', { name: 'Results' })
     expect(screen.queryByRole('group', { name: 'At the table' })).toBeNull()
     expect(panel.textContent).toContain('0 of 2 got it right')
@@ -744,8 +809,24 @@ describe('the room’s frame', () => {
     applyServerMessage({ t: 'question_open', question: tableQuestion('q1', []) })
     closeWith(
       {
-        a: { value: 0, correct: true, credit: 1, points: 900 },
-        b: { value: 1, correct: false, credit: 0, points: 0 },
+        a: {
+          value: 0,
+          correct: true,
+          credit: 1,
+          points: 900,
+          item_points: 0,
+          item: null,
+          by_book: false,
+        },
+        b: {
+          value: 1,
+          correct: false,
+          credit: 0,
+          points: 0,
+          item_points: 0,
+          item: null,
+          by_book: false,
+        },
       },
       [],
     )
@@ -766,8 +847,24 @@ describe('the room’s frame', () => {
     applyServerMessage({ t: 'question_open', question: tableQuestion('q1', []) })
     closeWith(
       {
-        a: { value: 0, correct: true, credit: 1, points: 900 },
-        b: { value: 1, correct: false, credit: 0, points: 0 },
+        a: {
+          value: 0,
+          correct: true,
+          credit: 1,
+          points: 900,
+          item_points: 0,
+          item: null,
+          by_book: false,
+        },
+        b: {
+          value: 1,
+          correct: false,
+          credit: 0,
+          points: 0,
+          item_points: 0,
+          item: null,
+          by_book: false,
+        },
       },
       [],
     )
@@ -839,6 +936,8 @@ describe('the room’s frame', () => {
       answered: 0,
       of: 0,
       waiting: [],
+      item_used: false,
+      removed: [],
     }
     await arrive(welcome(roomView({ phase: 'open', next_at: null, total: 4 })))
     applyServerMessage({ t: 'question_open', question: open })
@@ -978,6 +1077,8 @@ describe('the list a question is answered from', () => {
       answered: 0,
       of: 0,
       waiting: [],
+      item_used: false,
+      removed: [],
       answerable_at: new Date().toISOString(),
       ...patch,
     }
@@ -1060,6 +1161,8 @@ describe('a random event’s way out', () => {
       answered: 0,
       of: 0,
       waiting: [],
+      item_used: false,
+      removed: [],
       ...patch,
     }
   }
@@ -1068,6 +1171,7 @@ describe('a random event’s way out', () => {
     applyServerMessage({
       t: 'question_closed',
       unanswered: [],
+      settled: {},
       question_id: 'q_bob',
       reveal: { prompt: PROMPT, options: ['Catspeak', 'Camulet'], answer_index: 0 },
       results: {},
@@ -1101,6 +1205,8 @@ describe('a random event’s way out', () => {
     answered: 0,
     of: 0,
     waiting: [],
+    item_used: false,
+    removed: [],
   } satisfies OpenQuestion
 
   beforeEach(() => {
@@ -1211,6 +1317,8 @@ describe('the shared stage', () => {
     answered: 0,
     of: 0,
     waiting: [],
+    item_used: false,
+    removed: [],
   }
 
   let restore = () => {}
@@ -1307,6 +1415,7 @@ describe('the shared stage', () => {
     applyServerMessage({
       t: 'question_closed',
       unanswered: [],
+      settled: {},
       question_id: 'q1',
       reveal: { values: [100, 50], answer_index: 0 },
       results: {},
@@ -1456,6 +1565,8 @@ describe('the shared stage', () => {
       answered: 0,
       of: 0,
       waiting: [],
+      item_used: false,
+      removed: [],
     })
     const first = place('q1', 0, 'Lumbridge')
     await arrive({
@@ -1468,6 +1579,7 @@ describe('the shared stage', () => {
     applyServerMessage({
       t: 'question_closed',
       unanswered: [],
+      settled: {},
       question_id: 'q1',
       reveal: {
         ...first.view,
@@ -1711,6 +1823,8 @@ describe('what the tab and focus do', () => {
     answered: 0,
     of: 0,
     waiting: [],
+    item_used: false,
+    removed: [],
   }
 
   beforeEach(() => {
@@ -1875,6 +1989,8 @@ describe('a daily room', () => {
       answered: 0,
       of: 1,
       waiting: [],
+      item_used: false,
+      removed: [],
     }
   }
 
@@ -1892,6 +2008,7 @@ describe('a daily room', () => {
     applyServerMessage({
       t: 'question_closed',
       unanswered: [],
+      settled: {},
       question_id: open.question_id,
       reveal: { ...open.view, answer_index: 0, values: [1, 2] },
       results: {},

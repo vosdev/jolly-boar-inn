@@ -8,7 +8,15 @@ const SARIM = { name: 'Port Sarim', min_x: 3008, max_x: 3060, min_y: 3180, max_y
 const NAMES: Record<string, string> = { a: 'SeaShanty', b: 'Fisher', c: 'DeepBlue', me: 'Me' }
 
 function result(x: number, y: number, points: number): PlayerResult {
-  return { value: [{ x, y }], correct: points === 1000, credit: points / 1000, points }
+  return {
+    value: [{ x, y }],
+    correct: points === 1000,
+    credit: points / 1000,
+    points,
+    item_points: 0,
+    item: null,
+    by_book: false,
+  }
 }
 
 describe('PinRanking', () => {
@@ -43,6 +51,9 @@ describe('PinRanking', () => {
           correct: false,
           credit: 0.5,
           points: 983,
+          item_points: 0,
+          item: null,
+          by_book: false,
         },
       },
       unanswered: [],

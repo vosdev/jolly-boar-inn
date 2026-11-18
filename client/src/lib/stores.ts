@@ -48,6 +48,8 @@ export const teamStandings = writable<TeamStanding[] | null>(null)
  * `welcome` into a finished room, a reload included, goes straight to the hiscores.
  */
 export const endedLive = writable(false)
+/** This client watched the standings begin, so their Mystery Boxes open rather than stand open. */
+export const standingsLive = writable(false)
 /**
  * The `question_closed` frame for the question being revealed right now, plus the
  * question it closed.
@@ -72,6 +74,11 @@ export const lastClosed = writable<ClosedQuestion | null>(null)
  * answer landed in there. Null until it does.
  */
 export const answerAck = writable<Pick<AnswerAck, 'scoring' | 'band'> | null>(null)
+/**
+ * The item we used on the open question, by id, kept through its reveal for the slot's
+ * after-use line; null when none was. A Book of Knowledge here means we have answered.
+ */
+export const itemUsed = writable<string | null>(null)
 /**
  * How many of the room have answered the open question, of how many can, and the ids of
  * who is still to. Seeded by the question's own frame and moved on by `answer_count` and
@@ -138,6 +145,7 @@ function forgetQuestion(): void {
   yourAnswer.set(null)
   answerAck.set(null)
   answerCount.set(null)
+  itemUsed.set(null)
   lastClosed.set(null)
 }
 
@@ -197,6 +205,7 @@ export function resetRoom(): void {
   standings.set([])
   teamStandings.set(null)
   endedLive.set(false)
+  standingsLive.set(false)
   forgetQuestion()
   lastError.set(null)
   profileError.set(null)
@@ -230,10 +239,12 @@ export function applyServerMessage(message: ServerMessage): void {
       standings.set(message.standings)
       teamStandings.set(message.team_standings)
       endedLive.set(false)
+      standingsLive.set(false)
       // No reveal and no ack in a snapshot: a client that arrives mid-reveal shows
       // the scoreboard, not the answer it never saw revealed.
       forgetQuestion()
       yourAnswer.set(message.your_answer)
+      itemUsed.set(message.question?.item_used === true ? (message.you.item?.id ?? null) : null)
       countFrom(message.question)
       lastError.set(null)
       noteServerTime(message.server_time)
@@ -245,6 +256,10 @@ export function applyServerMessage(message: ServerMessage): void {
       // The room_updated saying `finished` comes before `game_finished`, and the final
       // screen mounts on it, so this is where it learns it is watching the end.
       if (get(room)?.status === 'playing' && message.room.status === 'finished') endedLive.set(true)
+      standingsLive.set(
+        message.room.phase === 'standings' &&
+          (get(standingsLive) || get(room)?.phase !== 'standings'),
+      )
       if (get(room)?.status === 'finished' && message.room.status === 'lobby') {
         // A rematch: the last game's question and answer are not this one's.
         question.set(null)
@@ -328,6 +343,10 @@ export function applyServerMessage(message: ServerMessage): void {
           ? null
           : { ...count, waiting: count.waiting.filter((id) => id !== get(you)?.id) },
       )
+      break
+
+    case 'item_used':
+      if (get(question)?.question_id === message.question_id) itemUsed.set(message.item)
       break
 
     case 'answer_count':

@@ -52,6 +52,8 @@ function question(type: string, mode: string, view: Record<string, unknown>): Op
     answered: 0,
     of: 0,
     waiting: [],
+    item_used: false,
+    removed: [],
   }
 }
 

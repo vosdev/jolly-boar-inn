@@ -45,6 +45,8 @@ function open(overrides: Partial<OpenQuestion> = {}): OpenQuestion {
     answered: 0,
     of: 0,
     waiting: [],
+    item_used: false,
+    removed: [],
     answerable_at: '2026-09-21T20:00:00Z',
     ...overrides,
   }
@@ -361,7 +363,15 @@ describe('pick_from_list', () => {
       question: open(),
       reveal: REVEAL,
       yourValue: 4587,
-      result: { value: 4587, correct: false, credit: 0, points: 0 },
+      result: {
+        value: 4587,
+        correct: false,
+        credit: 0,
+        points: 0,
+        item_points: 0,
+        item: null,
+        by_book: false,
+      },
       onAnswer: () => {},
     })
     expect(screen.getByText('Amulet of fury').parentElement?.textContent).toBe(

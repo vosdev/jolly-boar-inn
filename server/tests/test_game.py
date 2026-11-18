@@ -758,8 +758,24 @@ def test_the_close_grades_every_answer_and_reveals_the_results(game, db) -> None
 
     assert closed["reveal"] == more_less.reveal(game.question(0).payload)
     assert closed["results"] == {
-        right.id: {"value": game.right(0), "correct": True, "credit": 1.0, "points": 1000},
-        wrong.id: {"value": game.wrong(0), "correct": False, "credit": 0.0, "points": 0},
+        right.id: {
+            "value": game.right(0),
+            "correct": True,
+            "credit": 1.0,
+            "points": 1000,
+            "item_points": 0,
+            "item": None,
+            "by_book": False,
+        },
+        wrong.id: {
+            "value": game.wrong(0),
+            "correct": False,
+            "credit": 0.0,
+            "points": 0,
+            "item_points": 0,
+            "item": None,
+            "by_book": False,
+        },
     }
     assert game.admin.id not in closed["results"]  # the admin never answered
     assert [
@@ -2142,8 +2158,24 @@ def test_partial_credit_scores_without_being_correct(table, db, monkeypatch) -> 
 
     right = game.right(0)
     assert closed["results"] == {
-        zezima.id: {"value": right, "correct": False, "credit": 0.6, "points": 540},
-        woox.id: {"value": right, "correct": True, "credit": 1.0, "points": 600},
+        zezima.id: {
+            "value": right,
+            "correct": False,
+            "credit": 0.6,
+            "points": 540,
+            "item_points": 0,
+            "item": None,
+            "by_book": False,
+        },
+        woox.id: {
+            "value": right,
+            "correct": True,
+            "credit": 1.0,
+            "points": 600,
+            "item_points": 0,
+            "item": None,
+            "by_book": False,
+        },
     }
     rows = db("select player_id, correct, points from answers")
     assert {(row["player_id"], row["correct"], row["points"]) for row in rows} == {

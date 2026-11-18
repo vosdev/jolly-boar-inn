@@ -32,11 +32,20 @@ function player(index: number, role: PlayerView['role'] = 'player'): PlayerView 
     connected: true,
     ready: false,
     editing: false,
+    item: null,
   }
 }
 
 function result(value: { x: number; y: number }, credit = 0.5): PlayerResult {
-  return { value, correct: credit >= 1, credit, points: Math.round(credit * 1000) }
+  return {
+    value,
+    correct: credit >= 1,
+    credit,
+    points: Math.round(credit * 1000),
+    item_points: 0,
+    item: null,
+    by_book: false,
+  }
 }
 
 function setup(props: Record<string, unknown>) {

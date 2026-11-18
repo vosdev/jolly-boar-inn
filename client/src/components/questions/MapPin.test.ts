@@ -28,11 +28,20 @@ function player(index: number): PlayerView {
     connected: true,
     ready: false,
     editing: false,
+    item: null,
   }
 }
 
 function result(value: { x: number; y: number }[]): PlayerResult {
-  return { value, correct: false, credit: 0.5, points: 500 }
+  return {
+    value,
+    correct: false,
+    credit: 0.5,
+    points: 500,
+    item_points: 0,
+    item: null,
+    by_book: false,
+  }
 }
 
 function resultsFor(count: number, pins: number): Record<string, PlayerResult> {

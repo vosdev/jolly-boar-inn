@@ -41,6 +41,8 @@ function open(view: Record<string, unknown> = VIEW): OpenQuestion {
     answered: 0,
     of: 0,
     waiting: [],
+    item_used: false,
+    removed: [],
   }
 }
 
@@ -118,8 +120,24 @@ describe('price_is_right', () => {
       canAnswer: true,
       onAnswer: () => {},
       results: {
-        a: { value: 147_000, correct: false, credit: 0.6, points: 400 },
-        b: { value: 200_000, correct: false, credit: 0, points: 0 },
+        a: {
+          value: 147_000,
+          correct: false,
+          credit: 0.6,
+          points: 400,
+          item_points: 0,
+          item: null,
+          by_book: false,
+        },
+        b: {
+          value: 200_000,
+          correct: false,
+          credit: 0,
+          points: 0,
+          item_points: 0,
+          item: null,
+          by_book: false,
+        },
       },
     })
     expect(container.querySelector('.mark.answer')?.getAttribute('data-value')).toBe('130000')

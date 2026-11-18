@@ -13,7 +13,15 @@ const earned = (container: HTMLElement) => container.querySelector('.earned')?.t
 describe('PointsSlot', () => {
   it('shows a right answer as its points, over the running total', () => {
     const { container } = render(PointsSlot, {
-      result: { value: 0, correct: true, credit: 1, points: 850 },
+      result: {
+        value: 0,
+        correct: true,
+        credit: 1,
+        points: 850,
+        item_points: 0,
+        item: null,
+        by_book: false,
+      },
       canAnswer: true,
       total: 9270,
     })
@@ -24,7 +32,15 @@ describe('PointsSlot', () => {
 
   it('shows a wrong answer as +0', () => {
     const { container } = render(PointsSlot, {
-      result: { value: 1, correct: false, credit: 0, points: 0 },
+      result: {
+        value: 1,
+        correct: false,
+        credit: 0,
+        points: 0,
+        item_points: 0,
+        item: null,
+        by_book: false,
+      },
       canAnswer: true,
       total: 0,
     })
@@ -41,7 +57,15 @@ describe('PointsSlot', () => {
 
   it('lets a graded guess be its number', () => {
     const { container } = render(PointsSlot, {
-      result: { value: 99, correct: false, credit: 0.34, points: 340 },
+      result: {
+        value: 99,
+        correct: false,
+        credit: 0.34,
+        points: 340,
+        item_points: 0,
+        item: null,
+        by_book: false,
+      },
       canAnswer: true,
       total: 1340,
     })
@@ -56,10 +80,66 @@ describe('PointsSlot', () => {
 
   it('says the whole slot in words to a screen reader', () => {
     const { container } = render(PointsSlot, {
-      result: { value: 0, correct: true, credit: 1, points: 850 },
+      result: {
+        value: 0,
+        correct: true,
+        credit: 1,
+        points: 850,
+        item_points: 0,
+        item: null,
+        by_book: false,
+      },
       canAnswer: true,
       total: 9270,
     })
     expect(container.querySelector('.sr')?.textContent).toBe('Right, +850 points. 9,270 in total.')
+  })
+})
+
+describe('PointsSlot with an item', () => {
+  it('shows the item’s points as their own part beside your points', () => {
+    const { container } = render(PointsSlot, {
+      result: {
+        value: 0,
+        correct: false,
+        credit: 0.2,
+        points: 120,
+        item_points: 380,
+        item: 'ring_of_life',
+        by_book: false,
+      },
+      canAnswer: true,
+      chip: true,
+      item: { playerId: 'a', item: 'ring_of_life', charges: null, points: 380 },
+    })
+    // Game art is not committed, so CI draws the icon's short name: read past the icon.
+    const part = container.querySelector('.item-part')?.cloneNode(true) as HTMLElement
+    part.querySelectorAll('.item-icon').forEach((icon) => icon.remove())
+    expect(part.textContent?.replace(/\s+/g, ' ').trim()).toBe('Ring of Life +380')
+    expect(earned(container)?.startsWith('+120')).toBe(true)
+    expect(container.querySelector('.sr')?.textContent).toContain('Ring of Life, +380 more')
+  })
+
+  it('shows a charmed answer that was not right as taken back', () => {
+    const { container } = render(PointsSlot, {
+      result: {
+        value: 0,
+        correct: false,
+        credit: 0.6,
+        points: 540,
+        item_points: -540,
+        item: 'ring_of_charos',
+        by_book: false,
+      },
+      canAnswer: true,
+      chip: true,
+      item: { playerId: 'a', item: 'ring_of_charos', charges: null, points: -540 },
+    })
+    const part = container.querySelector('.item-part')?.cloneNode(true) as HTMLElement
+    part.querySelectorAll('.item-icon').forEach((icon) => icon.remove())
+    expect(part.textContent?.replace(/\s+/g, ' ').trim()).toBe('Ring of Charos (a) \u2212540')
+    expect(container.querySelector('.sr')?.textContent).toContain(
+      'Ring of Charos (a), \u2212540 taken back',
+    )
   })
 })

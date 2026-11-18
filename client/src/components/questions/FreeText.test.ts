@@ -32,6 +32,8 @@ function open(youCanAnswer = true): OpenQuestion {
     answered: 0,
     of: 0,
     waiting: [],
+    item_used: false,
+    removed: [],
   }
 }
 
@@ -79,7 +81,15 @@ describe('free_text', () => {
       question: open(),
       reveal: REVEAL,
       yourValue: 'Zezma',
-      result: { value: 'Zezma', correct: true, credit: 1, points: 900 },
+      result: {
+        value: 'Zezma',
+        correct: true,
+        credit: 1,
+        points: 900,
+        item_points: 0,
+        item: null,
+        by_book: false,
+      },
       onAnswer: () => {},
     })
     expect(screen.getByText('Zezima')).toBeTruthy()

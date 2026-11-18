@@ -24,6 +24,7 @@ const SETTINGS: RoomSettings = {
   max_players: 50,
   name_wrong_answers: false,
   teams: [],
+  items: true,
 }
 
 vi.mock('../lib/howToPlay', async (importOriginal) => {

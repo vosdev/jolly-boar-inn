@@ -8,14 +8,17 @@
    * one is drawn whole, and a ready one also carries a tick and is named in `--ok`. The
    * room's TV is never ready: a screen sits where its tick would.
    */
+  import { shownItems } from '../lib/heldItems'
   import { petOf } from '../lib/pets'
   import type { PlayerView } from '../lib/protocol'
   import Pet from './Pet.svelte'
+  import WornItem from './WornItem.svelte'
 
   let { player, status = '' }: { player: PlayerView; status?: string } = $props()
 
   const ready = $derived(player.ready === true)
   const tv = $derived(player.role === 'tv')
+  const held = $derived($shownItems.get(player.id) ?? player.item ?? null)
 </script>
 
 <span
@@ -36,6 +39,7 @@
         <path d="M4 8.5l2.5 2.5L12 5.5" />
       </svg>
     {/if}
+    {#if held !== null}<WornItem {held} />{/if}
   </span>
   <span class="pet-name">{player.display_name}</span>
   {#if status !== ''}<span class="status">{status}</span>{/if}

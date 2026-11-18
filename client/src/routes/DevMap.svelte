@@ -46,6 +46,7 @@
     connected: true,
     ready: false,
     editing: false,
+    item: null,
   }))
 
   players.set(team)
@@ -96,6 +97,8 @@
     answered: 0,
     of: team.length,
     waiting: [],
+    item_used: false,
+    removed: [],
   })
 
   function scatter(index: number): WorldPoint[] {
@@ -119,6 +122,9 @@
         credit,
         correct: credit >= 1,
         points: Math.round(1000 * credit),
+        item_points: 0,
+        item: null,
+        by_book: false,
       }
     })
     return rows

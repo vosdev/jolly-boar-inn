@@ -39,6 +39,8 @@ function open(view: Record<string, unknown> = LINEAR): OpenQuestion {
     answered: 0,
     of: 0,
     waiting: [],
+    item_used: false,
+    removed: [],
   }
 }
 
@@ -104,8 +106,24 @@ describe('number_slider', () => {
       canAnswer: true,
       onAnswer: () => {},
       results: {
-        a: { value: 80, correct: false, credit: 0.8, points: 640 },
-        b: { value: 20, correct: false, credit: 0, points: 0 },
+        a: {
+          value: 80,
+          correct: false,
+          credit: 0.8,
+          points: 640,
+          item_points: 0,
+          item: null,
+          by_book: false,
+        },
+        b: {
+          value: 20,
+          correct: false,
+          credit: 0,
+          points: 0,
+          item_points: 0,
+          item: null,
+          by_book: false,
+        },
       },
     })
     expect(container.querySelector('.mark.answer')?.getAttribute('data-value')).toBe('85')

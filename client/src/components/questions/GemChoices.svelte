@@ -25,6 +25,9 @@
    *
    * `stacked` is for options that run to whole sentences, which two abreast would stretch
    * past the phone's height: one a row on a phone, reveal included. A wide stage is as above.
+   *
+   * `removed` are options an item took off for us alone: faded, struck through and out of
+   * reach, in their place, so the layout is everyone else's.
    */
   import type { Snippet } from 'svelte'
 
@@ -43,6 +46,7 @@
     results = null,
     named = false,
     stacked = false,
+    removed = new Set(),
   }: {
     options: Option[]
     /** What we answered: empty until it is sent. */
@@ -59,6 +63,8 @@
     named?: boolean
     /** One option a row on a phone. */
     stacked?: boolean
+    /** Options taken off for us: struck through, never pressable. */
+    removed?: ReadonlySet<number>
   } = $props()
 
   const room = revealPickers()
@@ -94,12 +100,13 @@
   {#each options as option, index (index)}
     <GemButton
       gem={gemAt(index)}
-      status={gemState(index, picked, answer, revealed)}
+      status={removed.has(index) ? 'faded' : gemState(index, picked, answer, revealed)}
+      struck={removed.has(index)}
       mine={picked.has(index)}
       size={sizeAt(index)}
       votes={counts === null ? null : { count: counts[index] ?? 0, of: answered }}
       pickers={named && revealed ? pickersAt(room, results, index, answer.has(index)) : null}
-      disabled={held}
+      disabled={held || removed.has(index)}
       onclick={() => onAnswer(index)}
     >
       {@render label(option, index)}

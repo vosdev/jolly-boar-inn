@@ -13,6 +13,7 @@
   import type { ModePacing } from '../lib/api'
   import {
     NIGHT_STOPS,
+    ITEMS_LINE,
     SCORING_LINE,
     allTypes,
     loadModes,
@@ -111,6 +112,7 @@
       {:else}
         <AnswerRows rows={rowsFor(allTypes(modes))} columns />
       {/if}
+      <p class="items">{ITEMS_LINE}</p>
       <p class="scoring">{SCORING_LINE}</p>
       <div class="closing">
         <button type="button" class="primary" disabled={createDisabled} onclick={oncreate}>
