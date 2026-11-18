@@ -3,6 +3,7 @@ client, never by the asset id its payload holds, which for some modes is the ans
 
 import json
 import re
+import uuid
 from collections.abc import Iterator
 from datetime import datetime
 from pathlib import Path
@@ -60,16 +61,37 @@ def strings_and_numbers(value: Any) -> Iterator[Any]:
 
 
 def names_the_id(frame: dict[str, Any], item_id: int) -> bool:
-    """Whether ``frame`` holds ``item_id``: as a number, or in a string that is not a time."""
+    """Whether ``frame`` holds ``item_id``: as a number, or in a string not a time or a uuid."""
     for value in strings_and_numbers(frame):
         if isinstance(value, int) and not isinstance(value, bool) and value == item_id:
             return True
         if isinstance(value, str) and re.search(rf"(?<![0-9]){item_id}(?![0-9])", value):
-            try:
-                datetime.fromisoformat(value)
-            except ValueError:
+            if not is_time(value) and not is_uuid(value):
                 return True
     return False
+
+
+def is_time(value: str) -> bool:
+    """Whether ``value`` parses as an ISO time."""
+    try:
+        datetime.fromisoformat(value)
+    except ValueError:
+        return False
+    return True
+
+
+def is_uuid(value: str) -> bool:
+    """Whether ``value`` parses as a uuid."""
+    try:
+        uuid.UUID(value)
+    except ValueError:
+        return False
+    return True
+
+
+def test_an_id_inside_a_uuid_is_not_named() -> None:
+    assert not names_the_id({"t": "x", "id": "1f0c2a8e-4151-4b7d-9e2d-3f4a5b6c7d8e"}, 4151)
+    assert names_the_id({"t": "x", "id": "item 4151"}, 4151)
 
 
 def open_at(game: Game, item_id: int) -> list[dict[str, Any]]:

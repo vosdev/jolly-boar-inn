@@ -34,6 +34,13 @@ export function handOn(held: Held): void {
   }, 0)
 }
 
+/** Removes a map handed on and not yet taken over, now rather than at the end of the turn. */
+export function dropHandedOn(): void {
+  const held = handedOn
+  handedOn = null
+  held?.map.remove()
+}
+
 /** The map handed on in this turn, moved into `host` at once so it never leaves the page. */
 export function takeOver(host: HTMLElement): Held | null {
   const held = handedOn

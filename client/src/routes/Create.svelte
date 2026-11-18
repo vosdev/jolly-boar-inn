@@ -34,6 +34,7 @@
   import type { HostQuestion } from '../lib/customQuestions'
   import { heroFor, speakerFor } from '../lib/hero'
   import { rerollModeSeed } from '../lib/modeOrder'
+  import { PLACEHOLDER_PET } from '../lib/pets'
   import { profile, returningVisitor, saveProfile } from '../lib/profile'
   import type { PlayerView } from '../lib/protocol'
   import { atRoomLimit } from '../lib/roomLimit'
@@ -125,7 +126,7 @@
   const host = $derived<PlayerView>({
     id: 'host',
     display_name: $profile?.name ?? 'You',
-    avatar: $profile?.pet ?? null,
+    avatar: $profile?.pet ?? PLACEHOLDER_PET,
     role: 'admin',
     team: null,
     connected: true,

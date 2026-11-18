@@ -11,7 +11,7 @@ from app.daily import candidates
 from app.http.question_counts import counts
 from app.questions import vocab
 from app.questions.packs import EVENT_MODE, Pack, load_packs
-from app.random_events import RANDOM_EVENTS
+from app.random_events import BUILT_UP, RANDOM_EVENTS
 from tests.packs import PACKS_DIR
 
 
@@ -57,10 +57,26 @@ def test_the_shipped_packs_add_up_to_the_drawable_pool() -> None:
     pictures = {q["payload"].get("image") for p in packs for q in p.questions}
     settings = Settings(_env_file=None, random_event_game_mode=True)
     result = counts(packs, settings, pictures)
+    pool = candidates(packs, settings, pictures)
     total = sum(result["modes"].values()) + sum(result["random_events"].values())
-    assert total == len(candidates(packs, settings, pictures))
+    assert total == len([q for q in pool if q.get("random_event") not in BUILT_UP])
     assert "random_events_only" not in result["modes"]
-    assert set(result["random_events"]) == set(RANDOM_EVENTS)
+    assert set(result["random_events"]) == set(RANDOM_EVENTS) - set(BUILT_UP)
+
+
+def test_an_npc_repeating_a_round_s_pictures_is_not_counted() -> None:
+    """Certer sketches Pixel Hunt's pictures, so counting his would count them twice."""
+    pictured = {**_question("p1", "pixel_hunt"), "payload": {"image": "item:1"}}
+    sketched = {
+        **_question("c1", EVENT_MODE, random_event="certer"),
+        "payload": {"image": "item:1"},
+    }
+    packs = [_pack(pictured, sketched, _question("e1", EVENT_MODE, random_event="bob"))]
+    settings = Settings(_env_file=None, random_event_game_mode=True)
+    assert counts(packs, settings, {"item:1"}) == {
+        "modes": {"pixel_hunt": 1},
+        "random_events": {"bob": 1},
+    }
 
 
 def test_the_endpoint_serves_the_loaded_packs(app: FastAPI, client: TestClient) -> None:

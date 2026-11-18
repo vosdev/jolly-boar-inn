@@ -66,6 +66,9 @@ export function isPet(pet: unknown): pet is string {
   return typeof pet === 'string' && NAMES.has(pet)
 }
 
+/** Drawn for a host who has not picked a pet yet, until their profile gives them one. */
+export const PLACEHOLDER_PET = 'pet_cat_grey_and_black'
+
 /**
  * The pet to draw for a player or a standing: their own. The server stores one for every
  * player, so an empty string is only an id this build does not offer, drawn as the boar.
