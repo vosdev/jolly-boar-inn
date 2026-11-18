@@ -1,5 +1,11 @@
 # Think you know Gielinor?
 
+[![CI](https://img.shields.io/github/actions/workflow/status/vosdev/jolly-boar-inn/ci.yml?branch=main&label=CI)](https://github.com/vosdev/jolly-boar-inn/actions/workflows/ci.yml?query=branch%3Amain)
+[![Release](https://img.shields.io/github/v/release/vosdev/jolly-boar-inn?label=release)](https://github.com/vosdev/jolly-boar-inn/releases/latest)
+[![Live version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fjollyboar.com%2Fapi%2Fhealth&query=%24.version&prefix=v&label=jollyboar.com&color=blue)](https://jollyboar.com)
+[![Status](https://img.shields.io/website?url=https%3A%2F%2Fjollyboar.com%2Fapi%2Fhealth&label=status&up_message=online&down_message=offline)](https://jollyboar.com)
+[![License](https://img.shields.io/github/license/vosdev/jolly-boar-inn)](LICENSE)
+
 Prove it at the [Jolly Boar Inn](https://jollyboar.com)! 
 
 An Oldschool RuneScape themed trivia game, playable in your browser on mobile and desktop.

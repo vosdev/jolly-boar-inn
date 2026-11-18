@@ -201,7 +201,7 @@ jobs:
           docker compose up -d --wait --wait-timeout 120
           body=$(curl -fsS http://localhost:8000/api/health)
           echo "health: $body"
-          test "$body" = '{"ok":true,"db":true}'
+          test "$body" = "{\"ok\":true,\"db\":true,\"version\":\"$(cat VERSION)\"}"
           curl -fsS http://localhost:8000/ | grep -q '<title>The Jolly Boar Inn</title>'
 
       # A player opening the host's link lands on /r/CODE, which exists only in the
@@ -304,11 +304,12 @@ jobs:
   # Every T or D task bumps VERSION (ideas/architecture.md, Versioning). A main commit that
   # passed everything above and carries a version with no tag yet becomes a release: tag
   # v<VERSION> and a GitHub Release, notes built from the merged PRs. A commit that did not
-  # bump is a no-op; one that moved the version backwards fails.
+  # bump is a no-op; one that moved the version backwards fails. The audit is left out: a CVE
+  # with no fix yet is in the running image too, and holding the release back fixes nothing.
   release:
     name: Release (tag when VERSION changes)
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [server, client, audit, secrets, containers, loadtest]
+    needs: [server, client, secrets, containers, loadtest]
     runs-on: ${{ (vars.RUNNER && !github.event.pull_request.head.repo.fork) && vars.RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 15
     permissions:

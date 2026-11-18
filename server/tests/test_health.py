@@ -2,7 +2,7 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from app.config import Settings
+from app.config import APP_VERSION, Settings
 from app.main import create_app
 
 
@@ -27,7 +27,7 @@ def test_health_reports_db_down(settings: Settings, dist: Path) -> None:
     with TestClient(create_app(settings, dist)) as client:
         response = client.get("/api/health")
     assert response.status_code == 503
-    assert response.json() == {"ok": False, "db": False}
+    assert response.json() == {"ok": False, "db": False, "version": APP_VERSION}
 
 
 def test_health_ok_with_db(settings: Settings, dist: Path) -> None:
@@ -37,4 +37,4 @@ def test_health_ok_with_db(settings: Settings, dist: Path) -> None:
         app.state.instance_lock = FakeLock()
         response = client.get("/api/health")
     assert response.status_code == 200
-    assert response.json() == {"ok": True, "db": True}
+    assert response.json() == {"ok": True, "db": True, "version": APP_VERSION}

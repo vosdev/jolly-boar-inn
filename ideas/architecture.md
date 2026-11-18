@@ -992,8 +992,8 @@ CLAUDE.md has the bump rule.
   on drift. The client builds it in as `__APP_VERSION__` and shows `0.6` for `0.6.0`; the server
   sends it in `welcome`. The footer's version opens What's new from `lib/changelog.ts`, which
   needs an entry for every version, a stacked PR's too.
-- CI's `release` job tags `v<VERSION>` with a GitHub Release once the other jobs pass, and fails if
-  `VERSION` went backwards. `make image` builds locally; no registry.
+- CI's `release` job tags `v<VERSION>` with a GitHub Release once the other jobs but `audit` pass,
+  and fails if `VERSION` went backwards. `/api/health` returns the version for the README badge. `make image` builds locally; no registry.
 - Dependabot gathers every ecosystem's minor and patch updates into one PR, Mondays and Thursdays, which keeps
   the version: no bump, no changelog entry. CI fails on a high or critical known vulnerability in a lockfile or the image, or a secret in the image. Trivy's and gitleaks' versions are pinned in `ci.yml`; `trivy-bump.yml` opens the PR for a release three days old.
 - CI's `secrets` job runs gitleaks with `.gitleaks.toml`, the defaults plus the test fixtures by path and value: a PR over its own commits, from its base, main and the weekly run over the whole history. A leak in history is fixed by rotating it, never by rewriting main.

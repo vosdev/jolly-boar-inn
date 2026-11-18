@@ -14,7 +14,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from app import accesslog, metrics, profiling
-from app.config import Settings, get_settings
+from app.config import APP_VERSION, Settings, get_settings
 from app.db import create_pool, run_migrations
 from app.errors import ApiError
 from app.http import (
@@ -307,7 +307,9 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
     @app.get("/api/health")
     async def health(request: Request) -> JSONResponse:
         db = await _db_ok(request)
-        return JSONResponse({"ok": db, "db": db}, status_code=200 if db else 503)
+        return JSONResponse(
+            {"ok": db, "db": db, "version": APP_VERSION}, status_code=200 if db else 503
+        )
 
     app.include_router(rooms.router)
     app.include_router(daily.router)
