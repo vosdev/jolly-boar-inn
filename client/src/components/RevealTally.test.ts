@@ -533,9 +533,12 @@ describe('RevealTally items', () => {
           { playerId: 'b', item: 'ring_of_life', charges: null, points: 380 },
         ],
       })
-      const rows = [...container.querySelectorAll('.items li')].map((row) =>
-        row.textContent?.replace(/\s+/g, ' ').trim(),
-      )
+      // Game art is not committed, so CI draws the icon's short name: read past the icon.
+      const rows = [...container.querySelectorAll('.items li')].map((row) => {
+        const copy = row.cloneNode(true) as HTMLElement
+        copy.querySelectorAll('.item-icon').forEach((icon) => icon.remove())
+        return copy.textContent?.replace(/\s+/g, ' ').trim()
+      })
       expect(rows).toEqual(['Woox (you) Ring of Life +380', 'Zezima Super restore (4) +140'])
       unmount()
     }

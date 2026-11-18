@@ -79,8 +79,10 @@ describe('PointsSlot with an item', () => {
       chip: true,
       item: { playerId: 'a', item: 'ring_of_life', charges: null, points: 380 },
     })
-    const part = container.querySelector('.item-part')
-    expect(part?.textContent?.replace(/\s+/g, ' ').trim()).toBe('Ring of Life +380')
+    // Game art is not committed, so CI draws the icon's short name: read past the icon.
+    const part = container.querySelector('.item-part')?.cloneNode(true) as HTMLElement
+    part.querySelectorAll('.item-icon').forEach((icon) => icon.remove())
+    expect(part.textContent?.replace(/\s+/g, ' ').trim()).toBe('Ring of Life +380')
     expect(earned(container)?.startsWith('+120')).toBe(true)
     expect(container.querySelector('.sr')?.textContent).toContain('Ring of Life, +380 more')
   })
