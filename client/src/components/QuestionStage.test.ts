@@ -40,6 +40,7 @@ function open(patch: Partial<OpenQuestion> = {}, hold = HOLD): OpenQuestion {
     answered: 0,
     of: 0,
     waiting: [],
+    item_used: false,
     ...patch,
   }
 }

@@ -102,7 +102,7 @@ learns the position, which is worth more than variety.
   row always names its players; with `name_wrong_answers` off the others keep only their counts.
   The TV keeps its tally under its answers, as a line per wrong group. Then "Items", everywhere: a
   row per item that paid on the close, you first, its icon, wearer, name (a potion as before the
-  dose) and points.
+  dose) and points: a charmed miss as `−540`, a Book answer with the answer's points.
 - Six gems means no question offers more than six options.
 - `pick_all_that_apply` drags the right gems from a tray into a basket, as `ordering` does, nothing
   fading until Submit. Without `picks` the basket grows, unnumbered; with it, that many empty places.
@@ -362,7 +362,11 @@ keep the whole panel under the stage, since it holds their buttons. The threshol
 take-back rule are architecture §7. A found item (§11) heads the column through its round: an
 inventory square (charges top left), its name, line and "Gone after this round"; on a phone a square
 at the strip's right end, opening it as a sheet. Every pet wears its item in a round slot on its
-shoulder; one that breaks stays through that reveal.
+shoulder; one that breaks stays through that reveal. An item you use has its button under the
+slot while it can be used, one tap, no confirm; on a phone a bar over the strip, the item, its line
+and the button. Once used the slot, or the bar, has the after-use line and a spent square until
+the reveal ends; nobody else sees a change until then. The Book swaps the answers for its line
+and a disabled Answered, and its reveal says "Answered by the Book of Knowledge".
 
 - **Lobby.** The hero, else the Wise Old Man, says the lobby line in the bubble. The scroll holds
   "Your friends join with this code", then on one line the link's prefix ("jollyboar.com/r/"), small,
@@ -466,7 +470,8 @@ in display tabular numerals and the box's ink:
 - A timeout is not a wrong answer, and the slot says so. The number is the verdict: `--ok` and
   `--bad` do not reach 4.5:1 on parchment. A random event's card keeps them, on a plaque (#106).
 - An item's points are the chip's second part, its icon, name and points: `+120 | Ring of Life
-  +380`, Phoenix necklace's on the round's last reveal, whichever answer it raised. A phone with a
+  +380`, Phoenix necklace's on the round's last reveal, whichever answer it raised, a charmed miss
+  `−540`. The Book's points are the answer's own, so its chip has no second part. A phone with a
   TV adds it to the plaque.
 - Only what you earned: the total waits for the standings. The slot never explains a number; a
   speed bonus explained mid-reveal is a second thing to read.

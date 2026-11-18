@@ -69,7 +69,7 @@
   import SoundChip from '../components/SoundChip.svelte'
   import SharedStageView from '../components/stage/SharedStageView.svelte'
   import { barWhere, whereOf } from '../lib/barWhere'
-  import { itemPoints } from '../lib/heldItems'
+  import { BOOK, itemPoints } from '../lib/heldItems'
   import { hostMenu, type HostAction } from '../lib/hostMenu'
   import { historyPath, latestPastGame } from '../lib/history'
   import { answersOnly } from '../lib/tv'
@@ -84,6 +84,7 @@
     applyServerMessage,
     connection,
     endedLive,
+    itemUsed,
     lastClosed,
     noteAnswerSent,
     players,
@@ -280,7 +281,8 @@
     $you === null || $lastClosed === null
       ? null
       : (itemPoints($lastClosed.results, $lastClosed.settled ?? {}, $players).find(
-          (row) => row.playerId === $you.id,
+          // The Book's points are the answer's own, already the chip's first part.
+          (row) => row.playerId === $you.id && row.byBook !== true,
         ) ?? null),
   )
   const phone = $derived(answersOnly($players, $you))
@@ -454,6 +456,14 @@
     hostMenu.set(hostActions)
   })
 
+  /** The Book of Knowledge answered the open question for us. */
+  const booked = $derived($itemUsed === BOOK)
+
+  function useItem(): void {
+    const open = $question
+    if (open !== null) socket?.send({ t: 'use_item', question_id: open.question_id })
+  }
+
   function answer(value: unknown): void {
     const open = $question
     if (open === null || socket === null) return
@@ -604,6 +614,10 @@
               stacked={framed === null}
               unanswered={$lastClosed?.unanswered ?? []}
               outcome={$room.phase !== 'open' && $lastClosed?.was != null ? results : undefined}
+              openQuestion={$room.phase === 'open' ? $question : null}
+              answered={$yourAnswer !== null || booked}
+              used={$itemUsed}
+              onUse={useItem}
             />
           </AtTable>
         {/if}
@@ -624,6 +638,7 @@
           <QuestionStage
             question={$question}
             yourValue={$yourAnswer}
+            {booked}
             onAnswer={answer}
             live={$questionLive}
             answersOnly={phone}

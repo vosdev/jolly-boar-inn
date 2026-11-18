@@ -765,6 +765,7 @@ def test_the_close_grades_every_answer_and_reveals_the_results(game, db) -> None
             "points": 1000,
             "item_points": 0,
             "item": None,
+            "by_book": False,
         },
         wrong.id: {
             "value": game.wrong(0),
@@ -773,6 +774,7 @@ def test_the_close_grades_every_answer_and_reveals_the_results(game, db) -> None
             "points": 0,
             "item_points": 0,
             "item": None,
+            "by_book": False,
         },
     }
     assert game.admin.id not in closed["results"]  # the admin never answered
@@ -2163,6 +2165,7 @@ def test_partial_credit_scores_without_being_correct(table, db, monkeypatch) -> 
             "points": 540,
             "item_points": 0,
             "item": None,
+            "by_book": False,
         },
         woox.id: {
             "value": right,
@@ -2171,6 +2174,7 @@ def test_partial_credit_scores_without_being_correct(table, db, monkeypatch) -> 
             "points": 600,
             "item_points": 0,
             "item": None,
+            "by_book": False,
         },
     }
     rows = db("select player_id, correct, points from answers")

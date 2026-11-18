@@ -1480,6 +1480,7 @@ def test_a_right_answer_earns_full_points_and_a_wrong_one_none(client: TestClien
         "points": 1000,
         "item_points": 0,
         "item": None,
+        "by_book": False,
     }
     wrong = tried(client, ODD, (right + 1) % 4)["result"]
     assert (wrong["correct"], wrong["points"]) == (False, 0)

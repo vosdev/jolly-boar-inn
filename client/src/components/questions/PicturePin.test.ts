@@ -44,6 +44,7 @@ function result(value: { x: number; y: number }, credit = 0.5): PlayerResult {
     points: Math.round(credit * 1000),
     item_points: 0,
     item: null,
+    by_book: false,
   }
 }
 

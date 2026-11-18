@@ -63,6 +63,7 @@
     answered: 0,
     of: 1,
     waiting: [],
+    item_used: false,
   })
   const lines = $derived(
     pickLines(host, question, { verdict: revealed ? verdictFor(result, true) : null }),

@@ -372,6 +372,7 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 | `hello` | `session` | all | Must be first. Replies `welcome`. |
 | `ping` | | all | Replies `pong`. |
 | `answer` | `question_id`, `value` | all | Stored if open, unanswered and allowed. `answer_ack` or `error`. |
+| `use_item` | `question_id` | all | Uses the held item on the open question (section 8): `item_used`, then the Book's `answer_ack`. Outside its answering time `not_open`; answered, for Charos, the Book or the lamp, `already_answered`; no usable item, a type it refuses or a question you cannot answer `bad_state`. |
 | `ready` | `ready: bool` | all | Lobby or splash only. One take-back per splash, one lobby change a second. Teamless in a team game, or the TV: `bad_state`. |
 | `set_profile` | `display_name?`, `avatar?` | all | Lobby only. Validated exactly like a join. One change a second. Clears `editing`. |
 | `set_team` | `team` | all | Lobby of a team game, not while ready or the TV; a god not in the room is `bad_value`. One change a second. |
@@ -397,6 +398,7 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 | `players_updated` | `players` | A ready, team, editing, connect or disconnect that changed players only. One frame, queued behind the room lock's waiters, covers every change before it; a `room_updated` or `welcome` already did. |
 | `question_open` | `question` | A question opens. |
 | `answer_ack` | `question_id`, `scoring`, `band`, `answered`, `of` | Answer committed. Never correctness. |
+| `item_used` | `question_id`, `item` | Reply to `use_item`, to the wearer alone; the others see it on the reveal. |
 | `answer_count` | `question_id`, `answered`, `of`, `waiting` | Another player's answer, connect, disconnect or kick moved the count. Who is still to, never what. |
 | `question_closed` | `question_id`, `reveal`, `picture`, `results`, `unanswered`, `settled`, `standings`, `team_standings`, `next_at`, `reveal_seconds`, `suggested_by`? | Closed. `unanswered`: connected players who could answer and did not. `settled`: `{player_id: {item, points}}`, what a `settle` added on the round's last close, whichever question it raised; `{}` on every other close. `next_at` ends the reveal, the last one's too. `reveal_seconds` is its length, null in a daily room. `suggested_by` is a shown `credit`. |
 | `game_finished` | `standings`, `team_standings` | Final. `team_standings` is null outside a team game. |
@@ -415,8 +417,8 @@ Standing     { player_id, display_name, avatar, points, rank, points_gained, pre
 TeamStanding { team, points, rank, points_gained, previous_rank }
 Segment      { mode, index, total, start, count }
 OpenQuestion { question_id, index, total, type, mode, segment, view, picture, random_event,
-               opened_at, answerable_at, ends_at, you_can_answer, answered, of, waiting }
-PlayerResult { value, correct, credit, points, item_points, item }
+               opened_at, answerable_at, ends_at, you_can_answer, answered, of, waiting, item_used }
+PlayerResult { value, correct, credit, points, item_points, item, by_book }
 ```
 
 - `total` counts stored questions, not what the settings asked for; `events` the random events among them.
@@ -451,11 +453,13 @@ PlayerResult { value, correct, credit, points, item_points, item }
   `item` is a player's worn `HeldItem`, for everyone to see, null outside its round; `charges` is
   null for an item without. `points` is the answer's own, `item_points` the item's line on the
   reveal and `item` the item behind it; `Standing.points` and `points_gained` hold both.
+  `item_used` is true only in the wearer's `welcome`, once they used their item on the question
+  (with the Book, answered too). `by_book` marks the Book's answer, `value` null.
 
 What the server withholds. The admin is a player with a flag; there is no admin channel.
 
-- Open-question frames differ by socket only in live counts and `you_can_answer` (false on
-  `host_only` and for the TV), and never carry the answer.
+- Open-question frames differ by socket only in live counts, `you_can_answer` (false on
+  `host_only` and for the TV) and the wearer's `item_used`, and never carry the answer.
 - `question_id` is the row uuid, never the content id, which hashes the answer and could be
   brute-forced.
 - Results and correct answers first appear in `question_closed`, to everyone at once.
@@ -683,13 +687,20 @@ questions, events included), seeded by sha256 of room code, round, player uuid a
 and its `settle` at the close of its round's last question (in `question_closed.settled`) or
 `end_round` (in `points_gained` alone); what they give is `answers.item_points` (and
 `answers.item`), never credit, so `question_stats` and `answer_timings` keep base credit. A
-question only the host answers fits no item.
+question only the host answers fits no item. An item with a `Use` is spent with `use_item` on
+the open question, answered or not, and pays at its close; the use is memory only, so a restart
+voids the question and the item stays. Others see nothing until the reveal; the slot clears at
+the close. A multiplier's extra is item points.
 
 | Item | Tier | Fits a round with | Effect |
 |---|---|---|---|
 | `super_restore` (4 charges) | mild | a `SPEED` question (effective scoring) | Credit > 0 on `SPEED` is paid two buckets quicker, bucket 1 at best; a charge only where that pays more; breaks on the last. `answer_ack.band` stays the real bucket. |
 | `ring_of_life` | strong | anything | The first answer under 500 gets `500 − points`, then breaks. |
 | `phoenix_necklace` | strong | three questions or more | `settle`: the worst answered question (the earlier of a tie) rises to the others' average base points, rounded half up, if higher. |
+| `kebab` | mild | anything | Used before or after answering: +300 with an answer, nothing without. |
+| `ring_of_charos` | mild | a question other than `more_less` | Used before answering, not on `more_less`: credit 1 pays `points` more, anything less `−points`. |
+| `book_of_knowledge` | strong | anything | Used before answering: the answer, `value` null and `by_book`, at credit 1 in the tap's band, any type, ungraded; correct for the standings, in neither stats table. |
+| `xp_lamp` | strong | a question other than `more_less` | Used before answering, not on `more_less`: `points` more. |
 
 Standings sort by points (item points included), then correct answers, then `joined_at`. Rank is dense over points and
 correct answers; join time only orders players who share a rank. `points_gained` is what the round
@@ -869,7 +880,7 @@ key into them, so cleanup leaves it.
 - `question_stats` (`app/question_stats.py`), also outside the cascade, sums per content id how
   players do on hand-written pack questions, the NPCs' included (not host, price modes or
   voided), in the close's transaction: `answers`, `credit_sum` (credit, not points), `correct`,
-  `unanswered` and `games`. Admins' answers are left out; a close with fewer than two other
+  `unanswered` and `games`. Admins' and the Book's answers are left out; a close with fewer than two other
   players adds nothing, but a daily room's one player counts while connected. A payload edit changes the id, so its numbers restart.
   `/api/admin/questions/stats?mode=…` (every editable mode without one) returns each pack
   question whole with its totals, zeros if never counted; a row for an id the packs lost is
@@ -888,7 +899,7 @@ key into them, so cleanup leaves it.
   `daily_attempts (day, token_hash, room_id, …, points, results)` outlives its room (`rooms.daily`
   marks one): each close appends `right`, `partial` or `missed` in its transaction.
 - `answers.points` (the answer's own) and `item_points` are written at close, the latter also by a
-  `settle`, and standings are the sum of both. Memory keeps the same sum and reloads it on
+  `settle`, and standings are the sum of both. `answers.by_book` marks the Book's answer. Memory keeps the same sum and reloads it on
   rehydrate. Scores are never tracked separately.
 - `questions.payload` holds the envelope extras at the top and the type payload under `payload`, so
   SQL reads `payload->'payload'`. Fields that queries or grading need are columns.

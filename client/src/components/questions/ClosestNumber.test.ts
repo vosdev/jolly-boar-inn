@@ -33,6 +33,7 @@ function open(youCanAnswer = true, view: Record<string, unknown> = VIEW): OpenQu
     answered: 0,
     of: 0,
     waiting: [],
+    item_used: false,
   }
 }
 
@@ -96,7 +97,15 @@ describe('closest_number', () => {
       question: open(),
       reveal: REVEAL,
       yourValue: 99,
-      result: { value: 99, correct: false, credit: 0.75, points: 750, item_points: 0, item: null },
+      result: {
+        value: 99,
+        correct: false,
+        credit: 0.75,
+        points: 750,
+        item_points: 0,
+        item: null,
+        by_book: false,
+      },
       onAnswer: () => {},
     })
     expect(screen.getByText('100 hours')).toBeTruthy()
@@ -112,7 +121,15 @@ describe('closest_number', () => {
       question: open(),
       reveal: REVEAL,
       yourValue: 100,
-      result: { value: 100, correct: true, credit: 1, points: 1000, item_points: 0, item: null },
+      result: {
+        value: 100,
+        correct: true,
+        credit: 1,
+        points: 1000,
+        item_points: 0,
+        item: null,
+        by_book: false,
+      },
       onAnswer: () => {},
     })
     expect(document.querySelector('.picked')?.textContent).toMatch(/, spot on/)

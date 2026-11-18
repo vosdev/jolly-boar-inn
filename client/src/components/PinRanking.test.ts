@@ -15,6 +15,7 @@ function result(x: number, y: number, points: number): PlayerResult {
     points,
     item_points: 0,
     item: null,
+    by_book: false,
   }
 }
 
@@ -52,6 +53,7 @@ describe('PinRanking', () => {
           points: 983,
           item_points: 0,
           item: null,
+          by_book: false,
         },
       },
       unanswered: [],

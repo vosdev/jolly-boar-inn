@@ -458,6 +458,7 @@ export function previewShell(
     answered: 0,
     of: 0,
     waiting: [],
+    item_used: false,
   }
 }
 

@@ -1,5 +1,5 @@
 <script lang="ts" module>
-  import { itemName, type ItemPoints } from '../lib/heldItems'
+  import { itemName, signed, type ItemPoints } from '../lib/heldItems'
   import type { PlayerResult } from '../lib/protocol'
 
   const numbers = new Intl.NumberFormat('en-GB')
@@ -31,7 +31,7 @@
     const found =
       item === null
         ? ''
-        : `. ${itemName(item.item, item.charges)}, +${numbers.format(item.points)} more`
+        : `. ${itemName(item.item, item.charges)}, ${signed(item.points)} ${item.points < 0 ? 'taken back' : 'more'}`
     return said + found + (total === null ? '' : `. ${numbers.format(total)} in total.`)
   }
 </script>
@@ -102,7 +102,8 @@
     {#if item !== null}
       <span class="item-part"
         ><ItemIcon id={item.item} charges={item.charges} size={chip ? 18 : 22} label="" />
-        {itemName(item.item, item.charges)} +{numbers.format(item.points)}</span
+        {itemName(item.item, item.charges)}
+        {signed(item.points)}</span
       >
     {/if}
   </p>

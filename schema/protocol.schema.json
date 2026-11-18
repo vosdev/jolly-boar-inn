@@ -135,7 +135,8 @@
           "set_teams": "#/$defs/SetTeams",
           "set_tv": "#/$defs/SetTv",
           "skip": "#/$defs/Skip",
-          "start_game": "#/$defs/StartGame"
+          "start_game": "#/$defs/StartGame",
+          "use_item": "#/$defs/UseItem"
         },
         "propertyName": "t"
       },
@@ -148,6 +149,9 @@
         },
         {
           "$ref": "#/$defs/Answer"
+        },
+        {
+          "$ref": "#/$defs/UseItem"
         },
         {
           "$ref": "#/$defs/StartGame"
@@ -438,6 +442,30 @@
       "title": "Hello",
       "type": "object"
     },
+    "ItemUsed": {
+      "additionalProperties": false,
+      "description": "The wearer's item went into the open question, to them alone: everyone else sees it on\nthe reveal. A Book of Knowledge answer is followed by its ``answer_ack``.",
+      "properties": {
+        "t": {
+          "const": "item_used",
+          "default": "item_used",
+          "type": "string"
+        },
+        "question_id": {
+          "type": "string"
+        },
+        "item": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "t",
+        "question_id",
+        "item"
+      ],
+      "title": "ItemUsed",
+      "type": "object"
+    },
     "JoinRequestView": {
       "additionalProperties": false,
       "properties": {
@@ -623,6 +651,11 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "item_used": {
+          "default": false,
+          "description": "Whether this socket's player used their item on the question, so a reload keeps it\nspent. Only in their own ``welcome``; with the Book of Knowledge it means answered too.",
+          "type": "boolean"
         }
       },
       "required": [
@@ -641,7 +674,8 @@
         "you_can_answer",
         "answered",
         "of",
-        "waiting"
+        "waiting",
+        "item_used"
       ],
       "title": "OpenQuestion",
       "type": "object"
@@ -689,6 +723,11 @@
             }
           ],
           "description": "The item that added ``item_points``; null when none did."
+        },
+        "by_book": {
+          "default": false,
+          "description": "The Book of Knowledge gave this answer: full credit, and ``value`` null.",
+          "type": "boolean"
         }
       },
       "required": [
@@ -697,7 +736,8 @@
         "credit",
         "points",
         "item_points",
-        "item"
+        "item",
+        "by_book"
       ],
       "title": "PlayerResult",
       "type": "object"
@@ -1421,6 +1461,9 @@
           "$ref": "#/$defs/AnswerAck"
         },
         {
+          "$ref": "#/$defs/ItemUsed"
+        },
+        {
           "$ref": "#/$defs/AnswerCount"
         },
         {
@@ -1731,6 +1774,27 @@
         "previous_rank"
       ],
       "title": "TeamStanding",
+      "type": "object"
+    },
+    "UseItem": {
+      "additionalProperties": false,
+      "description": "Use the held item on the open question: one tap, no confirm.",
+      "properties": {
+        "t": {
+          "const": "use_item",
+          "type": "string"
+        },
+        "question_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "t",
+        "question_id"
+      ],
+      "title": "UseItem",
       "type": "object"
     },
     "Welcome": {

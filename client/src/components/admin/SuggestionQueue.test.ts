@@ -146,9 +146,18 @@ describe('SuggestionQueue', () => {
       result:
         value === null
           ? null
-          : { value, correct: true, credit: 1, points: 1000, item_points: 0, item: null },
+          : {
+              value,
+              correct: true,
+              credit: 1,
+              points: 1000,
+              item_points: 0,
+              item: null,
+              by_book: false,
+            },
       item_points: 0,
       item: null,
+      by_book: false,
     }))
     render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
     await fireEvent.click((await screen.findByText(/is not a Barrows brother/)).closest('button')!)

@@ -2,9 +2,10 @@
   /**
    * Your one inventory square at the head of the table column: the item's icon, its name,
    * what it does and when it goes. On the standings it is "You found", and the square is
-   * the Mystery Box opening, its words arriving as the box does.
+   * the Mystery Box opening, its words arriving as the box does. An item used on the question
+   * shows what it did in its line's place, its square spent, until the reveal ends.
    */
-  import { itemLine, itemName } from '../lib/heldItems'
+  import { afterUse, itemLine, itemName } from '../lib/heldItems'
   import type { HeldItem } from '../lib/protocol'
   import ItemIcon from './ItemIcon.svelte'
   import MysteryBox, { BOX_OPEN_MS } from './MysteryBox.svelte'
@@ -15,6 +16,7 @@
     title = null,
     box = null,
     bare = false,
+    used = false,
   }: {
     held: HeldItem
     /** "Gone after this round", or the next round's name on the standings. */
@@ -24,6 +26,8 @@
     box?: { opening: boolean; instant: boolean } | null
     /** No panel of its own: inside a sheet that already is one. */
     bare?: boolean
+    /** Used on this question. */
+    used?: boolean
   } = $props()
 
   const id = $props.id()
@@ -38,7 +42,7 @@
 >
   {#if title !== null}<h2 id="{id}-title">{title}</h2>{/if}
   <div class="held">
-    <span class="square" class:big={box !== null}>
+    <span class="square" class:big={box !== null} class:spent={used}>
       {#if box !== null}
         <MysteryBox
           item={held.id}
@@ -61,7 +65,7 @@
       style:--after="{BOX_OPEN_MS}ms"
     >
       <p class="name">{itemName(held.id, held.charges)}</p>
-      <p class="line">{itemLine(held.id)}</p>
+      <p class="line">{used ? afterUse(held.id) : itemLine(held.id)}</p>
       <p class="last">{last}</p>
     </div>
   </div>
@@ -96,6 +100,10 @@
     border: var(--border-width) solid var(--line);
     border-radius: var(--radius);
     background: var(--panel-raised);
+  }
+
+  .square.spent > :global(*) {
+    opacity: 0.45;
   }
 
   .square.big {

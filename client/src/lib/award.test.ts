@@ -7,7 +7,15 @@ import { NO_AWARD, awardFor, pinFor, verdictFor } from './award'
 describe('awardFor', () => {
   it('throws confetti for full credit', () => {
     expect(
-      awardFor({ value: 0, correct: true, credit: 1, points: 850, item_points: 0, item: null }),
+      awardFor({
+        value: 0,
+        correct: true,
+        credit: 1,
+        points: 850,
+        item_points: 0,
+        item: null,
+        by_book: false,
+      }),
     ).toEqual({
       kind: 'confetti',
       points: 850,
@@ -23,13 +31,22 @@ describe('awardFor', () => {
         points: 400,
         item_points: 0,
         item: null,
+        by_book: false,
       }),
     ).toEqual({
       kind: 'pin',
       points: 400,
     })
     expect(
-      awardFor({ value: 120, correct: false, credit: 0.3, points: 1, item_points: 0, item: null }),
+      awardFor({
+        value: 120,
+        correct: false,
+        credit: 0.3,
+        points: 1,
+        item_points: 0,
+        item: null,
+        by_book: false,
+      }),
     ).toEqual({
       kind: 'pin',
       points: 1,
@@ -38,7 +55,15 @@ describe('awardFor', () => {
 
   it('gives +0 and no answer nothing', () => {
     expect(
-      awardFor({ value: 1, correct: false, credit: 0, points: 0, item_points: 0, item: null }),
+      awardFor({
+        value: 1,
+        correct: false,
+        credit: 0,
+        points: 0,
+        item_points: 0,
+        item: null,
+        by_book: false,
+      }),
     ).toBe(NO_AWARD)
     expect(awardFor(null)).toBe(NO_AWARD)
   })
@@ -60,19 +85,43 @@ describe('verdictFor', () => {
   it('calls full credit right, some points partial, none wrong and no answer missed', () => {
     expect(
       verdictFor(
-        { value: 0, correct: true, credit: 1, points: 850, item_points: 0, item: null },
+        {
+          value: 0,
+          correct: true,
+          credit: 1,
+          points: 850,
+          item_points: 0,
+          item: null,
+          by_book: false,
+        },
         true,
       ),
     ).toBe('right')
     expect(
       verdictFor(
-        { value: 0, correct: false, credit: 0.4, points: 340, item_points: 0, item: null },
+        {
+          value: 0,
+          correct: false,
+          credit: 0.4,
+          points: 340,
+          item_points: 0,
+          item: null,
+          by_book: false,
+        },
         true,
       ),
     ).toBe('partial')
     expect(
       verdictFor(
-        { value: 0, correct: false, credit: 0, points: 0, item_points: 0, item: null },
+        {
+          value: 0,
+          correct: false,
+          credit: 0,
+          points: 0,
+          item_points: 0,
+          item: null,
+          by_book: false,
+        },
         true,
       ),
     ).toBe('wrong')

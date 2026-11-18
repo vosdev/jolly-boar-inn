@@ -188,6 +188,7 @@ class Submitted:
     grading writes them here, and the last two to the ``answers`` row. ``credit`` has no
     column: it goes out once with the reveal, and the table keeps what the standings are
     built from. ``item_points`` and ``item`` are what a worn item added beside ``points``.
+    ``by_book`` marks the Book of Knowledge's answer: ``value`` ``None``, full credit.
     """
 
     value: Any
@@ -198,6 +199,7 @@ class Submitted:
     points: int | None = None
     item_points: int = 0
     item: str | None = None
+    by_book: bool = False
 
 
 @dataclass(slots=True)
@@ -264,6 +266,9 @@ class RoomQuestion:
     answerable_mono: float | None = None
     ends_mono: float | None = None
     answers: dict[UUID, Submitted] = field(default_factory=dict)
+    used: dict[UUID, str] = field(default_factory=dict)
+    """The items players used on it while open, by player; memory only, since a question
+    open at a restart is voided and its items stay with their wearers."""
     _client_view: dict[str, Any] | None = field(default=None, repr=False, compare=False)
 
     @property
@@ -300,10 +305,11 @@ class RoomQuestion:
         picture: str | None = None,
         pictures: Mapping[str, str] | None = None,
         waiting: Iterable[str] = (),
+        item_used: bool = False,
     ) -> OpenQuestion:
         """The open question as a player sees it. ``count`` is ``_answer_count``'s,
-        ``pictures`` names the pictures the view shows inside it, and ``waiting`` is who is
-        still to answer."""
+        ``pictures`` names the pictures the view shows inside it, ``waiting`` is who is
+        still to answer, and ``item_used`` whether this player used their item on it."""
         assert self.shown_at is not None and self.ends_at is not None
         assert self.answerable_at is not None
         return OpenQuestion(
@@ -323,6 +329,7 @@ class RoomQuestion:
             answered=count[0],
             of=count[1],
             waiting=list(waiting),
+            item_used=item_used,
         )
 
 

@@ -9,18 +9,20 @@
    * strip says "5 of 9 got it right" with the faces of who did.
    *
    * The item you found heads the panel, and on a phone is a square at the strip's right
-   * end that opens what it does.
+   * end that opens what it does. An item you use has its button under the slot, and on a
+   * phone a bar over the strip (`ItemUse`).
    */
   import type { Snippet } from 'svelte'
   import { GONE_THIS_ROUND, itemName, shownItems } from '../lib/heldItems'
 
   import { petOf } from '../lib/pets'
-  import type { PlayerResult, PlayerView } from '../lib/protocol'
+  import type { OpenQuestion, PlayerResult, PlayerView } from '../lib/protocol'
   import { Seating } from '../lib/tableGroups'
   import type { TeamId } from '../lib/teams'
   import Icon from './Icon.svelte'
   import ItemIcon from './ItemIcon.svelte'
   import ItemSlot from './ItemSlot.svelte'
+  import ItemUse from './ItemUse.svelte'
   import Pet from './Pet.svelte'
   import Sheet from './Sheet.svelte'
   import TablePanel from './TablePanel.svelte'
@@ -36,6 +38,10 @@
     stacked = false,
     unanswered = [],
     outcome,
+    openQuestion = null,
+    answered = false,
+    used = null,
+    onUse = () => {},
   }: {
     players: PlayerView[]
     youId: string | null
@@ -52,6 +58,13 @@
     unanswered?: string[]
     /** The reveal's results, which take the panel's place. */
     outcome?: Snippet
+    /** The question while it is open, for the item's button; null in its reveal. */
+    openQuestion?: OpenQuestion | null
+    /** We have answered it. */
+    answered?: boolean
+    /** The item we used on it, through its reveal. */
+    used?: string | null
+    onUse?: () => void
   } = $props()
 
   const FACES = 4
@@ -100,7 +113,9 @@
   const held = $derived(
     youId === null
       ? null
-      : ($shownItems.get(youId) ?? players.find((player) => player.id === youId)?.item ?? null),
+      : ($shownItems.get(youId) ??
+          players.find((player) => player.id === youId)?.item ??
+          (used === null ? null : { id: used, charges: null })),
   )
   let itemOpen = $state(false)
 
@@ -118,7 +133,12 @@
 {/snippet}
 
 {#if !stacked}
-  {#if held !== null}<ItemSlot {held} last={GONE_THIS_ROUND} />{/if}
+  {#if held !== null}
+    <div class="slot">
+      <ItemSlot {held} last={GONE_THIS_ROUND} used={used === held.id} />
+      <ItemUse {held} question={openQuestion} {answered} {used} {onUse} />
+    </div>
+  {/if}
   {@render panel()}
 {:else}
   {#if held !== null}
@@ -140,10 +160,11 @@
             <Icon name="close" />
           </button>
         </div>
-        <ItemSlot {held} last={GONE_THIS_ROUND} bare />
+        <ItemSlot {held} last={GONE_THIS_ROUND} used={used === held.id} bare />
       </Sheet>
     {/if}
   {/if}
+  <ItemUse {held} question={openQuestion} {answered} {used} {onUse} bar />
   <button
     type="button"
     class="strip"
@@ -174,6 +195,12 @@
 {/if}
 
 <style>
+  .slot {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
   .strip {
     position: fixed;
     right: 0.75rem;

@@ -11,6 +11,7 @@ export type ClientMessage =
   | Hello
   | Ping
   | Answer
+  | UseItem
   | StartGame
   | Skip
   | Promote
@@ -34,6 +35,7 @@ export type ServerMessage =
   | PlayersUpdated
   | QuestionOpen
   | AnswerAck
+  | ItemUsed
   | AnswerCount
   | QuestionClosed
   | GameFinished
@@ -55,6 +57,13 @@ export interface Answer {
   t: 'answer'
   question_id: string
   value: unknown
+}
+/**
+ * Use the held item on the open question: one tap, no confirm.
+ */
+export interface UseItem {
+  t: 'use_item'
+  question_id: string
 }
 export interface StartGame {
   t: 'start_game'
@@ -516,6 +525,11 @@ export interface OpenQuestion {
    * what anyone answered. The TV's waiting panel shows them; `answer_count` keeps it current.
    */
   waiting: string[]
+  /**
+   * Whether this socket's player used their item on the question, so a reload keeps it
+   * spent. Only in their own `welcome`; with the Book of Knowledge it means answered too.
+   */
+  item_used: boolean
 }
 export interface Standing {
   player_id: string
@@ -594,6 +608,15 @@ export interface AnswerAck {
   of: number
 }
 /**
+ * The wearer's item went into the open question, to them alone: everyone else sees it on
+ * the reveal. A Book of Knowledge answer is followed by its `answer_ack`.
+ */
+export interface ItemUsed {
+  t: 'item_used'
+  question_id: string
+  item: string
+}
+/**
  * The open question's count moved: how many have answered, of how many can, and who is
  * still to. Sent on another player's answer, connect, disconnect or kick.
  *
@@ -665,6 +688,10 @@ export interface PlayerResult {
    * The item that added `item_points`; null when none did.
    */
   item: string | null
+  /**
+   * The Book of Knowledge gave this answer: full credit, and `value` null.
+   */
+  by_book: boolean
 }
 /**
  * What an item's `settle` added to one player's round, for its line on the reveal.

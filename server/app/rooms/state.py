@@ -746,6 +746,7 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
                     self._open_picture(question),
                     self._pictures(question),
                     _waiting(room, question),
+                    player.id in question.used,
                 )
                 if question is not None and segment is not None
                 else None
@@ -989,17 +990,7 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
             # and the insert below would fail on its foreign key.
             if player.id not in room.players:
                 raise Excluded("you are no longer in this room")
-            question = room.open_question()
-            if room.status != "playing" or question is None or question.closed_at is not None:
-                raise NotOpen("no question is open")
-            if str(question.id) != question_id:
-                raise NotOpen(f"question {question_id} is not the open one")
-            # Both set when the question opened.
-            assert question.answerable_mono is not None and question.ends_mono is not None
-            if arrived < question.answerable_mono:
-                raise NotOpen("this question is not taking answers yet")
-            if arrived >= question.ends_mono:
-                raise NotOpen("this question's time is up")
+            question = _taking(room, question_id, arrived)
             if player.id in question.answers:
                 raise AlreadyAnswered("you have already answered this question")
             if not room.can_answer(question, player.id):
@@ -1008,20 +999,7 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
             value = TYPES[question.type].parse_value(question.payload, value)
             if value is None:
                 raise BadValue(f"not a valid answer to a {question.type} question")
-            elapsed = arrived - question.answerable_mono
-            # The question's own length, not the room's setting: a mode that caps itself
-            # at ten seconds must score on ten seconds, or every answer to it lands in
-            # the fastest bucket of a room set to a minute.
-            assert question.seconds is not None  # set when the question opened
-            how = question.scoring
-            band = scoring.band(
-                how,
-                elapsed,
-                question.seconds,
-                question.steps,
-                team=bool(room.settings.teams),
-                grace=grace_of(question.type),
-            )
+            how, band = question.scoring, _band(room, question, arrived)
             async with pool.acquire() as conn:
                 try:
                     await conn.execute(
@@ -1042,6 +1020,72 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
             others = Broadcast.to_all(room, counted.model_dump(mode="json"), exclude=player.id)
         self._broadcast(others)
         return how, band, count
+
+    async def use_item(
+        self, code: str, player: Player, question_id: str
+    ) -> tuple[str, tuple[Scoring, int | None, tuple[int, int]] | None]:
+        """Use the player's item on the open question; returns the item, and for the Book of
+        Knowledge how its answer is scored, its band and the room's count, as an answer's.
+
+        Refused outside the open question's answering time (``not_open``), once answered for
+        an item used before answering (``already_answered``), and without a usable item, on
+        a type the item refuses or a question the player cannot answer (``bad_state``).
+
+        The use stays in memory until the close pays it and empties the slot: a restart
+        voids the open question, and the item is still the wearer's. The Book's answer is
+        written at once, as any answer is, with no value and timed at the tap.
+        """
+        code = code.upper()
+        received_at, arrived = datetime.now(UTC), self.clock()
+        pool = await self._pool()
+        async with self._locked(code):
+            room = await self._room(code)
+            if player.id not in room.players:
+                raise Excluded("you are no longer in this room")
+            question = _taking(room, question_id, arrived)
+            worn = room.players[player.id].item
+            segment = room.current_segment
+            item = None if worn is None else items.by_id(self.items, worn.item)
+            if (
+                worn is None
+                or item is None
+                or item.use is None
+                or segment is None
+                or worn.round != segment.index
+                or player.id in question.used
+            ):
+                raise BadState("you have no item to use")
+            use = item.use
+            if question.type in use.refused_on or not room.can_answer(question, player.id):
+                raise BadState(f"the {item.id} does nothing on this question")
+            if use.before_answer and player.id in question.answers:
+                raise AlreadyAnswered("you have already answered this question")
+            if not use.answers:
+                question.used[player.id] = item.id
+                return item.id, None
+            how, band = question.scoring, _band(room, question, arrived)
+            async with pool.acquire() as conn:
+                try:
+                    await conn.execute(
+                        "insert into answers (question_id, player_id, value, received_at, by_book)"
+                        " values ($1, $2, 'null'::jsonb, $3, true)",
+                        question.id,
+                        player.id,
+                        received_at,
+                    )
+                except asyncpg.UniqueViolationError:  # a row this room never loaded
+                    raise AlreadyAnswered("you have already answered this question") from None
+            question.used[player.id] = item.id
+            question.answers[player.id] = Submitted(
+                value=None, received_at=received_at, band=band, by_book=True
+            )
+            _close_if_everyone_answered(room)
+            count = _answer_count(room, question)
+            counted = _counted(room)
+            assert counted is not None  # the question this answer went to is open
+            others = Broadcast.to_all(room, counted.model_dump(mode="json"), exclude=player.id)
+        self._broadcast(others)
+        return item.id, (how, band, count)
 
     async def rotate_key(self, code: str, by: Player) -> None:
         """Admin: replace an invite-only room's key, so links holding the old one stop working.
@@ -1155,6 +1199,7 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
             room.totals.pop(player_id, None)
             for question in room.questions:
                 question.answers.pop(player_id, None)
+                question.used.pop(player_id, None)
             socket = room.sockets.pop(player_id, None)
             _recount_splash(room, self.clock())
             _close_if_everyone_answered(room)
@@ -1176,6 +1221,39 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
             for outbox in room.sockets.values():
                 outbox.cancel()
         await asyncio.gather(*timers, return_exceptions=True)
+
+
+def _taking(room: Room, question_id: str, arrived: float) -> RoomQuestion:
+    """The open question, if it is ``question_id`` and takes answers at ``arrived``. Lock held."""
+    question = room.open_question()
+    if room.status != "playing" or question is None or question.closed_at is not None:
+        raise NotOpen("no question is open")
+    if str(question.id) != question_id:
+        raise NotOpen(f"question {question_id} is not the open one")
+    # Both set when the question opened.
+    assert question.answerable_mono is not None and question.ends_mono is not None
+    if arrived < question.answerable_mono:
+        raise NotOpen("this question is not taking answers yet")
+    if arrived >= question.ends_mono:
+        raise NotOpen("this question's time is up")
+    return question
+
+
+def _band(room: Room, question: RoomQuestion, arrived: float) -> int | None:
+    """The band of an answer arriving at ``arrived`` ("Scoring"). Lock held."""
+    assert question.answerable_mono is not None
+    # The question's own length, not the room's setting: a mode that caps itself at ten
+    # seconds must score on ten seconds, or every answer to it lands in the fastest bucket
+    # of a room set to a minute.
+    assert question.seconds is not None  # set when the question opened
+    return scoring.band(
+        question.scoring,
+        arrived - question.answerable_mono,
+        question.seconds,
+        question.steps,
+        team=bool(room.settings.teams),
+        grace=grace_of(question.type),
+    )
 
 
 def _stop_flush(room: Room) -> None:

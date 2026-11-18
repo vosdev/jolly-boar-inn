@@ -45,6 +45,7 @@ function open(
     answered: 0,
     of: 0,
     waiting: [],
+    item_used: false,
   }
 }
 
@@ -99,7 +100,15 @@ describe('multiple_choice', () => {
       question: open(),
       reveal: REVEAL,
       yourValue: 1,
-      result: { value: 1, correct: false, credit: 0, points: 0, item_points: 0, item: null },
+      result: {
+        value: 1,
+        correct: false,
+        credit: 0,
+        points: 0,
+        item_points: 0,
+        item: null,
+        by_book: false,
+      },
       onAnswer: () => {},
     })
     const buttons = screen.getAllByRole('button')
@@ -116,7 +125,15 @@ describe('multiple_choice', () => {
       question: open(),
       reveal: { ...VIEW, answer_index: 0 },
       yourValue: 0,
-      result: { value: 0, correct: true, credit: 1, points: 800, item_points: 0, item: null },
+      result: {
+        value: 0,
+        correct: true,
+        credit: 1,
+        points: 800,
+        item_points: 0,
+        item: null,
+        by_book: false,
+      },
       onAnswer: () => {},
     })
     expect(screen.getAllByRole('button')[0]!.classList.contains('correct')).toBe(true)

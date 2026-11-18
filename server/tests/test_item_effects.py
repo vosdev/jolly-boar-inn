@@ -302,6 +302,10 @@ def test_the_items_and_their_tiers() -> None:
         ("super_restore", "mild", 4),
         ("ring_of_life", "strong", None),
         ("phoenix_necklace", "strong", None),
+        ("kebab", "mild", None),
+        ("ring_of_charos", "mild", None),
+        ("book_of_knowledge", "strong", None),
+        ("xp_lamp", "strong", None),
     }
 
 

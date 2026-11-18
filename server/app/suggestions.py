@@ -442,6 +442,7 @@ def trial(content: dict[str, Any], value: Any) -> dict[str, Any]:
         "points": points,
         "item_points": 0,
         "item": None,
+        "by_book": False,
     }
     return {"view": view, "reveal": reveal, "result": result}
 

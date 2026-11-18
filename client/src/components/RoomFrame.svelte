@@ -150,6 +150,11 @@
     padding-bottom: 4.5rem;
   }
 
+  /* And for an item's bar over it. */
+  .frame:not(.fitted):has(:global(.item-bar)) {
+    padding-bottom: 8.5rem;
+  }
+
   /* Stacked, the table follows the stage in the reading column. */
   .frame:not(.fitted) .table {
     max-width: 30rem;

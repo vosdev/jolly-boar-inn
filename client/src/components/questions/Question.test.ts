@@ -70,6 +70,7 @@ function open(type: string, mode: string, view: Record<string, unknown> = VIEW):
     answered: 0,
     of: 0,
     waiting: [],
+    item_used: false,
   }
 }
 
@@ -128,6 +129,7 @@ describe('Question', () => {
         points: 900,
         item_points: 0,
         item: null,
+        by_book: false,
       },
       onAnswer,
     })
@@ -452,7 +454,15 @@ describe('every type on the stage', () => {
 
   it('keeps no points foot on the sheet, open or revealed', () => {
     const question = open('more_less', 'more_less')
-    const result = { value: 0, correct: true, credit: 1, points: 850, item_points: 0, item: null }
+    const result = {
+      value: 0,
+      correct: true,
+      credit: 1,
+      points: 850,
+      item_points: 0,
+      item: null,
+      by_book: false,
+    }
     const { unmount } = render(QuestionStage, { question, yourValue: null, onAnswer })
     expect(paper().querySelector('.foot, .said, .slot')).toBeNull()
     unmount()
@@ -571,7 +581,15 @@ describe('every type on the stage', () => {
 
   it('has the host react in its bubble, undimmed, and your points on a chip on its name row', () => {
     const question = open('more_less', 'more_less')
-    const result = { value: 0, correct: true, credit: 1, points: 850, item_points: 0, item: null }
+    const result = {
+      value: 0,
+      correct: true,
+      credit: 1,
+      points: 850,
+      item_points: 0,
+      item: null,
+      by_book: false,
+    }
     render(QuestionStage, { question, reveal: REVEAL, yourValue: 0, result, onAnswer })
     expect(bubble().classList.contains('on')).toBe(true)
     expect(said()).toContain(pickLines(MODES.more_less!, question, { verdict: 'right' }).reveal)
@@ -592,17 +610,41 @@ describe('every type on the stage', () => {
     const cases = [
       [
         'right',
-        { value: 0, correct: true, credit: 1, points: 850, item_points: 0, item: null },
+        {
+          value: 0,
+          correct: true,
+          credit: 1,
+          points: 850,
+          item_points: 0,
+          item: null,
+          by_book: false,
+        },
         '+850',
       ],
       [
         'partial',
-        { value: 0, correct: false, credit: 0.5, points: 340, item_points: 0, item: null },
+        {
+          value: 0,
+          correct: false,
+          credit: 0.5,
+          points: 340,
+          item_points: 0,
+          item: null,
+          by_book: false,
+        },
         '+340',
       ],
       [
         'wrong',
-        { value: 1, correct: false, credit: 0, points: 0, item_points: 0, item: null },
+        {
+          value: 1,
+          correct: false,
+          credit: 0,
+          points: 0,
+          item_points: 0,
+          item: null,
+          by_book: false,
+        },
         '+0',
       ],
       ['missed', null, 'No answer · +0'],
@@ -887,6 +929,7 @@ describe('the pin', () => {
       points: 850,
       item_points: 0,
       item: null,
+      by_book: false,
     })
     expect(award()?.dataset.award).toBe('confetti')
     expect(award()!.querySelectorAll('.confetti i')).toHaveLength(16)
@@ -900,6 +943,7 @@ describe('the pin', () => {
       points: 300,
       item_points: 0,
       item: null,
+      by_book: false,
     })
     expect(award()?.dataset.award).toBe('pin')
     expect(award()!.querySelector('.confetti')).toBeNull()
@@ -914,6 +958,7 @@ describe('the pin', () => {
       points: 300,
       item_points: 0,
       item: null,
+      by_book: false,
     })
     expect(mark()).toBe('star')
     cleanup()
@@ -927,6 +972,7 @@ describe('the pin', () => {
         points: 300,
         item_points: 0,
         item: null,
+        by_book: false,
       })
       expect(mark()).toBe('skull')
       cleanup()
@@ -937,6 +983,7 @@ describe('the pin', () => {
         points: 850,
         item_points: 0,
         item: null,
+        by_book: false,
       })
       expect(mark()).toBe('skull')
     } finally {
@@ -952,6 +999,7 @@ describe('the pin', () => {
       points: 0,
       item_points: 0,
       item: null,
+      by_book: false,
     })
     expect(award()).toBeNull()
     cleanup()
@@ -1058,6 +1106,7 @@ describe('a phone while the TV shows the question', () => {
         points: 0,
         item_points: 0,
         item: null,
+        by_book: false,
       },
       ann: {
         value: 0,
@@ -1066,6 +1115,7 @@ describe('a phone while the TV shows the question', () => {
         points: 700,
         item_points: 0,
         item: null,
+        by_book: false,
       },
       bob: {
         value: 0,
@@ -1074,6 +1124,7 @@ describe('a phone while the TV shows the question', () => {
         points: 650,
         item_points: 0,
         item: null,
+        by_book: false,
       },
     }
     render(QuestionStage, {
@@ -1096,7 +1147,15 @@ describe('a phone while the TV shows the question', () => {
 
   it('reveals the points you scored', () => {
     const question = open('more_less', 'more_less')
-    const result = { value: 0, correct: true, credit: 1, points: 850, item_points: 0, item: null }
+    const result = {
+      value: 0,
+      correct: true,
+      credit: 1,
+      points: 850,
+      item_points: 0,
+      item: null,
+      by_book: false,
+    }
     render(QuestionStage, {
       question,
       reveal: REVEAL,
@@ -1178,7 +1237,15 @@ describe("the room's TV", () => {
 
   it('says the room’s reveal line and shows no chip, though its player could answer', () => {
     const question = { ...watching, you_can_answer: true }
-    const result = { value: 0, correct: true, credit: 1, points: 850, item_points: 0, item: null }
+    const result = {
+      value: 0,
+      correct: true,
+      credit: 1,
+      points: 850,
+      item_points: 0,
+      item: null,
+      by_book: false,
+    }
     render(QuestionStage, {
       question,
       reveal: { ...VIEW_TV, answer_index: 0 },
@@ -1239,6 +1306,7 @@ describe("the room's TV", () => {
             points: 1000,
             item_points: 0,
             item: null,
+            by_book: false,
           },
           Dave: {
             value: { x: 0.9, y: 0.1 },
@@ -1247,6 +1315,7 @@ describe("the room's TV", () => {
             points: 0,
             item_points: 0,
             item: null,
+            by_book: false,
           },
         },
         onAnswer,
@@ -1328,5 +1397,42 @@ describe('the sheet holds only the question', () => {
     }
     render(QuestionStage, { question: event, yourValue: 0, onAnswer })
     expect(document.body.textContent).not.toContain('Answer in')
+  })
+})
+
+describe('a Book of Knowledge answer', () => {
+  it('swaps the answers for the book’s line and a spent Answered while open', () => {
+    render(Question, {
+      question: open('more_less', 'more_less'),
+      yourValue: null,
+      booked: true,
+      onAnswer,
+    })
+    expect(
+      screen.getByText("The book answered for you. You'll see how on the reveal."),
+    ).toBeTruthy()
+    const answered = screen.getByRole('button', { name: 'Answered' }) as HTMLButtonElement
+    expect(answered.disabled).toBe(true)
+    expect(screen.queryByRole('button', { name: /Abyssal whip/ })).toBeNull()
+  })
+
+  it('says on the reveal that the book answered', () => {
+    const result: PlayerResult = {
+      value: null,
+      correct: true,
+      credit: 1,
+      points: 900,
+      item_points: 0,
+      item: null,
+      by_book: true,
+    }
+    render(Question, {
+      question: open('more_less', 'more_less'),
+      reveal: REVEAL,
+      yourValue: null,
+      result,
+      onAnswer,
+    })
+    expect(screen.getByText('Answered by the Book of Knowledge')).toBeTruthy()
   })
 })

@@ -4,9 +4,10 @@ A close adds to its question's row inside the transaction that writes ``answers.
 so a close that rolls back adds nothing. It sums credit, not points: speed buckets and team
 games would skew points. Only hand-written pack questions count, the NPCs' included: no
 host or voided question, and no price mode, whose pack is regenerated from the roster.
-Admins' answers are left out, and so is a close with fewer than two other players, since a
-solo player learns the questions by repeating them. A daily room's one player counts while
-connected: a daily is played once, so each answer is a first sight.
+Admins' answers and the Book of Knowledge's are left out, and so is a close with fewer than
+two other players, since a solo player learns the questions by repeating them. A daily
+room's one player counts while connected: a daily is played once, so each answer is a first
+sight.
 """
 
 from collections.abc import Iterable, Mapping
@@ -39,7 +40,9 @@ def players(room: Room, question: RoomQuestion, credit: Mapping[UUID, float]) ->
     if not counts(question):
         return set()
     present = {pid for pid in room.sockets if room.can_answer(question, pid)} | set(credit)
-    counted = {pid for pid in present if not room.is_admin(pid)}
+    # The Book of Knowledge answered for them: neither an answer of theirs nor a miss.
+    booked = {pid for pid, answer in question.answers.items() if answer.by_book}
+    counted = {pid for pid in present - booked if not room.is_admin(pid)}
     if len(counted) < (1 if room.daily is not None else MIN_PLAYERS):
         return set()
     return counted

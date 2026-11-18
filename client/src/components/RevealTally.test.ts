@@ -48,6 +48,7 @@ const right = (value: unknown = 0, points = 900): PlayerResult => ({
   points,
   item_points: 0,
   item: null,
+  by_book: false,
 })
 const wrong = (value: unknown = 1): PlayerResult => ({
   value,
@@ -56,6 +57,7 @@ const wrong = (value: unknown = 1): PlayerResult => ({
   points: 0,
   item_points: 0,
   item: null,
+  by_book: false,
 })
 const partly = (credit: number, value: unknown = 1): PlayerResult => ({
   value,
@@ -64,6 +66,7 @@ const partly = (credit: number, value: unknown = 1): PlayerResult => ({
   points: Math.round(900 * credit),
   item_points: 0,
   item: null,
+  by_book: false,
 })
 
 const text = (element: Element | null | undefined) =>
@@ -98,6 +101,7 @@ const picks = (answer: number[], value: number[]): PlayerResult => {
     points: Math.round(900 * credit),
     item_points: 0,
     item: null,
+    by_book: false,
   }
 }
 
@@ -152,8 +156,17 @@ describe('RevealTally', () => {
           points: 300,
           item_points: 0,
           item: null,
+          by_book: false,
         },
-        b: { value: 9_000_000, correct: false, credit: 0, points: 0, item_points: 0, item: null },
+        b: {
+          value: 9_000_000,
+          correct: false,
+          credit: 0,
+          points: 0,
+          item_points: 0,
+          item: null,
+          by_book: false,
+        },
       },
       { type: 'price_is_right', reveal: { value: 1_200_000, min: 900_000, max: 2_000_000 } },
     ).container
@@ -177,8 +190,24 @@ describe('RevealTally', () => {
   it('groups slider guesses by closeness, written with their unit', () => {
     const { container } = draw(
       {
-        a: { value: 1_500, correct: false, credit: 0.6, points: 480, item_points: 0, item: null },
-        b: { value: 90, correct: false, credit: 0, points: 0, item_points: 0, item: null },
+        a: {
+          value: 1_500,
+          correct: false,
+          credit: 0.6,
+          points: 480,
+          item_points: 0,
+          item: null,
+          by_book: false,
+        },
+        b: {
+          value: 90,
+          correct: false,
+          credit: 0,
+          points: 0,
+          item_points: 0,
+          item: null,
+          by_book: false,
+        },
       },
       {
         type: 'number_slider',
@@ -379,6 +408,7 @@ describe('RevealTally', () => {
       points: Math.round(900 * credit),
       item_points: 0,
       item: null,
+      by_book: false,
     })
     const { container } = draw(
       {
@@ -468,6 +498,7 @@ describe('RevealTally in a team game', () => {
     points,
     item_points: 0,
     item: null,
+    by_book: false,
   })
 
   function drawTeams(results: Record<string, PlayerResult>, teamOf: Record<string, TeamId>) {
@@ -542,5 +573,27 @@ describe('RevealTally items', () => {
       expect(rows).toEqual(['Woox (you) Ring of Life +380', 'Zezima Super restore (4) +140'])
       unmount()
     }
+  })
+
+  it('lists a Book answer and a charmed miss for everyone', () => {
+    const { container } = render(RevealTally, {
+      type: 'multiple_choice',
+      reveal: { options: ['A', 'B'], answer: 0 },
+      results: { a: right(0, 540), b: right(0, 800) },
+      nameOf,
+      youId: null,
+      showNames: true,
+      panel: true,
+      items: [
+        { playerId: 'a', item: 'ring_of_charos', charges: null, points: -540 },
+        { playerId: 'b', item: 'book_of_knowledge', charges: null, points: 800, byBook: true },
+      ],
+    })
+    const rows = [...container.querySelectorAll('.items li')].map((row) => {
+      const copy = row.cloneNode(true) as HTMLElement
+      copy.querySelectorAll('.item-icon').forEach((icon) => icon.remove())
+      return copy.textContent?.replace(/\s+/g, ' ').trim()
+    })
+    expect(rows).toEqual(['Woox Book of Knowledge +800', 'Zezima Ring of Charos (a) \u2212540'])
   })
 })

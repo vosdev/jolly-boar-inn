@@ -110,6 +110,7 @@ const QUESTION: OpenQuestion = {
   answered: 0,
   of: 0,
   waiting: [],
+  item_used: false,
 }
 
 beforeEach(() => {

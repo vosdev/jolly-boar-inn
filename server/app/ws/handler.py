@@ -18,8 +18,8 @@ Only a frame we cannot parse closes the socket, or a call that fails some other 
 database blip), which closes it with ``1011`` for the client to reconnect. A socket whose
 outbox is already closing (replaced, kicked, restarted) has its frames dropped.
 
-Commands other than ``answer`` and ``ping`` have no direct reply. What they did reaches
-every client, the sender included, through the broadcasts the manager sends.
+Commands other than ``answer``, ``use_item`` and ``ping`` have no direct reply. What they
+did reaches every client, the sender included, through the broadcasts the manager sends.
 
 After the handshake nothing here writes to the socket directly: replies and closes go
 through the socket's ``Outbox``, behind the broadcasts already queued on it.
@@ -359,13 +359,14 @@ async def _serve(
             if outbox.close(CLOSE_INTERNAL, "server error, reconnect"):
                 metrics.WS_DISCONNECTS.labels(reason="internal_error").inc()
             return
-        if reply is not None and not outbox.put(reply.model_dump(mode="json")):
+        replies = reply if isinstance(reply, tuple) else () if reply is None else (reply,)
+        if not all(outbox.put(each.model_dump(mode="json")) for each in replies):
             return
 
 
 async def _dispatch(
     manager: RoomManager, code: str, player: Player, message: protocol.ClientMessage
-) -> protocol.ServerMessage | None:
+) -> protocol.ServerMessage | tuple[protocol.ServerMessage, ...] | None:
     """Run one client message. ``None`` when the broadcasts say everything there is."""
     match message:
         case protocol.Ping():
@@ -375,6 +376,15 @@ async def _dispatch(
                 code, player, message.question_id, message.value
             )
             return protocol.AnswerAck(
+                question_id=message.question_id, scoring=how, band=band, answered=answered, of=of
+            )
+        case protocol.UseItem():
+            item, ack = await manager.use_item(code, player, message.question_id)
+            used = protocol.ItemUsed(question_id=message.question_id, item=item)
+            if ack is None:
+                return used
+            how, band, (answered, of) = ack
+            return used, protocol.AnswerAck(
                 question_id=message.question_id, scoring=how, band=band, answered=answered, of=of
             )
         case protocol.StartGame():

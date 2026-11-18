@@ -241,6 +241,7 @@ describe('samples', () => {
       points: 1000,
       item_points: 0,
       item: null,
+      by_book: false,
     })
     expect(sampleResult(sample, sample.answer + 1, 1000)).toMatchObject({
       correct: false,

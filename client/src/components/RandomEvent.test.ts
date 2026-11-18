@@ -39,6 +39,7 @@ function event(patch: Partial<OpenQuestion> = {}): OpenQuestion {
     answered: 0,
     of: 0,
     waiting: [],
+    item_used: false,
     ...patch,
   }
 }
@@ -437,6 +438,7 @@ describe('the NPC’s own words', () => {
         points: 900,
         item_points: 0,
         item: null,
+        by_book: false,
       },
       onAnswer: () => {},
     })
@@ -459,6 +461,7 @@ describe('the NPC’s own words', () => {
         points: 900,
         item_points: 0,
         item: null,
+        by_book: false,
       },
       onAnswer: () => {},
     })
@@ -526,12 +529,28 @@ describe('the NPC’s own words', () => {
   it.each([
     [
       'an answer that scored',
-      { value: 1, correct: true, credit: 1, points: 900, item_points: 0, item: null },
+      {
+        value: 1,
+        correct: true,
+        credit: 1,
+        points: 900,
+        item_points: 0,
+        item: null,
+        by_book: false,
+      },
       death.right,
     ],
     [
       'a wrong answer',
-      { value: 0, correct: false, credit: 0, points: 0, item_points: 0, item: null },
+      {
+        value: 0,
+        correct: false,
+        credit: 0,
+        points: 0,
+        item_points: 0,
+        item: null,
+        by_book: false,
+      },
       death.wrong,
     ],
     ['no answer', null, death.wrong],

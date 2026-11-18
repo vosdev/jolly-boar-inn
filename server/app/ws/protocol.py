@@ -259,6 +259,10 @@ class OpenQuestion(_Message):
     """Who is still to answer, as player ids: connected, allowed to, and not yet in. Never
     what anyone answered. The TV's waiting panel shows them; ``answer_count`` keeps it current.
     """
+    item_used: bool = False
+    """Whether this socket's player used their item on the question, so a reload keeps it
+    spent. Only in their own ``welcome``; with the Book of Knowledge it means answered too.
+    """
 
 
 # --- Client → server --------------------------------------------------------------
@@ -277,6 +281,13 @@ class Answer(_Message):
     t: Literal["answer"]
     question_id: str = Field(min_length=1, max_length=200)
     value: Any
+
+
+class UseItem(_Message):
+    """Use the held item on the open question: one tap, no confirm."""
+
+    t: Literal["use_item"]
+    question_id: str = Field(min_length=1, max_length=200)
 
 
 class StartGame(_Message):
@@ -405,6 +416,7 @@ ClientMessage = Annotated[
     Hello
     | Ping
     | Answer
+    | UseItem
     | StartGame
     | Skip
     | Promote
@@ -498,6 +510,15 @@ class AnswerAck(_Message):
     of: int
 
 
+class ItemUsed(_Message):
+    """The wearer's item went into the open question, to them alone: everyone else sees it on
+    the reveal. A Book of Knowledge answer is followed by its ``answer_ack``."""
+
+    t: Literal["item_used"] = "item_used"
+    question_id: str
+    item: str
+
+
 class AnswerCount(_Message):
     """The open question's count moved: how many have answered, of how many can, and who is
     still to. Sent on another player's answer, connect, disconnect or kick.
@@ -531,6 +552,8 @@ class PlayerResult(_Message):
     item_points: int
     item: str | None
     """The item that added ``item_points``; null when none did."""
+    by_book: bool = False
+    """The Book of Knowledge gave this answer: full credit, and ``value`` null."""
 
 
 class SettledItem(_Message):
@@ -586,6 +609,7 @@ ServerMessage = (
     | PlayersUpdated
     | QuestionOpen
     | AnswerAck
+    | ItemUsed
     | AnswerCount
     | QuestionClosed
     | GameFinished

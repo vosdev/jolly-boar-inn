@@ -37,6 +37,7 @@ function open(view: Record<string, unknown> = VIEW, youCanAnswer = true): OpenQu
     answered: 0,
     of: 0,
     waiting: [],
+    item_used: false,
   }
 }
 
@@ -247,6 +248,7 @@ describe('pick_all_that_apply', () => {
         points: 300,
         item_points: 0,
         item: null,
+        by_book: false,
       },
       onAnswer: () => {},
     })

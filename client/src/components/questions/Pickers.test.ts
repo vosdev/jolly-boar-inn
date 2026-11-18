@@ -38,6 +38,7 @@ function picked(value: unknown, correct: boolean): PlayerResult {
     points: correct ? 800 : 0,
     item_points: 0,
     item: null,
+    by_book: false,
   }
 }
 
@@ -59,6 +60,7 @@ function open(type: string, view: Record<string, unknown>): OpenQuestion {
     answered: 0,
     of: 0,
     waiting: [],
+    item_used: false,
   }
 }
 

@@ -69,6 +69,7 @@
     question,
     reveal = null,
     yourValue,
+    booked = false,
     result = null,
     item = null,
     results = null,
@@ -86,6 +87,8 @@
     /** `question_closed.reveal`, or null while the question is open. */
     reveal?: Record<string, unknown> | null
     yourValue: unknown
+    /** The Book of Knowledge answered for you while the question is open. */
+    booked?: boolean
     result?: PlayerResult | null
     /** What your item added on this close, beside your points. */
     item?: ItemPoints | null
@@ -153,7 +156,8 @@
   )
   const typist = new Typist(() => letters, plan, startedAt)
   /** What the bubble says now; the others keep their room in it unseen. */
-  const spoken = $derived(reveal !== null ? revealLine : yourValue !== null ? waitingLine : askLine)
+  const answered = $derived(yourValue !== null || booked)
+  const spoken = $derived(reveal !== null ? revealLine : answered ? waitingLine : askLine)
   const answerable = new Until(() => answerableMs)
   const held = $derived(reveal === null && !answerable.passed)
   /** The TV's reveal fading off its panel, so the next question starts from an empty one. */
@@ -193,7 +197,7 @@
     within={reveal === null ? holdMs : Infinity}
     paper={sheet}
     said={tv ? undefined : said}
-    bubble={tv ? null : reveal === null && yourValue !== null ? 'dim' : 'on'}
+    bubble={tv ? null : reveal === null && answered ? 'dim' : 'on'}
     award={reveal === null || tv ? NO_AWARD : awardFor(result)}
     {tv}
     map={onMap ? (reveal === null ? 'open' : 'reveal') : null}
@@ -257,7 +261,7 @@
       {#if answers === null}{@render stem()}{:else}{@render answers()}{/if}
     </section>
   {/if}
-  {#if reveal === null && yourValue !== null}
+  {#if reveal === null && answered}
     <p class="host-line">{lines.waiting}</p>
   {/if}
 {/snippet}
@@ -268,6 +272,7 @@
       {question}
       {reveal}
       {yourValue}
+      {booked}
       {result}
       {onAnswer}
       held={hasHold ? held : undefined}
@@ -280,6 +285,7 @@
     {question}
     {reveal}
     {yourValue}
+    {booked}
     {result}
     {item}
     {results}
@@ -295,6 +301,7 @@
     {question}
     {reveal}
     {yourValue}
+    {booked}
     {result}
     {results}
     {onAnswer}

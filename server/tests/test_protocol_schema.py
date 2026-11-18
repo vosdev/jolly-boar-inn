@@ -67,6 +67,7 @@ def test_both_unions_name_every_message() -> None:
         "Hello",
         "Ping",
         "Answer",
+        "UseItem",
         "StartGame",
         "Skip",
         "Promote",
@@ -85,7 +86,7 @@ def test_both_unions_name_every_message() -> None:
         "SetSettings",
         "Editing",
     }
-    assert "Error" in server and "Welcome" in server
+    assert "Error" in server and "Welcome" in server and "ItemUsed" in server
 
 
 def test_field_docstrings_reach_the_schema() -> None:

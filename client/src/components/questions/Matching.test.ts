@@ -48,6 +48,7 @@ function open(view: Record<string, unknown> = VIEW, youCanAnswer = true): OpenQu
     answered: 0,
     of: 0,
     waiting: [],
+    item_used: false,
   }
 }
 
@@ -249,6 +250,7 @@ describe('matching', () => {
         points: 675,
         item_points: 0,
         item: null,
+        by_book: false,
       },
       onAnswer: () => {},
     })
@@ -457,6 +459,7 @@ describe('matching with bins', () => {
         points: 675,
         item_points: 0,
         item: null,
+        by_book: false,
       },
       onAnswer: () => {},
     })

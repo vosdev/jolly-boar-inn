@@ -64,6 +64,7 @@
     question,
     reveal = null,
     yourValue,
+    booked = false,
     result = null,
     item = null,
     results = null,
@@ -78,6 +79,8 @@
     /** `question_closed.reveal`, or null while the question is open. */
     reveal?: Record<string, unknown> | null
     yourValue: unknown
+    /** The Book of Knowledge answered for you while the question is open. */
+    booked?: boolean
     result?: PlayerResult | null
     /** What your item added on this close, beside your points. */
     item?: ItemPoints | null
@@ -242,6 +245,7 @@
   {question}
   {reveal}
   {yourValue}
+  {booked}
   {result}
   {results}
   {onAnswer}

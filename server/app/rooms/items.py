@@ -10,9 +10,10 @@ items the tier allows that fit the round.
 An item lives in one slot on the player (``Worn``) and breaks at the end of the round it
 was dealt for, used or not, so every drop finds the slot empty. Its effects are two hooks
 the game loop calls: ``on_answer`` after ``points_for`` at each close, and ``settle`` once
-the round's last question has closed. What they add is item points, stored beside the
-answer's own points and never as credit, so ``question_stats`` and ``answer_timings`` stay
-as they would be without items.
+the round's last question has closed. An item the player uses on an open question has a
+``Use`` instead: what it pays at that question's close, after which it is gone. What they
+add is item points, stored beside the answer's own points and never as credit, so
+``question_stats`` and ``answer_timings`` stay as they would be without items.
 
 Pure functions and data, no I/O: the loop does the writing.
 """
@@ -71,6 +72,25 @@ class Effect:
     """The slot afterwards: unchanged, a charge down, or ``None`` once the item broke."""
 
 
+def _nothing(answered: Answered) -> int:
+    return 0
+
+
+@dataclass(frozen=True, slots=True)
+class Use:
+    """How a player uses an item on an open question, with ``use_item``."""
+
+    before_answer: bool
+    """Refused once the player has answered that question."""
+    answers: bool = False
+    """The use is the answer: full credit at the moment of the tap, no value of its own."""
+    refused_on: frozenset[str] = frozenset()
+    """Question types it cannot be used on."""
+    pays: Callable[[Answered], int] = _nothing
+    """Item points at the close of the question it was used on, given the player's answer;
+    a question left unanswered pays nothing."""
+
+
 @dataclass(frozen=True, slots=True)
 class Item:
     id: str
@@ -79,6 +99,7 @@ class Item:
     """Whether the round, every question in it, has one the item works on."""
     charges: int | None = None
     on_answer: Callable[[Worn, Answered], Effect] | None = None
+    use: Use | None = None
     settle: Callable[[Worn, Mapping[UUID, int]], Mapping[UUID, int]] | None = None
     """At the round's end: the wearer's base points per answered question of the round, in
     question order, in; item points to add per question out."""
@@ -144,12 +165,59 @@ def _phoenix(worn: Worn, answered: Mapping[UUID, int]) -> Mapping[UUID, int]:
     return {worst: gain} if gain > 0 else {}
 
 
+# What a Kebab adds to the question it was eaten on.
+KEBAB_POINTS = 300
+# A doubled More or Less is a coin flip worth 1000.
+NOT_DOUBLED = frozenset({"more_less"})
+
+
+def _doubles_fit(questions: Sequence[RoomQuestion]) -> bool:
+    return any(q.type not in NOT_DOUBLED for q in _answerable(questions))
+
+
+def _kebab(answered: Answered) -> int:
+    return KEBAB_POINTS
+
+
+def _charos(answered: Answered) -> int:
+    """Double for full credit; anything less pays nothing, its own points taken back."""
+    return answered.points if answered.credit >= 1.0 else -answered.points
+
+
+def _lamp(answered: Answered) -> int:
+    return answered.points
+
+
 SUPER_RESTORE = Item("super_restore", "mild", _restore_fits, charges=4, on_answer=_restore)
 RING_OF_LIFE = Item("ring_of_life", "strong", _anything, on_answer=_life)
 PHOENIX_NECKLACE = Item("phoenix_necklace", "strong", _phoenix_fits, settle=_phoenix)
+KEBAB = Item("kebab", "mild", _anything, use=Use(before_answer=False, pays=_kebab))
+RING_OF_CHAROS = Item(
+    "ring_of_charos",
+    "mild",
+    _doubles_fit,
+    use=Use(before_answer=True, refused_on=NOT_DOUBLED, pays=_charos),
+)
+BOOK_OF_KNOWLEDGE = Item(
+    "book_of_knowledge", "strong", _anything, use=Use(before_answer=True, answers=True)
+)
+XP_LAMP = Item(
+    "xp_lamp",
+    "strong",
+    _doubles_fit,
+    use=Use(before_answer=True, refused_on=NOT_DOUBLED, pays=_lamp),
+)
 
 # The items players can find.
-ITEMS: tuple[Item, ...] = (SUPER_RESTORE, RING_OF_LIFE, PHOENIX_NECKLACE)
+ITEMS: tuple[Item, ...] = (
+    SUPER_RESTORE,
+    RING_OF_LIFE,
+    PHOENIX_NECKLACE,
+    KEBAB,
+    RING_OF_CHAROS,
+    BOOK_OF_KNOWLEDGE,
+    XP_LAMP,
+)
 
 
 def receivers(rows: Sequence[tuple[UUID, int]]) -> dict[UUID, Tier]:

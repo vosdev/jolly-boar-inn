@@ -75,6 +75,7 @@ function open(view: Record<string, unknown> = VIEW, youCanAnswer = true): OpenQu
     answered: 0,
     of: 0,
     waiting: [],
+    item_used: false,
   }
 }
 
@@ -418,6 +419,7 @@ describe('ordering', () => {
         points: 540,
         item_points: 0,
         item: null,
+        by_book: false,
       },
       onAnswer: () => {},
     })
@@ -442,7 +444,15 @@ describe('ordering', () => {
       question: open(),
       reveal: REVEAL,
       yourValue: value,
-      result: { value, correct: false, credit: 0.2, points: 180, item_points: 0, item: null },
+      result: {
+        value,
+        correct: false,
+        credit: 0.2,
+        points: 180,
+        item_points: 0,
+        item: null,
+        by_book: false,
+      },
       onAnswer: () => {},
     })
     expect(screen.getByText('You had 0 of 5 in place')).toBeTruthy()
@@ -471,6 +481,7 @@ describe('ordering', () => {
         points: 1000,
         item_points: 0,
         item: null,
+        by_book: false,
       },
       onAnswer: () => {},
     })
@@ -575,6 +586,7 @@ describe('ordering', () => {
           points: 600,
           item_points: 0,
           item: null,
+          by_book: false,
         },
         onAnswer: () => {},
       })
@@ -598,6 +610,7 @@ describe('ordering', () => {
           points: 600,
           item_points: 0,
           item: null,
+          by_book: false,
         },
         onAnswer: () => {},
       })

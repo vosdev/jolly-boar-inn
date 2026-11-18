@@ -48,7 +48,7 @@
    */
   import { normalize } from '../lib/customQuestions'
   import { formatGp } from '../lib/gp'
-  import { itemName, type ItemPoints } from '../lib/heldItems'
+  import { itemName, signed, type ItemPoints } from '../lib/heldItems'
   import type { PlayerResult } from '../lib/protocol'
   import { team as god, teamMeans, type TeamId } from '../lib/teams'
   import { loadVocab } from '../lib/vocab'
@@ -500,7 +500,7 @@
               ><span class="who" class:you={row.you}>{row.name}{row.you ? ' (you)' : ''}</span>
               {itemName(row.item, row.charges)}</span
             >
-            <span class="number points">+{count.format(row.points)}</span>
+            <span class="number points">{signed(row.points)}</span>
           </li>
         {/each}
       </ul>
@@ -569,7 +569,7 @@
               ><span class="who" class:you={row.you}>{row.name}{row.you ? ' (you)' : ''}</span>
               {itemName(row.item, row.charges)}</span
             >
-            <span class="number points">+{count.format(row.points)}</span>
+            <span class="number points">{signed(row.points)}</span>
           </li>
         {/each}
       </ul>

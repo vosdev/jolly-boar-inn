@@ -217,6 +217,7 @@ describe('more_less on the plain buttons', () => {
     answered: 0,
     of: 0,
     waiting: [],
+    item_used: false,
   }
   const reveal = { ...VIEW, answer_index: 0 }
 
@@ -248,6 +249,7 @@ describe('how the room split', () => {
     points: 0,
     item_points: 0,
     item: null,
+    by_book: false,
   })
 
   it('counts a pick of one and a pick of several alike, ignoring what is not an option', () => {

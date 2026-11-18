@@ -33,6 +33,7 @@ function open(patch: Partial<OpenQuestion> = {}): OpenQuestion {
     answered: 0,
     of: 0,
     waiting: [],
+    item_used: false,
     answerable_at: '2026-09-21T20:00:00Z',
     ...patch,
   }
@@ -108,6 +109,7 @@ describe('more_less’s question', () => {
       points: 0,
       item_points: 0,
       item: null,
+      by_book: false,
     })
     const { container } = render(Question, {
       question: open(),

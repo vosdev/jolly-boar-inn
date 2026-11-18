@@ -1,8 +1,8 @@
 import { get } from 'svelte/store'
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { heldIcon, itemName, itemPoints, shownItems } from './heldItems'
-import type { PlayerResult, PlayerView, RoomView } from './protocol'
+import { canUse, heldIcon, itemName, itemPoints, shownItems, signed } from './heldItems'
+import type { OpenQuestion, PlayerResult, PlayerView, RoomView } from './protocol'
 import { lastClosed, players, room } from './stores'
 
 const result = (item: string | null, itemPoints: number, points = 120): PlayerResult => ({
@@ -12,6 +12,7 @@ const result = (item: string | null, itemPoints: number, points = 120): PlayerRe
   points,
   item_points: itemPoints,
   item,
+  by_book: false,
 })
 
 const player = (id: string, item: PlayerView['item']): PlayerView => ({
@@ -82,5 +83,46 @@ describe('held items', () => {
     expect(get(shownItems).get('a')).toEqual({ id: 'ring_of_life', charges: null })
     room.set({ phase: 'open' } as RoomView)
     expect(get(shownItems).has('a')).toBe(false)
+  })
+})
+
+describe('used items', () => {
+  const asked = (type = 'multiple_choice', you_can_answer = true) =>
+    ({ type, you_can_answer }) as OpenQuestion
+
+  it('can be used only while held, on a question you may answer, once', () => {
+    const lamp = { id: 'xp_lamp', charges: null }
+    expect(canUse(lamp, asked(), false, false)).toBe(true)
+    expect(canUse(null, asked(), false, false)).toBe(false)
+    expect(canUse(lamp, null, false, false)).toBe(false)
+    expect(canUse(lamp, asked(), false, true)).toBe(false)
+    expect(canUse(lamp, asked('multiple_choice', false), false, false)).toBe(false)
+    expect(canUse({ id: 'ring_of_life', charges: null }, asked(), false, false)).toBe(false)
+  })
+
+  it('takes a Kebab after answering, and Charos, the Book and the lamp only before', () => {
+    expect(canUse({ id: 'kebab', charges: null }, asked(), true, false)).toBe(true)
+    for (const id of ['ring_of_charos', 'book_of_knowledge', 'xp_lamp']) {
+      expect(canUse({ id, charges: null }, asked(), true, false)).toBe(false)
+    }
+  })
+
+  it('refuses Charos and the lamp on More or Less, not the Kebab or the Book', () => {
+    const more = asked('more_less')
+    expect(canUse({ id: 'ring_of_charos', charges: null }, more, false, false)).toBe(false)
+    expect(canUse({ id: 'xp_lamp', charges: null }, more, false, false)).toBe(false)
+    expect(canUse({ id: 'kebab', charges: null }, more, false, false)).toBe(true)
+    expect(canUse({ id: 'book_of_knowledge', charges: null }, more, false, false)).toBe(true)
+  })
+
+  it('lists a charmed miss as taken back and a Book answer with its own points', () => {
+    const book: PlayerResult = { ...result(null, 0, 800), value: null, by_book: true }
+    const rows = itemPoints({ a: result('ring_of_charos', -540, 540), b: book }, {}, [])
+    expect(rows).toEqual([
+      { playerId: 'a', item: 'ring_of_charos', charges: null, points: -540 },
+      { playerId: 'b', item: 'book_of_knowledge', charges: null, points: 800, byBook: true },
+    ])
+    expect(signed(-540)).toBe('\u2212540')
+    expect(signed(1300)).toBe('+1,300')
   })
 })

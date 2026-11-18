@@ -58,6 +58,7 @@ beforeEach(() => {
             points: value === 1 ? 1000 : 0,
             item_points: 0,
             item: null,
+            by_book: false,
           },
         },
   )

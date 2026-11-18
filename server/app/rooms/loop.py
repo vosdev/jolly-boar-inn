@@ -758,9 +758,11 @@ class Loop(RoomHost):
         ``answers.points`` are written, and the standings that go out with the reveal are
         the table's own sum, re-read here once the points are in.
 
-        A worn item's ``on_answer`` runs on each answer after ``points_for``, and the
-        round's last question settles every worn item's ``settle``. Both add item points,
-        never credit: ``question_stats`` and ``answer_timings`` get the type's credit alone.
+        A worn item's ``on_answer`` runs on each answer after ``points_for``, an item used on
+        the question pays its ``Use`` instead and is gone, and the round's last question
+        settles every worn item's ``settle``. All add item points, never credit:
+        ``question_stats`` and ``answer_timings`` get the type's credit alone, and nothing of
+        a Book answer.
 
         Grading and the reveal run before the write, because a type's bug shows up there,
         and nothing in memory changes until the write has committed. A close that fails
@@ -777,25 +779,38 @@ class Loop(RoomHost):
             module = TYPES[question.type]
             # Everything in ``answers`` passed ``can_answer`` on the way in, so grading
             # never has to re-check the exclusions.
+            # A Book answer has no value to grade: it is full credit, whatever the type.
             credit = module.grade(
                 question.payload,
-                [Submission(pid, answer.value) for pid, answer in question.answers.items()],
+                [
+                    Submission(pid, answer.value)
+                    for pid, answer in question.answers.items()
+                    if not answer.by_book
+                ],
             )
             how = question.scoring
             team = bool(room.settings.teams)
             graded: dict[UUID, tuple[float, bool, int]] = {}
             boosts: dict[UUID, tuple[int, str]] = {}
-            slots: dict[UUID, Worn | None] = {}
+            # An item used on this question is spent on it, answered or not.
+            slots: dict[UUID, Worn | None] = dict.fromkeys(question.used)
             for pid, answer in question.answers.items():
-                got = scoring.settle_credit(question.type, credit.get(pid, 0.0))
+                got = 1.0 if answer.by_book else credit.get(pid, 0.0)
+                got = scoring.settle_credit(question.type, got)
                 points = scoring.points_for(how, got, answer.band, question.steps, team=team)
                 # Full marks only. Three of five in the right order scores, and is not
                 # "correct" for the standings tie-break ("Scoring").
                 graded[pid] = (got, got >= 1.0, points)
+                answered = Answered(question, got, answer.band, points)
                 worn = room.players[pid].item
                 item = None if worn is None else items.by_id(self.items, worn.item)
-                if worn is not None and item is not None and item.on_answer is not None:
-                    effect = item.on_answer(worn, Answered(question, got, answer.band, points))
+                if pid in question.used:
+                    used = items.by_id(self.items, question.used[pid])
+                    extra = 0 if used is None or used.use is None else used.use.pays(answered)
+                    if extra:
+                        boosts[pid] = (extra, question.used[pid])
+                elif worn is not None and item is not None and item.on_answer is not None:
+                    effect = item.on_answer(worn, answered)
                     if effect.points:
                         boosts[pid] = (effect.points, worn.item)
                     if effect.worn != worn:
@@ -829,7 +844,12 @@ class Loop(RoomHost):
                     )
                 if slots:
                     await _write_slots(conn, slots)
-                got_credit = {pid: got for pid, (got, _, _) in graded.items()}
+                # The Book's answers count for the standings, and for neither table.
+                got_credit = {
+                    pid: got
+                    for pid, (got, _, _) in graded.items()
+                    if not question.answers[pid].by_book
+                }
                 await answer_timings.record(conn, room, question, got_credit, closed_at)
                 await question_stats.record(conn, room, question, got_credit)
                 settled: Settled = {}
@@ -862,6 +882,7 @@ class Loop(RoomHost):
                         points=answer.points or 0,
                         item_points=answer.item_points,
                         item=answer.item,
+                        by_book=answer.by_book,
                     )
                     for pid, answer in question.answers.items()
                 },

@@ -75,6 +75,11 @@ export const lastClosed = writable<ClosedQuestion | null>(null)
  */
 export const answerAck = writable<Pick<AnswerAck, 'scoring' | 'band'> | null>(null)
 /**
+ * The item we used on the open question, by id, kept through its reveal for the slot's
+ * after-use line; null when none was. A Book of Knowledge here means we have answered.
+ */
+export const itemUsed = writable<string | null>(null)
+/**
  * How many of the room have answered the open question, of how many can, and the ids of
  * who is still to. Seeded by the question's own frame and moved on by `answer_count` and
  * our `answer_ack`, which keeps the ids it does not carry; null with no question open, or
@@ -140,6 +145,7 @@ function forgetQuestion(): void {
   yourAnswer.set(null)
   answerAck.set(null)
   answerCount.set(null)
+  itemUsed.set(null)
   lastClosed.set(null)
 }
 
@@ -238,6 +244,7 @@ export function applyServerMessage(message: ServerMessage): void {
       // the scoreboard, not the answer it never saw revealed.
       forgetQuestion()
       yourAnswer.set(message.your_answer)
+      itemUsed.set(message.question?.item_used === true ? (message.you.item?.id ?? null) : null)
       countFrom(message.question)
       lastError.set(null)
       noteServerTime(message.server_time)
@@ -336,6 +343,10 @@ export function applyServerMessage(message: ServerMessage): void {
           ? null
           : { ...count, waiting: count.waiting.filter((id) => id !== get(you)?.id) },
       )
+      break
+
+    case 'item_used':
+      if (get(question)?.question_id === message.question_id) itemUsed.set(message.item)
       break
 
     case 'answer_count':

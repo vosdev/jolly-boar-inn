@@ -97,6 +97,7 @@
     answered: 0,
     of: team.length,
     waiting: [],
+    item_used: false,
   })
 
   function scatter(index: number): WorldPoint[] {
@@ -122,6 +123,7 @@
         points: Math.round(1000 * credit),
         item_points: 0,
         item: null,
+        by_book: false,
       }
     })
     return rows

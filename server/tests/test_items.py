@@ -382,6 +382,7 @@ def test_item_points_count_in_points_gained_and_show_as_their_own_reveal_line(
         "points": 1000,
         "item_points": 100,
         "item": "bonus",
+        "by_book": False,
     }
     assert (closed["results"][zezima.id]["item_points"], closed["results"][zezima.id]["item"]) == (
         0,

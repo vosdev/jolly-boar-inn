@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.261.0',
+    date: '2026-11-18',
+    text: 'Use the item from your box on a question: eat a Kebab, charm the host, rub a lamp, or let the Book of Knowledge answer for you.',
+  },
+  {
     version: '0.260.0',
     date: '2026-11-18',
     text: 'Open Mystery Boxes between rounds: the bottom half of the hiscores each find an item that helps them in the next round.',
