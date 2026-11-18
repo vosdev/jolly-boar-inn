@@ -187,7 +187,9 @@ describe('QuestionTable used items', () => {
   it('puts the button under the slot, and one tap uses the item', async () => {
     const { onUse } = table('xp_lamp')
     const slot = screen.getByRole('region', { name: 'Your item' })
-    expect(slot.textContent).toContain('Rub it before you answer: this question pays double.')
+    expect(slot.textContent).toContain(
+      'Rub it before you answer to double your points on this question.',
+    )
     await fireEvent.click(screen.getByRole('button', { name: 'Rub it' }))
     expect(onUse).toHaveBeenCalledTimes(1)
     expect(screen.queryByRole('button', { name: 'Rub it' })).toBeNull()
@@ -228,7 +230,7 @@ describe('QuestionTable used items', () => {
   it('says what a used item did in its line’s place, through the reveal', () => {
     table(null, { used: 'kebab', openQuestion: null, results: {} })
     const slot = screen.getByRole('region', { name: 'Your item' })
-    expect(slot.textContent).toContain('Eaten: +300 on this question.')
+    expect(slot.textContent).toContain('Eaten! +300 points on this question.')
   })
 
   it('puts the item and its button in a bar over the strip on a phone', async () => {

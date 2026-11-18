@@ -31,7 +31,7 @@
   } = $props()
 
   const ITEMS_NOTE =
-    'Between rounds, the bottom half of the hiscores each find an item to help them. Off in team games.'
+    'The bottom half of the hiscores are given random items to help them out a little bit. Minimum of 4 players, off in team games.'
 </script>
 
 <div class="rules">

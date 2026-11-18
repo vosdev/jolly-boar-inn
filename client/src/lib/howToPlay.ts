@@ -80,7 +80,7 @@ export const SCORING_LINE = 'Quicker and correct answers score more.'
 
 /** Mystery Boxes, before the scoring line wherever a game deals them. */
 export const ITEMS_LINE =
-  "Behind on points? Between rounds, the bottom half of the hiscores each find a Mystery Box. What's inside helps you in the next round and never costs anyone else a point. Some items work by themselves; the rest have a button to use them on a question."
+  'Behind on points? The bottom half of the hiscores are given random items to help them out a little bit. Minimum of 4 players. Your item lasts for the next round and never takes points away from anyone else. Some work automatically, while others have a button to use on a question.'
 
 /** Whether How to play tells of Mystery Boxes: a room with them on and no teams, or no room. */
 export function showsItems(settings: RoomSettings | null): boolean {

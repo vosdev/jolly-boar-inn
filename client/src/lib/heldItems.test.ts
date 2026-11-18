@@ -59,7 +59,7 @@ describe('held items', () => {
       '/ring.png',
     ])
     expect(itemLine('ring_of_wealth')).toBe(
-      'Three charges. Each takes wrong answers off a multiple choice question, only for you.',
+      'Has 3 charges. Automatically removes wrong options on multiple choice questions, just for you.',
     )
   })
 

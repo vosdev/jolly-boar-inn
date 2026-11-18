@@ -36,7 +36,7 @@ describe('HouseRules Mystery Boxes', () => {
     expect(items).toBe(false)
     await fireEvent.click(option('On'))
     expect(items).toBe(true)
-    expect(boxes().parentElement?.textContent).toContain('the bottom half of the hiscores')
+    expect(boxes().parentElement?.textContent).toContain('The bottom half of the hiscores')
   })
 
   it('reads Off and cannot change in a team game', () => {

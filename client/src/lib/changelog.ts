@@ -46,27 +46,27 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.262.0',
     date: '2026-11-18',
-    text: 'Find a Ring of wealth in your box: three times, it takes wrong answers off a multiple choice question, only for you.',
+    text: 'Add the Ring of wealth to Mystery Boxes, which removes wrong options on multiple choice questions for its wearer.',
   },
   {
     version: '0.261.0',
     date: '2026-11-18',
-    text: 'Use the item from your box on a question: eat a Kebab, charm the host, rub a lamp, or let the Book of Knowledge answer for you.',
+    text: 'Let players use items during a question: Kebab, Ring of Charos (a), XP lamp, and Book of Knowledge.',
   },
   {
     version: '0.260.0',
     date: '2026-11-18',
-    text: 'Open Mystery Boxes between rounds: the bottom half of the hiscores each find an item that helps them in the next round.',
+    text: 'Show Mystery Boxes between rounds, giving random items to the bottom half of the hiscores for the next round.',
   },
   {
     version: '0.259.0',
     date: '2026-11-18',
-    text: 'Prepare three Mystery Box items behind the scenes; nothing changes in play yet.',
+    text: 'Add Super restore, Ring of Life, and Phoenix necklace item effects on the server.',
   },
   {
     version: '0.258.0',
     date: '2026-11-18',
-    text: 'Prepare Mystery Boxes between rounds behind the scenes; nothing changes in play yet.',
+    text: 'Add Mystery Box item drops between rounds on the server.',
   },
   {
     version: '0.257.0',
