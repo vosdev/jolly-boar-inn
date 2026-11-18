@@ -273,7 +273,7 @@
       }
     },
     {
-      "id": "q_d431f4a19ebcc529",
+      "id": "q_2cab11348ec86713",
       "type": "matching",
       "mode": "random_event",
       "source": "pack",
@@ -290,16 +290,16 @@
             "text": "Mining"
           },
           {
-            "text": "Woodcutting"
-          },
-          {
             "text": "Smithing"
           },
           {
-            "text": "Fletching"
+            "text": "Agility"
           },
           {
-            "text": "Agility"
+            "text": "Woodcutting"
+          },
+          {
+            "text": "Fletching"
           },
           {
             "text": "Thieving"
@@ -318,10 +318,10 @@
         ],
         "answer": [
           0,
-          0,
-          1,
           1,
           2,
+          0,
+          1,
           2
         ],
         "explanation": "Mining and Woodcutting gather raw materials; Smithing and Fletching turn materials into items; Agility and Thieving are Support skills."

@@ -326,7 +326,7 @@
       }
     },
     {
-      "id": "q_c93a4006cfba082c",
+      "id": "q_4058d4d6f4ce89bb",
       "type": "matching",
       "mode": "random_event",
       "source": "pack",
@@ -343,16 +343,16 @@
             "text": "Salmon"
           },
           {
-            "text": "Rainbow fish"
-          },
-          {
             "text": "Lobster"
           },
           {
-            "text": "Dark crab"
+            "text": "Tuna"
           },
           {
-            "text": "Tuna"
+            "text": "Rainbow fish"
+          },
+          {
+            "text": "Dark crab"
           },
           {
             "text": "Swordfish"
@@ -371,10 +371,10 @@
         ],
         "answer": [
           0,
-          0,
-          1,
           1,
           2,
+          0,
+          1,
           2
         ],
         "explanation": "Trout, salmon and rainbow fish use a fly fishing rod, lobsters and dark crabs are trapped in a lobster pot, and tuna and swordfish are harpooned."

@@ -181,7 +181,7 @@
       }
     },
     {
-      "id": "q_5d6a2cc4c0d678df",
+      "id": "q_5fb79b1b2eed1118",
       "type": "matching",
       "mode": "random_event",
       "source": "pack",
@@ -198,16 +198,16 @@
             "text": "Allotment & Flower patches"
           },
           {
-            "text": "Cactus patch"
-          },
-          {
             "text": "Herb patch"
           },
           {
-            "text": "Hespori cave"
+            "text": "Fruit tree patch"
           },
           {
-            "text": "Fruit tree patch"
+            "text": "Cactus patch"
+          },
+          {
+            "text": "Hespori cave"
           },
           {
             "text": "Redwood & Celastrus patches"
@@ -226,10 +226,10 @@
         ],
         "answer": [
           0,
-          0,
-          1,
           1,
           2,
+          0,
+          1,
           2
         ],
         "explanation": "The level 45 west wing holds allotments, flowers, bushes, cacti and trees; the level 65 north wing holds the herb patch, anima patch and Hespori cave; the level 85 east wing holds fruit trees, spirit trees, celastrus and the redwood tree."

@@ -215,7 +215,7 @@
       }
     },
     {
-      "id": "q_646e16c017cdc1e0",
+      "id": "q_d5f11eb0e5f3d415",
       "type": "matching",
       "mode": "random_event",
       "source": "pack",
@@ -233,16 +233,16 @@
             "text": "Callisto"
           },
           {
-            "text": "Artio"
-          },
-          {
             "text": "Venenatis"
           },
           {
-            "text": "Spindel"
+            "text": "Vet'ion"
           },
           {
-            "text": "Vet'ion"
+            "text": "Artio"
+          },
+          {
+            "text": "Spindel"
           },
           {
             "text": "Calvar'ion"
@@ -261,17 +261,17 @@
         ],
         "answer": [
           0,
-          0,
-          1,
           1,
           2,
+          0,
+          1,
           2
         ],
         "explanation": "The bears Callisto and Artio drop the Tyrannical ring, the spiders Venenatis and Spindel drop the Treasonous ring, and the skeletons Vet'ion and Calvar'ion drop the Ring of the gods."
       }
     },
     {
-      "id": "q_bcddde507ccf3d4b",
+      "id": "q_21af2c517fd84ee2",
       "type": "matching",
       "mode": "random_event",
       "source": "pack",
@@ -288,16 +288,16 @@
             "text": "Varrock teleport tablet"
           },
           {
-            "text": "Ring of dueling"
-          },
-          {
             "text": "Amulet of glory"
           },
           {
-            "text": "Royal seed pod"
+            "text": "Wilderness Obelisk"
           },
           {
-            "text": "Wilderness Obelisk"
+            "text": "Ring of dueling"
+          },
+          {
+            "text": "Royal seed pod"
           },
           {
             "text": "Deserted Keep lever"
@@ -316,10 +316,10 @@
         ],
         "answer": [
           0,
-          0,
-          1,
           1,
           2,
+          0,
+          1,
           2
         ],
         "explanation": "Standard teleports and most jewellery stop working past level 20 Wilderness, dragonstone jewellery and the royal seed pod work up to level 30, and Wilderness Obelisks and levers work at any depth unless you are Teleblocked."

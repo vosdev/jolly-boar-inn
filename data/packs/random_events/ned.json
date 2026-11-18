@@ -305,7 +305,7 @@
       }
     },
     {
-      "id": "q_11741655911e6cfb",
+      "id": "q_14ac6a4e3fc1400a",
       "type": "matching",
       "mode": "random_event",
       "source": "pack",
@@ -322,16 +322,16 @@
             "text": "Barracuda Trials"
           },
           {
-            "text": "Shipwreck salvaging"
-          },
-          {
             "text": "Patching Murphy's leaking hull"
           },
           {
-            "text": "Bailing water with a bucket"
+            "text": "Firing harpoonfish from a cannon"
           },
           {
-            "text": "Firing harpoonfish from a cannon"
+            "text": "Shipwreck salvaging"
+          },
+          {
+            "text": "Bailing water with a bucket"
           },
           {
             "text": "Tethering to a totem pole before a wave"
@@ -350,10 +350,10 @@
         ],
         "answer": [
           0,
-          0,
-          1,
           1,
           2,
+          0,
+          1,
           2
         ],
         "explanation": "Barracuda Trials and shipwreck salvaging train Sailing; Murphy's leaking hull and bailing buckets are on the Fishing Trawler; harpoonfish cannons and totem poles are used against Tempoross."

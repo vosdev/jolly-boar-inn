@@ -293,7 +293,7 @@
       }
     },
     {
-      "id": "q_6d2d6ec3a7c73978",
+      "id": "q_e06e1366954a5399",
       "type": "matching",
       "mode": "random_event",
       "source": "pack",
@@ -310,16 +310,16 @@
             "text": "Dragon dagger"
           },
           {
-            "text": "Osmumten's fang"
-          },
-          {
             "text": "Dragon claws"
           },
           {
-            "text": "Bandos godsword"
+            "text": "Dragon battleaxe"
           },
           {
-            "text": "Dragon battleaxe"
+            "text": "Osmumten's fang"
+          },
+          {
+            "text": "Bandos godsword"
           },
           {
             "text": "Excalibur"
@@ -338,10 +338,10 @@
         ],
         "answer": [
           0,
-          0,
-          1,
           1,
           2,
+          0,
+          1,
           2
         ],
         "explanation": "Dragon dagger and Osmumten's fang use 25% special attack energy; dragon claws and Bandos godsword use 50%; dragon battleaxe and Excalibur consume 100%."

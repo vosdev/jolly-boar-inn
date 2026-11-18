@@ -319,7 +319,7 @@
       }
     },
     {
-      "id": "q_a2157b185d48f9bd",
+      "id": "q_946c5b34fc230489",
       "type": "matching",
       "mode": "random_event",
       "source": "pack",
@@ -336,16 +336,16 @@
             "text": "Guam leaf"
           },
           {
-            "text": "Marrentill"
-          },
-          {
             "text": "Irit leaf"
           },
           {
-            "text": "Cadantine"
+            "text": "Ranarr weed"
           },
           {
-            "text": "Ranarr weed"
+            "text": "Marrentill"
+          },
+          {
+            "text": "Cadantine"
           },
           {
             "text": "Snapdragon"
@@ -364,10 +364,10 @@
         ],
         "answer": [
           0,
-          0,
-          1,
           1,
           2,
+          0,
+          1,
           2
         ],
         "explanation": "Low-tier herbs like guam and marrentill refine into Mox paste, mid-tier herbs like irit and cadantine into Aga paste, and high-tier herbs like ranarr and snapdragon into Lye paste."

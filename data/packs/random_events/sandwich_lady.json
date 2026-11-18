@@ -209,7 +209,7 @@
       }
     },
     {
-      "id": "q_badd0aa3a2379ce9",
+      "id": "q_88d3d7a2e4bb1b46",
       "type": "matching",
       "mode": "random_event",
       "source": "pack",
@@ -229,13 +229,16 @@
             "text": "Pineapple pizza"
           },
           {
+            "text": "Chocolate cake"
+          },
+          {
+            "text": "Triangle sandwich"
+          },
+          {
             "text": "Redberry pie"
           },
           {
-            "text": "Summer pie"
-          },
-          {
-            "text": "Chocolate cake"
+            "text": "Plain cake"
           }
         ],
         "options": [
@@ -252,7 +255,8 @@
         "answer": [
           0,
           1,
-          1,
+          2,
+          0,
           1,
           2
         ],

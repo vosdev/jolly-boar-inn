@@ -259,7 +259,7 @@
       }
     },
     {
-      "id": "q_3fe470041d1c564c",
+      "id": "q_635444b594da6409",
       "type": "matching",
       "mode": "random_event",
       "source": "pack",
@@ -282,10 +282,10 @@
             "text": "NPC Contact"
           },
           {
-            "text": "Humidify"
+            "text": "Resurrect Greater Ghost"
           },
           {
-            "text": "Resurrect Greater Ghost"
+            "text": "Humidify"
           },
           {
             "text": "Death Charge"
@@ -309,8 +309,8 @@
           0,
           1,
           2,
-          2,
           3,
+          2,
           3
         ],
         "explanation": "Bones to Peaches is on the Standard spellbook, Blood Barrage on Ancient Magicks, NPC Contact and Humidify on the Lunar spellbook, and thrall summoning and Death Charge on the Arceuus spellbook."

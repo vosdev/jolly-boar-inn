@@ -302,7 +302,7 @@
       }
     },
     {
-      "id": "q_f13ca2f98dc1da8e",
+      "id": "q_efbac4e0db77e202",
       "type": "matching",
       "mode": "random_event",
       "source": "pack",
@@ -319,16 +319,16 @@
             "text": "Dagger"
           },
           {
-            "text": "Medium helm"
-          },
-          {
             "text": "Scimitar"
           },
           {
-            "text": "Sq shield"
+            "text": "Chainbody"
           },
           {
-            "text": "Chainbody"
+            "text": "Medium helm"
+          },
+          {
+            "text": "Sq shield"
           },
           {
             "text": "Kiteshield"
@@ -347,10 +347,10 @@
         ],
         "answer": [
           0,
-          0,
-          1,
           1,
           2,
+          0,
+          1,
           2
         ],
         "explanation": "Daggers and med helms take 1 bar; scimitars, longswords, full helms and sq shields take 2; chainbodies, kiteshields, battleaxes, warhammers and 2h swords take 3."

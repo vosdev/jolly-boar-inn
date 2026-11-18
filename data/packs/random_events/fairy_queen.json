@@ -304,7 +304,7 @@
       }
     },
     {
-      "id": "q_7ba82c66a57a936a",
+      "id": "q_108d87887aaca340",
       "type": "matching",
       "mode": "random_event",
       "source": "pack",
@@ -321,16 +321,16 @@
             "text": "A"
           },
           {
-            "text": "B"
-          },
-          {
             "text": "I"
           },
           {
-            "text": "J"
+            "text": "P"
           },
           {
-            "text": "P"
+            "text": "B"
+          },
+          {
+            "text": "J"
           },
           {
             "text": "Q"
@@ -349,10 +349,10 @@
         ],
         "answer": [
           0,
-          0,
-          1,
           1,
           2,
+          0,
+          1,
           2
         ],
         "explanation": "The first dial holds A, B, C and D; the second dial holds I, J, K and L; and the third dial holds P, Q, R and S."

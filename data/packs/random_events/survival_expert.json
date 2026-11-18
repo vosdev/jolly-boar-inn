@@ -250,7 +250,7 @@
       }
     },
     {
-      "id": "q_173bcbd2a2993661",
+      "id": "q_d473dc47d81361a6",
       "type": "matching",
       "mode": "random_event",
       "source": "pack",
@@ -267,16 +267,16 @@
             "text": "Carnivorous chinchompa"
           },
           {
-            "text": "Ferret"
-          },
-          {
             "text": "Golden warbler"
           },
           {
-            "text": "Cerulean twitch"
+            "text": "Polar kebbit"
           },
           {
-            "text": "Polar kebbit"
+            "text": "Ferret"
+          },
+          {
+            "text": "Cerulean twitch"
           },
           {
             "text": "Razor-backed kebbit"
@@ -295,10 +295,10 @@
         ],
         "answer": [
           0,
-          0,
-          1,
           1,
           2,
+          0,
+          1,
           2
         ],
         "explanation": "Chinchompas and ferrets enter box traps, birds land on bird snares, and burrowing kebbits are tracked to their burrows and flushed out with a noose wand."

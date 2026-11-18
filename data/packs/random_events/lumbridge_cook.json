@@ -252,7 +252,7 @@
       }
     },
     {
-      "id": "q_a94d181b74d152db",
+      "id": "q_f9fc1e5e1d72a268",
       "type": "matching",
       "mode": "random_event",
       "source": "pack",
@@ -273,16 +273,16 @@
             "text": "Slayer"
           },
           {
-            "text": "Mining"
-          },
-          {
             "text": "Thieving"
           },
           {
-            "text": "Agility"
+            "text": "Construction"
           },
           {
-            "text": "Construction"
+            "text": "Mining"
+          },
+          {
+            "text": "Agility"
           }
         ],
         "options": [
@@ -302,10 +302,10 @@
         "answer": [
           0,
           1,
+          2,
+          3,
           1,
-          2,
-          2,
-          3
+          2
         ],
         "explanation": "Red spice affects combat skills, brown affects gathering skills and Slayer, yellow affects Agility, Thieving and Prayer, and orange affects artisan skills."
       }
