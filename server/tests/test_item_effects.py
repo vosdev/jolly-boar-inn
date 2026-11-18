@@ -134,6 +134,47 @@ def test_super_restore_in_a_game(table, second_mode, db) -> None:
     assert_memory_matches_db(game, db)
 
 
+def worn_seen_before_next_open(game: Game, seat_id: str, index: int) -> dict[str, Any] | None:
+    """The item a seat's last ``players_updated`` between two closes gave ``seat_id``.
+
+    Reads another player's socket: the wearer's own frames prove nothing about the room.
+    """
+    watcher = game.players[0]
+    watcher.take("question_closed")
+    seen = len(watcher.seen)
+    game.skip()
+    watcher.take("question_open")
+    updates = [m for m in watcher.seen[seen:] if m["t"] == "players_updated"]
+    assert updates, f"no players_updated after question {index} closed"
+    return next(p for p in updates[-1]["players"] if p["id"] == seat_id)["item"]
+
+
+def test_a_spent_charge_reaches_every_player_at_the_close(table, second_mode, db) -> None:
+    game = seated(table, *NAMES, table_items=(SUPER_RESTORE,), modes=two_rounds(second_mode, 3))
+    game.start()
+    play(game, 0, BUCKETS)
+    to_standings(game)
+    game.skip()
+    bob = game.players[3]
+    game.opened(1)
+    answer_after(game, bob, 1, game.right(1), AFTER[4])
+    game.skip()
+    assert worn_seen_before_next_open(game, bob.id, 1) == {"id": "super_restore", "charges": 3}
+
+
+def test_a_broken_item_leaves_every_player_s_view_at_the_close(table, second_mode, db) -> None:
+    game = seated(table, *NAMES, table_items=(RING_OF_LIFE,), modes=two_rounds(second_mode, 3))
+    game.start()
+    play(game, 0, BUCKETS)
+    to_standings(game)
+    game.skip()
+    ann = game.players[4]
+    game.opened(1)
+    answer_after(game, ann, 1, game.wrong(1), AFTER[1])
+    game.skip()
+    assert worn_seen_before_next_open(game, ann.id, 1) is None
+
+
 def test_super_restore_is_never_dealt_into_a_round_without_a_speed_question(
     table, number_round, db
 ) -> None:
