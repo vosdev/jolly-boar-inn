@@ -284,6 +284,7 @@
       <TonightPanel
         settings={draft.tonight}
         hidden={hideRounds}
+        teams={teamGame}
         onchange={(next) => (tonight = next)}
         onquestions={(questions) => (customQuestions = questions)}
         onproblems={(toOpen, toStart) => {

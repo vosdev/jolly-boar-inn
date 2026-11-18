@@ -10,7 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { roundLine, shuffleTimes } from '../lib/hiscores'
 import type { PlayerView, Segment, Standing, TeamStanding } from '../lib/protocol'
-import { players } from '../lib/stores'
+import { players, standingsLive } from '../lib/stores'
 import { stubAnimations } from '../test-animate'
 import Standings from './Standings.svelte'
 import nextUpSource from './NextUp.svelte?raw'
@@ -216,5 +216,94 @@ describe('Standings on the TV', () => {
     const { container } = render(Standings, { standings: NOW, segment: SEGMENT, tv: true })
     expect(container.querySelector('.stage.tv.wide')).not.toBeNull()
     expect(names(container)).toHaveLength(2)
+  })
+})
+
+describe('Mystery Boxes on the standings', () => {
+  const ROWS = [
+    standing('Woox', 2400, 1, 1900, 2),
+    standing('Zezima', 1700, 2, 600, 1),
+    standing('Lynx', 700, 3, 100, 3),
+    standing('Mod Ash', 600, 4, 100, 4),
+  ]
+  const DROPS = [
+    { player_id: 'Lynx', item: 'super_restore' },
+    { player_id: 'Mod Ash', item: 'ring_of_life' },
+  ]
+  const NEXT: Segment = { mode: 'more_less', index: 2, total: 3, start: 6, count: 3 }
+
+  beforeEach(() => standingsLive.set(true))
+  afterEach(() => standingsLive.set(false))
+
+  const boxRow = (container: HTMLElement, name: string) =>
+    [...container.querySelectorAll('tbody tr')].find((row) =>
+      row.querySelector('.name')?.textContent?.includes(name),
+    )
+
+  it('opens one on each finder’s row once the rows have moved, into the item’s icon', async () => {
+    const { container } = render(Standings, {
+      standings: ROWS,
+      segment: SEGMENT,
+      youId: 'Woox',
+      drops: DROPS,
+    })
+    const times = shuffleTimes([...roundLine(2)].length)
+    expect(container.querySelector('.mystery-box')).toBeNull()
+
+    await vi.advanceTimersByTimeAsync(times.pin - 1)
+    await tick()
+    expect(container.querySelector('.mystery-box')).toBeNull()
+
+    await vi.advanceTimersByTimeAsync(1)
+    await tick()
+    const lynx = boxRow(container, 'Lynx')?.querySelector('.mystery-box')
+    const ash = boxRow(container, 'Mod Ash')?.querySelector('.mystery-box')
+    expect(lynx?.getAttribute('data-opened')).toBe('animated')
+    expect(ash?.querySelector('[role="img"]')?.getAttribute('aria-label')).toBe('Ring of Life')
+    expect(lynx?.querySelector('[role="img"]')?.getAttribute('aria-label')).toBe('Super restore')
+    expect(boxRow(container, 'Woox')?.querySelector('.mystery-box')).toBeNull()
+    // Each a beat after the one above, so they open down the column.
+    expect((ash as HTMLElement).style.getPropertyValue('--delay')).toBe('150ms')
+  })
+
+  it('shows yours in a "You found" panel with the next round it goes after', async () => {
+    players.set([
+      {
+        id: 'Mod Ash',
+        display_name: 'Mod Ash',
+        avatar: null,
+        role: 'player',
+        team: null,
+        connected: true,
+        ready: false,
+        editing: false,
+        item: { id: 'ring_of_life', charges: null },
+      },
+    ])
+    render(Standings, {
+      standings: ROWS,
+      segment: SEGMENT,
+      next: NEXT,
+      youId: 'Mod Ash',
+      drops: DROPS,
+    })
+    expect(screen.queryByRole('heading', { name: 'You found' })).toBeNull()
+    await vi.advanceTimersByTimeAsync(shuffleTimes([...roundLine(2)].length).pin)
+    await tick()
+    const panel = screen.getByRole('heading', { name: 'You found' }).closest('section')
+    expect(panel?.textContent).toContain('Ring of Life')
+    expect(panel?.textContent).toContain('Gone after More or Less')
+  })
+
+  it('stands open at once on a screen that arrived after the standings began', () => {
+    standingsLive.set(false)
+    const { container } = render(Standings, {
+      standings: ROWS,
+      segment: SEGMENT,
+      youId: 'Woox',
+      drops: DROPS,
+    })
+    const boxes = [...container.querySelectorAll('.mystery-box')]
+    expect(boxes.map((box) => box.getAttribute('data-opened'))).toEqual(['instant', 'instant'])
   })
 })

@@ -94,3 +94,49 @@ describe('QuestionTable', () => {
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 })
+
+describe('QuestionTable items', () => {
+  const ring = { id: 'ring_of_life', charges: null }
+
+  it('shows a worn item on its pet’s shoulder, and nothing once its round is over', async () => {
+    const { container, rerender } = render(QuestionTable, {
+      players: [player('a', 'Zezima', { item: ring }), player('b', 'Woox')],
+      youId: 'b',
+      questionId: 'q1',
+      waiting: ['a', 'b'],
+    })
+    const worn = container.querySelectorAll('.table-pet .worn')
+    expect(worn).toHaveLength(1)
+    expect(worn[0]?.closest('.table-pet')?.textContent).toContain('Zezima')
+    expect(worn[0]?.querySelector('[role="img"]')?.getAttribute('aria-label')).toBe('Ring of Life')
+
+    await rerender({ players: [player('a', 'Zezima'), player('b', 'Woox')], questionId: 'q2' })
+    expect(container.querySelector('.worn')).toBeNull()
+  })
+
+  it('heads the panel with your item, what it does and when it goes', () => {
+    render(QuestionTable, {
+      players: [player('a', 'Zezima', { item: { id: 'super_restore', charges: 3 } })],
+      youId: 'a',
+      questionId: 'q1',
+      waiting: ['a'],
+    })
+    const slot = screen.getByRole('region', { name: 'Your item' })
+    expect(slot.textContent).toContain('Super restore (3)')
+    expect(slot.textContent).toContain('speed question')
+    expect(slot.textContent).toContain('Gone after this round')
+  })
+
+  it('is a square at the strip’s end on a phone, which opens what it does', async () => {
+    render(QuestionTable, {
+      players: [player('a', 'Zezima', { item: ring })],
+      youId: 'a',
+      questionId: 'q1',
+      waiting: ['a'],
+      stacked: true,
+    })
+    expect(screen.queryByRole('region', { name: 'Your item' })).toBeNull()
+    await fireEvent.click(screen.getByRole('button', { name: 'Ring of Life: what it does' }))
+    expect(screen.getByRole('dialog').textContent).toContain('Saves you once')
+  })
+})

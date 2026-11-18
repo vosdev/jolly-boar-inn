@@ -1,4 +1,5 @@
 <script lang="ts" module>
+  import { itemName, type ItemPoints } from '../lib/heldItems'
   import type { PlayerResult } from '../lib/protocol'
 
   const numbers = new Intl.NumberFormat('en-GB')
@@ -17,6 +18,7 @@
     result: PlayerResult | null,
     canAnswer: boolean,
     total: number | null,
+    item: ItemPoints | null = null,
   ): string {
     const points = `+${numbers.format(result?.points ?? 0)}`
     const said = {
@@ -26,7 +28,11 @@
       none: 'No answer, no points',
       unscored: 'Not scored for you',
     }[outcomeOf(result, canAnswer)]
-    return said + (total === null ? '' : `. ${numbers.format(total)} in total.`)
+    const found =
+      item === null
+        ? ''
+        : `. ${itemName(item.item, item.charges)}, +${numbers.format(item.points)} more`
+    return said + found + (total === null ? '' : `. ${numbers.format(total)} in total.`)
   }
 </script>
 
@@ -51,15 +57,20 @@
    * the number and the host's line carry it. A running total, where one is given, goes under the
    * points. What the slot never carries is the reason for the number: a speed bonus
    * explained mid-reveal is a second thing to read in a beat that is already short.
+   * An item's points are the one addition, as their own part with its icon: "+120" then
+   * "Ring of Life +380", since the item is already on screen and its name explains them.
    *
    * It is not a live region: the sentence is there for a screen reader that reads the slot.
    */
+
+  import ItemIcon from './ItemIcon.svelte'
 
   let {
     result,
     canAnswer,
     total = null,
     chip = false,
+    item = null,
   }: {
     /** Our row of `question_closed.results`; null if we did not answer. */
     result: PlayerResult | null
@@ -69,11 +80,13 @@
     total?: number | null
     /** A chip on the dialogue box's name row rather than a plaque of its own. */
     chip?: boolean
+    /** What your item added on this close; null when it added nothing. */
+    item?: ItemPoints | null
   } = $props()
 
   const outcome = $derived(outcomeOf(result, canAnswer))
   const points = $derived(`+${numbers.format(result?.points ?? 0)}`)
-  const spoken = $derived(verdictSentence(result, canAnswer, total))
+  const spoken = $derived(verdictSentence(result, canAnswer, total, item))
 </script>
 
 <div class="slot {outcome}" class:surface={!chip} class:plaque={!chip} class:chip>
@@ -85,6 +98,12 @@
       Not scored
     {:else}
       {points}
+    {/if}
+    {#if item !== null}
+      <span class="item-part"
+        ><ItemIcon id={item.item} charges={item.charges} size={chip ? 18 : 22} label="" />
+        {itemName(item.item, item.charges)} +{numbers.format(item.points)}</span
+      >
     {/if}
   </p>
   {#if total !== null}
@@ -156,6 +175,17 @@
 
   .chip.none .earned {
     font-size: 0.9rem;
+  }
+
+  .item-part {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding-left: 0.35rem;
+    border-left: 1px solid var(--line);
+    font-size: 0.8em;
+    color: var(--ink);
+    white-space: nowrap;
   }
 
   .total {

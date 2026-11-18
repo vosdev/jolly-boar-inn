@@ -69,6 +69,7 @@
   import SoundChip from '../components/SoundChip.svelte'
   import SharedStageView from '../components/stage/SharedStageView.svelte'
   import { barWhere, whereOf } from '../lib/barWhere'
+  import { itemPoints } from '../lib/heldItems'
   import { hostMenu, type HostAction } from '../lib/hostMenu'
   import { historyPath, latestPastGame } from '../lib/history'
   import { answersOnly } from '../lib/tv'
@@ -274,6 +275,14 @@
   const yourResult = $derived(
     $you === null || $lastClosed === null ? null : ($lastClosed.results[$you.id] ?? null),
   )
+  /** What your item added on this close, for its part of your points chip. */
+  const yourItem = $derived(
+    $you === null || $lastClosed === null
+      ? null
+      : (itemPoints($lastClosed.results, $lastClosed.settled ?? {}, $players).find(
+          (row) => row.playerId === $you.id,
+        ) ?? null),
+  )
   const phone = $derived(answersOnly($players, $you))
   /** The question's own heading, for the heading line and the title. */
   const questionTitle = $derived(`Question ${number} of ${total}`)
@@ -468,6 +477,7 @@
       youId={$you?.id ?? null}
       showNames={$room?.settings.name_wrong_answers === true}
       suggestedBy={$lastClosed.suggested_by ?? null}
+      items={itemPoints($lastClosed.results, $lastClosed.settled ?? {}, $players)}
       teams={$room?.settings.teams ?? []}
       teamOf={teamsOf($players)}
       {panel}
@@ -608,6 +618,7 @@
             youId={$you?.id ?? null}
             stacked={framed === null}
             tv={$you?.role === 'tv'}
+            drops={$room.drops ?? []}
           />
         {:else if $room.phase === 'open' && $question !== null}
           <QuestionStage
@@ -624,6 +635,7 @@
             reveal={$lastClosed.reveal}
             yourValue={$yourAnswer}
             result={yourResult}
+            item={yourItem}
             results={$lastClosed.results}
             onAnswer={() => {}}
             nextAt={$room.next_at}

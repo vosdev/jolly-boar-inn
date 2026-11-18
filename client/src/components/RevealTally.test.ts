@@ -516,3 +516,28 @@ describe('RevealTally in a team game', () => {
     expect(container.textContent).not.toContain('Teams')
   })
 })
+
+describe('RevealTally items', () => {
+  it('ends with a line per item that paid, yours first, its points its own', () => {
+    for (const panel of [true, false]) {
+      const { container, unmount } = render(RevealTally, {
+        type: 'multiple_choice',
+        reveal: { options: ['A', 'B'], answer: 0 },
+        results: { a: right(0, 120), b: right(0, 900) },
+        nameOf,
+        youId: 'b',
+        showNames: true,
+        panel,
+        items: [
+          { playerId: 'a', item: 'super_restore', charges: 4, points: 140 },
+          { playerId: 'b', item: 'ring_of_life', charges: null, points: 380 },
+        ],
+      })
+      const rows = [...container.querySelectorAll('.items li')].map((row) =>
+        row.textContent?.replace(/\s+/g, ' ').trim(),
+      )
+      expect(rows).toEqual(['Woox (you) Ring of Life +380', 'Zezima Super restore (4) +140'])
+      unmount()
+    }
+  })
+})

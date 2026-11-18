@@ -63,3 +63,25 @@ describe('PointsSlot', () => {
     expect(container.querySelector('.sr')?.textContent).toBe('Right, +850 points. 9,270 in total.')
   })
 })
+
+describe('PointsSlot with an item', () => {
+  it('shows the item’s points as their own part beside your points', () => {
+    const { container } = render(PointsSlot, {
+      result: {
+        value: 0,
+        correct: false,
+        credit: 0.2,
+        points: 120,
+        item_points: 380,
+        item: 'ring_of_life',
+      },
+      canAnswer: true,
+      chip: true,
+      item: { playerId: 'a', item: 'ring_of_life', charges: null, points: 380 },
+    })
+    const part = container.querySelector('.item-part')
+    expect(part?.textContent?.replace(/\s+/g, ' ').trim()).toBe('Ring of Life +380')
+    expect(earned(container)?.startsWith('+120')).toBe(true)
+    expect(container.querySelector('.sr')?.textContent).toContain('Ring of Life, +380 more')
+  })
+})

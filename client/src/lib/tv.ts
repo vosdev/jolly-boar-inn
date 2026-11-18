@@ -71,13 +71,14 @@ export function crawlHeight(top: number, bottoms: number[], rows = TV_ROWS): num
 
 /**
  * Show a long table on the TV a screen at a time: clipped to `TV_ROWS` rows, then scrolled
- * to its foot, held there and back to its top, over and over. Under reduced motion it is
- * left whole, and the stage shrinks to fit it.
+ * to its foot, held there and back to its top, over and over. `'foot'` goes to the foot and
+ * stays, for something about to happen there. Under reduced motion it is left whole, and the
+ * stage shrinks to fit it.
  */
 export function crawl(
   node: HTMLElement,
-  on: boolean,
-): { update(on: boolean): void; destroy(): void } {
+  on: boolean | 'foot',
+): { update(on: boolean | 'foot'): void; destroy(): void } {
   let frame = 0
   let timer: ReturnType<typeof setTimeout> | undefined
 
@@ -102,6 +103,12 @@ export function crawl(
     if (height === null) return
     node.style.maxHeight = `${height / (scale || 1)}px`
     node.style.overflow = 'hidden'
+    if (on === 'foot') {
+      if (typeof node.scrollTo === 'function') {
+        node.scrollTo({ top: node.scrollHeight, behavior: 'smooth' })
+      } else node.scrollTop = node.scrollHeight
+      return
+    }
     const down = (): void => {
       const from = performance.now()
       const step = (now: number): void => {
@@ -122,7 +129,7 @@ export function crawl(
 
   start()
   return {
-    update(now: boolean) {
+    update(now: boolean | 'foot') {
       on = now
       start()
     },

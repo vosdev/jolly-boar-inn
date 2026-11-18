@@ -455,6 +455,7 @@
           settings={tonightOf(settings)}
           hidden={secret}
           own={creator}
+          teams={teamGame}
           onchange={tonight.edited}
           onquestions={questionsTicked}
           onproblems={(_, start) => (tonight.block = start)}

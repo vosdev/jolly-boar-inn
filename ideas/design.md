@@ -100,7 +100,9 @@ learns the position, which is worth more than variety.
   right. Each row has its count, a bar for its share of everyone who could answer, and its names:
   eight, you first, then "and N more". "No answer" comes last, muted: it is not wrong. The right
   row always names its players; with `name_wrong_answers` off the others keep only their counts.
-  The TV keeps its tally under its answers, as a line per wrong group.
+  The TV keeps its tally under its answers, as a line per wrong group. Then "Items", everywhere: a
+  row per item that paid on the close, you first, its icon, wearer, name (a potion as before the
+  dose) and points.
 - Six gems means no question offers more than six options.
 - `pick_all_that_apply` drags the right gems from a tray into a basket, as `ordering` does, nothing
   fading until Submit. Without `picks` the basket grows, unnumbered; with it, that many empty places.
@@ -357,7 +359,10 @@ answered first; in a reveal "5 of 9 got it right" and the faces of who did. It o
 as a sheet, the reveal's as "Results", and a new question closes it. A reveal's panel is its
 results (§3), 380px wide. The lobby and splash
 keep the whole panel under the stage, since it holds their buttons. The threshold, countdowns and
-take-back rule are architecture §7.
+take-back rule are architecture §7. A found item (§11) heads the column through its round: an
+inventory square (charges top left), its name, line and "Gone after this round"; on a phone a square
+at the strip's right end, opening it as a sheet. Every pet wears its item in a round slot on its
+shoulder; one that breaks stays through that reveal.
 
 - **Lobby.** The hero, else the Wise Old Man, says the lobby line in the bubble. The scroll holds
   "Your friends join with this code", then on one line the link's prefix ("jollyboar.com/r/"), small,
@@ -368,8 +373,8 @@ take-back rule are architecture §7.
   round is "A surprise" with a "?"; from 9 rounds the 8th tile is "+N more", a popover of every
   round that Esc, a click outside or the button closes), "How to play" and "Quicker and correct answers score
   more." For the host, the dialogue box and scroll share a row, and Tonight's game takes the rest of the room: its title and tabs on
-  one row, Rounds (the hosts beside Pick for me and the running order), House rules and Random
-  events, sent as they edit, 250 ms after the last change. A host's own question is written in a pop-up, which fills a phone. At the table: the host's Free for all or Teams, then join requests, a team game's gods, the halves,
+  one row, Rounds (the hosts beside Pick for me and the running order), House rules (Mystery Boxes
+  among them, Off and fixed in a team game) and Random events, sent as they edit, 250 ms after the last change. A host's own question is written in a pop-up, which fills a phone. At the table: the host's Free for all or Teams, then join requests, a team game's gods, the halves,
   the Ready switch, and Start (plain at the threshold, "Start anyway" below it, which asks first; off
   until a round is picked) or "Waiting for the host to start…". The host taps a pet to kick or promote.
 - **Doors shut.** `/create` is that lobby before the room exists: "Your room's code" and Reroll on
@@ -398,7 +403,8 @@ chrome or circle around them), on in `--ok`, in lobby and splash;
 - **How to play:** a row per way of answering: a small drawing of the control and one plain
   sentence, with every Submit named in bold, since players overlooked it. The Lobby's link opens
   them on a sheet: its rounds' types, or all of them when random events, host's questions or
-  hidden rounds could bring any, ending "Quicker and correct answers score more." On Home, Reldo's
+  hidden rounds could bring any, ending with the Mystery Box line (items on, no teams) and "Quicker
+  and correct answers score more.", as the trail's answering stop does. On Home, Reldo's
   How to play and a slide's mode name open `/how-to-play` and `/how-to-play/<mode>`: under the dialogue
   box, which stays, the sheet and panels fade out and the page fades in. The overview (Reldo speaking): Back,
   the three ways to play, each a drawing in theme tokens, the trail, and a tile per playable mode and one
@@ -459,6 +465,9 @@ in display tabular numerals and the box's ink:
 
 - A timeout is not a wrong answer, and the slot says so. The number is the verdict: `--ok` and
   `--bad` do not reach 4.5:1 on parchment. A random event's card keeps them, on a plaque (#106).
+- An item's points are the chip's second part, its icon, name and points: `+120 | Ring of Life
+  +380`, Phoenix necklace's on the round's last reveal, whichever answer it raised. A phone with a
+  TV adds it to the plaque.
 - Only what you earned: the total waits for the standings. The slot never explains a number; a
   speed bonus explained mid-reveal is a second thing to read.
 - No standings under a reveal: a board every question makes the game a spreadsheet. A team game
@@ -502,6 +511,12 @@ panel is as tall as that, not its column.
 On a phone it is a strip at the foot, "Next up: Bestiary" and the count, that opens nothing. The
 timer bar counts to the next round in the quiet fill, its tabs `2/3` (rounds played) and `8s`.
 The TV shows none of it.
+
+**Mystery Boxes.** Once the rows have moved, a box lands on each finder's row in a column of its
+own after the name, shakes, bursts and opens into the item's icon (its name the tooltip), a beat
+after the row above; the standings hold 4 s longer. Yours opens large in "You found" under Next up
+(on a phone a sheet over the strip): name, line, "Gone after Bestiary". Reduced motion, a reload or
+a late arrival shows them open. With standings off the slot says "You found" on the next splash.
 
 **The final** opens on "The final scores are in!", then presents fifth place to first: his line
 names the place and its Quest Speedrunning trophy (Bronze to Diamond), "For 2nd place, the
@@ -669,7 +684,8 @@ from a sofa across the room on a 1080p screen, in every theme.
   2 more to be ready." (then the host's wait); "At the table" and the pets on the right, by team.
 - **Splash:** the round's count, the pets and "Waiting for…" or the countdown at the sheet's foot.
 - **Standings:** no row is yours. Past 12 rows the table scrolls slowly to its foot, holds, and
-  starts again. The final's ceremony plays whole, without Skip.
+  starts again; with Mystery Boxes it goes to the foot first and holds while they open, with no
+  "You found". The final's ceremony plays whole, without Skip.
 - **No footer**, and the top bar stays out of sight until the pointer nears the window's top.
 
 ## 17. Open tasks

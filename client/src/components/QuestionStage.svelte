@@ -43,6 +43,7 @@
    * screen shows: under the answers on a phone beside the TV too, and on the TV's sheet under
    * the stem, open and revealed, the panel beside it.
    */
+  import type { ItemPoints } from '../lib/heldItems'
   import { untrack, type Snippet } from 'svelte'
   import { get } from 'svelte/store'
 
@@ -69,6 +70,7 @@
     reveal = null,
     yourValue,
     result = null,
+    item = null,
     results = null,
     onAnswer,
     live = false,
@@ -85,6 +87,8 @@
     reveal?: Record<string, unknown> | null
     yourValue: unknown
     result?: PlayerResult | null
+    /** What your item added on this close, beside your points. */
+    item?: ItemPoints | null
     /** `question_closed.results`, every player's row; null while open. */
     results?: Record<string, PlayerResult> | null
     onAnswer: (value: unknown) => void
@@ -217,7 +221,7 @@
 {/snippet}
 
 {#snippet points()}
-  <PointsSlot {result} canAnswer chip />
+  <PointsSlot {result} {item} canAnswer chip />
 {/snippet}
 
 {#snippet unheard()}
@@ -244,7 +248,7 @@
 
 {#snippet bare(stem: Snippet, answers: Snippet | null)}
   {#if reveal !== null}
-    <PointsSlot {result} canAnswer={question.you_can_answer} />
+    <PointsSlot {result} {item} canAnswer={question.you_can_answer} />
   {/if}
   {#if pinned && answers !== null}
     <div class="beside-tv answers">{@render answers()}</div>
@@ -272,7 +276,18 @@
     />
   </div>
 {:else if question.random_event}
-  <RandomEvent {question} {reveal} {yourValue} {result} {results} {onAnswer} {live} {nextAt} {tv}>
+  <RandomEvent
+    {question}
+    {reveal}
+    {yourValue}
+    {result}
+    {item}
+    {results}
+    {onAnswer}
+    {live}
+    {nextAt}
+    {tv}
+  >
     {@render children?.()}
   </RandomEvent>
 {:else}

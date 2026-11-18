@@ -31,7 +31,8 @@
    *
    * In a team game, a row per team with a member: its logo, name and the mean of its
    * members' points on this question, in the room's order of gods rather than ranked,
-   * because a reveal carries no standings.
+   * because a reveal carries no standings. Then a row per item that paid on this close,
+   * whoever wore it, you first: items are in the open, and their points are not the answer's.
    *
    * A map question ranks its pins instead (`PinRanking`), in either form. A picture pin's misses
    * are "Close" while they still scored and "Off the spot" after.
@@ -47,11 +48,13 @@
    */
   import { normalize } from '../lib/customQuestions'
   import { formatGp } from '../lib/gp'
+  import { itemName, type ItemPoints } from '../lib/heldItems'
   import type { PlayerResult } from '../lib/protocol'
   import { team as god, teamMeans, type TeamId } from '../lib/teams'
   import { loadVocab } from '../lib/vocab'
   import { GEMS, type Gem } from './questions/GemButton.svelte'
   import { placement } from './questions/types/Ordering.svelte'
+  import ItemIcon from './ItemIcon.svelte'
   import PinRanking from './PinRanking.svelte'
   import TeamLogo from './TeamLogo.svelte'
 
@@ -67,6 +70,7 @@
     teams = [],
     teamOf = {},
     panel = false,
+    items = [],
   }: {
     /** The question's type, which decides what an answer's group is. */
     type: string
@@ -87,7 +91,19 @@
     teamOf?: Readonly<Record<string, TeamId>>
     /** Drawn as the room's results panel, a row per answer, rather than under the answers. */
     panel?: boolean
+    /** Every item that paid on this close, whoever wore it. */
+    items?: ItemPoints[]
   } = $props()
+
+  const itemRows = $derived(
+    items
+      .map((row) => ({
+        ...row,
+        you: row.playerId === youId,
+        name: nameOf(row.playerId) ?? 'Someone who left',
+      }))
+      .sort((a, b) => Number(b.you) - Number(a.you) || a.name.localeCompare(b.name)),
+  )
 
   const NAMES_SHOWN = 8
   /** Typed answers and list picks: the groups drawn before the rest fold into one. */
@@ -472,6 +488,23 @@
         {/each}
       </ul>
     {/if}
+    {#if itemRows.length > 0}
+      <p class="head">Items</p>
+      <ul class="teams items">
+        {#each itemRows as row (row.playerId)}
+          <li class="team">
+            <span class="logo"
+              ><ItemIcon id={row.item} charges={row.charges} size={24} label="" /></span
+            >
+            <span class="label"
+              ><span class="who" class:you={row.you}>{row.name}{row.you ? ' (you)' : ''}</span>
+              {itemName(row.item, row.charges)}</span
+            >
+            <span class="number points">+{count.format(row.points)}</span>
+          </li>
+        {/each}
+      </ul>
+    {/if}
     {#if suggestedBy !== null}
       <p class="credit">Question by {suggestedBy}</p>
     {/if}
@@ -519,6 +552,23 @@
           <li class="team" data-team={row.team}>
             <span class="logo"><TeamLogo team={row.team} /></span>
             <span class="label">{god(row.team).name}</span>
+            <span class="number points">+{count.format(row.points)}</span>
+          </li>
+        {/each}
+      </ul>
+    {/if}
+    {#if itemRows.length > 0}
+      <p class="head">Items</p>
+      <ul class="teams items">
+        {#each itemRows as row (row.playerId)}
+          <li class="team">
+            <span class="logo"
+              ><ItemIcon id={row.item} charges={row.charges} size={24} label="" /></span
+            >
+            <span class="label"
+              ><span class="who" class:you={row.you}>{row.name}{row.you ? ' (you)' : ''}</span>
+              {itemName(row.item, row.charges)}</span
+            >
             <span class="number points">+{count.format(row.points)}</span>
           </li>
         {/each}

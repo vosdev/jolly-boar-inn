@@ -4,7 +4,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { SHOWN } from '../components/ModeShowcase.svelte'
 import type { ModePacing } from './api'
-import { HOW_TO_ROWS, allTypes, howToPath, howToViewOf, roomTypes, rowsFor } from './howToPlay'
+import {
+  HOW_TO_ROWS,
+  allTypes,
+  howToPath,
+  howToViewOf,
+  roomTypes,
+  rowsFor,
+  showsItems,
+} from './howToPlay'
 import type { RoomSettings } from './protocol'
 
 function mode(id: string, types: string[]): ModePacing {
@@ -154,5 +162,14 @@ describe('loadModes', () => {
     await expect(loadModes()).rejects.toThrow()
     await Promise.all([loadModes(), loadModes()])
     expect(get).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('showsItems', () => {
+  it('tells of Mystery Boxes where a game deals them, and with no room', () => {
+    expect(showsItems(null)).toBe(true)
+    expect(showsItems({ ...SETTINGS, items: true, teams: [] })).toBe(true)
+    expect(showsItems({ ...SETTINGS, items: false, teams: [] })).toBe(false)
+    expect(showsItems({ ...SETTINGS, items: true, teams: ['zamorak', 'saradomin'] })).toBe(false)
   })
 })

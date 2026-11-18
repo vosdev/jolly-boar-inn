@@ -39,6 +39,7 @@
    * On the room's TV (`tv`) the panel beside the sheet is who is still to answer, then the
    * reveal, as for a round's question, and the NPC has no points to react to.
    */
+  import type { ItemPoints } from '../lib/heldItems'
   import { untrack, type Snippet } from 'svelte'
   import { get } from 'svelte/store'
 
@@ -64,6 +65,7 @@
     reveal = null,
     yourValue,
     result = null,
+    item = null,
     results = null,
     onAnswer,
     live = false,
@@ -77,6 +79,8 @@
     reveal?: Record<string, unknown> | null
     yourValue: unknown
     result?: PlayerResult | null
+    /** What your item added on this close, beside your points. */
+    item?: ItemPoints | null
     /** `question_closed.results`, every player's row; null while open. */
     results?: Record<string, PlayerResult> | null
     onAnswer: (value: unknown) => void
@@ -216,7 +220,7 @@
 {/snippet}
 
 {#snippet points()}
-  <PointsSlot {result} canAnswer chip />
+  <PointsSlot {result} {item} canAnswer chip />
 {/snippet}
 
 {#snippet introLine()}
