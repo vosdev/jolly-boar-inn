@@ -114,6 +114,264 @@
         ],
         "answer_index": 2
       }
+    },
+    {
+      "id": "q_4edb4ca38f39b97b",
+      "type": "matching",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "herblore"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Herblore",
+      "payload": {
+        "intro": "My notes are scattered everywhere! Help me pair each clean herb with the potion it brews before my hands start shaking!",
+        "prompt": "Match each primary herb to the potion it is used to make.",
+        "fields": [
+          {
+            "text": "Ranarr weed"
+          },
+          {
+            "text": "Toadflax"
+          },
+          {
+            "text": "Snapdragon"
+          },
+          {
+            "text": "Kwuarm"
+          },
+          {
+            "text": "Cadantine"
+          }
+        ],
+        "options": [
+          {
+            "text": "Prayer potion"
+          },
+          {
+            "text": "Saradomin brew"
+          },
+          {
+            "text": "Super restore"
+          },
+          {
+            "text": "Super strength"
+          },
+          {
+            "text": "Super defence"
+          },
+          {
+            "text": "Stamina potion"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Ranarr makes Prayer potions, toadflax makes Saradomin brews, snapdragon makes Super restores, kwuarm makes Super strength and cadantine makes Super defence."
+      }
+    },
+    {
+      "id": "q_52f9734beaa004e5",
+      "type": "ordering",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "herblore"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Herb",
+      "payload": {
+        "intro": "A proper apothecary cleans their herbs in order of potency. Don't touch the Torstol until you're ready!",
+        "prompt": "Order these grimy herbs by the Herblore level required to clean them, from lowest to highest.",
+        "ends": [
+          "Lowest level",
+          "Highest level"
+        ],
+        "entries": [
+          {
+            "text": "Grimy guam leaf",
+            "rank": 1,
+            "detail": "Level 3"
+          },
+          {
+            "text": "Grimy ranarr weed",
+            "rank": 2,
+            "detail": "Level 25"
+          },
+          {
+            "text": "Grimy avantoe",
+            "rank": 3,
+            "detail": "Level 48"
+          },
+          {
+            "text": "Grimy snapdragon",
+            "rank": 4,
+            "detail": "Level 59"
+          },
+          {
+            "text": "Grimy dwarf weed",
+            "rank": 5,
+            "detail": "Level 70"
+          },
+          {
+            "text": "Grimy torstol",
+            "rank": 6,
+            "detail": "Level 75"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "Guam requires level 3, ranarr 25, avantoe 48, snapdragon 59, dwarf weed 70 and torstol 75."
+      }
+    },
+    {
+      "id": "q_ea23867397e7e431",
+      "type": "pick_all_that_apply",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "herblore"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Super_combat_potion",
+      "payload": {
+        "intro": "One vial to unite all three melee brews! Tell me everything that goes into a Super combat potion!",
+        "prompt": "Which four ingredients are combined to make a 4-dose Super combat potion?",
+        "picks": 4,
+        "options": [
+          "Clean torstol",
+          "Super attack(4)",
+          "Super strength(4)",
+          "Super defence(4)",
+          "Zamorak brew(4)",
+          "Ranging potion(4)"
+        ],
+        "answer_indices": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "At level 90 Herblore, a clean torstol (or unfinished torstol potion) is combined with 4-dose Super attack, Super strength and Super defence potions."
+      }
+    },
+    {
+      "id": "q_4b88459d25e45d12",
+      "type": "number_slider",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "herblore"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Saradomin_brew",
+      "payload": {
+        "intro": "Liquid golden sunshine in a vial... if only I had the skill to mix crushed bird nests with toadflax myself!",
+        "prompt": "What Herblore level is required to make a Saradomin brew?",
+        "answer": 81,
+        "min": 1,
+        "max": 99,
+        "scale": "linear",
+        "explanation": "Saradomin brews require level 81 Herblore and grant 180 experience per potion."
+      }
+    },
+    {
+      "id": "q_efe3618ae61ee530",
+      "type": "free_text",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "herblore"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Bob_Barter_(herbs)",
+      "payload": {
+        "intro": "Decanting hundreds of vials by hand is madness! Go see the fellow at the Grand Exchange who does it in the blink of an eye.",
+        "prompt": "Which NPC at the Grand Exchange decants your potions into any dose you ask for?",
+        "accepted": [
+          "Bob Barter",
+          "Bob"
+        ],
+        "explanation": "Bob Barter stands in the south-west corner of the Grand Exchange and decants noted or unnoted potions for free."
+      }
+    },
+    {
+      "id": "q_667e46b35c99b2ac",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "herblore"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Stamina_potion",
+      "payload": {
+        "intro": "With a few amylase crystals dissolved in a Super energy potion, I could outrun Mr Hyde for minutes!",
+        "prompt": "How many minutes does the run-energy drain reduction from one dose of Stamina potion last?",
+        "answer": 2,
+        "unit": "minutes",
+        "explanation": "One dose of Stamina potion restores 20% run energy and reduces run energy depletion by 70% for 2 minutes."
+      }
+    },
+    {
+      "id": "q_a2157b185d48f9bd",
+      "type": "matching",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "herblore"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Mastering_Mixology",
+      "payload": {
+        "intro": "Have you visited the alchemists in Aldarin? They break every herb down into three strange pastes!",
+        "prompt": "Sort these herbs by the type of paste they refine into at Mastering Mixology.",
+        "bins": true,
+        "fields": [
+          {
+            "text": "Guam leaf"
+          },
+          {
+            "text": "Marrentill"
+          },
+          {
+            "text": "Irit leaf"
+          },
+          {
+            "text": "Cadantine"
+          },
+          {
+            "text": "Ranarr weed"
+          },
+          {
+            "text": "Snapdragon"
+          }
+        ],
+        "options": [
+          {
+            "text": "Mox paste"
+          },
+          {
+            "text": "Aga paste"
+          },
+          {
+            "text": "Lye paste"
+          }
+        ],
+        "answer": [
+          0,
+          0,
+          1,
+          1,
+          2,
+          2
+        ],
+        "explanation": "Low-tier herbs like guam and marrentill refine into Mox paste, mid-tier herbs like irit and cadantine into Aga paste, and high-tier herbs like ranarr and snapdragon into Lye paste."
+      }
     }
   ]
 }

@@ -154,6 +154,223 @@
         "explanation": "Each of these family members guards a different Slayer-only area. Weave's name is very fitting for her area.",
         "answer_index": 3
       }
+    },
+    {
+      "id": "q_902065568ce177a9",
+      "type": "ordering",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Slayer_monsters",
+      "payload": {
+        "intro": "Don't go charging into a Slayer tower without the levels to back it up. Rank these monsters by the Slayer level needed to harm them!",
+        "prompt": "Order these Slayer monsters by their required Slayer level, from lowest to highest.",
+        "ends": [
+          "Lowest Slayer level",
+          "Highest Slayer level"
+        ],
+        "entries": [
+          {
+            "text": "Crawling Hand",
+            "rank": 1,
+            "detail": "Level 5"
+          },
+          {
+            "text": "Bloodveld",
+            "rank": 2,
+            "detail": "Level 50"
+          },
+          {
+            "text": "Dust devil",
+            "rank": 3,
+            "detail": "Level 65"
+          },
+          {
+            "text": "Gargoyle",
+            "rank": 4,
+            "detail": "Level 75"
+          },
+          {
+            "text": "Nechryael",
+            "rank": 5,
+            "detail": "Level 80"
+          },
+          {
+            "text": "Abyssal demon",
+            "rank": 6,
+            "detail": "Level 85"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "Crawling Hands require level 5 Slayer, Bloodvelds 50, Dust devils 65, Gargoyles 75, Nechryael 80 and Abyssal demons 85."
+      }
+    },
+    {
+      "id": "q_646e16c017cdc1e0",
+      "type": "matching",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "wilderness",
+        "bosses"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Wilderness",
+      "payload": {
+        "intro": "Both the multi-combat Wilderness bosses and their single-way cousins drop signature rings. Do you know which beasts drop which?",
+        "prompt": "Sort these six Wilderness bosses by the unique ring they drop.",
+        "bins": true,
+        "fields": [
+          {
+            "text": "Callisto"
+          },
+          {
+            "text": "Artio"
+          },
+          {
+            "text": "Venenatis"
+          },
+          {
+            "text": "Spindel"
+          },
+          {
+            "text": "Vet'ion"
+          },
+          {
+            "text": "Calvar'ion"
+          }
+        ],
+        "options": [
+          {
+            "text": "Tyrannical ring"
+          },
+          {
+            "text": "Treasonous ring"
+          },
+          {
+            "text": "Ring of the gods"
+          }
+        ],
+        "answer": [
+          0,
+          0,
+          1,
+          1,
+          2,
+          2
+        ],
+        "explanation": "The bears Callisto and Artio drop the Tyrannical ring, the spiders Venenatis and Spindel drop the Treasonous ring, and the skeletons Vet'ion and Calvar'ion drop the Ring of the gods."
+      }
+    },
+    {
+      "id": "q_bcddde507ccf3d4b",
+      "type": "matching",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "wilderness"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Wilderness#Teleportation",
+      "payload": {
+        "intro": "Past level 20 Wilderness most of your precious teleports stop working—and past 30, only the obelisks and levers can save you!",
+        "prompt": "Sort these teleport methods by the deepest Wilderness level from which they can be used.",
+        "bins": true,
+        "fields": [
+          {
+            "text": "Varrock teleport tablet"
+          },
+          {
+            "text": "Ring of dueling"
+          },
+          {
+            "text": "Amulet of glory"
+          },
+          {
+            "text": "Royal seed pod"
+          },
+          {
+            "text": "Wilderness Obelisk"
+          },
+          {
+            "text": "Deserted Keep lever"
+          }
+        ],
+        "options": [
+          {
+            "text": "Up to Level 20 Wilderness"
+          },
+          {
+            "text": "Up to Level 30 Wilderness"
+          },
+          {
+            "text": "Any Wilderness level (when not Teleblocked)"
+          }
+        ],
+        "answer": [
+          0,
+          0,
+          1,
+          1,
+          2,
+          2
+        ],
+        "explanation": "Standard teleports and most jewellery stop working past level 20 Wilderness, dragonstone jewellery and the royal seed pod work up to level 30, and Wilderness Obelisks and levers work at any depth unless you are Teleblocked."
+      }
+    },
+    {
+      "id": "q_e97c37bd9f005c1b",
+      "type": "pick_all_that_apply",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "wilderness"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Revenant_weapons",
+      "payload": {
+        "intro": "The ghosts in the Revenant Caves carry ancient weapons that drink ether and shred anything in the Wilderness.",
+        "prompt": "Which three weapons are upgraded from Viggora's chainmace, Craw's bow and Thammaron's sceptre?",
+        "picks": 3,
+        "options": [
+          "Ursine chainmace",
+          "Webweaver bow",
+          "Accursed sceptre",
+          "Voidwaker",
+          "Volatile nightmare staff",
+          "Venator bow"
+        ],
+        "answer_indices": [
+          0,
+          1,
+          2
+        ],
+        "explanation": "Using boss drops from Callisto, Venenatis and Vet'ion upgrades the three Revenant weapons into the Ursine chainmace, Webweaver bow and Accursed sceptre."
+      }
+    },
+    {
+      "id": "q_7e51a85d5703b3e2",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Slayer_helmet_(i)",
+      "payload": {
+        "intro": "Every Slayer worth their salt wears an imbued Slayer helmet. How much extra punch does it give your blade on task?",
+        "prompt": "Rounded to the nearest whole percent, by what percentage does a Slayer helmet boost your Melee accuracy and damage on a Slayer task?",
+        "answer": 17,
+        "within": 1,
+        "unit": "%",
+        "explanation": "A black mask or Slayer helmet boosts Melee accuracy and strength by 7/6 (16.67%), while an imbued helmet also boosts Ranged and Magic by 15%."
+      }
     }
   ]
 }

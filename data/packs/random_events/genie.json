@@ -93,6 +93,281 @@
         "unit": "xp",
         "explanation": "Experience is capped at 200 million in each skill. You can keep training, but nothing more is counted."
       }
+    },
+    {
+      "id": "q_eb2d7653cd11efb4",
+      "type": "ordering",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "skills",
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Quest_experience_rewards",
+      "payload": {
+        "intro": "Why rub one tiny lamp when a single quest can shower you in thousands of experience points, master?",
+        "prompt": "Order these early-game quests by the total skill experience they award, from least to most.",
+        "ends": [
+          "Least total XP",
+          "Most total XP"
+        ],
+        "entries": [
+          {
+            "text": "Doric's Quest",
+            "rank": 1,
+            "detail": "1,300 XP"
+          },
+          {
+            "text": "Vampyre Slayer",
+            "rank": 2,
+            "detail": "4,825 XP"
+          },
+          {
+            "text": "Tree Gnome Village",
+            "rank": 3,
+            "detail": "11,450 XP"
+          },
+          {
+            "text": "The Knight's Sword",
+            "rank": 4,
+            "detail": "12,725 XP"
+          },
+          {
+            "text": "Waterfall Quest",
+            "rank": 5,
+            "detail": "27,500 XP"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Doric's Quest gives 1,300 Mining XP, Vampyre Slayer 4,825 Attack XP, Tree Gnome Village 11,450 Attack XP, The Knight's Sword 12,725 Smithing XP and Waterfall Quest 27,500 total Attack and Strength XP."
+      }
+    },
+    {
+      "id": "q_80c055a9705b73ef",
+      "type": "matching",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "skills"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Experience-boosting_set",
+      "payload": {
+        "intro": "Mortals love dressing up for an extra 2.5% experience! Do you know where each outfit is earned?",
+        "prompt": "Match each experience-boosting skilling outfit to the activity where it is obtained.",
+        "fields": [
+          {
+            "text": "Angler's outfit"
+          },
+          {
+            "text": "Lumberjack outfit"
+          },
+          {
+            "text": "Pyromancer outfit"
+          },
+          {
+            "text": "Farmer's outfit"
+          },
+          {
+            "text": "Raiments of the Eye"
+          }
+        ],
+        "options": [
+          {
+            "text": "Fishing Trawler"
+          },
+          {
+            "text": "Temple Trekking"
+          },
+          {
+            "text": "Wintertodt"
+          },
+          {
+            "text": "Tithe Farm"
+          },
+          {
+            "text": "Guardians of the Rift"
+          },
+          {
+            "text": "Pyramid Plunder"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Angler's comes from Fishing Trawler, Lumberjack from Temple Trekking (or Forestry), Pyromancer from Wintertodt, Farmer's from Tithe Farm and Raiments of the Eye from Guardians of the Rift."
+      }
+    },
+    {
+      "id": "q_fe78aa10bea6f0ad",
+      "type": "pick_all_that_apply",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "skills"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Free-to-play",
+      "payload": {
+        "intro": "Even before crossing the members' gate into Taverley, an adventurer can train many skills. Which ones are open to everyone?",
+        "prompt": "Which three of these skills can be trained on a free-to-play world?",
+        "picks": 3,
+        "options": [
+          "Runecraft",
+          "Crafting",
+          "Prayer",
+          "Fletching",
+          "Agility",
+          "Herblore"
+        ],
+        "answer_indices": [
+          0,
+          1,
+          2
+        ],
+        "explanation": "Runecraft, Crafting and Prayer are free-to-play skills, while Fletching, Agility and Herblore are members-only."
+      }
+    },
+    {
+      "id": "q_29c84a72b18e2cb4",
+      "type": "free_text",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "skills"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Mac",
+      "payload": {
+        "intro": "Once a mortal reaches 99 in every single skill, they visit a gruff fellow north-west of the Warriors' Guild.",
+        "prompt": "What is the name of the NPC who sells the Max cape?",
+        "accepted": [
+          "Mac"
+        ],
+        "explanation": "Mac lives on a small island north-west of the Warriors' Guild and sells the Max cape for 99,000 coins per 99 skill."
+      }
+    },
+    {
+      "id": "q_bbcea6faf1d575ca",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "skills"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Capes_of_Accomplishment",
+      "payload": {
+        "intro": "Every master of a skill charges the exact same price for a Cape of Accomplishment and its hood.",
+        "prompt": "How many coins does a skillcape cost from a skill master?",
+        "answer": 99000,
+        "within": 1000,
+        "unit": "coins",
+        "explanation": "Every Cape of Accomplishment costs 99,000 coins—1,000 coins for each level required to wear it."
+      }
+    },
+    {
+      "id": "q_d431f4a19ebcc529",
+      "type": "matching",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "skills"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Skills",
+      "payload": {
+        "intro": "Every skill in Gielinor belongs to a family: gathering raw goods, crafting them or supporting your travels!",
+        "prompt": "Sort these non-combat skills into Gathering, Artisan or Support skills.",
+        "bins": true,
+        "fields": [
+          {
+            "text": "Mining"
+          },
+          {
+            "text": "Woodcutting"
+          },
+          {
+            "text": "Smithing"
+          },
+          {
+            "text": "Fletching"
+          },
+          {
+            "text": "Agility"
+          },
+          {
+            "text": "Thieving"
+          }
+        ],
+        "options": [
+          {
+            "text": "Gathering"
+          },
+          {
+            "text": "Artisan"
+          },
+          {
+            "text": "Support"
+          }
+        ],
+        "answer": [
+          0,
+          0,
+          1,
+          1,
+          2,
+          2
+        ],
+        "explanation": "Mining and Woodcutting gather raw materials; Smithing and Fletching turn materials into items; Agility and Thieving are Support skills."
+      }
+    },
+    {
+      "id": "q_0fdb8692158ff890",
+      "type": "number_slider",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "skills",
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Tears_of_Guthix_(quest)",
+      "payload": {
+        "intro": "Alongside my lamp, Juna's glowing blue tears in the Lumbridge Swamp caves have always fed your lowest skill!",
+        "prompt": "How many Quest Points do you need to start the Tears of Guthix quest?",
+        "answer": 43,
+        "min": 1,
+        "max": 100,
+        "scale": "linear",
+        "explanation": "Tears of Guthix requires 43 Quest Points, 49 Firemaking, 20 Crafting and 20 Mining."
+      }
+    },
+    {
+      "id": "q_3ad6e410a8934f51",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "skills"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Hitpoints",
+      "payload": {
+        "intro": "Every skill starts at level 1 on Tutorial Island, master—except for one!",
+        "prompt": "What Hitpoints level does a brand-new character start with, and how much XP is that?",
+        "options": [
+          "Level 10 (1,154 XP)",
+          "Level 10 (1,000 XP)",
+          "Level 9 (1,000 XP)",
+          "Level 15 (2,411 XP)"
+        ],
+        "answer_index": 0,
+        "explanation": "Every account starts at level 10 Hitpoints with 1,154 experience."
+      }
     }
   ]
 }

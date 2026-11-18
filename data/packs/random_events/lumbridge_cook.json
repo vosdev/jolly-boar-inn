@@ -140,6 +140,200 @@
         "prompt": "How many hitpoints does a cooked moonlight antelope restore in total?",
         "explanation": "I remember now: this food restores 14 hitpoints directly when eaten, and another 12 after a delay of several ticks!"
       }
+    },
+    {
+      "id": "q_3ad3937a12665e3d",
+      "type": "matching",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "cooking",
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Recipe_for_Disaster",
+      "payload": {
+        "intro": "Wait, wait—don't mix up the plates! If the dwarf gets the banana stew, we're all doomed!",
+        "prompt": "Match each council member to the meal that frees them in Recipe for Disaster.",
+        "fields": [
+          {
+            "text": "Rohak the dwarf"
+          },
+          {
+            "text": "Evil Dave"
+          },
+          {
+            "text": "Sir Amik Varze"
+          },
+          {
+            "text": "Skrach Uglogwee"
+          },
+          {
+            "text": "The Lumbridge Guide"
+          }
+        ],
+        "options": [
+          {
+            "text": "Dwarven rock cake"
+          },
+          {
+            "text": "Spicy stew"
+          },
+          {
+            "text": "Crème brûlée supreme"
+          },
+          {
+            "text": "Cooked jubbly"
+          },
+          {
+            "text": "Cake of guidance"
+          },
+          {
+            "text": "Stuffed snake"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Each guest at the banquet demands their own dish to break the Culinaromancer's stasis."
+      }
+    },
+    {
+      "id": "q_f4208308845a75c9",
+      "type": "pick_all_that_apply",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "cooking",
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Cook%27s_Assistant",
+      "payload": {
+        "intro": "Where did all this trouble even begin? Oh right, the Duke's birthday cake! What were the three things I sent you to fetch?",
+        "prompt": "Select the three ingredients required to complete Cook's Assistant.",
+        "picks": 3,
+        "options": [
+          "Extra fine flour",
+          "Super large egg",
+          "Top-quality milk",
+          "Pot of cream",
+          "Pat of butter",
+          "Crunchy chocolate bar"
+        ],
+        "answer_indices": [
+          0,
+          1,
+          2
+        ],
+        "explanation": "Cook's Assistant asks for a bucket of top-quality milk, a super large egg and a pot of extra fine flour."
+      }
+    },
+    {
+      "id": "q_9d3b646c56e4fd65",
+      "type": "free_text",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "cooking",
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Spicy_stew",
+      "payload": {
+        "intro": "Evil Dave's mother refuses to tell him what makes her stew so EVIL, and those hell-rats downstairs hoard the shakers!",
+        "prompt": "Which colour of spice in Evil Dave's basement affects production skills like Herblore, Construction and Runecraft?",
+        "accepted": [
+          "Orange",
+          "Orange spice"
+        ],
+        "explanation": "Orange spice affects Construction, Cooking, Crafting, Farming, Firemaking, Fletching, Herblore, Runecraft and Smithing."
+      }
+    },
+    {
+      "id": "q_a94d181b74d152db",
+      "type": "matching",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "cooking",
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Spicy_stew",
+      "payload": {
+        "intro": "Red, yellow, brown, orange—I keep shaking the wrong spice into the pot! Which skills go with which colour?",
+        "prompt": "Sort these skills by the spice colour that boosts or drains them in a spicy stew.",
+        "bins": true,
+        "fields": [
+          {
+            "text": "Magic"
+          },
+          {
+            "text": "Slayer"
+          },
+          {
+            "text": "Mining"
+          },
+          {
+            "text": "Thieving"
+          },
+          {
+            "text": "Agility"
+          },
+          {
+            "text": "Construction"
+          }
+        ],
+        "options": [
+          {
+            "text": "Red spice"
+          },
+          {
+            "text": "Brown spice"
+          },
+          {
+            "text": "Yellow spice"
+          },
+          {
+            "text": "Orange spice"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          1,
+          2,
+          2,
+          3
+        ],
+        "explanation": "Red spice affects combat skills, brown affects gathering skills and Slayer, yellow affects Agility, Thieving and Prayer, and orange affects artisan skills."
+      }
+    },
+    {
+      "id": "q_b604736c4fa5d629",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "cooking",
+        "quests",
+        "bosses"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Flambeed",
+      "payload": {
+        "intro": "Before you can reach the Culinaromancer himself, you have to fight through a parade of his horrific food monsters!",
+        "prompt": "Which fiery dessert monster in the final Recipe for Disaster fight makes you drop your weapon unless you wear Ice gloves?",
+        "options": [
+          "Flambeed",
+          "Agrith-Na-Na",
+          "Karamel",
+          "Dessourt",
+          "Gelatinnoth Mother"
+        ],
+        "answer_index": 0,
+        "explanation": "Flambeed is a giant burning cake monster; without Ice gloves equipped, his heat forces you to unequip your weapon on every hit."
+      }
     }
   ]
 }

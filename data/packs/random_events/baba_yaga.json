@@ -145,6 +145,234 @@
           4
         ]
       }
+    },
+    {
+      "id": "q_a3daf725bde5fc89",
+      "type": "ordering",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "runecraft"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Essence_pouch",
+      "payload": {
+        "intro": "Little pouches, bigger pouches! Sew them together and carry all the essence your back can bear, dearie!",
+        "prompt": "Order these five Runecraft essence pouches by the Runecraft level required to use them, from lowest to highest.",
+        "ends": [
+          "Lowest Runecraft level",
+          "Highest Runecraft level"
+        ],
+        "entries": [
+          {
+            "text": "Small pouch",
+            "rank": 1,
+            "detail": "Level 1"
+          },
+          {
+            "text": "Medium pouch",
+            "rank": 2,
+            "detail": "Level 25"
+          },
+          {
+            "text": "Large pouch",
+            "rank": 3,
+            "detail": "Level 50"
+          },
+          {
+            "text": "Giant pouch",
+            "rank": 4,
+            "detail": "Level 75"
+          },
+          {
+            "text": "Colossal pouch",
+            "rank": 5,
+            "detail": "Level 85"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Small pouches require level 1, medium 25, large 50, giant 75 and the combined colossal pouch requires 85 Runecraft."
+      }
+    },
+    {
+      "id": "q_6a3579fafb8f2449",
+      "type": "matching",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "runecraft"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Altar_(Runecraft)",
+      "payload": {
+        "intro": "The Mysterious Ruins are scattered all across the world, dearie! Don't bring your Air talisman to the desert!",
+        "prompt": "Match each Runecraft altar's mysterious ruins to where it is found.",
+        "fields": [
+          {
+            "text": "Fire Altar"
+          },
+          {
+            "text": "Nature Altar"
+          },
+          {
+            "text": "Law Altar"
+          },
+          {
+            "text": "Cosmic Altar"
+          },
+          {
+            "text": "Body Altar"
+          }
+        ],
+        "options": [
+          {
+            "text": "North of Al Kharid"
+          },
+          {
+            "text": "Karamja jungle"
+          },
+          {
+            "text": "Entrana"
+          },
+          {
+            "text": "Zanaris"
+          },
+          {
+            "text": "West of Edgeville Monastery"
+          },
+          {
+            "text": "Wizards' Tower basement"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Each mysterious ruin stands in its own region: Fire outside Al Kharid, Nature in Karamja, Law on Entrana, Cosmic in southern Zanaris and Body near the Monastery."
+      }
+    },
+    {
+      "id": "q_3fe470041d1c564c",
+      "type": "matching",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "magic"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Spellbooks",
+      "payload": {
+        "intro": "Four great spellbooks exist in Gielinor, dearie! Do you remember which tome holds which incantation?",
+        "prompt": "Sort these spells by the spellbook they belong to.",
+        "bins": true,
+        "fields": [
+          {
+            "text": "Bones to Peaches"
+          },
+          {
+            "text": "Blood Barrage"
+          },
+          {
+            "text": "NPC Contact"
+          },
+          {
+            "text": "Humidify"
+          },
+          {
+            "text": "Resurrect Greater Ghost"
+          },
+          {
+            "text": "Death Charge"
+          }
+        ],
+        "options": [
+          {
+            "text": "Standard spellbook"
+          },
+          {
+            "text": "Ancient Magicks"
+          },
+          {
+            "text": "Lunar spellbook"
+          },
+          {
+            "text": "Arceuus spellbook"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          2,
+          3,
+          3
+        ],
+        "explanation": "Bones to Peaches is on the Standard spellbook, Blood Barrage on Ancient Magicks, NPC Contact and Humidify on the Lunar spellbook, and thrall summoning and Death Charge on the Arceuus spellbook."
+      }
+    },
+    {
+      "id": "q_89363d0cf6e924e9",
+      "type": "free_text",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "magic",
+        "lore"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Baba_Yaga%27s_House",
+      "payload": {
+        "intro": "Everyone stares at my house's lovely chicken legs, dearie, and nobody ever asks his name! Have you met him?",
+        "prompt": "What is the name of Baba Yaga's chicken-legged house?",
+        "accepted": [
+          "Berty"
+        ],
+        "explanation": "Baba Yaga's animated chicken-legged house on Lunar Isle is named Berty."
+      }
+    },
+    {
+      "id": "q_dd8f6e52e8210a7f",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "runecraft"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Combination_runes",
+      "payload": {
+        "intro": "Why carry both air and earth runes when you can bind them together at the altar, hee hee?",
+        "prompt": "Which combination rune is crafted by combining air and earth?",
+        "options": [
+          "Dust rune",
+          "Mud rune",
+          "Mist rune",
+          "Smoke rune"
+        ],
+        "answer_index": 0,
+        "explanation": "Air and earth make dust runes, water and earth make mud runes, air and water make mist runes, and air and fire make smoke runes."
+      }
+    },
+    {
+      "id": "q_fcfbe31f553418c1",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "magic"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Astral_rune_pack",
+      "payload": {
+        "intro": "When mages run short of astral runes, they come knocking at my door to buy my stock by the pack!",
+        "prompt": "How many astral runes are inside one astral rune pack sold in Baba Yaga's Magic Shop?",
+        "answer": 100,
+        "unit": "runes",
+        "explanation": "Like other rune packs sold in magic shops across Gielinor, each astral rune pack contains 100 astral runes."
+      }
     }
   ]
 }

@@ -186,6 +186,199 @@
         ],
         "explanation": "Leechfins can only be caught on Vampyrium after completion of The Blood Moon Rises."
       }
+    },
+    {
+      "id": "q_9d681cc387997cbb",
+      "type": "ordering",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "cats"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Cat",
+      "payload": {
+        "intro": "Watch how you speak to me, human. Every kitten grows into a glorious predator—if you actually feed and stroke it!",
+        "prompt": "Order these stages of a domestic cat's life in Old School RuneScape from first to last.",
+        "ends": [
+          "First stage",
+          "Final stage"
+        ],
+        "entries": [
+          {
+            "text": "Kitten",
+            "rank": 1
+          },
+          {
+            "text": "Cat",
+            "rank": 2
+          },
+          {
+            "text": "Overgrown cat",
+            "rank": 3
+          },
+          {
+            "text": "Wily cat",
+            "rank": 4
+          },
+          {
+            "text": "Lazy cat",
+            "rank": 5
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "A kitten grows into a cat, then an overgrown cat; after Ratcatchers, an overgrown cat can be trained into a wily cat, which becomes a lazy cat if it stops catching rats."
+      }
+    },
+    {
+      "id": "q_f0fca20cdc8378f6",
+      "type": "matching",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "fishing"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Fishing",
+      "payload": {
+        "intro": "You humans use the strangest contraptions to pull dinner out of the water. Use your paws like a real hunter!",
+        "prompt": "Match each sea creature to the tool used to catch it.",
+        "fields": [
+          {
+            "text": "Lobster"
+          },
+          {
+            "text": "Monkfish"
+          },
+          {
+            "text": "Karambwan"
+          },
+          {
+            "text": "Tuna"
+          },
+          {
+            "text": "Cave eel"
+          }
+        ],
+        "options": [
+          {
+            "text": "Lobster pot"
+          },
+          {
+            "text": "Small fishing net"
+          },
+          {
+            "text": "Karambwan vessel"
+          },
+          {
+            "text": "Harpoon"
+          },
+          {
+            "text": "Fishing rod"
+          },
+          {
+            "text": "Big fishing net"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Lobsters take a lobster pot, monkfish use a small fishing net, karambwans take a karambwan vessel, tuna use a harpoon and cave eels use a fishing rod with bait."
+      }
+    },
+    {
+      "id": "q_c93023070e2009fc",
+      "type": "pick_all_that_apply",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "cats",
+        "fishing"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Evil_Bob",
+      "payload": {
+        "intro": "In my realm of ScapeRune, four statues surround my naps. Touch the right one when I demand fish!",
+        "prompt": "Which four directions have fishing spots around Evil Bob's island in ScapeRune?",
+        "picks": 4,
+        "options": [
+          "North",
+          "East",
+          "South",
+          "West",
+          "North-East",
+          "South-West"
+        ],
+        "answer_indices": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "ScapeRune's island has four cardinal fishing spots—North, East, South and West—each marked by a different statue."
+      }
+    },
+    {
+      "id": "q_c93a4006cfba082c",
+      "type": "matching",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "fishing"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Fishing",
+      "payload": {
+        "intro": "A discerning feline knows exactly where every fish swims—and how you two-legs haul them out!",
+        "prompt": "Sort these fish by the method used to catch them.",
+        "bins": true,
+        "fields": [
+          {
+            "text": "Salmon"
+          },
+          {
+            "text": "Rainbow fish"
+          },
+          {
+            "text": "Lobster"
+          },
+          {
+            "text": "Dark crab"
+          },
+          {
+            "text": "Tuna"
+          },
+          {
+            "text": "Swordfish"
+          }
+        ],
+        "options": [
+          {
+            "text": "Fly fishing rod"
+          },
+          {
+            "text": "Lobster pot"
+          },
+          {
+            "text": "Harpoon"
+          }
+        ],
+        "answer": [
+          0,
+          0,
+          1,
+          1,
+          2,
+          2
+        ],
+        "explanation": "Trout, salmon and rainbow fish use a fly fishing rod, lobsters and dark crabs are trapped in a lobster pot, and tuna and swordfish are harpooned."
+      }
     }
   ]
 }

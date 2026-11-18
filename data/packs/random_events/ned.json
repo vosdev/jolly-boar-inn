@@ -148,6 +148,239 @@
         ],
         "picks": 4
       }
+    },
+    {
+      "id": "q_32cd83b46504ec83",
+      "type": "ordering",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "sailing"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Sailing",
+      "payload": {
+        "intro": "First you learn not to capsize a raft, then you're racing the Barracudas! Put these Sailing milestones in order!",
+        "prompt": "Order these ships and Barracuda Trials by the Sailing level required to unlock them, from lowest to highest.",
+        "ends": [
+          "Lowest Sailing level",
+          "Highest Sailing level"
+        ],
+        "entries": [
+          {
+            "text": "Raft",
+            "rank": 1,
+            "detail": "Level 1"
+          },
+          {
+            "text": "Skiff",
+            "rank": 2,
+            "detail": "Level 15"
+          },
+          {
+            "text": "The Tempor Tantrum",
+            "rank": 3,
+            "detail": "Level 30"
+          },
+          {
+            "text": "Sloop",
+            "rank": 4,
+            "detail": "Level 50"
+          },
+          {
+            "text": "The Jubbly Jive",
+            "rank": 5,
+            "detail": "Level 55"
+          },
+          {
+            "text": "The Gwenith Glide",
+            "rank": 6,
+            "detail": "Level 72"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "You start with a raft at level 1, unlock the skiff at 15, the Tempor Tantrum at 30, the sloop at 50, the Jubbly Jive at 55 and the Gwenith Glide at 72."
+      }
+    },
+    {
+      "id": "q_fdb86600837554b9",
+      "type": "matching",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "sailing",
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Sailing",
+      "payload": {
+        "intro": "Long before every adventurer had their own rudder, a handful of fine vessels carried folk across Gielinor's seas!",
+        "prompt": "Match each famous ship in Old School RuneScape to the quest it features in.",
+        "fields": [
+          {
+            "text": "Lady Lumbridge"
+          },
+          {
+            "text": "The Adventurous"
+          },
+          {
+            "text": "Lady Zay"
+          },
+          {
+            "text": "Lady of the Waves"
+          }
+        ],
+        "options": [
+          {
+            "text": "Dragon Slayer I"
+          },
+          {
+            "text": "Cabin Fever"
+          },
+          {
+            "text": "Bone Voyage"
+          },
+          {
+            "text": "Shilo Village"
+          },
+          {
+            "text": "Monkey Madness I"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "The Lady Lumbridge sails in Dragon Slayer I, Bill Teach captains The Adventurous in Cabin Fever, the Lady Zay sails to Fossil Island in Bone Voyage and the wrecked Lady of the Waves is searched in Shilo Village."
+      }
+    },
+    {
+      "id": "q_25e4c367efa4fcc8",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "lore",
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Ned",
+      "payload": {
+        "intro": "Before you dragged me out of retirement to sail to Crandor, I settled down in Draynor Village with a much quieter trade!",
+        "prompt": "What has kept me busy in Draynor Village since my retirement from the sea?",
+        "options": [
+          "Professional rope maker",
+          "Master net weaver",
+          "Ship-in-a-bottle carver",
+          "Retired lighthouse keeper"
+        ],
+        "answer_index": 0,
+        "explanation": "Ned is Draynor Village's ropemaker, twisting balls of wool into coils of rope (and even a wig for Prince Ali Rescue)."
+      }
+    },
+    {
+      "id": "q_f1ea1c73d651519d",
+      "type": "number_slider",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "sailing"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Sloop",
+      "payload": {
+        "intro": "A proper sloop doesn't come cheap at the shipyard! Better start saving your gold pieces.",
+        "prompt": "How many coins does it cost to purchase a sloop at level 50 Sailing?",
+        "answer": 200000,
+        "min": 20000,
+        "max": 1000000,
+        "scale": "log",
+        "unit": "coins",
+        "explanation": "While your first raft is free during Pandemonium and a skiff costs 15,000 coins, a sloop costs 200,000 coins."
+      }
+    },
+    {
+      "id": "q_11741655911e6cfb",
+      "type": "matching",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "sailing"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Sailing",
+      "payload": {
+        "intro": "Out on the open water there's more than one way to earn your sea legs!",
+        "prompt": "Sort these maritime activities and hazards by whether they belong to Sailing, Fishing Trawler or Tempoross.",
+        "bins": true,
+        "fields": [
+          {
+            "text": "Barracuda Trials"
+          },
+          {
+            "text": "Shipwreck salvaging"
+          },
+          {
+            "text": "Patching Murphy's leaking hull"
+          },
+          {
+            "text": "Bailing water with a bucket"
+          },
+          {
+            "text": "Firing harpoonfish from a cannon"
+          },
+          {
+            "text": "Tethering to a totem pole before a wave"
+          }
+        ],
+        "options": [
+          {
+            "text": "Sailing"
+          },
+          {
+            "text": "Fishing Trawler"
+          },
+          {
+            "text": "Tempoross"
+          }
+        ],
+        "answer": [
+          0,
+          0,
+          1,
+          1,
+          2,
+          2
+        ],
+        "explanation": "Barracuda Trials and shipwreck salvaging train Sailing; Murphy's leaking hull and bailing buckets are on the Fishing Trawler; harpoonfish cannons and totem poles are used against Tempoross."
+      }
+    },
+    {
+      "id": "q_60ddfef5d02fb1dc",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "sailing",
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Cabin_Boy_Jenkins",
+      "payload": {
+        "intro": "Pour one out for the poor lad who sailed with us on the Lady Lumbridge when Elvarg attacked...",
+        "prompt": "What was the name of the cabin boy who died aboard the Lady Lumbridge during Dragon Slayer I?",
+        "options": [
+          "Cabin Boy Jenkins",
+          "Cabin Boy Colin",
+          "Cabin Boy Billy",
+          "Cabin Boy Pete"
+        ],
+        "answer_index": 0,
+        "explanation": "Cabin Boy Jenkins is killed by Elvarg's firebreath during the voyage to Crandor, and his ghost later helps you in Dragon Slayer II."
+      }
     }
   ]
 }

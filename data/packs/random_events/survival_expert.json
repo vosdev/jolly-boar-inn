@@ -113,6 +113,277 @@
         ],
         "explanation": "Quetzin comes from Hunters' Rumours, Herbi from herbiboars, the baby chinchompa from chinchompas and Mr McGroot from goat hunting. The beaver is Woodcutting's, the phoenix the Wintertodt's."
       }
+    },
+    {
+      "id": "q_92e1772451d3527e",
+      "type": "ordering",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "woodcutting"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Woodcutting",
+      "payload": {
+        "intro": "Start with a humble tree on Tutorial Island, and one day you'll fell the ancients of Gielinor.",
+        "prompt": "Order these trees by the Woodcutting level needed to chop them, from lowest to highest.",
+        "ends": [
+          "Lowest level",
+          "Highest level"
+        ],
+        "entries": [
+          {
+            "text": "Oak tree",
+            "rank": 1,
+            "detail": "Level 15"
+          },
+          {
+            "text": "Willow tree",
+            "rank": 2,
+            "detail": "Level 30"
+          },
+          {
+            "text": "Teak tree",
+            "rank": 3,
+            "detail": "Level 35"
+          },
+          {
+            "text": "Maple tree",
+            "rank": 4,
+            "detail": "Level 45"
+          },
+          {
+            "text": "Yew tree",
+            "rank": 5,
+            "detail": "Level 60"
+          },
+          {
+            "text": "Magic tree",
+            "rank": 6,
+            "detail": "Level 75"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "Oak unlocks at 15, willow at 30, teak at 35, maple at 45, yew at 60 and magic at 75."
+      }
+    },
+    {
+      "id": "q_33c6108fdb60829e",
+      "type": "matching",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "hunter"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Hunter",
+      "payload": {
+        "intro": "A box trap won't do you much good against a swamp lizard! Every creature in the wild needs the right snare.",
+        "prompt": "Match each Hunter creature to the trap or method used to catch it.",
+        "fields": [
+          {
+            "text": "Crimson swift"
+          },
+          {
+            "text": "Red chinchompa"
+          },
+          {
+            "text": "Red salamander"
+          },
+          {
+            "text": "Sabre-toothed kyatt"
+          },
+          {
+            "text": "Snowy knight"
+          }
+        ],
+        "options": [
+          {
+            "text": "Bird snare"
+          },
+          {
+            "text": "Box trap"
+          },
+          {
+            "text": "Small fishing net & rope"
+          },
+          {
+            "text": "Spiked pit"
+          },
+          {
+            "text": "Butterfly net"
+          },
+          {
+            "text": "Deadfall trap"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Birds take bird snares, chinchompas take box traps, salamanders use a net and rope on a young tree, kyatts fall into spiked pits and butterflies take a butterfly net."
+      }
+    },
+    {
+      "id": "q_fe8467c2fd466bb9",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "hunter"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Bird_house_trapping",
+      "payload": {
+        "intro": "Out on Fossil Island, clockwork birdhouses fill up with feathers and nests while you're away.",
+        "prompt": "How many minutes does a birdhouse take to completely fill after being seeded?",
+        "answer": 50,
+        "unit": "minutes",
+        "explanation": "A seeded birdhouse takes 50 minutes to catch 10 birds and become ready to dismantle."
+      }
+    },
+    {
+      "id": "q_173bcbd2a2993661",
+      "type": "matching",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "hunter"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Hunter",
+      "payload": {
+        "intro": "From copper-feathered swifts on the coast to polar kebbits in the snow, every creature falls for its own trick!",
+        "prompt": "Sort these creatures by the Hunter method used to track or catch them.",
+        "bins": true,
+        "fields": [
+          {
+            "text": "Carnivorous chinchompa"
+          },
+          {
+            "text": "Ferret"
+          },
+          {
+            "text": "Golden warbler"
+          },
+          {
+            "text": "Cerulean twitch"
+          },
+          {
+            "text": "Polar kebbit"
+          },
+          {
+            "text": "Razor-backed kebbit"
+          }
+        ],
+        "options": [
+          {
+            "text": "Box trap"
+          },
+          {
+            "text": "Bird snare"
+          },
+          {
+            "text": "Tracking (Noose wand)"
+          }
+        ],
+        "answer": [
+          0,
+          0,
+          1,
+          1,
+          2,
+          2
+        ],
+        "explanation": "Chinchompas and ferrets enter box traps, birds land on bird snares, and burrowing kebbits are tracked to their burrows and flushed out with a noose wand."
+      }
+    },
+    {
+      "id": "q_4e18787b4f470273",
+      "type": "free_text",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "hunter"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Herbiboar",
+      "payload": {
+        "intro": "There's a mossy boar with herbs growing right out of its back. Track its muddy footprints carefully!",
+        "prompt": "On which island do you track and harvest the Herbiboar?",
+        "accepted": [
+          "Fossil Island"
+        ],
+        "explanation": "Herbiboar tracking is found on Fossil Island, requiring 80 Hunter and 31 Herblore."
+      }
+    },
+    {
+      "id": "q_b3afbbbdadd9a8cd",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "firemaking"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Firelighter",
+      "payload": {
+        "intro": "Treasure Trail hunters love tossing coloured chemicals onto logs just to make a fancy campfire.",
+        "prompt": "Which log is the ONLY type of log that can be coloured with firelighters from clue scrolls?",
+        "options": [
+          "Normal logs",
+          "Oak logs",
+          "Magic logs",
+          "Redwood logs"
+        ],
+        "answer_index": 0,
+        "explanation": "Firelighters can only be used on regular logs (or fed to a Phoenix pet to change its colour permanently)."
+      }
+    },
+    {
+      "id": "q_71c701095e0b4327",
+      "type": "number_slider",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "hunter"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Dragon_impling",
+      "payload": {
+        "intro": "Forgot your butterfly net in Puro-Puro? You can snatch a dragon impling out of the air with your bare hands—if you're skilled enough!",
+        "prompt": "What Hunter level do you need to catch a dragon impling barehanded?",
+        "answer": 93,
+        "min": 1,
+        "max": 99,
+        "scale": "linear",
+        "explanation": "Catching any impling barehanded takes 10 Hunter levels higher than catching it with a net: 83 with a net, 93 barehanded."
+      }
+    },
+    {
+      "id": "q_3bd61403661c5829",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "woodcutting"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Anima-infused_bark",
+      "payload": {
+        "intro": "The Friendly Forester taught us that chopping trees together makes the woods thrive. What do you trade in his shop?",
+        "prompt": "What item earned during Forestry events is used alongside logs as currency in the Forestry Shop?",
+        "options": [
+          "Anima-infused bark",
+          "Mulch",
+          "Ent branches",
+          "Sacred leaves"
+        ],
+        "answer_index": 0,
+        "explanation": "Participating in Forestry events awards anima-infused bark, which can be spent in the Friendly Forester's shop."
+      }
     }
   ]
 }

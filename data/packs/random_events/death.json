@@ -185,6 +185,52 @@
         ],
         "answer_index": 1
       }
+    },
+    {
+      "id": "q_5fccb239183394ba",
+      "type": "pick_all_that_apply",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "prayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Prayer",
+      "payload": {
+        "intro": "Not every prayer comes automatically with piety and age. Some demand knightly trials or ancient scrolls before you may invoke them.",
+        "prompt": "Which of these prayers have additional unlock requirements beyond just having the required Prayer level?",
+        "options": [
+          "Chivalry",
+          "Piety",
+          "Rigour",
+          "Augury",
+          "Smite",
+          "Redemption"
+        ],
+        "answer_indices": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Chivalry and Piety require King's Ransom and the Knight Waves Training Grounds, while Rigour, Augury and Preserve require reading prayer scrolls from the Chambers of Xeric. Smite and Redemption only require their Prayer level."
+      }
+    },
+    {
+      "id": "q_4ad15360bc27afa2",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "prayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Gilded_altar",
+      "payload": {
+        "intro": "Offering bones on a gilded altar with two lit incense burners pleases the gods far more than burying them in the dirt.",
+        "prompt": "By what percentage does a gilded altar with two lit marrentill burners multiply a bone's base burying XP?",
+        "answer": 350,
+        "unit": "%",
+        "explanation": "A gilded altar provides a base 250% XP multiplier, plus 50% for each lit burner, totalling 350% (3.5 times base XP)."
+      }
     }
   ]
 }

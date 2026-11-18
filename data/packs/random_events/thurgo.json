@@ -153,6 +153,226 @@
         ],
         "explanation": "Why, it's dragon, of course!"
       }
+    },
+    {
+      "id": "q_77de406880ed28ce",
+      "type": "ordering",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "smithing"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Smithing",
+      "payload": {
+        "intro": "You don't start hammering runite on your first day at the anvil. Learn your metals in order!",
+        "prompt": "Order these metal bars by the Smithing level required to smelt them, from lowest to highest.",
+        "ends": [
+          "Lowest level",
+          "Highest level"
+        ],
+        "entries": [
+          {
+            "text": "Iron bar",
+            "rank": 1,
+            "detail": "Level 15"
+          },
+          {
+            "text": "Silver bar",
+            "rank": 2,
+            "detail": "Level 20"
+          },
+          {
+            "text": "Steel bar",
+            "rank": 3,
+            "detail": "Level 30"
+          },
+          {
+            "text": "Gold bar",
+            "rank": 4,
+            "detail": "Level 40"
+          },
+          {
+            "text": "Mithril bar",
+            "rank": 5,
+            "detail": "Level 50"
+          },
+          {
+            "text": "Adamantite bar",
+            "rank": 6,
+            "detail": "Level 70"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "Iron smelts at 15, silver at 20, steel at 30, gold at 40, mithril at 50 and adamantite at 70 (runite at 85)."
+      }
+    },
+    {
+      "id": "q_ea472e6d3d008bd3",
+      "type": "matching",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "smithing"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Bar",
+      "payload": {
+        "intro": "Without those fancy Keldagrim pedals and conveyor belts, how many lumps of coal does each ore drink up?",
+        "prompt": "Match each metal bar to the number of coal ores required to smelt it in a regular furnace.",
+        "fields": [
+          {
+            "text": "Iron bar"
+          },
+          {
+            "text": "Steel bar"
+          },
+          {
+            "text": "Mithril bar"
+          },
+          {
+            "text": "Adamantite bar"
+          },
+          {
+            "text": "Runite bar"
+          }
+        ],
+        "options": [
+          {
+            "text": "0 coal"
+          },
+          {
+            "text": "2 coal"
+          },
+          {
+            "text": "4 coal"
+          },
+          {
+            "text": "6 coal"
+          },
+          {
+            "text": "8 coal"
+          },
+          {
+            "text": "1 coal"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "In a standard furnace, iron needs no coal, steel needs 2, mithril 4, adamantite 6 and runite 8."
+      }
+    },
+    {
+      "id": "q_c9713e983a58ba40",
+      "type": "pick_all_that_apply",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "mining"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Prospector_Percy%27s_Nugget_Shop",
+      "payload": {
+        "intro": "Prospector Percy makes you wash his dirt for golden nuggets. What does the old coot actually sell for them?",
+        "prompt": "Which three of these can be bought from Prospector Percy with golden nuggets?",
+        "picks": 3,
+        "options": [
+          "Coal bag",
+          "Gem bag",
+          "Prospector helmet",
+          "Expert mining gloves",
+          "Crystal pickaxe",
+          "Celestial ring"
+        ],
+        "answer_indices": [
+          0,
+          1,
+          2
+        ],
+        "explanation": "Prospector Percy sells the Prospector kit, coal bag, gem bag, soft clay packs and upper-level access. Mining gloves use unidentified minerals, and the celestial ring uses stardust."
+      }
+    },
+    {
+      "id": "q_f13ca2f98dc1da8e",
+      "type": "matching",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "smithing"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Smithing",
+      "payload": {
+        "intro": "Every blueprint on the anvil takes a set number of bars. Don't show up short by one bar!",
+        "prompt": "Sort these smithed items by how many metal bars are needed to smith one.",
+        "bins": true,
+        "fields": [
+          {
+            "text": "Dagger"
+          },
+          {
+            "text": "Medium helm"
+          },
+          {
+            "text": "Scimitar"
+          },
+          {
+            "text": "Sq shield"
+          },
+          {
+            "text": "Chainbody"
+          },
+          {
+            "text": "Kiteshield"
+          }
+        ],
+        "options": [
+          {
+            "text": "1 bar"
+          },
+          {
+            "text": "2 bars"
+          },
+          {
+            "text": "3 bars"
+          }
+        ],
+        "answer": [
+          0,
+          0,
+          1,
+          1,
+          2,
+          2
+        ],
+        "explanation": "Daggers and med helms take 1 bar; scimitars, longswords, full helms and sq shields take 2; chainbodies, kiteshields, battleaxes, warhammers and 2h swords take 3."
+      }
+    },
+    {
+      "id": "q_9fadb5e72efbd75d",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "smithing"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Goldsmith_gauntlets",
+      "payload": {
+        "intro": "Put on Avan's goldsmith gauntlets and smelt gold bars till your arms fall off. How much XP does each bar give?",
+        "prompt": "Rounded to the nearest whole number, how much Smithing XP does smelting one gold bar give while wearing goldsmith gauntlets?",
+        "answer": 56,
+        "within": 1,
+        "unit": "xp",
+        "explanation": "Goldsmith gauntlets increase gold bar smelting experience from 22.5 to 56.2 XP per bar."
+      }
     }
   ]
 }

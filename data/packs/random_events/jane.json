@@ -120,6 +120,204 @@
         ],
         "answer_index": 2
       }
+    },
+    {
+      "id": "q_97a2883bfaffae34",
+      "type": "matching",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "farming"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Farmer",
+      "payload": {
+        "intro": "My gardeners are happy to look after your trees while you're off questing, provided you bring the right produce!",
+        "prompt": "Match each tree to the payment a gardener asks to watch over it.",
+        "fields": [
+          {
+            "text": "Oak tree"
+          },
+          {
+            "text": "Willow tree"
+          },
+          {
+            "text": "Maple tree"
+          },
+          {
+            "text": "Yew tree"
+          },
+          {
+            "text": "Palm tree"
+          }
+        ],
+        "options": [
+          {
+            "text": "1 basket of tomatoes"
+          },
+          {
+            "text": "1 basket of apples"
+          },
+          {
+            "text": "1 basket of oranges"
+          },
+          {
+            "text": "10 cactus spines"
+          },
+          {
+            "text": "15 papaya fruit"
+          },
+          {
+            "text": "25 coconuts"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Oak takes a basket of tomatoes, willow a basket of apples, maple a basket of oranges, yew 10 cactus spines and palm 15 papayas."
+      }
+    },
+    {
+      "id": "q_5d6a2cc4c0d678df",
+      "type": "matching",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "farming"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Farming_Guild",
+      "payload": {
+        "intro": "My guild is divided into three tiers so novices don't track mud into the redwood greenhouse!",
+        "prompt": "Sort these Farming Guild patches by which tier of the guild they are located in.",
+        "bins": true,
+        "fields": [
+          {
+            "text": "Allotment & Flower patches"
+          },
+          {
+            "text": "Cactus patch"
+          },
+          {
+            "text": "Herb patch"
+          },
+          {
+            "text": "Hespori cave"
+          },
+          {
+            "text": "Fruit tree patch"
+          },
+          {
+            "text": "Redwood & Celastrus patches"
+          }
+        ],
+        "options": [
+          {
+            "text": "Easy tier (Level 45)"
+          },
+          {
+            "text": "Medium tier (Level 65)"
+          },
+          {
+            "text": "Hard tier (Level 85)"
+          }
+        ],
+        "answer": [
+          0,
+          0,
+          1,
+          1,
+          2,
+          2
+        ],
+        "explanation": "The level 45 west wing holds allotments, flowers, bushes, cacti and trees; the level 65 north wing holds the herb patch, anima patch and Hespori cave; the level 85 east wing holds fruit trees, spirit trees, celastrus and the redwood tree."
+      }
+    },
+    {
+      "id": "q_7b08a93c0d7bcf55",
+      "type": "free_text",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "farming"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Ultracompost",
+      "payload": {
+        "intro": "Supercompost is fine, adventurer, but a handful of ash from Fossil Island makes it far better!",
+        "prompt": "What material mined on Fossil Island is added to supercompost to turn it into ultracompost?",
+        "accepted": [
+          "Volcanic ash"
+        ],
+        "explanation": "Adding 2 volcanic ash to a bucket of supercompost (or 50 to a full compost bin) turns it into ultracompost."
+      }
+    },
+    {
+      "id": "q_9316d1ba08671cbf",
+      "type": "pick_all_that_apply",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "farming"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Herb_patch",
+      "payload": {
+        "intro": "Nothing breaks a farmer's heart like arriving at a patch of dead ranarrs. Thankfully, a few patches in Gielinor never catch disease!",
+        "prompt": "Which three of these herb patches can stay completely disease-free once unlocked?",
+        "picks": 3,
+        "options": [
+          "Troll Stronghold",
+          "Weiss",
+          "Hosidius (with Easy Kourend Diary)",
+          "Catherby",
+          "Falador (South)",
+          "Ardougne (North)"
+        ],
+        "answer_indices": [
+          0,
+          1,
+          2
+        ],
+        "explanation": "The Troll Stronghold, Weiss, Hosidius (after the Easy Kourend & Kebos Diary) and Harmony Island (or Civitas illa Fortis at Champion rank) herb patches are protected from disease."
+      }
+    },
+    {
+      "id": "q_7ed90a550d396de2",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "farming"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Tool_Leprechaun",
+      "payload": {
+        "intro": "Don't lug buckets of compost around in your backpack! The Tool Leprechauns will hold hundreds of them for you.",
+        "prompt": "What is the maximum number of regular buckets of each compost type a Tool Leprechaun can store?",
+        "answer": 1000,
+        "within": 50,
+        "unit": "buckets",
+        "explanation": "Tool Leprechauns can store up to 1,000 empty buckets, 1,000 compost, 1,000 supercompost and 1,000 ultracompost."
+      }
+    },
+    {
+      "id": "q_b65f362b6fb71404",
+      "type": "free_text",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "farming",
+        "pets"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Tangleroot",
+      "payload": {
+        "intro": "Keep tending your trees and one day a little wooden companion might uproot itself and follow you around!",
+        "prompt": "What is the name of the Farming skilling pet?",
+        "accepted": [
+          "Tangleroot"
+        ],
+        "explanation": "Tangleroot is the Farming skilling pet, whose appearance can be changed by feeding it different seeds."
+      }
     }
   ]
 }
