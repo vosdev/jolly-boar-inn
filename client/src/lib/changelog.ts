@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.263.0',
+    date: '2026-11-18',
+    text: "Seat a new host as a cat until they pick a pet, and stop counting Certer's sketches twice in the footer's question count.",
+  },
+  {
     version: '0.262.0',
     date: '2026-11-18',
     text: 'Add the Ring of wealth to Mystery Boxes, which removes wrong options on multiple choice questions for its wearer.',

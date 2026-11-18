@@ -14,6 +14,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '../lib/api'
 import { clearModesCache } from '../lib/howToPlay'
+import { PLACEHOLDER_PET } from '../lib/pets'
 import { profile } from '../lib/profile'
 import type { ModeSettings } from '../lib/protocol'
 import { createdRooms, rememberCreated, setSession } from '../lib/session'
@@ -160,6 +161,14 @@ describe('Create', () => {
     expect(screen.getByText("Your room's code")).toBeTruthy()
     expect(screen.getByRole('region', { name: 'Your room' }).textContent).toContain('72 hours')
     expect(api.createRoom).not.toHaveBeenCalled()
+  })
+
+  it('seats a host with no profile yet as a cat, not the boar', async () => {
+    profile.set(null)
+    await loaded()
+    const seated = [...document.querySelectorAll<HTMLElement>('.pet')].map((pet) => pet.dataset.pet)
+    expect(seated).toContain(PLACEHOLDER_PET)
+    expect(seated).not.toContain('')
   })
 
   it('has no name field', async () => {
