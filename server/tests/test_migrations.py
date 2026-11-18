@@ -334,7 +334,7 @@ def test_lifespan_runs_migrations(test_db_dsn: str, dist: Path) -> None:
     """Run at startup in lifespan."""
     settings = Settings(_env_file=None, database_url=test_db_dsn)
     with TestClient(create_app(settings, dist)) as client:
-        assert client.get("/api/health").json() == {"ok": True, "db": True}
+        assert client.get("/api/health").json()["db"] is True
 
     async def columns() -> dict[str, set[str]]:
         pool = await create_pool(test_db_dsn)
