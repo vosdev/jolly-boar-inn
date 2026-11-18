@@ -902,6 +902,10 @@ class Loop(RoomHost):
                 suggested_by=question.suggested_by,
             )
             closed = Broadcast.to_all(room, message.model_dump(mode="json"))
+            if slots:
+                # A spent charge or a broken item changes the worn slots everyone sees, and
+                # ``question_closed`` carries no players.
+                self._players_updated(room, room.view())
         self._broadcast(closed)
         return reveal_ends
 
