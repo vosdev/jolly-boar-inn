@@ -176,6 +176,165 @@
         "explanation": "The tablet and the related teleport spell depict a sun instead of a letter.",
         "answer_index": 1
       }
+    },
+    {
+      "id": "q_5bbad56e47464f31",
+      "type": "ordering",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "lore"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/History",
+      "payload": {
+        "intro": "Every historian in the Varrock Palace library knows the chronicled Ages of Gielinor by their turning points!",
+        "prompt": "Order these historical milestones from the earliest Age of Gielinor to the latest.",
+        "ends": [
+          "Earliest (First Age)",
+          "Latest (Fifth Age)"
+        ],
+        "entries": [
+          {
+            "text": "Guthix discovers Gielinor and shapes the world",
+            "rank": 1,
+            "detail": "First Age"
+          },
+          {
+            "text": "Zaros builds his empire across the north",
+            "rank": 2,
+            "detail": "Second Age"
+          },
+          {
+            "text": "The God Wars rage across the continent",
+            "rank": 3,
+            "detail": "Third Age"
+          },
+          {
+            "text": "Guthix establishes the Edicts and banishes the gods",
+            "rank": 4,
+            "detail": "Start of Fourth Age"
+          },
+          {
+            "text": "Humans discover Rune Essence and found the Wizards' Tower",
+            "rank": 5,
+            "detail": "Start of Fifth Age"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "The First Age ended when Guthix slumbered, the Second saw Zaros's empire, the Third was the God Wars ended by the Edicts, the Fourth was the mortal age without runes, and the Fifth began with the discovery of Rune Essence."
+      }
+    },
+    {
+      "id": "q_16e81840778c4629",
+      "type": "matching",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "lore"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Gielinor",
+      "payload": {
+        "intro": "Adventurers teleport across borders all day long without learning a single bit of political geography!",
+        "prompt": "Match each kingdom of Gielinor to its capital city.",
+        "fields": [
+          {
+            "text": "Misthalin"
+          },
+          {
+            "text": "Asgarnia"
+          },
+          {
+            "text": "Kandarin"
+          },
+          {
+            "text": "Tirannwn"
+          },
+          {
+            "text": "Varlamore"
+          }
+        ],
+        "options": [
+          {
+            "text": "Varrock"
+          },
+          {
+            "text": "Falador"
+          },
+          {
+            "text": "Ardougne"
+          },
+          {
+            "text": "Prifddinas"
+          },
+          {
+            "text": "Civitas illa Fortis"
+          },
+          {
+            "text": "Al Kharid"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Varrock is the capital of Misthalin, Falador of Asgarnia, Ardougne of Kandarin, Prifddinas of Tirannwn and Civitas illa Fortis of Varlamore."
+      }
+    },
+    {
+      "id": "q_2e9dd488f3e0fbaa",
+      "type": "free_text",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "spelling"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Burgh_de_Rott",
+      "payload": {
+        "intro": "My assistant keeps misfiling our Myreque dispatches from the dilapidated town south of Mort'ton.",
+        "prompt": "How do you spell the town south of Mort'ton that you help rebuild in In Aid of the Myreque?",
+        "accepted": [
+          "Burgh de Rott"
+        ],
+        "max_distance": 0,
+        "explanation": "Burgh de Rott sits on the southern coast of Morytania, right outside the Barrows hills."
+      }
+    },
+    {
+      "id": "q_a3ec15ffe70b6ced",
+      "type": "pick_all_that_apply",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "quests",
+        "lore"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Shield_of_Arrav",
+      "payload": {
+        "intro": "Long ago I found the broken halves of the Shield of Arrav mentioned in a book right here in my library...",
+        "prompt": "Which two rival criminal gangs in Varrock each hold one half of the Shield of Arrav?",
+        "picks": 2,
+        "options": [
+          "Phoenix Gang",
+          "Black Arm Gang",
+          "Black Knights",
+          "H.A.M.",
+          "Shayzien Gang"
+        ],
+        "answer_indices": [
+          0,
+          1
+        ],
+        "explanation": "In Shield of Arrav, two adventurers infiltrate the Phoenix Gang and the Black Arm Gang to reunite the two halves of the shield."
+      }
     }
   ]
 }

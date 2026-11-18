@@ -185,6 +185,220 @@
         ],
         "explanation": "AIR, DLR, DJQ and then AJS bring you to the Fairy Queen's hideout."
       }
+    },
+    {
+      "id": "q_4d9478e88aef1cff",
+      "type": "matching",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "fairy-rings"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Fairy_ring",
+      "payload": {
+        "intro": "A seasoned traveller knows my most important codes by heart, human. Match each code to where it lands.",
+        "prompt": "Match each fairy ring code to its destination.",
+        "fields": [
+          {
+            "text": "BIQ"
+          },
+          {
+            "text": "BJS"
+          },
+          {
+            "text": "CIR"
+          },
+          {
+            "text": "DKR"
+          },
+          {
+            "text": "AIQ"
+          }
+        ],
+        "options": [
+          {
+            "text": "Kalphite Hive"
+          },
+          {
+            "text": "Zul-Andra"
+          },
+          {
+            "text": "Mount Karuulm"
+          },
+          {
+            "text": "Edgeville"
+          },
+          {
+            "text": "Mudskipper Point"
+          },
+          {
+            "text": "Miscellania"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "BIQ leads near the Kalphite Hive, BJS to the island near Zul-Andra, CIR to Mount Karuulm, DKR to Edgeville near the Grand Exchange and AIQ to Mudskipper Point."
+      }
+    },
+    {
+      "id": "q_60a8d194ef7c696a",
+      "type": "free_text",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Fairy_Godfather",
+      "payload": {
+        "intro": "While I lay hidden and ill, a brute usurped my throne in Zanaris and filled the city with his mobsters.",
+        "prompt": "What was the title of the fairy crime boss who seized power in Zanaris during Fairytale II - Cure a Queen?",
+        "accepted": [
+          "Fairy Godfather",
+          "The Fairy Godfather",
+          "Godfather"
+        ],
+        "explanation": "The Fairy Godfather took over Zanaris with his ork army while the Fairy Queen lay incapacitated."
+      }
+    },
+    {
+      "id": "q_0cbfb73bdf5e6b51",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Lost_City",
+      "payload": {
+        "intro": "Before you ever set foot in Zanaris, you had to chop a branch from a sacred tree guarded by a spirit.",
+        "prompt": "On which island does the dramen tree grow in the Lost City quest?",
+        "options": [
+          "Entrana",
+          "Crandor",
+          "Karamja",
+          "Lunar Isle"
+        ],
+        "answer_index": 0,
+        "explanation": "In Lost City, you enter a dungeon on Entrana unarmed, defeat the Tree spirit and cut a branch from the dramen tree."
+      }
+    },
+    {
+      "id": "q_14d4014c496daa95",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Chaeldar",
+      "payload": {
+        "intro": "My subject Chaeldar assigns Slayer tasks in Zanaris, though only to mortals who have proven themselves in battle.",
+        "prompt": "What minimum combat level do you need to receive a Slayer task from Chaeldar?",
+        "answer": 70,
+        "explanation": "Chaeldar requires combat level 70 and completion of Lost City."
+      }
+    },
+    {
+      "id": "q_108d87887aaca340",
+      "type": "matching",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "fairy-rings"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Fairy_ring",
+      "payload": {
+        "intro": "Three spinning mushroom dials, four letters on each. Do you actually remember which letters sit on which dial?",
+        "prompt": "Sort these letters by which of the three fairy ring dials they appear on.",
+        "bins": true,
+        "fields": [
+          {
+            "text": "A"
+          },
+          {
+            "text": "I"
+          },
+          {
+            "text": "P"
+          },
+          {
+            "text": "B"
+          },
+          {
+            "text": "J"
+          },
+          {
+            "text": "Q"
+          }
+        ],
+        "options": [
+          {
+            "text": "First dial (Left)"
+          },
+          {
+            "text": "Second dial (Middle)"
+          },
+          {
+            "text": "Third dial (Right)"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          0,
+          1,
+          2
+        ],
+        "explanation": "The first dial holds A, B, C and D; the second dial holds I, J, K and L; and the third dial holds P, Q, R and S."
+      }
+    },
+    {
+      "id": "q_362391595fea7e9e",
+      "type": "free_text",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "lore"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Zanaris_market",
+      "payload": {
+        "intro": "Gold coins mean very little to the merchants in the Zanaris marketplace. They prefer sparkling gems.",
+        "prompt": "Which gemstone is used as currency in the Zanaris market and charged at its gate?",
+        "accepted": [
+          "Diamond",
+          "Cut diamond",
+          "Uncut diamond"
+        ],
+        "explanation": "The Zanaris market uses diamonds as currency, and Fairy Very Wise charges one diamond to enter the bazaar."
+      }
+    },
+    {
+      "id": "q_0e0050d7996a9753",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Starflower",
+      "payload": {
+        "intro": "Only one rare blossom from another plane could cure my ailment after the Fairy Godfather poisoned me.",
+        "prompt": "Which flower did you pick on the Cosmic Entity's Plane to brew the Magic essence potion that cured the Fairy Queen?",
+        "options": [
+          "Starflower",
+          "Goutweed",
+          "White lily",
+          "Nightshade"
+        ],
+        "answer_index": 0,
+        "explanation": "In Fairytale II - Cure a Queen, you dial CKP to visit the Cosmic Entity's Plane and pick a starflower to brew a Magic essence potion."
+      }
     }
   ]
 }

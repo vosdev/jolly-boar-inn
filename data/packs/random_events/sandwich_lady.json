@@ -130,6 +130,196 @@
           4
         ]
       }
+    },
+    {
+      "id": "q_52b31f12d2e1aa7e",
+      "type": "matching",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "cooking"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Pie",
+      "payload": {
+        "intro": "My cousin in the Cooking Guild bakes the most wonderful pies. Do you know what each one does for you?",
+        "prompt": "Match each pie to the skill it temporarily boosts.",
+        "fields": [
+          {
+            "text": "Summer pie"
+          },
+          {
+            "text": "Admiral pie"
+          },
+          {
+            "text": "Wild pie"
+          },
+          {
+            "text": "Botanical pie"
+          }
+        ],
+        "options": [
+          {
+            "text": "Agility",
+            "detail": "+5"
+          },
+          {
+            "text": "Fishing",
+            "detail": "+5"
+          },
+          {
+            "text": "Slayer",
+            "detail": "+5"
+          },
+          {
+            "text": "Herblore",
+            "detail": "+4"
+          },
+          {
+            "text": "Thieving"
+          },
+          {
+            "text": "Hunter"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Summer pies boost Agility by 5, admiral pies boost Fishing by 5, wild pies boost Slayer by 5 (and Ranged by 4) and botanical pies boost Herblore by 4."
+      }
+    },
+    {
+      "id": "q_055522b901ee6820",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "cooking"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Unfermented_wine",
+      "payload": {
+        "intro": "A good jug of wine goes lovely with a baguette, dearie. You just have to let the grapes sit for a moment!",
+        "prompt": "How many seconds does a jug of unfermented wine take to ferment after you stop making more?",
+        "answer": 12,
+        "within": 2,
+        "unit": "seconds",
+        "explanation": "Unfermented wine ferments after 20 game ticks (12 seconds) once you stop adding grapes to jugs of water."
+      }
+    },
+    {
+      "id": "q_88d3d7a2e4bb1b46",
+      "type": "matching",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "cooking"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Food",
+      "payload": {
+        "intro": "Some snacks disappear in one gulp, dearie, while others you have to savour bite by bite!",
+        "prompt": "Sort these foods by how many bites it takes to finish one.",
+        "bins": true,
+        "fields": [
+          {
+            "text": "Baguette"
+          },
+          {
+            "text": "Pineapple pizza"
+          },
+          {
+            "text": "Chocolate cake"
+          },
+          {
+            "text": "Triangle sandwich"
+          },
+          {
+            "text": "Redberry pie"
+          },
+          {
+            "text": "Plain cake"
+          }
+        ],
+        "options": [
+          {
+            "text": "1 bite"
+          },
+          {
+            "text": "2 bites"
+          },
+          {
+            "text": "3 bites"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          0,
+          1,
+          2
+        ],
+        "explanation": "Sandwiches and baguettes are eaten in one bite, all pies and pizzas take two halves, and whole cakes take three slices."
+      }
+    },
+    {
+      "id": "q_718aae3f2f9def3e",
+      "type": "free_text",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "cooking"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Stale_baguette",
+      "payload": {
+        "intro": "Sometimes a mystery box has a baguette in it that's been sitting around far too long. Don't break a tooth, love!",
+        "prompt": "What is the rare, wieldable weapon version of a baguette called?",
+        "accepted": [
+          "Stale baguette"
+        ],
+        "explanation": "The stale baguette is a rare reward from mystery boxes and the Sandwich Lady or Quiz Master events."
+      }
+    },
+    {
+      "id": "q_a5cba55e9eab990b",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "cooking",
+        "herblore"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Guthix_rest",
+      "payload": {
+        "intro": "Need a warm cuppa to wash down that triangle sandwich? A proper herbal tea takes three different kinds of leaf.",
+        "prompt": "Which herb is NOT used to brew a Guthix rest tea?",
+        "options": [
+          "Guam leaf",
+          "Marrentill",
+          "Harralander",
+          "Tarromin"
+        ],
+        "answer_index": 3,
+        "explanation": "A Guthix rest is brewed with a cup of hot water, two guam leaves, one marrentill and one harralander."
+      }
+    },
+    {
+      "id": "q_c3e37a9b6f4fb27f",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "cooking"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Pineapple_pizza",
+      "payload": {
+        "intro": "Two slices of tropical goodness, dearie! How much health will a whole pineapple pizza give you?",
+        "prompt": "How many hitpoints does a whole pineapple pizza heal across both halves?",
+        "answer": 22,
+        "unit": "HP",
+        "explanation": "Each half of a pineapple pizza heals 11 hitpoints, making 22 in total—more than a shark!"
+      }
     }
   ]
 }

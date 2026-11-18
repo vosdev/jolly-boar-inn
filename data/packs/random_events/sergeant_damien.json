@@ -178,6 +178,211 @@
           4
         ]
       }
+    },
+    {
+      "id": "q_acc472ba0d2f3bd3",
+      "type": "ordering",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "combat"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Attack_speed",
+      "payload": {
+        "intro": "Speed kills, maggot! Line these weapons up from the fastest strikes to the slowest heavy swings!",
+        "prompt": "Order these weapons by their attack speed, from fastest (fewest ticks) to slowest (most ticks).",
+        "ends": [
+          "Fastest (2 ticks)",
+          "Slowest (7 ticks)"
+        ],
+        "entries": [
+          {
+            "text": "Dart (Rapid)",
+            "rank": 1,
+            "detail": "2 ticks (1.2s)"
+          },
+          {
+            "text": "Ham joint",
+            "rank": 2,
+            "detail": "3 ticks (1.8s)"
+          },
+          {
+            "text": "Abyssal whip",
+            "rank": 3,
+            "detail": "4 ticks (2.4s)"
+          },
+          {
+            "text": "Osmumten's fang",
+            "rank": 4,
+            "detail": "5 ticks (3.0s)"
+          },
+          {
+            "text": "Dharok's greataxe",
+            "rank": 5,
+            "detail": "7 ticks (4.2s)"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Darts on rapid fire every 2 ticks, the ham joint every 3 ticks, whips every 4 ticks, Osmumten's fang every 5 ticks and Dharok's greataxe every 7 ticks."
+      }
+    },
+    {
+      "id": "q_6b5b4f8b46d2bdaf",
+      "type": "matching",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "combat",
+        "bosses"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Barrows_equipment",
+      "payload": {
+        "intro": "Each of the six Barrows brothers takes a different weapon to his grave, maggot! Name their arms!",
+        "prompt": "Match each Barrows brother to the weapon he wields.",
+        "fields": [
+          {
+            "text": "Dharok the Wretched"
+          },
+          {
+            "text": "Guthan the Infested"
+          },
+          {
+            "text": "Verac the Defiled"
+          },
+          {
+            "text": "Torag the Corrupted"
+          },
+          {
+            "text": "Karil the Tainted"
+          }
+        ],
+        "options": [
+          {
+            "text": "Greataxe"
+          },
+          {
+            "text": "Warspear"
+          },
+          {
+            "text": "Flail"
+          },
+          {
+            "text": "Hammers"
+          },
+          {
+            "text": "Crossbow"
+          },
+          {
+            "text": "Quarterstaff"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Dharok wields a greataxe, Guthan a warspear, Verac a flail, Torag twin hammers, Karil a repeating crossbow and Ahrim a quarterstaff."
+      }
+    },
+    {
+      "id": "q_e06e1366954a5399",
+      "type": "matching",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "combat"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Special_attacks",
+      "payload": {
+        "intro": "Watch that special attack bar, maggot! Sort these weapons by how much special attack energy one strike drains!",
+        "prompt": "Sort these weapons by the special attack energy percentage they consume per use.",
+        "bins": true,
+        "fields": [
+          {
+            "text": "Dragon dagger"
+          },
+          {
+            "text": "Dragon claws"
+          },
+          {
+            "text": "Dragon battleaxe"
+          },
+          {
+            "text": "Osmumten's fang"
+          },
+          {
+            "text": "Bandos godsword"
+          },
+          {
+            "text": "Excalibur"
+          }
+        ],
+        "options": [
+          {
+            "text": "25% energy"
+          },
+          {
+            "text": "50% energy"
+          },
+          {
+            "text": "100% energy"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          0,
+          1,
+          2
+        ],
+        "explanation": "Dragon dagger and Osmumten's fang use 25% special attack energy; dragon claws and Bandos godsword use 50%; dragon battleaxe and Excalibur consume 100%."
+      }
+    },
+    {
+      "id": "q_d4d98f1a788ab86d",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "combat",
+        "bosses"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/The_Inferno",
+      "payload": {
+        "intro": "You survived 63 waves in the Fight Cave? Cute! Now jump into the lava and face TzKal-Zuk!",
+        "prompt": "How many waves are there in the Inferno?",
+        "answer": 69,
+        "explanation": "The Inferno has 69 waves, ending with triple Jads on wave 68 and TzKal-Zuk on wave 69."
+      }
+    },
+    {
+      "id": "q_4f321c673b916144",
+      "type": "free_text",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "combat",
+        "bosses"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Tumeken%27s_shadow",
+      "payload": {
+        "intro": "The Chambers of Xeric has the twisted bow, and the Theatre of Blood has the scythe of vitur. What's the third raid's big prize, maggot?",
+        "prompt": "Which two-handed powered staff is the mega-rare reward from the Tombs of Amascut?",
+        "accepted": [
+          "Tumeken's shadow",
+          "Tumekens shadow"
+        ],
+        "explanation": "Tumeken's shadow is the mega-rare reward from the Tombs of Amascut, multiplying your magic accuracy and damage."
+      }
     }
   ]
 }

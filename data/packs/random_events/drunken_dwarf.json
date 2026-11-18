@@ -151,6 +151,232 @@
           4
         ]
       }
+    },
+    {
+      "id": "q_674b45644eac8f72",
+      "type": "matching",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "cooking"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Brewing",
+      "payload": {
+        "intro": "*Hic!* Every proper dwarf brews his own ale in Keldagrim or Port Phasmatys. Do ye even know what'sh in yer glass?",
+        "prompt": "Match each ale to the skill it temporarily boosts.",
+        "fields": [
+          {
+            "text": "Dwarven stout"
+          },
+          {
+            "text": "Wizard's mind bomb"
+          },
+          {
+            "text": "Chef's delight"
+          },
+          {
+            "text": "Greenman's ale"
+          },
+          {
+            "text": "Bandit's brew"
+          }
+        ],
+        "options": [
+          {
+            "text": "Smithing & Mining"
+          },
+          {
+            "text": "Magic"
+          },
+          {
+            "text": "Cooking"
+          },
+          {
+            "text": "Herblore"
+          },
+          {
+            "text": "Thieving"
+          },
+          {
+            "text": "Runecraft"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Dwarven stout boosts Smithing and Mining, Wizard's mind bomb boosts Magic, Chef's delight boosts Cooking, Greenman's ale boosts Herblore and Bandit's brew boosts Thieving and Attack."
+      }
+    },
+    {
+      "id": "q_255c9452ffb58071",
+      "type": "ordering",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "thieving"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Sorceress%27s_Garden",
+      "payload": {
+        "intro": "Wait till you hear about the lad in Al Kharid who squeezes fruit into beer glasses! Order his brews by how many fruits one glass takes!",
+        "prompt": "Order these four Sorceress's Garden sq'irkjuices by how many fruits it takes to fill a single beer glass, from fewest to most.",
+        "ends": [
+          "Fewest sq'irks (2)",
+          "Most sq'irks (5)"
+        ],
+        "entries": [
+          {
+            "text": "Summer sq'irkjuice",
+            "rank": 1,
+            "detail": "2 sq'irks"
+          },
+          {
+            "text": "Autumn sq'irkjuice",
+            "rank": 2,
+            "detail": "3 sq'irks"
+          },
+          {
+            "text": "Spring sq'irkjuice",
+            "rank": 3,
+            "detail": "4 sq'irks"
+          },
+          {
+            "text": "Winter sq'irkjuice",
+            "rank": 4,
+            "detail": "5 sq'irks"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Summer sq'irkjuice takes only 2 summer sq'irks, Autumn takes 3, Spring takes 4 and Winter takes 5."
+      }
+    },
+    {
+      "id": "q_5c4251f7cfc69556",
+      "type": "free_text",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "cooking"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/%27The_stuff%27",
+      "payload": {
+        "intro": "Want yer ale to come out mature from the fermenting vat? Toss a dish of Honest Jimmy's powder in there! *Hic*",
+        "prompt": "What item bought from Trouble Brewing can you add to a brewing vat to raise the chance of brewing a mature ale?",
+        "accepted": [
+          "The stuff",
+          "Stuff"
+        ],
+        "explanation": "\"The stuff\", sold by Honest Jimmy for 5 pieces of eight, increases the chance of a batch maturing from 5% to 64%."
+      }
+    },
+    {
+      "id": "q_511fb9d491b3f31f",
+      "type": "matching",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "lore"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Alfred_Grimhand%27s_Barcrawl",
+      "payload": {
+        "intro": "I've been thrown out of every tavern from Varrock to Karamja! *Hic* Remind me where I left me coat!",
+        "prompt": "Match each famous pub to the city or town where it stands.",
+        "fields": [
+          {
+            "text": "The Rising Sun Inn"
+          },
+          {
+            "text": "The Blue Moon Inn"
+          },
+          {
+            "text": "The Flying Horse Inn"
+          },
+          {
+            "text": "The Rusty Anchor Inn"
+          },
+          {
+            "text": "The Dead Man's Chest"
+          }
+        ],
+        "options": [
+          {
+            "text": "Falador"
+          },
+          {
+            "text": "Varrock"
+          },
+          {
+            "text": "Ardougne"
+          },
+          {
+            "text": "Port Sarim"
+          },
+          {
+            "text": "Brimhaven"
+          },
+          {
+            "text": "Yanille"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Each of these iconic inns is visited during Alfred Grimhand's Barcrawl."
+      }
+    },
+    {
+      "id": "q_fce1f0c9d4d165c2",
+      "type": "free_text",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "lore",
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Keldagrim",
+      "payload": {
+        "intro": "Me brother works on the carts under Trollheim. Come visit our grand city by the River Kelda sometime!",
+        "prompt": "What is the name of the underground dwarven capital city?",
+        "accepted": [
+          "Keldagrim"
+        ],
+        "explanation": "Keldagrim, the capital of the dwarven realm, is reached by river boat or minecart and begins The Giant Dwarf quest."
+      }
+    },
+    {
+      "id": "q_b8d4c32af01da749",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "lore",
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Consortium",
+      "payload": {
+        "intro": "Eight companies run our underground capital, matey, and every one of 'em is named after a colour and a metal or gem!",
+        "prompt": "What is the ruling trade council of companies in Keldagrim called?",
+        "options": [
+          "The Consortium",
+          "The Black Guard",
+          "The Red Axe",
+          "The Guild of Smiths"
+        ],
+        "answer_index": 0,
+        "explanation": "Keldagrim is governed by the Consortium, composed of eight mining and trading companies (including the Red Axe before its expulsion)."
+      }
     }
   ]
 }
