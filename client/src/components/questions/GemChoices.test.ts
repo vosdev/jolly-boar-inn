@@ -241,7 +241,14 @@ describe('more_less on the plain buttons', () => {
 })
 
 describe('how the room split', () => {
-  const picked = (value: unknown): PlayerResult => ({ value, correct: false, credit: 0, points: 0 })
+  const picked = (value: unknown): PlayerResult => ({
+    value,
+    correct: false,
+    credit: 0,
+    points: 0,
+    item_points: 0,
+    item: null,
+  })
 
   it('counts a pick of one and a pick of several alike, ignoring what is not an option', () => {
     const results = { a: picked(0), b: picked(2), c: picked([0, 1]), d: picked(9), e: picked('x') }

@@ -435,7 +435,14 @@ def trial(content: dict[str, Any], value: Any) -> dict[str, Any]:
     how = scoring.effective(scoring_of(type_), steps)
     band = 1 if how is Scoring.STEP else None
     points = scoring.points_for(how, credit, band, steps, team=True)
-    result = {"value": parsed, "correct": credit >= 1.0, "credit": credit, "points": points}
+    result = {
+        "value": parsed,
+        "correct": credit >= 1.0,
+        "credit": credit,
+        "points": points,
+        "item_points": 0,
+        "item": None,
+    }
     return {"view": view, "reveal": reveal, "result": result}
 
 

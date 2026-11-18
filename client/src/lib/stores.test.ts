@@ -39,6 +39,7 @@ const me: PlayerView = {
   avatar: null,
   editing: false,
   team: null,
+  item: null,
 }
 const host: PlayerView = { ...me, id: 'p0', display_name: 'Host', role: 'admin' }
 

@@ -430,7 +430,14 @@ describe('the NPC’s own words', () => {
       question: introduced(),
       reveal: { intro: INTRO, prompt: PROMPT, options: ['70', '77', '74'], answer_index: 1 },
       yourValue: 1,
-      result: { value: 1, correct: true, credit: 1, points: 900 },
+      result: {
+        value: 1,
+        correct: true,
+        credit: 1,
+        points: 900,
+        item_points: 0,
+        item: null,
+      },
       onAnswer: () => {},
     })
     expect(ask().textContent).toBe(PROMPT)
@@ -445,7 +452,14 @@ describe('the NPC’s own words', () => {
       question: introduced(),
       reveal: { intro: INTRO, prompt: PROMPT, options: ['70', '77', '74'], answer_index: 1 },
       yourValue: 1,
-      result: { value: 1, correct: true, credit: 1, points: 900 },
+      result: {
+        value: 1,
+        correct: true,
+        credit: 1,
+        points: 900,
+        item_points: 0,
+        item: null,
+      },
       onAnswer: () => {},
     })
     expect(document.querySelector('.bubble .title .chip .slot')?.textContent).toContain('+900')
@@ -510,8 +524,16 @@ describe('the NPC’s own words', () => {
   })
 
   it.each([
-    ['an answer that scored', { value: 1, correct: true, credit: 1, points: 900 }, death.right],
-    ['a wrong answer', { value: 0, correct: false, credit: 0, points: 0 }, death.wrong],
+    [
+      'an answer that scored',
+      { value: 1, correct: true, credit: 1, points: 900, item_points: 0, item: null },
+      death.right,
+    ],
+    [
+      'a wrong answer',
+      { value: 0, correct: false, credit: 0, points: 0, item_points: 0, item: null },
+      death.wrong,
+    ],
     ['no answer', null, death.wrong],
   ])('says its verdict on %s beside the points', (_, result, words) => {
     render(RandomEvent, {

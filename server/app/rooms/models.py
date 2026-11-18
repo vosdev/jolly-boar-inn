@@ -24,6 +24,7 @@ from app.questions.types import (
 from app.questions.types.scoring import Scoring, Steps
 from app.rooms import codes, duration, scoring, segments
 from app.rooms.errors import BadName, NotAdmin
+from app.rooms.items import Worn
 from app.rooms.plan import Plan
 from app.rooms.settings import RoomSettings
 from app.rooms.teams import God
@@ -31,6 +32,8 @@ from app.stats import Arrival
 from app.ws.outbox import Frame, Outbox
 from app.ws.protocol import (
     Daily,
+    Drop,
+    HeldItem,
     JoinRequestView,
     OpenQuestion,
     PlayerView,
@@ -114,6 +117,8 @@ class Player:
     editing_changed_at: float = field(default=-math.inf, repr=False)
     # Clears ``editing`` once it has gone ``EDITING_SECONDS`` without being sent again.
     editing_expiry: asyncio.Task[None] | None = field(default=None, repr=False)
+    # The one item slot, as ``players`` stores it, so a restart finds it.
+    item: Worn | None = None
 
     def view(self) -> PlayerView:
         return PlayerView(
@@ -125,6 +130,9 @@ class Player:
             connected=self.connected,
             ready=self.ready,
             editing=self.editing,
+            item=None
+            if self.item is None
+            else HeldItem(id=self.item.item, charges=self.item.charges),
         )
 
     def stop_editing(self) -> bool:
@@ -179,7 +187,7 @@ class Submitted:
     ``credit``, ``correct`` and ``points`` stay ``None`` until the question closes and
     grading writes them here, and the last two to the ``answers`` row. ``credit`` has no
     column: it goes out once with the reveal, and the table keeps what the standings are
-    built from.
+    built from. ``item_points`` and ``item`` are what a worn item added beside ``points``.
     """
 
     value: Any
@@ -188,6 +196,8 @@ class Submitted:
     credit: float | None = None
     correct: bool | None = None
     points: int | None = None
+    item_points: int = 0
+    item: str | None = None
 
 
 @dataclass(slots=True)
@@ -368,6 +378,10 @@ class Room:
     custom_author: UUID | None = None
     # Pack content ids shown in this room's earlier games, which a rematch draws around.
     played_ids: frozenset[str] = field(default_factory=frozenset, repr=False)
+    # Games played here before this one, which the item draw is seeded with.
+    rematches: int = 0
+    # What the latest standings dealt, sent only while the room is in them.
+    drops: list[Drop] = field(default_factory=list, repr=False)
     # A lobby's numbers, until ``questions`` holds the real ones.
     plan: Plan | None = field(default=None, repr=False)
     # Rebuilt from ``sum(answers.points)`` at every close, never added to.
@@ -570,6 +584,7 @@ class Room:
             key=self.invite_key if admin else None,
             requests=self.waiting_requests() if admin and self.invite_key is not None else None,
             daily=self.daily,
+            drops=list(self.drops) if self.phase == "standings" else None,
         )
 
     def waiting_requests(self) -> list[JoinRequestView]:

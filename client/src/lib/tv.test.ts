@@ -13,6 +13,7 @@ function player(id: string, role: PlayerView['role'], connected = true): PlayerV
     connected,
     ready: false,
     editing: false,
+    item: null,
   }
 }
 

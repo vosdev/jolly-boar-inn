@@ -13,7 +13,7 @@ const earned = (container: HTMLElement) => container.querySelector('.earned')?.t
 describe('PointsSlot', () => {
   it('shows a right answer as its points, over the running total', () => {
     const { container } = render(PointsSlot, {
-      result: { value: 0, correct: true, credit: 1, points: 850 },
+      result: { value: 0, correct: true, credit: 1, points: 850, item_points: 0, item: null },
       canAnswer: true,
       total: 9270,
     })
@@ -24,7 +24,7 @@ describe('PointsSlot', () => {
 
   it('shows a wrong answer as +0', () => {
     const { container } = render(PointsSlot, {
-      result: { value: 1, correct: false, credit: 0, points: 0 },
+      result: { value: 1, correct: false, credit: 0, points: 0, item_points: 0, item: null },
       canAnswer: true,
       total: 0,
     })
@@ -41,7 +41,7 @@ describe('PointsSlot', () => {
 
   it('lets a graded guess be its number', () => {
     const { container } = render(PointsSlot, {
-      result: { value: 99, correct: false, credit: 0.34, points: 340 },
+      result: { value: 99, correct: false, credit: 0.34, points: 340, item_points: 0, item: null },
       canAnswer: true,
       total: 1340,
     })
@@ -56,7 +56,7 @@ describe('PointsSlot', () => {
 
   it('says the whole slot in words to a screen reader', () => {
     const { container } = render(PointsSlot, {
-      result: { value: 0, correct: true, credit: 1, points: 850 },
+      result: { value: 0, correct: true, credit: 1, points: 850, item_points: 0, item: null },
       canAnswer: true,
       total: 9270,
     })

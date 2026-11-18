@@ -247,6 +247,26 @@
       "title": "DecideRequest",
       "type": "object"
     },
+    "Drop": {
+      "additionalProperties": false,
+      "description": "One item found on the standings: who, and which.",
+      "properties": {
+        "player_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "item": {
+          "description": "An item id (``rooms/items.py``); the client has the name, the picture and the line.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "player_id",
+        "item"
+      ],
+      "title": "Drop",
+      "type": "object"
+    },
     "Editing": {
       "additionalProperties": false,
       "description": "The name field gained focus (``on``), or lost it. Lobby only; ignored anywhere else.",
@@ -370,6 +390,32 @@
         "team_standings"
       ],
       "title": "GameFinished",
+      "type": "object"
+    },
+    "HeldItem": {
+      "additionalProperties": false,
+      "description": "The item in a player's one slot, for the round it was found for.",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "charges": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "What is left of an item spent a charge at a time; null for the rest."
+        }
+      },
+      "required": [
+        "id",
+        "charges"
+      ],
+      "title": "HeldItem",
       "type": "object"
     },
     "Hello": {
@@ -616,7 +662,7 @@
     },
     "PlayerResult": {
       "additionalProperties": false,
-      "description": "One player's row in the reveal.\n\n``credit`` is what the type's ``grade`` returned. It is here so a reveal can say\n\"three of five in the right place\"; ``correct`` is the tie-break's boolean, and is\n``credit >= 1.0``.",
+      "description": "One player's row in the reveal.\n\n``credit`` is what the type's ``grade`` returned. It is here so a reveal can say\n\"three of five in the right place\"; ``correct`` is the tie-break's boolean, and is\n``credit >= 1.0``. ``points`` is the answer's own; an item's are ``item_points``, its own\nline on the reveal.",
       "properties": {
         "value": {},
         "correct": {
@@ -629,13 +675,29 @@
         },
         "points": {
           "type": "integer"
+        },
+        "item_points": {
+          "type": "integer"
+        },
+        "item": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The item that added ``item_points``; null when none did."
         }
       },
       "required": [
         "value",
         "correct",
         "credit",
-        "points"
+        "points",
+        "item_points",
+        "item"
       ],
       "title": "PlayerResult",
       "type": "object"
@@ -698,6 +760,17 @@
         "editing": {
           "description": "Is typing a name in the lobby: \"picking a name…\". Advice, never a gate.",
           "type": "boolean"
+        },
+        "item": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/HeldItem"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "What they hold or wear, in the open for everyone; null between its round's end and the\nnext drop."
         }
       },
       "required": [
@@ -708,7 +781,8 @@
         "team",
         "connected",
         "ready",
-        "editing"
+        "editing",
+        "item"
       ],
       "title": "PlayerView",
       "type": "object"
@@ -1005,6 +1079,11 @@
           "description": "Name the players who answered wrong under a reveal. The host's call, on unless they turn\nit off: the count of who got it right is always shown, the names are a room's taste. Nothing\non the wire changes, since ``question_closed.results`` already carries every row; the\nsetting only says whether the client prints the names.",
           "type": "boolean"
         },
+        "items": {
+          "default": true,
+          "description": "Items for the lower half of the standings between rounds (``rooms/items.py``). Ignored\nin team games and daily rooms, which never deal any. A room stored before the setting\nexisted reads as on.",
+          "type": "boolean"
+        },
         "hide_rounds": {
           "default": false,
           "description": "Surprise rounds: a non-admin is sent only the rounds that have started (``Room.view``).\nLeft off the wire while false, so a room without it reads exactly as one created before it\nexisted.",
@@ -1054,6 +1133,7 @@
         "standings_seconds",
         "close_when_all_answered",
         "name_wrong_answers",
+        "items",
         "max_players",
         "teams"
       ],
@@ -1225,6 +1305,13 @@
         "daily": {
           "$ref": "#/$defs/Daily",
           "description": "A daily room's day. Its reveal waits for the player's ``skip`` instead of a countdown."
+        },
+        "drops": {
+          "description": "The items this round's standings dealt, in standings order, sent only in that phase.\nEach is also on its finder's ``PlayerView.item`` from then on.",
+          "items": {
+            "$ref": "#/$defs/Drop"
+          },
+          "type": "array"
         }
       },
       "required": [
@@ -1525,13 +1612,14 @@
           "description": "As on ``PlayerView``."
         },
         "points": {
+          "description": "Answers' points and item points together.",
           "type": "integer"
         },
         "rank": {
           "type": "integer"
         },
         "points_gained": {
-          "description": "What the round of the latest close added, and the rank before it; None in the first.",
+          "description": "What the round of the latest close added, item points included, and the rank before it;\nNone in the first.",
           "type": "integer"
         },
         "previous_rank": {

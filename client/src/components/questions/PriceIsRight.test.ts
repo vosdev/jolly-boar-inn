@@ -118,8 +118,8 @@ describe('price_is_right', () => {
       canAnswer: true,
       onAnswer: () => {},
       results: {
-        a: { value: 147_000, correct: false, credit: 0.6, points: 400 },
-        b: { value: 200_000, correct: false, credit: 0, points: 0 },
+        a: { value: 147_000, correct: false, credit: 0.6, points: 400, item_points: 0, item: null },
+        b: { value: 200_000, correct: false, credit: 0, points: 0, item_points: 0, item: null },
       },
     })
     expect(container.querySelector('.mark.answer')?.getAttribute('data-value')).toBe('130000')

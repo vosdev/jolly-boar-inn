@@ -75,6 +75,7 @@ function roomView(patch: Partial<RoomView>): RoomView {
       max_players: 50,
       name_wrong_answers: false,
       teams: [],
+      items: true,
     },
     current_index: 0,
     total: 2,
@@ -121,6 +122,7 @@ function welcome(room: RoomView, role: 'admin' | 'player' = 'player'): Welcome {
     ready: false,
     editing: false,
     team: null,
+    item: null,
   }
   return {
     t: 'welcome',
@@ -137,6 +139,7 @@ function welcome(room: RoomView, role: 'admin' | 'player' = 'player'): Welcome {
         ready: false,
         editing: false,
         team: null,
+        item: null,
       },
     ],
     question: null,
@@ -321,7 +324,9 @@ describe('Room', () => {
       unanswered: [],
       question_id: 'q1',
       reveal: { ...open.view, answer_index: 0 },
-      results: { a: { value: 0, correct: true, credit: 1, points: 850 } },
+      results: {
+        a: { value: 0, correct: true, credit: 1, points: 850, item_points: 0, item: null },
+      },
       standings: [{ ...STANDINGS[0]!, points: 1850 }, STANDINGS[1]!],
       team_standings: null,
       next_at: new Date(Date.now() + 16_000).toISOString(),
@@ -375,7 +380,9 @@ describe('Room', () => {
       unanswered: [],
       question_id: 'q1',
       reveal: { ...open.view, answer_index: 0 },
-      results: { a: { value: 0, correct: true, credit: 1, points: 850 } },
+      results: {
+        a: { value: 0, correct: true, credit: 1, points: 850, item_points: 0, item: null },
+      },
       standings: [{ ...STANDINGS[0]!, points: 1850 }, STANDINGS[1]!],
       team_standings: null,
       next_at: new Date(Date.now() + 8_000).toISOString(),
@@ -484,7 +491,9 @@ describe('Room', () => {
         unanswered: [],
         question_id: 'q1',
         reveal: {},
-        results: { b: { value: 0, correct: true, credit: 1, points: 900 } },
+        results: {
+          b: { value: 0, correct: true, credit: 1, points: 900, item_points: 0, item: null },
+        },
         standings: STANDINGS,
         team_standings: null,
         next_at: new Date(Date.now() + 8_000).toISOString(),
@@ -723,7 +732,10 @@ describe('the room’s frame', () => {
       ),
     )
     applyServerMessage({ t: 'question_open', question: tableQuestion('q1', ['a', 'b']) })
-    closeWith({ b: { value: 1, correct: false, credit: 0, points: 0 } }, ['a'])
+    closeWith(
+      { b: { value: 1, correct: false, credit: 0, points: 0, item_points: 0, item: null } },
+      ['a'],
+    )
     const panel = await screen.findByRole('group', { name: 'Results' })
     expect(screen.queryByRole('group', { name: 'At the table' })).toBeNull()
     expect(panel.textContent).toContain('0 of 2 got it right')
@@ -744,8 +756,8 @@ describe('the room’s frame', () => {
     applyServerMessage({ t: 'question_open', question: tableQuestion('q1', []) })
     closeWith(
       {
-        a: { value: 0, correct: true, credit: 1, points: 900 },
-        b: { value: 1, correct: false, credit: 0, points: 0 },
+        a: { value: 0, correct: true, credit: 1, points: 900, item_points: 0, item: null },
+        b: { value: 1, correct: false, credit: 0, points: 0, item_points: 0, item: null },
       },
       [],
     )
@@ -766,8 +778,8 @@ describe('the room’s frame', () => {
     applyServerMessage({ t: 'question_open', question: tableQuestion('q1', []) })
     closeWith(
       {
-        a: { value: 0, correct: true, credit: 1, points: 900 },
-        b: { value: 1, correct: false, credit: 0, points: 0 },
+        a: { value: 0, correct: true, credit: 1, points: 900, item_points: 0, item: null },
+        b: { value: 1, correct: false, credit: 0, points: 0, item_points: 0, item: null },
       },
       [],
     )

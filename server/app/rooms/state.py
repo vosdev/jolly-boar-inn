@@ -49,7 +49,7 @@ from app.questions.packs import Pack
 from app.questions.types import TYPES, grace_of
 from app.questions.types.scoring import Scoring
 from app.questions.types.timing import MIN_REVEAL
-from app.rooms import codes, scoring, selection
+from app.rooms import codes, items, scoring, selection
 from app.rooms.daily_room import DAILY_REVEAL_SECONDS, DailyRooms, record_close
 from app.rooms.errors import (
     AlreadyAnswered,
@@ -83,6 +83,7 @@ from app.rooms.models import (
     new_invite_key,
 )
 from app.rooms.queries import (
+    PLAYER_COLUMNS,
     _count_game_started,
     _count_round_finished,
     _fetch_questions,
@@ -188,6 +189,8 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
         # How long a daily room's reveal waits for its player; shorter only in the test suite.
         self.daily_reveal_seconds: float = DAILY_REVEAL_SECONDS
         self.request_stale_seconds = REQUEST_STALE_SECONDS
+        # The items a drop deals from; the test suite swaps in its own.
+        self.items: Sequence[items.Item] = items.ITEMS
         self.rooms: dict[str, Room] = {}
         # A room in memory shares its code's lock. The entry outlives the room while
         # anyone holds or waits on it, so an eviction and a rehydrate of the same code
@@ -305,9 +308,7 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
             row = await _fetch_room(conn, code, self._grace)
             questions = await _fetch_questions(conn, row["id"])
             players = await conn.fetch(
-                "select id, display_name, avatar, role, team, joined_at, session_token_hash"
-                " from players"
-                " where room_id = $1 order by joined_at, id",
+                f"select {PLAYER_COLUMNS} from players where room_id = $1 order by joined_at, id",
                 row["id"],
             )
             room = _room_from_row(row, total=len(questions), lock=self._locks[code].lock)
@@ -878,7 +879,9 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
 
         The finished game's questions go, and its answers with them: ``question_stats``
         already has what they added, and each browser filed the final standings. What
-        stays is which pack questions it showed, so the next selection draws around them.
+        stays is which pack questions it showed, so the next selection draws around them,
+        and one more in ``rematches``, so the next game deals other items. Every item slot
+        empties.
         """
         code = code.upper()
         pool = await self._pool()
@@ -899,16 +902,25 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
                 await conn.execute("delete from questions where room_id = $1", room.id)
                 await conn.execute(
                     "update rooms set status = 'lobby', current_index = null, finished_at = null,"
-                    " expires_at = $2, settings = $3, played_question_ids = $4 where id = $1",
+                    " expires_at = $2, settings = $3, played_question_ids = $4,"
+                    " rematches = rematches + 1 where id = $1",
                     room.id,
                     expires_at,
                     settings.model_dump(),
                     sorted(played),
                 )
+                await conn.execute(
+                    "update players set item = null, item_round = null, item_charges = null"
+                    " where room_id = $1",
+                    room.id,
+                )
                 await bump(conn, Metric.REMATCHES)
             room.status = "lobby"
             room.settings = settings
             room.played_ids = frozenset(played)
+            room.rematches += 1
+            for player in room.players.values():
+                player.item = None
             room.replace_questions([])
             room.totals = {}
             room.totals_round = 0

@@ -10,6 +10,7 @@ from uuid import UUID
 import asyncpg
 
 from app.rooms.errors import RoomExpired, RoomNotFound
+from app.rooms.items import Worn
 from app.rooms.models import Player, Room, RoomQuestion, Totals, _gone
 from app.rooms.settings import RoomSettings
 from app.stats import Metric, bump, players_bucket, round_bucket, round_key
@@ -20,7 +21,17 @@ from app.stats import Metric, bump, players_bucket, round_bucket, round_key
 _QUESTION_COLUMNS = frozenset({"id", "type", "mode", "source", "host_only", "random_event"})
 
 
+# What ``_player_from_row`` reads besides a just-inserted player's columns.
+PLAYER_COLUMNS = (
+    "id, display_name, avatar, role, team, joined_at, session_token_hash,"
+    " item, item_round, item_charges"
+)
+
+
 def _player_from_row(row: asyncpg.Record) -> Player:
+    """A ``players`` row as a ``Player``. A row without the item columns, one just inserted,
+    holds nothing."""
+    item = row.get("item")
     return Player(
         id=row["id"],
         display_name=row["display_name"],
@@ -29,6 +40,7 @@ def _player_from_row(row: asyncpg.Record) -> Player:
         team=row["team"],
         joined_at=row["joined_at"],
         session_hash=row["session_token_hash"],
+        item=None if item is None else Worn(item, row["item_round"], row["item_charges"]),
     )
 
 
@@ -49,6 +61,7 @@ def _room_from_row(row: asyncpg.Record, total: int, lock: asyncio.Lock) -> Room:
         custom_questions=row["custom_questions"],
         custom_author=row["custom_author"],
         played_ids=frozenset(row["played_question_ids"]),
+        rematches=row.get("rematches", 0),
     )
 
 
@@ -173,13 +186,15 @@ async def _fetch_totals(
     of it from the round starting at position ``round_start``.
 
     This query is the source of truth for standings; the in-memory copy is only ever
-    replaced by what it returns. Ungraded rows (points null) count for nothing, which is
-    what makes a voided question free.
+    replaced by what it returns. A score is an answer's points and its item points
+    together. Ungraded rows (points null) count for nothing, which is what makes a voided
+    question free.
     """
     rows = await conn.fetch(
-        "select a.player_id, coalesce(sum(a.points), 0)::int as points,"
+        "select a.player_id, coalesce(sum(a.points + a.item_points), 0)::int as points,"
         " count(*) filter (where a.correct)::int as correct,"
-        " coalesce(sum(a.points) filter (where q.position >= $2), 0)::int as round_points,"
+        " coalesce(sum(a.points + a.item_points) filter (where q.position >= $2), 0)::int"
+        " as round_points,"
         " count(*) filter (where a.correct and q.position >= $2)::int as round_correct"
         " from answers a join questions q on q.id = a.question_id"
         " where q.room_id = $1 group by a.player_id",
@@ -208,8 +223,8 @@ def _round_start(room: Room, position: int | None) -> int:
 async def _fetch_room(conn: asyncpg.Connection, code: str, grace: timedelta) -> asyncpg.Record:
     row = await conn.fetchrow(
         "select id, code, status, settings, current_index, created_at, expires_at, finished_at,"
-        " invite_key, public, custom_questions, custom_author, daily, played_question_ids"
-        " from rooms where code = $1",
+        " invite_key, public, custom_questions, custom_author, daily, played_question_ids,"
+        " rematches from rooms where code = $1",
         code,
     )
     if row is None:

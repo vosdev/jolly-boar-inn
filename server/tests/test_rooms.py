@@ -67,6 +67,7 @@ def test_create_returns_the_admin_session_and_player(client: TestClient, db) -> 
         "connected": False,
         "ready": False,
         "editing": False,
+        "item": None,
     }
 
     (room,) = db("select code, status from rooms")
@@ -292,6 +293,7 @@ def test_create_stores_settings_with_resolved_max_players(client: TestClient, db
         "standings_seconds": 10,
         "close_when_all_answered": True,
         "name_wrong_answers": True,
+        "items": True,
         "max_players": 50,
         "teams": [],
     }
@@ -640,6 +642,7 @@ def test_join_success_returns_session_and_appears_in_get(client: TestClient, db)
         "connected": False,
         "ready": False,
         "editing": False,
+        "item": None,
     }
     (player,) = db("select session_token_hash from players where display_name = 'Zezima'")
     assert player["session_token_hash"] == sha256(body["session"])

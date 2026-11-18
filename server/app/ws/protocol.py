@@ -87,6 +87,14 @@ class JoinRequestView(_Message):
     """As on ``PlayerView``."""
 
 
+class Drop(_Message):
+    """One item found on the standings: who, and which."""
+
+    player_id: UUID
+    item: str
+    """An item id (``rooms/items.py``); the client has the name, the picture and the line."""
+
+
 class RoomView(_Message):
     code: str
     status: RoomStatus
@@ -141,6 +149,18 @@ class RoomView(_Message):
     """
     daily: Daily | None = Field(default=None, exclude_if=lambda daily: daily is None)
     """A daily room's day. Its reveal waits for the player's ``skip`` instead of a countdown."""
+    drops: list[Drop] | None = Field(default=None, exclude_if=lambda drops: drops is None)
+    """The items this round's standings dealt, in standings order, sent only in that phase.
+    Each is also on its finder's ``PlayerView.item`` from then on.
+    """
+
+
+class HeldItem(_Message):
+    """The item in a player's one slot, for the round it was found for."""
+
+    id: str
+    charges: int | None
+    """What is left of an item spent a charge at a time; null for the rest."""
 
 
 class PlayerView(_Message):
@@ -158,6 +178,9 @@ class PlayerView(_Message):
     """
     editing: bool
     """Is typing a name in the lobby: "picking a name…". Advice, never a gate."""
+    item: HeldItem | None
+    """What they hold or wear, in the open for everyone; null between its round's end and the
+    next drop."""
 
 
 class Standing(_Message):
@@ -166,9 +189,11 @@ class Standing(_Message):
     avatar: str | None
     """As on ``PlayerView``."""
     points: int
+    """Answers' points and item points together."""
     rank: int
     points_gained: int
-    """What the round of the latest close added, and the rank before it; None in the first."""
+    """What the round of the latest close added, item points included, and the rank before it;
+    None in the first."""
     previous_rank: int | None
 
 
@@ -495,13 +520,17 @@ class PlayerResult(_Message):
 
     ``credit`` is what the type's ``grade`` returned. It is here so a reveal can say
     "three of five in the right place"; ``correct`` is the tie-break's boolean, and is
-    ``credit >= 1.0``.
+    ``credit >= 1.0``. ``points`` is the answer's own; an item's are ``item_points``, its own
+    line on the reveal.
     """
 
     value: Any
     correct: bool
     credit: float = Field(ge=0.0, le=1.0)
     points: int
+    item_points: int
+    item: str | None
+    """The item that added ``item_points``; null when none did."""
 
 
 class QuestionClosed(_Message):

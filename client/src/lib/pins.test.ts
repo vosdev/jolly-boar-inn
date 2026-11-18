@@ -42,9 +42,23 @@ describe('placed', () => {
 
 describe('pinRows', () => {
   const results = {
-    far: { value: [{ x: 2143, y: 3122 }], correct: false, credit: 0, points: 0 },
-    near: { value: [{ x: 3026, y: 3213 }], correct: true, credit: 1, points: 1000 },
-    nobody: { value: null, correct: false, credit: 0, points: 0 },
+    far: {
+      value: [{ x: 2143, y: 3122 }],
+      correct: false,
+      credit: 0,
+      points: 0,
+      item_points: 0,
+      item: null,
+    },
+    near: {
+      value: [{ x: 3026, y: 3213 }],
+      correct: true,
+      credit: 1,
+      points: 1000,
+      item_points: 0,
+      item: null,
+    },
+    nobody: { value: null, correct: false, credit: 0, points: 0, item_points: 0, item: null },
   }
 
   it('ranks the pins nearest first and leaves out who has none', () => {

@@ -40,6 +40,7 @@ const SETTINGS: RoomSettings = {
   max_players: 50,
   name_wrong_answers: false,
   teams: [],
+  items: true,
 }
 
 const titles = (types: Set<string>): string[] => rowsFor(types).map((row) => row.title)

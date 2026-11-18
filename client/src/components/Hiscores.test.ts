@@ -111,6 +111,7 @@ describe('Hiscores', () => {
         ready: false,
         editing: false,
         team: null,
+        item: null,
       },
     ])
     const { container } = render(Hiscores, { rows: ROUND_TWO })

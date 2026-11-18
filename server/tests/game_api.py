@@ -248,9 +248,10 @@ def at(frame: dict[str, Any], key: str) -> datetime:
 
 
 def db_totals(db, code: str) -> dict[UUID, int]:
-    """Every player's points straight from the answers table, the way section 5 says."""
+    """Every player's points, item points included, straight from the answers table."""
     rows = db(
-        "select a.player_id, coalesce(sum(a.points), 0)::int as points from answers a"
+        "select a.player_id, coalesce(sum(a.points + a.item_points), 0)::int as points"
+        " from answers a"
         " join questions q on q.id = a.question_id join rooms r on r.id = q.room_id"
         " where r.code = $1 group by a.player_id",
         code,

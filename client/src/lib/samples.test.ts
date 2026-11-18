@@ -239,6 +239,8 @@ describe('samples', () => {
       correct: true,
       credit: 1,
       points: 1000,
+      item_points: 0,
+      item: null,
     })
     expect(sampleResult(sample, sample.answer + 1, 1000)).toMatchObject({
       correct: false,

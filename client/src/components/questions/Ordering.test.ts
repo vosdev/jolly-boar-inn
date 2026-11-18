@@ -411,7 +411,14 @@ describe('ordering', () => {
       question: open(),
       reveal: REVEAL,
       yourValue: [1, 3, 4, 2, 0],
-      result: { value: [1, 3, 4, 2, 0], correct: false, credit: 0.6, points: 540 },
+      result: {
+        value: [1, 3, 4, 2, 0],
+        correct: false,
+        credit: 0.6,
+        points: 540,
+        item_points: 0,
+        item: null,
+      },
       onAnswer: () => {},
     })
     expect(screen.getByText('You had 3 of 5 in place')).toBeTruthy()
@@ -435,7 +442,7 @@ describe('ordering', () => {
       question: open(),
       reveal: REVEAL,
       yourValue: value,
-      result: { value, correct: false, credit: 0.2, points: 180 },
+      result: { value, correct: false, credit: 0.2, points: 180, item_points: 0, item: null },
       onAnswer: () => {},
     })
     expect(screen.getByText('You had 0 of 5 in place')).toBeTruthy()
@@ -457,7 +464,14 @@ describe('ordering', () => {
       question: open(view),
       reveal: { ...view, entries, answer: [2, 0, 1] },
       yourValue: [0, 2, 1],
-      result: { value: [0, 2, 1], correct: true, credit: 1, points: 1000 },
+      result: {
+        value: [0, 2, 1],
+        correct: true,
+        credit: 1,
+        points: 1000,
+        item_points: 0,
+        item: null,
+      },
       onAnswer: () => {},
     })
     const boxes = [...document.querySelectorAll('.entries .tick')].map((t) => t.textContent)
@@ -554,7 +568,14 @@ describe('ordering', () => {
         question: open(PICKED),
         reveal: PICKED_REVEAL,
         yourValue: [1, 5, 3],
-        result: { value: [1, 5, 3], correct: false, credit: 2 / 3, points: 600 },
+        result: {
+          value: [1, 5, 3],
+          correct: false,
+          credit: 2 / 3,
+          points: 600,
+          item_points: 0,
+          item: null,
+        },
         onAnswer: () => {},
       })
       expect(revealed()).toEqual(['Twisted bow', 'Scythe of vitur', 'Tumeken'])
@@ -570,7 +591,14 @@ describe('ordering', () => {
         question: open(PICKED),
         reveal: PICKED_REVEAL,
         yourValue: [1, 3, 0],
-        result: { value: [1, 3, 0], correct: false, credit: 2 / 3, points: 600 },
+        result: {
+          value: [1, 3, 0],
+          correct: false,
+          credit: 2 / 3,
+          points: 600,
+          item_points: 0,
+          item: null,
+        },
         onAnswer: () => {},
       })
       expect(screen.getByText('You had 2 of 3 in place')).toBeTruthy()

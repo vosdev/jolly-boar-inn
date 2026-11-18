@@ -43,6 +43,7 @@ SETTINGS_KEYS = {
     "standings_seconds",
     "close_when_all_answered",
     "name_wrong_answers",
+    "items",
     "max_players",
     "teams",
 }
@@ -264,7 +265,7 @@ def test_a_room_without_surprise_rounds_sends_what_it_always_sent(table, client)
     rooms = [welcome["room"]] + [m["room"] for m in frames if m["t"] == "room_updated"]
     for room in rooms:
         standings = room["phase"] == "standings"
-        assert set(room) == ROOM_KEYS | ({"next_segment"} if standings else set())
+        assert set(room) == ROOM_KEYS | ({"next_segment", "drops"} if standings else set())
         assert set(room["settings"]) == SETTINGS_KEYS
         assert played_modes(room) == PLAYED
     assert [m for m in frames if m["t"] == "room_updated"] == [

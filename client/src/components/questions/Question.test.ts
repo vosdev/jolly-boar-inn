@@ -121,7 +121,14 @@ describe('Question', () => {
       question: open('more_less', 'more_less'),
       reveal: REVEAL,
       yourValue: 0,
-      result: { value: 0, correct: true, credit: 1, points: 900 },
+      result: {
+        value: 0,
+        correct: true,
+        credit: 1,
+        points: 900,
+        item_points: 0,
+        item: null,
+      },
       onAnswer,
     })
     expect(screen.getByText('1,500,000 gp')).toBeTruthy()
@@ -445,7 +452,7 @@ describe('every type on the stage', () => {
 
   it('keeps no points foot on the sheet, open or revealed', () => {
     const question = open('more_less', 'more_less')
-    const result = { value: 0, correct: true, credit: 1, points: 850 }
+    const result = { value: 0, correct: true, credit: 1, points: 850, item_points: 0, item: null }
     const { unmount } = render(QuestionStage, { question, yourValue: null, onAnswer })
     expect(paper().querySelector('.foot, .said, .slot')).toBeNull()
     unmount()
@@ -564,7 +571,7 @@ describe('every type on the stage', () => {
 
   it('has the host react in its bubble, undimmed, and your points on a chip on its name row', () => {
     const question = open('more_less', 'more_less')
-    const result = { value: 0, correct: true, credit: 1, points: 850 }
+    const result = { value: 0, correct: true, credit: 1, points: 850, item_points: 0, item: null }
     render(QuestionStage, { question, reveal: REVEAL, yourValue: 0, result, onAnswer })
     expect(bubble().classList.contains('on')).toBe(true)
     expect(said()).toContain(pickLines(MODES.more_less!, question, { verdict: 'right' }).reveal)
@@ -583,9 +590,21 @@ describe('every type on the stage', () => {
   it('reacts to a right, a partial, a wrong and a missed answer from their own sets', () => {
     const question = open('more_less', 'more_less')
     const cases = [
-      ['right', { value: 0, correct: true, credit: 1, points: 850 }, '+850'],
-      ['partial', { value: 0, correct: false, credit: 0.5, points: 340 }, '+340'],
-      ['wrong', { value: 1, correct: false, credit: 0, points: 0 }, '+0'],
+      [
+        'right',
+        { value: 0, correct: true, credit: 1, points: 850, item_points: 0, item: null },
+        '+850',
+      ],
+      [
+        'partial',
+        { value: 0, correct: false, credit: 0.5, points: 340, item_points: 0, item: null },
+        '+340',
+      ],
+      [
+        'wrong',
+        { value: 1, correct: false, credit: 0, points: 0, item_points: 0, item: null },
+        '+0',
+      ],
       ['missed', null, 'No answer · +0'],
     ] as const
     for (const [verdict, result, shown] of cases) {
@@ -861,29 +880,64 @@ describe('the pin', () => {
   }
 
   it('is pinned with confetti for a right answer', () => {
-    revealed({ value: 0, correct: true, credit: 1, points: 850 })
+    revealed({
+      value: 0,
+      correct: true,
+      credit: 1,
+      points: 850,
+      item_points: 0,
+      item: null,
+    })
     expect(award()?.dataset.award).toBe('confetti')
     expect(award()!.querySelectorAll('.confetti i')).toHaveLength(16)
   })
 
   it('is pinned without confetti for partial credit', () => {
-    revealed({ value: 0, correct: false, credit: 0.9, points: 300 })
+    revealed({
+      value: 0,
+      correct: false,
+      credit: 0.9,
+      points: 300,
+      item_points: 0,
+      item: null,
+    })
     expect(award()?.dataset.award).toBe('pin')
     expect(award()!.querySelector('.confetti')).toBeNull()
   })
 
   it("is the inn's star rosette, and the Wilderness's skull rosette whatever the points", () => {
     const mark = () => award()!.querySelector<SVGElement>('svg.rosette')!.dataset.mark
-    revealed({ value: 0, correct: false, credit: 0.9, points: 300 })
+    revealed({
+      value: 0,
+      correct: false,
+      credit: 0.9,
+      points: 300,
+      item_points: 0,
+      item: null,
+    })
     expect(mark()).toBe('star')
     cleanup()
 
     document.documentElement.dataset.theme = 'wilderness'
     try {
-      revealed({ value: 0, correct: false, credit: 0.4, points: 300 })
+      revealed({
+        value: 0,
+        correct: false,
+        credit: 0.4,
+        points: 300,
+        item_points: 0,
+        item: null,
+      })
       expect(mark()).toBe('skull')
       cleanup()
-      revealed({ value: 0, correct: true, credit: 1, points: 850 })
+      revealed({
+        value: 0,
+        correct: true,
+        credit: 1,
+        points: 850,
+        item_points: 0,
+        item: null,
+      })
       expect(mark()).toBe('skull')
     } finally {
       delete document.documentElement.dataset.theme
@@ -891,7 +945,14 @@ describe('the pin', () => {
   })
 
   it('is not pinned for +0, for no answer, or while the question is open', () => {
-    revealed({ value: 1, correct: false, credit: 0, points: 0 })
+    revealed({
+      value: 1,
+      correct: false,
+      credit: 0,
+      points: 0,
+      item_points: 0,
+      item: null,
+    })
     expect(award()).toBeNull()
     cleanup()
     revealed(null)
@@ -990,9 +1051,30 @@ describe('a phone while the TV shows the question', () => {
     const view = { prompt: 'Which?', options: ['Zulrah', 'Vorkath', 'Kraken'] }
     const question = open('multiple_choice', 'custom', view)
     const results: Record<string, PlayerResult> = {
-      you: { value: 1, correct: false, credit: 0, points: 0 },
-      ann: { value: 0, correct: true, credit: 1, points: 700 },
-      bob: { value: 0, correct: true, credit: 1, points: 650 },
+      you: {
+        value: 1,
+        correct: false,
+        credit: 0,
+        points: 0,
+        item_points: 0,
+        item: null,
+      },
+      ann: {
+        value: 0,
+        correct: true,
+        credit: 1,
+        points: 700,
+        item_points: 0,
+        item: null,
+      },
+      bob: {
+        value: 0,
+        correct: true,
+        credit: 1,
+        points: 650,
+        item_points: 0,
+        item: null,
+      },
     }
     render(QuestionStage, {
       question,
@@ -1014,7 +1096,7 @@ describe('a phone while the TV shows the question', () => {
 
   it('reveals the points you scored', () => {
     const question = open('more_less', 'more_less')
-    const result = { value: 0, correct: true, credit: 1, points: 850 }
+    const result = { value: 0, correct: true, credit: 1, points: 850, item_points: 0, item: null }
     render(QuestionStage, {
       question,
       reveal: REVEAL,
@@ -1041,6 +1123,7 @@ describe("the room's TV", () => {
     connected,
     ready: false,
     editing: false,
+    item: null,
   })
 
   beforeEach(() => {
@@ -1095,7 +1178,7 @@ describe("the room's TV", () => {
 
   it('says the room’s reveal line and shows no chip, though its player could answer', () => {
     const question = { ...watching, you_can_answer: true }
-    const result = { value: 0, correct: true, credit: 1, points: 850 }
+    const result = { value: 0, correct: true, credit: 1, points: 850, item_points: 0, item: null }
     render(QuestionStage, {
       question,
       reveal: { ...VIEW_TV, answer_index: 0 },
@@ -1149,8 +1232,22 @@ describe("the room's TV", () => {
         reveal: { ...view, target, reach: 0.2 },
         yourValue: null,
         results: {
-          Ann: { value: { x: 0.45, y: 0.5 }, correct: true, credit: 1, points: 1000 },
-          Dave: { value: { x: 0.9, y: 0.1 }, correct: false, credit: 0, points: 0 },
+          Ann: {
+            value: { x: 0.45, y: 0.5 },
+            correct: true,
+            credit: 1,
+            points: 1000,
+            item_points: 0,
+            item: null,
+          },
+          Dave: {
+            value: { x: 0.9, y: 0.1 },
+            correct: false,
+            credit: 0,
+            points: 0,
+            item_points: 0,
+            item: null,
+          },
         },
         onAnswer,
         tv: true,

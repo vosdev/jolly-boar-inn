@@ -79,7 +79,7 @@ describe('free_text', () => {
       question: open(),
       reveal: REVEAL,
       yourValue: 'Zezma',
-      result: { value: 'Zezma', correct: true, credit: 1, points: 900 },
+      result: { value: 'Zezma', correct: true, credit: 1, points: 900, item_points: 0, item: null },
       onAnswer: () => {},
     })
     expect(screen.getByText('Zezima')).toBeTruthy()

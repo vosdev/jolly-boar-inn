@@ -193,6 +193,7 @@
       (eventCount > 0 ? `, plus ${eventCount} random event${eventCount === 1 ? '' : 's'}.` : '.'),
   )
   const built = $derived<TonightSettings>({
+    items: true,
     ...(surprise ? { surprise_modes: randomRounds } : { modes: rounds }),
     mode_order: surprise ? 'random' : modeOrder,
     random_event_frequency: frequency,

@@ -101,7 +101,14 @@ describe('more_less’s question', () => {
   })
 
   it('says on each button how many picked it, through the question, on the reveal', () => {
-    const picked = (value: number) => ({ value, correct: value === 0, credit: 0, points: 0 })
+    const picked = (value: number) => ({
+      value,
+      correct: value === 0,
+      credit: 0,
+      points: 0,
+      item_points: 0,
+      item: null,
+    })
     const { container } = render(Question, {
       question: open(),
       reveal: { ...VIEW, answer_index: 0 },

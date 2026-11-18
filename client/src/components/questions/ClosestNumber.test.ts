@@ -96,7 +96,7 @@ describe('closest_number', () => {
       question: open(),
       reveal: REVEAL,
       yourValue: 99,
-      result: { value: 99, correct: false, credit: 0.75, points: 750 },
+      result: { value: 99, correct: false, credit: 0.75, points: 750, item_points: 0, item: null },
       onAnswer: () => {},
     })
     expect(screen.getByText('100 hours')).toBeTruthy()
@@ -112,7 +112,7 @@ describe('closest_number', () => {
       question: open(),
       reveal: REVEAL,
       yourValue: 100,
-      result: { value: 100, correct: true, credit: 1, points: 1000 },
+      result: { value: 100, correct: true, credit: 1, points: 1000, item_points: 0, item: null },
       onAnswer: () => {},
     })
     expect(document.querySelector('.picked')?.textContent).toMatch(/, spot on/)

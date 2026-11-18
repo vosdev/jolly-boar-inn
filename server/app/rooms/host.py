@@ -17,6 +17,7 @@ import asyncpg
 
 from app.config import Settings
 from app.questions.packs import Pack
+from app.rooms.items import Item
 from app.rooms.models import Broadcast, Room, RoomQuestion
 from app.ws.protocol import RoomView
 
@@ -40,6 +41,7 @@ class RoomHost(ABC):
     editing_seconds: float
     all_answered_pause: float
     request_stale_seconds: float
+    items: Sequence[Item]
     rooms: dict[str, Room]
 
     @abstractmethod

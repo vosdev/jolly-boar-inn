@@ -143,7 +143,12 @@ describe('SuggestionQueue', () => {
     vi.mocked(api.tryQuestion).mockImplementation(async (_content, value = null) => ({
       view,
       reveal: { ...view, answer_index: 1 },
-      result: value === null ? null : { value, correct: true, credit: 1, points: 1000 },
+      result:
+        value === null
+          ? null
+          : { value, correct: true, credit: 1, points: 1000, item_points: 0, item: null },
+      item_points: 0,
+      item: null,
     }))
     render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
     await fireEvent.click((await screen.findByText(/is not a Barrows brother/)).closest('button')!)

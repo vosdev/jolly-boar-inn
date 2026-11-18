@@ -46,18 +46,24 @@ const right = (value: unknown = 0, points = 900): PlayerResult => ({
   correct: true,
   credit: 1,
   points,
+  item_points: 0,
+  item: null,
 })
 const wrong = (value: unknown = 1): PlayerResult => ({
   value,
   correct: false,
   credit: 0,
   points: 0,
+  item_points: 0,
+  item: null,
 })
 const partly = (credit: number, value: unknown = 1): PlayerResult => ({
   value,
   correct: false,
   credit,
   points: Math.round(900 * credit),
+  item_points: 0,
+  item: null,
 })
 
 const text = (element: Element | null | undefined) =>
@@ -85,7 +91,14 @@ function draw(
 const picks = (answer: number[], value: number[]): PlayerResult => {
   const hits = value.filter((index) => answer.includes(index)).length
   const credit = hits / new Set([...answer, ...value]).size
-  return { value, correct: credit === 1, credit, points: Math.round(900 * credit) }
+  return {
+    value,
+    correct: credit === 1,
+    credit,
+    points: Math.round(900 * credit),
+    item_points: 0,
+    item: null,
+  }
 }
 
 describe('RevealTally', () => {
@@ -132,8 +145,15 @@ describe('RevealTally', () => {
   it('groups price guesses by closeness, written as coins, and a more-or-less item by name', () => {
     const prices = draw(
       {
-        a: { value: 1_650_000, correct: false, credit: 0.5, points: 300 },
-        b: { value: 9_000_000, correct: false, credit: 0, points: 0 },
+        a: {
+          value: 1_650_000,
+          correct: false,
+          credit: 0.5,
+          points: 300,
+          item_points: 0,
+          item: null,
+        },
+        b: { value: 9_000_000, correct: false, credit: 0, points: 0, item_points: 0, item: null },
       },
       { type: 'price_is_right', reveal: { value: 1_200_000, min: 900_000, max: 2_000_000 } },
     ).container
@@ -157,8 +177,8 @@ describe('RevealTally', () => {
   it('groups slider guesses by closeness, written with their unit', () => {
     const { container } = draw(
       {
-        a: { value: 1_500, correct: false, credit: 0.6, points: 480 },
-        b: { value: 90, correct: false, credit: 0, points: 0 },
+        a: { value: 1_500, correct: false, credit: 0.6, points: 480, item_points: 0, item: null },
+        b: { value: 90, correct: false, credit: 0, points: 0, item_points: 0, item: null },
       },
       {
         type: 'number_slider',
@@ -357,6 +377,8 @@ describe('RevealTally', () => {
       correct: credit === 1,
       credit,
       points: Math.round(900 * credit),
+      item_points: 0,
+      item: null,
     })
     const { container } = draw(
       {
@@ -444,6 +466,8 @@ describe('RevealTally in a team game', () => {
     correct: points > 0,
     credit: 1,
     points,
+    item_points: 0,
+    item: null,
   })
 
   function drawTeams(results: Record<string, PlayerResult>, teamOf: Record<string, TeamId>) {

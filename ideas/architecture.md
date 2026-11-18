@@ -33,7 +33,7 @@ server/app/                        main, config, db, static, accesslog, errors, 
                                    random_events, suggestions, reports, question_edits, roster_edits, stats,
                                    question_stats, pictures, map, profiling
 server/app/rooms/                  state, host, joins, lobby, loop, daily_room, models, errors, queries,
-                                   settings, selection, segments, scoring, ready, codes, plan, duration, hold, teams
+                                   settings, selection, segments, scoring, ready, codes, plan, duration, hold, teams, items
 server/app/modes/, questions/      Mode and MODES; schema, packs, vocab, normalize, custom,
                                    submission, text; types/ one module per type
 server/app/ws/, http/              handler, protocol, schema, outbox; one module per route or middleware
@@ -393,7 +393,7 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 | Server `t` | Fields | When |
 |---|---|---|
 | `welcome` | `room`, `you`, `players`, `question`, `your_answer`, `standings`, `team_standings`, `server_time`, `server_version` | Reply to `hello`. The full state. |
-| `room_updated` | `room`, `players`, `standings`?, `team_standings`? | Join, leave, promote, `set_tv`, kick, rename, `set_teams`, `set_settings`, status change, a splash or standings starting or a rematch (with both standings), a ready change that moves `next_at`. |
+| `room_updated` | `room`, `players`, `standings`?, `team_standings`? | Join, leave, promote, `set_tv`, kick, rename, `set_teams`, `set_settings`, status change, a splash or standings starting (with the drop) or a rematch (with both standings), a ready change that moves `next_at`. |
 | `players_updated` | `players` | A ready, team, editing, connect or disconnect that changed players only. One frame, queued behind the room lock's waiters, covers every change before it; a `room_updated` or `welcome` already did. |
 | `question_open` | `question` | A question opens. |
 | `answer_ack` | `question_id`, `scoring`, `band`, `answered`, `of` | Answer committed. Never correctness. |
@@ -406,16 +406,17 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 ```
 RoomView     { code, status, settings, current_index, total, events, phase, next_at,
                reveal_seconds, estimated_seconds, segment, next_segment?, played, finished_at,
-               rounds?, key?, requests?, daily? }
+               rounds?, key?, requests?, daily?, drops? }
 Daily        { day, number }
 JoinRequest  { id, display_name, avatar }
-PlayerView   { id, display_name, avatar, role, team, connected, ready, editing }   role: player, admin, tv
+PlayerView   { id, display_name, avatar, role, team, connected, ready, editing, item }   role: player, admin, tv
+HeldItem     { id, charges }                 Drop { player_id, item }
 Standing     { player_id, display_name, avatar, points, rank, points_gained, previous_rank }
 TeamStanding { team, points, rank, points_gained, previous_rank }
 Segment      { mode, index, total, start, count }
 OpenQuestion { question_id, index, total, type, mode, segment, view, picture, random_event,
                opened_at, answerable_at, ends_at, you_can_answer, answered, of, waiting }
-PlayerResult { value, correct, credit, points }
+PlayerResult { value, correct, credit, points, item_points, item }
 ```
 
 - `total` counts stored questions, not what the settings asked for; `events` the random events among them.
@@ -446,6 +447,10 @@ PlayerResult { value, correct, credit, points }
   player who can answer, plus anyone who answered and dropped. `waiting` is the ids of the connected
   ones who can and have not, for the TV's panel (design §16).
 - `credit` lets a reveal say "3 of 5 in place". `correct` is `credit >= 1.0`.
+- `drops` is what the standings dealt (section 8), in standings order, sent only in that phase.
+  `item` is a player's worn `HeldItem`, for everyone to see, null outside its round; `charges` is
+  null for an item without. `points` is the answer's own, `item_points` the item's line on the
+  reveal and `item` the item behind it; `Standing.points` and `points_gained` hold both.
 
 What the server withholds. The admin is a player with a flag; there is no admin channel.
 
@@ -505,8 +510,8 @@ finished ─rematch─▶ lobby
   Teams are fixed from then on; `players.team` and `settings.teams` are written before memory.
 - `rematch` keeps the code, players, teams, TV, key, host's questions and settings, but for a surprise
   room's drawn rounds. It deletes the game's questions and answers, adds its shown pack questions'
-  ids to `played_question_ids`, clears ready and `finished_at`, resets `expires_at` and counts in
-  `rematches`. Everyone lands in the lobby at once; each browser filed the game under its own `finished_at`.
+  ids to `played_question_ids`, clears ready, item slots and `finished_at`, resets `expires_at`,
+  raises `rooms.rematches` (the item draw's seed) and counts in the `rematches` metric. Everyone lands in the lobby at once; each browser filed the game under its own `finished_at`.
 - A deleted room closes its sockets with 4004, and its code is free again.
 
 A daily attempt (`rooms/daily_room.py`, `/daily`) is a room born `playing` from the day's stored set,
@@ -541,9 +546,13 @@ splash / open / reveal ─end_round─▶ standings ─▶ next round's splash (
 
 - `phase` is `idle` (lobby, finished), `splash`, `open`, `reveal` or `standings`. It is not a
   column, so a restart resumes in the reveal (section 9) and loses a splash or standings screen.
+- Each change of round breaks the ended round's items and deals the next round's (section 8),
+  written before the standings frame: also with `standings_seconds` 0, after `end_round`, and on a
+  restart that skipped the standings. A drop with receivers holds the standings 4 s longer; the
+  lobby's estimate leaves that out. The game's end empties every slot.
 - A splash runs before each segment's first question, never before an event.
 - Open stamps `shown_at` and sets `answerable_at` and `ends_at`. Close grades, then writes
-  `closed_at`, `correct` and `points` in one transaction.
+  `closed_at`, `correct`, `points` and `item_points` in one transaction.
 - The TV only watches: `Room.can_answer` is false for it, so it is never in `of`, `waiting`, `unanswered`,
   all-answered or a splash's count, and standings, `game_finished` and question stats leave it out.
 - `close_when_all_answered` closes 1 s after every connected eligible player has answered (never
@@ -577,6 +586,7 @@ Settings (`rooms.settings`, changed in the lobby by `set_settings` and `set_team
   "standings_seconds": 10,               // 0..30; 0 turns standings off
   "close_when_all_answered": true,
   "name_wrong_answers": true,            // name who got it wrong under the reveal
+  "items": true,                         // items between rounds, section 8
   "hide_rounds": false,                  // surprise rounds, section 6
   "surprise_modes": 0,                   // > 0: the server draws that many rounds, section 5
   "max_players": null,                   // null: MAX_PLAYERS_PER_ROOM, stored at create
@@ -662,7 +672,19 @@ the picture builds up, then the whole picture as step 18. Points fall from 1000 
 
 Bucket edges and points are tuned on `answer_timings` (section 11), queried by hand.
 
-Standings sort by points, then correct answers, then `joined_at`. Rank is dense over points and
+Items (`rooms/items.py`). Each change of round deals the lowest `floor(n / 2)` standings rows an
+item for the next round, `n` the rows (TV out, connected or not), at least four; never in a daily
+room, a team game or with `settings.items` off. The lowest `ceil` half of those positions draw
+strong or mild, the rest mild. Everyone level (points and correct) with an edge position falls on
+its lower side. The draw is uniform over the tier's items that fit the next round (any of its
+questions, events included), seeded by sha256 of room code, round, player uuid and
+`rooms.rematches`; nothing fits, no item. One slot (`players.item`, `item_round`,
+`item_charges`), broken at the end of its round. An item's `on_answer` runs after `points_for`
+and its `settle` at the close of its round's last question or `end_round`; what they give is
+`answers.item_points` (and `answers.item`), never credit, so `question_stats` and
+`answer_timings` keep base credit. `ITEMS` ships empty; the tests deal from their own table.
+
+Standings sort by points (item points included), then correct answers, then `joined_at`. Rank is dense over points and
 correct answers; join time only orders players who share a rank. `points_gained` is what the round
 of the latest close added and `previous_rank` the rank before that round by the same rule, null
 in the first; the totals query splits its sum at that round's first position.
@@ -687,16 +709,18 @@ Client (`lib/ws.ts`):
    version. A lost lazy chunk (`vite:preloadError`) reloads once per build, then offers Try again.
 
 Server `connect`: find `sha256(session)` in the room or close 4001. The last device wins: an older
-socket closes with 4000. A disconnect keeps the player and their answers.
+socket closes with 4000. A disconnect keeps the player, their answers and their item.
 
 Rehydrate (`get` on a room not in memory):
 
-1. Load the room, players, questions and each player's summed points and correct count. Answer rows
-   are not read back; step 2 voids the only ones that could matter.
+1. Load the room, players with their item slots, questions and each player's summed points (item
+   points included) and correct count. Answer rows are not read back; step 2 voids the only ones
+   that could matter.
 2. A question shown and not closed was open at the crash. Void it and score nobody. A crash costs at
    most that question.
 3. Resume in `reveal` for that question's reveal, then advance. A question that never opened is still
-   owed, so that reveal opens it.
+   owed, so that reveal opens it. A round's last question breaks and deals its items there, unseen;
+   a drop already written deals the same again.
 4. Any lookup loads the room, but only an authenticated socket resumes it, so a link preview never
    plays a room nobody is in.
 
@@ -856,8 +880,9 @@ key into them, so cleanup leaves it.
   `rooms` and is never cleaned up: the draw reads it for when a question was last used.
   `daily_attempts (day, token_hash, room_id, …, points, results)` outlives its room (`rooms.daily`
   marks one): each close appends `right`, `partial` or `missed` in its transaction.
-- `answers.points` is written once, at close, and standings are its sum. Memory keeps the same sum
-  and reloads it on rehydrate. Scores are never tracked separately.
+- `answers.points` (the answer's own) and `item_points` are written at close, the latter also by a
+  `settle`, and standings are the sum of both. Memory keeps the same sum and reloads it on
+  rehydrate. Scores are never tracked separately.
 - `questions.payload` holds the envelope extras at the top and the type payload under `payload`, so
   SQL reads `payload->'payload'`. Fields that queries or grading need are columns.
 - `questions.round` and `questions.mode` are stored; neither can be derived (section 5).
@@ -866,6 +891,8 @@ key into them, so cleanup leaves it.
   the pets with both pictures in `assets.json`, because that list grows without a migration.
 - `players.team` is a god in `GODS`, checked by the server, or null; everyone joins teamless.
 - `players.role` is `player`, `admin` or `tv`; a partial unique index keeps one TV a room.
+- `players.item`, `item_round` and `item_charges` are the one item slot (section 8), written before
+  memory; `rooms.rematches` counts the games before this one.
 - Cleanup deletes expired rooms, and finished ones past their grace, 200 at a time, at startup
   and every `ROOM_CLEANUP_INTERVAL_SECONDS`, then drops them from memory. A failed pass is logged
   and the next runs. There is no external cron.

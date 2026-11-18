@@ -94,6 +94,7 @@ describe('Standings', () => {
       connected: true,
       ready: false,
       editing: false,
+      item: null,
     })
     players.set([
       member('Woox', 'zamorak'),

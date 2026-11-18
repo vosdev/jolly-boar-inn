@@ -35,6 +35,7 @@ const SETTINGS: RoomSettings = {
   max_players: 50,
   name_wrong_answers: false,
   teams: [],
+  items: true,
 }
 
 function players(youReady: boolean): PlayerView[] {
@@ -48,6 +49,7 @@ function players(youReady: boolean): PlayerView[] {
       avatar: null,
       editing: false,
       team: null,
+      item: null,
     },
     {
       id: 'b',
@@ -58,6 +60,7 @@ function players(youReady: boolean): PlayerView[] {
       avatar: null,
       editing: false,
       team: null,
+      item: null,
     },
   ]
 }
@@ -357,6 +360,7 @@ describe('Splash ready check', () => {
       avatar: null,
       editing: false,
       team: null,
+      item: null,
     }
     render(Splash, {
       segment: SEGMENT,

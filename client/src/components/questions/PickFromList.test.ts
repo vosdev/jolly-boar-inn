@@ -361,7 +361,7 @@ describe('pick_from_list', () => {
       question: open(),
       reveal: REVEAL,
       yourValue: 4587,
-      result: { value: 4587, correct: false, credit: 0, points: 0 },
+      result: { value: 4587, correct: false, credit: 0, points: 0, item_points: 0, item: null },
       onAnswer: () => {},
     })
     expect(screen.getByText('Amulet of fury').parentElement?.textContent).toBe(

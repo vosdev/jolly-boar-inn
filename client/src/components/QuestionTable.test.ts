@@ -16,6 +16,7 @@ function player(id: string, name: string, patch: Partial<PlayerView> = {}): Play
     connected: true,
     ready: false,
     editing: false,
+    item: null,
     ...patch,
   }
 }
