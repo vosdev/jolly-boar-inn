@@ -40,7 +40,7 @@ describe('CHANGELOG', () => {
     }
   })
 
-  it('keeps a minor to two lines and a patch to one', () => {
+  it('keeps minors within 150 characters and patches within 100', () => {
     for (const entry of CHANGELOG) {
       expect(entry.text.trim(), entry.version).not.toBe('')
       expect(entry.text, entry.version).not.toContain('\n')

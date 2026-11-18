@@ -1,7 +1,7 @@
 <script lang="ts">
   /**
    * What's new, as a sheet opened from the footer's version: each minor with its date and
-   * a line or two, its patches nested beneath as one-liners, newest first.
+   * summary, its patches nested beneath, newest first.
    */
   import { CHANGELOG, groupByMinor, type ChangelogEntry } from '../lib/changelog'
   import { asOfDate } from '../lib/dates'
