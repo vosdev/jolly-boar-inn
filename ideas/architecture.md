@@ -394,7 +394,7 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 |---|---|---|
 | `welcome` | `room`, `you`, `players`, `question`, `your_answer`, `standings`, `team_standings`, `server_time`, `server_version` | Reply to `hello`. The full state. |
 | `room_updated` | `room`, `players`, `standings`?, `team_standings`? | Join, leave, promote, `set_tv`, kick, rename, `set_teams`, `set_settings`, status change, a splash or standings starting (with the drop) or a rematch (with both standings), a ready change that moves `next_at`. |
-| `players_updated` | `players` | A ready, team, editing, connect or disconnect that changed players only. One frame, queued behind the room lock's waiters, covers every change before it; a `room_updated` or `welcome` already did. |
+| `players_updated` | `players` | A ready, team, editing, connect or disconnect that changed players only, or a close that spent or broke a worn item. One frame, queued behind the room lock's waiters, covers every change before it; a `room_updated` or `welcome` already did. |
 | `question_open` | `question` | A question opens. |
 | `answer_ack` | `question_id`, `scoring`, `band`, `answered`, `of` | Answer committed. Never correctness. |
 | `answer_count` | `question_id`, `answered`, `of`, `waiting` | Another player's answer, connect, disconnect or kick moved the count. Who is still to, never what. |
