@@ -40,6 +40,7 @@ function event(patch: Partial<OpenQuestion> = {}): OpenQuestion {
     of: 0,
     waiting: [],
     item_used: false,
+    removed: [],
     ...patch,
   }
 }

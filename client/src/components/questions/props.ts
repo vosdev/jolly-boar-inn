@@ -62,6 +62,11 @@ export interface TypeViewProps<Value = unknown> extends Drawn {
   /** The mode's options are long: one a row on a phone. Only `multiple_choice` reads it. */
   stacked?: boolean
   /**
+   * The options our item took off the question (`OpenQuestion.removed`), struck through and
+   * out of reach, open and revealed. Only `multiple_choice` reads it.
+   */
+  removed?: readonly number[]
+  /**
    * Send this answer. `Value` is the component's own answer type — an option index, a
    * string, a number — and defaults to `unknown` so the registry in `index.ts` can hold
    * components that disagree about it: a handler taking `unknown` is usable as one

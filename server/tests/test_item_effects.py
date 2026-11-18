@@ -306,6 +306,7 @@ def test_the_items_and_their_tiers() -> None:
         ("ring_of_charos", "mild", None),
         ("book_of_knowledge", "strong", None),
         ("xp_lamp", "strong", None),
+        ("ring_of_wealth", "mild", 3),
     }
 
 

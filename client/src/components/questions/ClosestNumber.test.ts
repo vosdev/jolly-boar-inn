@@ -34,6 +34,7 @@ function open(youCanAnswer = true, view: Record<string, unknown> = VIEW): OpenQu
     of: 0,
     waiting: [],
     item_used: false,
+    removed: [],
   }
 }
 

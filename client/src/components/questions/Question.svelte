@@ -201,6 +201,7 @@
       {results}
       {timing}
       stacked={MODES[question.mode]?.stacked}
+      removed={question.removed}
       {onAnswer}
     />
     {#if !question.you_can_answer && !revealed}

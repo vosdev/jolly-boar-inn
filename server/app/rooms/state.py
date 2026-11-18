@@ -69,6 +69,7 @@ from app.rooms.loop import (
     _answer_count,
     _close_if_everyone_answered,
     _recount_splash,
+    _removed,
     _round_under_way,
     _stop_timer,
     _waiting,
@@ -747,6 +748,7 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
                     self._pictures(question),
                     _waiting(room, question),
                     player.id in question.used,
+                    _removed(self.items, room, question, player.id),
                 )
                 if question is not None and segment is not None
                 else None
@@ -999,6 +1001,8 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
             value = TYPES[question.type].parse_value(question.payload, value)
             if value is None:
                 raise BadValue(f"not a valid answer to a {question.type} question")
+            if value in _removed(self.items, room, question, player.id):
+                raise BadValue("your item took that option off the question")
             how, band = question.scoring, _band(room, question, arrived)
             async with pool.acquire() as conn:
                 try:

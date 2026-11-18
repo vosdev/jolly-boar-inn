@@ -46,6 +46,7 @@ function open(overrides: Partial<OpenQuestion> = {}): OpenQuestion {
     of: 0,
     waiting: [],
     item_used: false,
+    removed: [],
     answerable_at: '2026-09-21T20:00:00Z',
     ...overrides,
   }

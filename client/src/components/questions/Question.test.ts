@@ -71,6 +71,7 @@ function open(type: string, mode: string, view: Record<string, unknown> = VIEW):
     of: 0,
     waiting: [],
     item_used: false,
+    removed: [],
   }
 }
 

@@ -163,6 +163,7 @@ describe('QuestionTable used items', () => {
       of: 1,
       waiting: ['a'],
       item_used: false,
+      removed: [],
       ...patch,
     }
   }

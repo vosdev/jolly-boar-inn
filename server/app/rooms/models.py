@@ -306,10 +306,12 @@ class RoomQuestion:
         pictures: Mapping[str, str] | None = None,
         waiting: Iterable[str] = (),
         item_used: bool = False,
+        removed: Iterable[int] = (),
     ) -> OpenQuestion:
         """The open question as a player sees it. ``count`` is ``_answer_count``'s,
         ``pictures`` names the pictures the view shows inside it, ``waiting`` is who is
-        still to answer, and ``item_used`` whether this player used their item on it."""
+        still to answer, ``item_used`` whether this player used their item on it, and
+        ``removed`` the options their item took off it."""
         assert self.shown_at is not None and self.ends_at is not None
         assert self.answerable_at is not None
         return OpenQuestion(
@@ -330,6 +332,7 @@ class RoomQuestion:
             of=count[1],
             waiting=list(waiting),
             item_used=item_used,
+            removed=list(removed),
         )
 
 

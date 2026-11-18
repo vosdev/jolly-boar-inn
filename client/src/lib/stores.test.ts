@@ -76,6 +76,7 @@ function open(id: string): OpenQuestion {
     of: 2,
     waiting: [],
     item_used: false,
+    removed: [],
     picture: null,
     random_event: null,
     answerable_at: new Date(0).toISOString(),

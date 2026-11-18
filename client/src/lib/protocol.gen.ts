@@ -530,6 +530,12 @@ export interface OpenQuestion {
    * spent. Only in their own `welcome`; with the Book of Knowledge it means answered too.
    */
   item_used: boolean
+  /**
+   * The wrong options, by shown position, that this socket's player's Ring of wealth took
+   * off the question. Only on the wearer's own socket, open and in a `welcome`; an answer
+   * naming one is `bad_value`.
+   */
+  removed: number[]
 }
 export interface Standing {
   player_id: string

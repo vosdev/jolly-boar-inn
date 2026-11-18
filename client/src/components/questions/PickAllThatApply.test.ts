@@ -38,6 +38,7 @@ function open(view: Record<string, unknown> = VIEW, youCanAnswer = true): OpenQu
     of: 0,
     waiting: [],
     item_used: false,
+    removed: [],
   }
 }
 

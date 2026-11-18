@@ -33,6 +33,7 @@ function open(youCanAnswer = true): OpenQuestion {
     of: 0,
     waiting: [],
     item_used: false,
+    removed: [],
   }
 }
 

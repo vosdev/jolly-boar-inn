@@ -417,7 +417,8 @@ Standing     { player_id, display_name, avatar, points, rank, points_gained, pre
 TeamStanding { team, points, rank, points_gained, previous_rank }
 Segment      { mode, index, total, start, count }
 OpenQuestion { question_id, index, total, type, mode, segment, view, picture, random_event,
-               opened_at, answerable_at, ends_at, you_can_answer, answered, of, waiting, item_used }
+               opened_at, answerable_at, ends_at, you_can_answer, answered, of, waiting, item_used,
+               removed }
 PlayerResult { value, correct, credit, points, item_points, item, by_book }
 ```
 
@@ -454,12 +455,13 @@ PlayerResult { value, correct, credit, points, item_points, item, by_book }
   null for an item without. `points` is the answer's own, `item_points` the item's line on the
   reveal and `item` the item behind it; `Standing.points` and `points_gained` hold both.
   `item_used` is true only in the wearer's `welcome`, once they used their item on the question
-  (with the Book, answered too). `by_book` marks the Book's answer, `value` null.
+  (with the Book, answered too). `removed` is the shown options the wearer's Ring of wealth took
+  off, on their socket alone; naming one is `bad_value`. `by_book` marks the Book's answer, `value` null.
 
 What the server withholds. The admin is a player with a flag; there is no admin channel.
 
 - Open-question frames differ by socket only in live counts, `you_can_answer` (false on
-  `host_only` and for the TV) and the wearer's `item_used`, and never carry the answer.
+  `host_only` and for the TV) and the wearer's `item_used` and `removed`, and never carry the answer.
 - `question_id` is the row uuid, never the content id, which hashes the answer and could be
   brute-forced.
 - Results and correct answers first appear in `question_closed`, to everyone at once.
@@ -701,6 +703,7 @@ the close. A multiplier's extra is item points.
 | `ring_of_charos` | mild | a question other than `more_less` | Used before answering, not on `more_less`: credit 1 pays `points` more, anything less `−points`. |
 | `book_of_knowledge` | strong | anything | Used before answering: the answer, `value` null and `by_book`, at credit 1 in the tap's band, any type, ungraded; correct for the standings, in neither stats table. |
 | `xp_lamp` | strong | a question other than `more_less` | Used before answering, not on `more_less`: `points` more. |
+| `ring_of_wealth` (3 charges) | mild | a `multiple_choice` of four options or more | `removes`: one wrong option of four, two of five or six, for the wearer alone, seeded by room code, question id and player uuid; a charge at the close of each question it took any off, answered or not; breaks on the last. |
 
 Standings sort by points (item points included), then correct answers, then `joined_at`. Rank is dense over points and
 correct answers; join time only orders players who share a rank. `points_gained` is what the round

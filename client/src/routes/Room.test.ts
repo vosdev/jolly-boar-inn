@@ -257,6 +257,7 @@ describe('Room', () => {
       of: 0,
       waiting: [],
       item_used: false,
+      removed: [],
     }
     await arrive(welcome(roomView({ phase: 'open', next_at: null })))
     applyServerMessage({ t: 'question_open', question: open })
@@ -298,6 +299,7 @@ describe('Room', () => {
       of: 2,
       waiting: [],
       item_used: false,
+      removed: [],
       picture: null,
       random_event: null,
       answerable_at: new Date().toISOString(),
@@ -381,6 +383,7 @@ describe('Room', () => {
       of: 0,
       waiting: [],
       item_used: false,
+      removed: [],
     }
     await arrive(welcome(roomView({ phase: 'open', next_at: null })))
     applyServerMessage({ t: 'question_open', question: open })
@@ -451,6 +454,7 @@ describe('Room', () => {
         of: 0,
         waiting: [],
         item_used: false,
+        removed: [],
       }
       render(Room, { code: 'ABYSSAL', navigate: () => {} })
       applyServerMessage({
@@ -503,6 +507,7 @@ describe('Room', () => {
         of: 0,
         waiting: [],
         item_used: false,
+        removed: [],
       }
       await arrive(welcome(roomView({ phase: 'open', next_at: null })))
       applyServerMessage({ t: 'question_open', question: open })
@@ -601,6 +606,7 @@ function tableQuestion(id: string, waiting: string[]): OpenQuestion {
     of: 2,
     waiting,
     item_used: false,
+    removed: [],
     picture: null,
     random_event: null,
     answerable_at: new Date().toISOString(),
@@ -697,6 +703,7 @@ describe('the room’s frame', () => {
         of: 2,
         waiting: [],
         item_used: false,
+        removed: [],
         picture: null,
         random_event: null,
         answerable_at: new Date().toISOString(),
@@ -930,6 +937,7 @@ describe('the room’s frame', () => {
       of: 0,
       waiting: [],
       item_used: false,
+      removed: [],
     }
     await arrive(welcome(roomView({ phase: 'open', next_at: null, total: 4 })))
     applyServerMessage({ t: 'question_open', question: open })
@@ -1070,6 +1078,7 @@ describe('the list a question is answered from', () => {
       of: 0,
       waiting: [],
       item_used: false,
+      removed: [],
       answerable_at: new Date().toISOString(),
       ...patch,
     }
@@ -1153,6 +1162,7 @@ describe('a random event’s way out', () => {
       of: 0,
       waiting: [],
       item_used: false,
+      removed: [],
       ...patch,
     }
   }
@@ -1196,6 +1206,7 @@ describe('a random event’s way out', () => {
     of: 0,
     waiting: [],
     item_used: false,
+    removed: [],
   } satisfies OpenQuestion
 
   beforeEach(() => {
@@ -1307,6 +1318,7 @@ describe('the shared stage', () => {
     of: 0,
     waiting: [],
     item_used: false,
+    removed: [],
   }
 
   let restore = () => {}
@@ -1554,6 +1566,7 @@ describe('the shared stage', () => {
       of: 0,
       waiting: [],
       item_used: false,
+      removed: [],
     })
     const first = place('q1', 0, 'Lumbridge')
     await arrive({
@@ -1811,6 +1824,7 @@ describe('what the tab and focus do', () => {
     of: 0,
     waiting: [],
     item_used: false,
+    removed: [],
   }
 
   beforeEach(() => {
@@ -1976,6 +1990,7 @@ describe('a daily room', () => {
       of: 1,
       waiting: [],
       item_used: false,
+      removed: [],
     }
   }
 

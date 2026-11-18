@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.262.0',
+    date: '2026-11-18',
+    text: 'Find a Ring of wealth in your box: three times, it takes wrong answers off a multiple choice question, only for you.',
+  },
+  {
     version: '0.261.0',
     date: '2026-11-18',
     text: 'Use the item from your box on a question: eat a Kebab, charm the host, rub a lamp, or let the Book of Knowledge answer for you.',

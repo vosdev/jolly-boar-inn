@@ -263,6 +263,11 @@ class OpenQuestion(_Message):
     """Whether this socket's player used their item on the question, so a reload keeps it
     spent. Only in their own ``welcome``; with the Book of Knowledge it means answered too.
     """
+    removed: list[int] = Field(default_factory=list)
+    """The wrong options, by shown position, that this socket's player's Ring of wealth took
+    off the question. Only on the wearer's own socket, open and in a ``welcome``; an answer
+    naming one is ``bad_value``.
+    """
 
 
 # --- Client → server --------------------------------------------------------------

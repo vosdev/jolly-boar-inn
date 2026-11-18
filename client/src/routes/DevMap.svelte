@@ -98,6 +98,7 @@
     of: team.length,
     waiting: [],
     item_used: false,
+    removed: [],
   })
 
   function scatter(index: number): WorldPoint[] {

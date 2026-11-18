@@ -656,6 +656,13 @@
           "default": false,
           "description": "Whether this socket's player used their item on the question, so a reload keeps it\nspent. Only in their own ``welcome``; with the Book of Knowledge it means answered too.",
           "type": "boolean"
+        },
+        "removed": {
+          "description": "The wrong options, by shown position, that this socket's player's Ring of wealth took\noff the question. Only on the wearer's own socket, open and in a ``welcome``; an answer\nnaming one is ``bad_value``.",
+          "items": {
+            "type": "integer"
+          },
+          "type": "array"
         }
       },
       "required": [
@@ -675,7 +682,8 @@
         "answered",
         "of",
         "waiting",
-        "item_used"
+        "item_used",
+        "removed"
       ],
       "title": "OpenQuestion",
       "type": "object"

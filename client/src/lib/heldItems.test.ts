@@ -1,7 +1,7 @@
 import { get } from 'svelte/store'
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { canUse, heldIcon, itemName, itemPoints, shownItems, signed } from './heldItems'
+import { canUse, heldIcon, itemLine, itemName, itemPoints, shownItems, signed } from './heldItems'
 import type { OpenQuestion, PlayerResult, PlayerView, RoomView } from './protocol'
 import { lastClosed, players, room } from './stores'
 
@@ -44,6 +44,23 @@ describe('held items', () => {
     expect(heldIcon('super_restore', 3, files)).toBe('/three.png')
     expect(heldIcon('super_restore', null, files)).toBe('/four.png')
     expect(heldIcon('phoenix_necklace', null, files)).toBeNull()
+  })
+
+  it('counts Ring of wealth down from (3) to (1), on the one ring icon', () => {
+    expect([3, 2, 1].map((charges) => itemName('ring_of_wealth', charges))).toEqual([
+      'Ring of wealth (3)',
+      'Ring of wealth (2)',
+      'Ring of wealth (1)',
+    ])
+    const files = { '../assets/items/2572.png': '/ring.png' }
+    expect([3, 2, 1].map((charges) => heldIcon('ring_of_wealth', charges, files))).toEqual([
+      '/ring.png',
+      '/ring.png',
+      '/ring.png',
+    ])
+    expect(itemLine('ring_of_wealth')).toBe(
+      'Three charges. Each takes wrong answers off a multiple choice question, only for you.',
+    )
   })
 
   it('lists what each item paid, a potion named as it was before the dose', () => {

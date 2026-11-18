@@ -8,11 +8,12 @@ rematches, so a restart, a reconnect or a rename deals the same item, and unifor
 items the tier allows that fit the round.
 
 An item lives in one slot on the player (``Worn``) and breaks at the end of the round it
-was dealt for, used or not, so every drop finds the slot empty. Its effects are two hooks
-the game loop calls: ``on_answer`` after ``points_for`` at each close, and ``settle`` once
-the round's last question has closed. An item the player uses on an open question has a
-``Use`` instead: what it pays at that question's close, after which it is gone. What they
-add is item points, stored beside the answer's own points and never as credit, so
+was dealt for, used or not, so every drop finds the slot empty. Its effects are hooks the
+game loop calls: ``on_answer`` after ``points_for`` at each close, ``settle`` once the
+round's last question has closed, and ``removes`` on every open question, for options only
+the wearer no longer sees. An item the player uses on an open question has a ``Use``
+instead: what it pays at that question's close, after which it is gone. What they add is
+item points, stored beside the answer's own points and never as credit, so
 ``question_stats`` and ``answer_timings`` stay as they would be without items.
 
 Pure functions and data, no I/O: the loop does the writing.
@@ -26,6 +27,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal
 from uuid import UUID
 
+from app.questions.types import multiple_choice
 from app.questions.types.scoring import Scoring
 from app.rooms import scoring
 
@@ -103,6 +105,9 @@ class Item:
     settle: Callable[[Worn, Mapping[UUID, int]], Mapping[UUID, int]] | None = None
     """At the round's end: the wearer's base points per answered question of the round, in
     question order, in; item points to add per question out."""
+    removes: Callable[[Worn, RoomQuestion, random.Random], tuple[int, ...]] | None = None
+    """The wrong options the wearer no longer sees on an open question, by shown position,
+    drawn from the ``Random`` given. Each question it takes any off costs a charge."""
 
 
 def _answerable(questions: Sequence[RoomQuestion]) -> list[RoomQuestion]:
@@ -188,6 +193,30 @@ def _lamp(answered: Answered) -> int:
     return answered.points
 
 
+# How many wrong options Ring of wealth takes off a multiple choice question of so many.
+WEALTH_REMOVES = {4: 1, 5: 2, 6: 2}
+
+
+def _wealth_count(question: RoomQuestion) -> int:
+    if question.type != "multiple_choice" or question.host_only:
+        return 0
+    return WEALTH_REMOVES.get(len(question.payload["options"]), 0)
+
+
+def _wealth_fits(questions: Sequence[RoomQuestion]) -> bool:
+    return any(_wealth_count(question) for question in questions)
+
+
+def _wealth(worn: Worn, question: RoomQuestion, rng: random.Random) -> tuple[int, ...]:
+    """Wrong options off a multiple choice question of four or more, while a charge is left."""
+    count = _wealth_count(question)
+    if not count or not worn.charges:
+        return ()
+    right = multiple_choice.shown_answer(question.payload)
+    wrong = [index for index in range(len(question.payload["options"])) if index != right]
+    return tuple(sorted(rng.sample(wrong, count)))
+
+
 SUPER_RESTORE = Item("super_restore", "mild", _restore_fits, charges=4, on_answer=_restore)
 RING_OF_LIFE = Item("ring_of_life", "strong", _anything, on_answer=_life)
 PHOENIX_NECKLACE = Item("phoenix_necklace", "strong", _phoenix_fits, settle=_phoenix)
@@ -207,6 +236,7 @@ XP_LAMP = Item(
     _doubles_fit,
     use=Use(before_answer=True, refused_on=NOT_DOUBLED, pays=_lamp),
 )
+RING_OF_WEALTH = Item("ring_of_wealth", "mild", _wealth_fits, charges=3, removes=_wealth)
 
 # The items players can find.
 ITEMS: tuple[Item, ...] = (
@@ -217,6 +247,7 @@ ITEMS: tuple[Item, ...] = (
     RING_OF_CHAROS,
     BOOK_OF_KNOWLEDGE,
     XP_LAMP,
+    RING_OF_WEALTH,
 )
 
 
@@ -272,3 +303,24 @@ def deal(
 def by_id(table: Sequence[Item], item_id: str) -> Item | None:
     """The item ``item_id`` names, or ``None`` for one this build no longer has."""
     return next((item for item in table if item.id == item_id), None)
+
+
+def removed(
+    table: Sequence[Item], worn: Worn | None, question: RoomQuestion, code: str, player: UUID
+) -> tuple[int, ...]:
+    """The options ``worn`` takes off ``question`` for ``player`` alone, by shown position.
+
+    Seeded by the room, the question and the player, so the open, a reconnect, an answer
+    and the close all agree without storing it.
+    """
+    item = None if worn is None else by_id(table, worn.item)
+    if worn is None or item is None or item.removes is None:
+        return ()
+    key = f"{code.upper()}:{question.id}:{player}".encode()
+    return item.removes(worn, question, random.Random(int.from_bytes(hashlib.sha256(key).digest())))
+
+
+def spent(worn: Worn) -> Worn | None:
+    """``worn`` a charge down, or ``None`` once that was its last."""
+    left = (worn.charges or 0) - 1
+    return Worn(worn.item, worn.round, left) if left > 0 else None

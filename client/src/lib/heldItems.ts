@@ -96,6 +96,13 @@ const ITEMS: Readonly<Record<string, ItemInfo>> = {
       refusedOn: ['more_less'],
     },
   },
+  ring_of_wealth: {
+    name: 'Ring of wealth',
+    short: 'Wealth',
+    line: 'Three charges. Each takes wrong answers off a multiple choice question, only for you.',
+    // Every charge looks the same in the game, and the wiki has the one icon.
+    icon: 2572,
+  },
 }
 
 /** The box itself, the wiki's Mystery box. */

@@ -93,6 +93,8 @@ learns the position, which is worth more than variety.
   answer, four on a wrong one, then "and N more". With `name_wrong_answers` off a wrong option
   keeps only its count. A phone (the results sheet names them) and the TV show none, nor do the
   other types.
+- Options Ring of wealth took off are faded, struck through and out of reach in their place, open
+  and revealed, on the wearer's screen only; the TV and everyone else see the whole question.
 - Every reveal's results take the table panel (§9): "22 of 41 got it right", then a row per
   group, the right one first, labelled with the answer, then the wrong ones: the option (with its
   gem's chip), the typed answer (three, then "Something else"), the list entry, the closest-number

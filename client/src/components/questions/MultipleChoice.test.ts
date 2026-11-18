@@ -46,6 +46,7 @@ function open(
     of: 0,
     waiting: [],
     item_used: false,
+    removed: [],
   }
 }
 
@@ -138,6 +139,44 @@ describe('multiple_choice', () => {
     })
     expect(screen.getAllByRole('button')[0]!.classList.contains('correct')).toBe(true)
     expect(document.querySelector('.explanation')).toBeNull()
+  })
+})
+
+describe('multiple_choice with options taken off by an item', () => {
+  const FOUR = {
+    prompt: 'Which boss drops the Tanzanite fang?',
+    options: ['Zulrah', 'Vorkath', 'Jad', 'Kraken'],
+  }
+  const wearing = (removed: number[]): OpenQuestion => ({ ...open(true, FOUR), removed })
+  const struck = () =>
+    screen.getAllByRole('button').map((b) => b.querySelector('s')?.textContent ?? null)
+
+  it('strikes the removed options through, out of reach, and keeps the rest', async () => {
+    const onAnswer = vi.fn()
+    render(Question, { question: wearing([1, 3]), yourValue: null, onAnswer })
+    expect(struck()).toEqual([null, 'Vorkath', null, 'Kraken'])
+    const buttons = screen.getAllByRole('button') as HTMLButtonElement[]
+    expect(buttons.map((b) => b.disabled)).toEqual([false, true, false, true])
+    expect(buttons[1]!.classList.contains('faded')).toBe(true)
+    expect(buttons[1]!.textContent).toContain('taken off')
+    await fireEvent.click(buttons[2]!)
+    expect(onAnswer).toHaveBeenCalledWith(2)
+  })
+
+  it('keeps them struck through on the reveal', () => {
+    render(Question, {
+      question: wearing([2]),
+      reveal: { ...FOUR, answer_index: 0 },
+      yourValue: 0,
+      onAnswer: () => {},
+    })
+    expect(struck()).toEqual([null, null, 'Jad', null])
+    expect(screen.getAllByRole('button')[0]!.classList.contains('correct')).toBe(true)
+  })
+
+  it('strikes nothing for a question nothing was taken off', () => {
+    render(Question, { question: wearing([]), yourValue: null, onAnswer: () => {} })
+    expect(struck()).toEqual([null, null, null, null])
   })
 })
 

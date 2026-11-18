@@ -218,6 +218,7 @@ describe('more_less on the plain buttons', () => {
     of: 0,
     waiting: [],
     item_used: false,
+    removed: [],
   }
   const reveal = { ...VIEW, answer_index: 0 }
 

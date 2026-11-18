@@ -41,6 +41,7 @@ function open(patch: Partial<OpenQuestion> = {}, hold = HOLD): OpenQuestion {
     of: 0,
     waiting: [],
     item_used: false,
+    removed: [],
     ...patch,
   }
 }

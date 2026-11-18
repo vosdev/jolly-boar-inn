@@ -459,6 +459,7 @@ export function previewShell(
     of: 0,
     waiting: [],
     item_used: false,
+    removed: [],
   }
 }
 

@@ -51,7 +51,8 @@ def shown_order(payload: dict[str, Any]) -> list[int]:
     return seeded_order("multiple_choice", payload, len(payload["options"]))
 
 
-def _shown_answer(payload: dict[str, Any]) -> int:
+def shown_answer(payload: dict[str, Any]) -> int:
+    """The right option's shown position."""
     return shown_order(payload).index(payload["answer_index"])
 
 
@@ -64,7 +65,7 @@ def client_view(payload: dict[str, Any]) -> dict[str, Any]:
 
 def reveal(payload: dict[str, Any]) -> dict[str, Any]:
     """Shown after close: the same, plus the right answer's shown position and why."""
-    shown = {**client_view(payload), "answer_index": _shown_answer(payload)}
+    shown = {**client_view(payload), "answer_index": shown_answer(payload)}
     if "explanation" in payload:
         shown["explanation"] = payload["explanation"]
     return shown
@@ -72,7 +73,7 @@ def reveal(payload: dict[str, Any]) -> dict[str, Any]:
 
 def grade(payload: dict[str, Any], submissions: list[Submission]) -> dict[UUID, float]:
     """Full credit for the right option's shown position, none for any other."""
-    return exact.grade(_shown_answer(payload), submissions)
+    return exact.grade(shown_answer(payload), submissions)
 
 
 def parse_value(payload: dict[str, Any], value: Any) -> int | None:

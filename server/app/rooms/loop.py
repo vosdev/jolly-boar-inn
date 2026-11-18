@@ -28,7 +28,7 @@ written before the standings go out, whether or not the standings are shown.
 
 import asyncio
 import logging
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
@@ -123,6 +123,16 @@ def _waiting(room: Room, question: RoomQuestion) -> list[str]:
         for pid in room.sockets
         if room.can_answer(question, pid) and pid not in question.answers
     ]
+
+
+def _removed(
+    table: Sequence[items.Item], room: Room, question: RoomQuestion, pid: UUID
+) -> tuple[int, ...]:
+    """The options ``pid``'s worn item takes off ``question`` for them, if they may answer it."""
+    player = room.players.get(pid)
+    if player is None or not room.can_answer(question, pid):
+        return ()
+    return items.removed(table, player.item, question, room.code, pid)
 
 
 def _recount_splash(room: Room, now: float, unready: bool = False) -> None:
@@ -727,11 +737,14 @@ class Loop(RoomHost):
             room.enter("open", now=now, wall=shown_at)
             count = _answer_count(room, question)
             waiting = _waiting(room, question)
-            # Only ``you_can_answer`` tells sockets apart, so there are two frames at most.
-            frames: dict[bool, Frame] = {}
+            # ``you_can_answer`` and a wearer's removed options tell sockets apart, so
+            # everyone without an item that removes shares one of two frames.
+            frames: dict[tuple[bool, tuple[int, ...]], Frame] = {}
 
-            def frame(can: bool) -> Frame:
-                if can not in frames:
+            def frame(pid: UUID) -> Frame:
+                can = room.can_answer(question, pid)
+                removed = _removed(self.items, room, question, pid)
+                if (can, removed) not in frames:
                     view = question.view(
                         room.total,
                         can,
@@ -740,13 +753,14 @@ class Loop(RoomHost):
                         self._open_picture(question),
                         self._pictures(question),
                         waiting,
+                        removed=removed,
                     )
-                    frames[can] = Frame(QuestionOpen(question=view).model_dump(mode="json"))
-                return frames[can]
+                    frames[can, removed] = Frame(
+                        QuestionOpen(question=view).model_dump(mode="json")
+                    )
+                return frames[can, removed]
 
-            opened = Broadcast(
-                [(out, frame(room.can_answer(question, pid))) for pid, out in room.sockets.items()]
-            )
+            opened = Broadcast([(out, frame(pid)) for pid, out in room.sockets.items()])
         self._broadcast(opened)
         return question
 
@@ -759,10 +773,10 @@ class Loop(RoomHost):
         the table's own sum, re-read here once the points are in.
 
         A worn item's ``on_answer`` runs on each answer after ``points_for``, an item used on
-        the question pays its ``Use`` instead and is gone, and the round's last question
-        settles every worn item's ``settle``. All add item points, never credit:
-        ``question_stats`` and ``answer_timings`` get the type's credit alone, and nothing of
-        a Book answer.
+        the question pays its ``Use`` instead and is gone, one that took options off it
+        spends a charge, and the round's last question settles every worn item's ``settle``.
+        All add item points, never credit: ``question_stats`` and ``answer_timings`` get the
+        type's credit alone, and nothing of a Book answer.
 
         Grading and the reveal run before the write, because a type's bug shows up there,
         and nothing in memory changes until the write has committed. A close that fails
@@ -815,6 +829,10 @@ class Loop(RoomHost):
                         boosts[pid] = (effect.points, worn.item)
                     if effect.worn != worn:
                         slots[pid] = effect.worn
+            # Options taken off the question cost a charge, answered or not.
+            for pid, player in room.players.items():
+                if player.item is not None and _removed(self.items, room, question, pid):
+                    slots[pid] = items.spent(player.item)
             ending = _last_of_round(room, question.position)
             reveal = pictured(
                 question.type,
