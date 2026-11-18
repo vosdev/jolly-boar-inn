@@ -49,7 +49,7 @@ Kahoot-style OSRS quiz game. Server: Python 3.14, FastAPI, asyncpg with hand-wri
 
 ## Subagents
 
-- Run at most two high or three medium subagents at a time.
+- Run at most one high or two medium subagents at a time.
 - Check the remaining plan usage before you spawn one.
 
 ## Scope and replies
