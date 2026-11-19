@@ -133,6 +133,16 @@ describe('a large picture on a stage', () => {
     expect(reveal.box.style.getPropertyValue('--picture-height')).toBe('190px')
   })
 
+  it('measures a picture kept back until the reveal on the reveal’s own stage', async () => {
+    const first = onStage(650, 700)
+    await loadRender(first.box)
+    cleanup()
+    const reveal = onStage(600, 700, { shadow: false, lifted: true, late: true })
+    await loadRender(reveal.box)
+    // 460px of the reveal's stage are taken, leaving 140: the least, not the last box's 190.
+    expect(reveal.box.style.getPropertyValue('--picture-height')).toBe('160px')
+  })
+
   it('grows with the sheet’s scale, as its 12rem off a stage does', async () => {
     const { box } = onStage(1100, 700)
     box.style.setProperty('--scroll-scale', '1.25')

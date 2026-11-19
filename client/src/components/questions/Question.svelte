@@ -163,6 +163,7 @@
       shadow={shadowed}
       {build}
       lifted={revealed}
+      late={picture === 'reveal'}
       caption={pictured && revealed ? subjectName : null}
       captionAbove={clued}
     />

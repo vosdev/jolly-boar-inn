@@ -7,6 +7,7 @@ import { rulesOf } from '../../lib/modeRules'
 import { sample } from '../../lib/modes/riddles_of_the_sphinx'
 import type { StemTiming } from './props'
 import ClueStem from './stems/ClueStem.svelte'
+import clueStem from './stems/ClueStem.svelte?raw'
 
 const OPEN = Date.parse('2026-11-19T20:00:00Z')
 const CLUES = sample.view.clues as string[]
@@ -89,5 +90,14 @@ describe('the clue ladder', () => {
     ladder(2, true)
     expect(shown()).toEqual(CLUES)
     expect(current()).toBeNull()
+  })
+})
+
+describe('the clue size', () => {
+  // jsdom computes no font sizes, so this reads the rule the component ships.
+  it('does not grow with the desktop stage’s 1.5 text, so five clues leave room for the list', () => {
+    const css = clueStem.slice(clueStem.indexOf('<style>'))
+    const size = css.match(/\n\s*\.clue \{[^}]*font-size: ([^;]+);/)?.[1]
+    expect(size).toBe('max(1rem, 1.2rem * min(var(--scroll-text, 1), 1))')
   })
 })

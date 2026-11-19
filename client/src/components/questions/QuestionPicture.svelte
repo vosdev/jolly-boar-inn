@@ -28,7 +28,8 @@
    * the screen's. The caption's room is kept from the start so the reveal does not move it.
    * The height is measured while the question is open, keeping the suggestions' room after the
    * answer locks the input away, and held from the reveal on, so the silhouette and the render
-   * share one box and a taller reveal scrolls rather than shrinks it.
+   * share one box and a taller reveal scrolls rather than shrinks it. A `late` picture, kept
+   * back until the reveal, had no open box, so it measures the reveal's stage instead.
    */
   import { PICTURE_MOST_REM, pictureHeight, suggestionsHeight } from '../../lib/pictureFit'
   import { pictureUrl } from '../../lib/pictures'
@@ -44,6 +45,7 @@
     caption = null,
     captionAbove = false,
     build = null,
+    late = false,
   }: {
     name: string | null | undefined
     /** A URL to draw instead of the file called `name`. */
@@ -55,6 +57,8 @@
     large?: boolean
     caption?: string | null
     captionAbove?: boolean
+    /** Shown only from the reveal on. */
+    late?: boolean
   } = $props()
 
   const src = $derived(url ?? pictureUrl(name))
@@ -81,7 +85,7 @@
     const stage = mine?.closest<HTMLElement>('[data-fit-stage]') ?? null
     const content = stage?.firstElementChild
     if (!large || !mine || !stage || !(content instanceof HTMLElement)) return
-    if (lifted) {
+    if (lifted && !late) {
       if (fitted === null) fitted = held
       return
     }
@@ -106,7 +110,7 @@
         scale || 1,
         PICTURE_MOST_REM * rem * sheet,
       )
-      held = fitted
+      if (!late) held = fitted
     }
     measure()
     const watch = new ResizeObserver(measure)
