@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.266.4',
+    date: '2026-11-19',
+    text: 'Stop the Phoenix necklace paying twice when the host ends a round early.',
+  },
+  {
     version: '0.266.3',
     date: '2026-11-19',
     text: "Turn away connection floods sooner, so one address can't crowd other players out of the inn.",
