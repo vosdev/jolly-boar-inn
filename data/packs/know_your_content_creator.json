@@ -660,6 +660,673 @@
       },
       "source_url": "https://www.youtube.com/@SirPugger",
       "difficulty": "easy"
+    },
+    {
+      "id": "q_95e1c106bb1ff8ae",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "source_url": "https://www.youtube.com/@B0aty",
+      "payload": {
+        "prompt": "Which creator launched the 2014 \"One Man Army\" series, whose self-sufficient rules helped inspire official Ironman Mode?",
+        "options": [
+          "B0aty",
+          "Settled",
+          "Faux",
+          "Mr Mammal"
+        ],
+        "answer_index": 0,
+        "explanation": "B0aty's One Man Army series showed how compelling self-sufficient play could be, paving the way for Jagex's official Ironman Mode."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_993efb98248e175c",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "source_url": "https://www.youtube.com/@AlienFood",
+      "payload": {
+        "prompt": "Which creator plays through every OSRS quest with no Wiki, no Quest Helper and no outside guides in the series \"Unguided\"?",
+        "options": [
+          "J1mmy",
+          "Alien Food",
+          "MadSeasonShow",
+          "Hanannie"
+        ],
+        "answer_index": 1,
+        "explanation": "Alien Food's Unguided series tackles every quest blind using only in-game clues and dialogue."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_3cbe5824152ceda0",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "source_url": "https://www.youtube.com/@Settledrs",
+      "payload": {
+        "prompt": "Which creator's \"Nightmare Mode\" series played an Ironman account (Lowlife109) where taking a single point of damage ended the run?",
+        "options": [
+          "Verf",
+          "Rendi",
+          "Settled",
+          "Limpwurt"
+        ],
+        "answer_index": 2,
+        "explanation": "Settled's Nightmare Mode used a custom plugin built with Gudi to enforce a strict 1 HP / zero-damage challenge."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_974c189f70b9da89",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "quote"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Collection_log",
+      "payload": {
+        "prompt": "Typing which creator's name into the in-game Collection Log search bar displays this Easter egg?",
+        "quote": "Theeeeeeeeeeeeeeeeeeeeeeeeeeeeee... Collection log!",
+        "options": [
+          "Tedious",
+          "Settled",
+          "Mr Mammal",
+          "B0aty"
+        ],
+        "answer_index": 0,
+        "explanation": "Tedious, creator of the GenerateTask series, opens his episodes with the drawn-out \"The Collection Log!\" catchphrase."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_bc814d8e8cf3d751",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "source_url": "https://www.youtube.com/@SoloMission",
+      "payload": {
+        "prompt": "Which OSRS creator organizes and hosts the team-based creator tournament \"Deadman Allstars\"?",
+        "options": [
+          "Soup",
+          "B0aty",
+          "Solo Mission",
+          "Odablock"
+        ],
+        "answer_index": 2,
+        "explanation": "Solo Mission created and runs Deadman Allstars, drafting top OSRS creators into competing teams."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_f1bb251b5c4c3ab1",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "source_url": "https://runescape.wiki/w/Zezima",
+      "payload": {
+        "prompt": "Which legendary early RuneScape player dominated the Rank 1 overall highscore spot in the mid-2000s and was the first to reach 99 Slayer and 1 billion total XP?",
+        "options": [
+          "Lynx Titan",
+          "Woox",
+          "Zezima",
+          "Suomi"
+        ],
+        "answer_index": 2,
+        "explanation": "Zezima held Rank 1 for years in the mid-2000s and became the most famous player name in RuneScape history."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_d671303701be4a7d",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Mysterious_Adventurer",
+      "payload": {
+        "prompt": "Inside the Myths' Guild, a stoic NPC called the Mysterious Adventurer (also known as \"Oxwo\") is a tribute to which player?",
+        "options": [
+          "Woox",
+          "B0aty",
+          "Zezima",
+          "Rendi"
+        ],
+        "answer_index": 0,
+        "explanation": "\"Oxwo\" is an anagram of Woox; the NPC stands in the Myths' Guild wearing black d'hide, Neitiznot helm and a Zamorakian spear."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_ecbaaf71b20aabba",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "source_url": "https://www.youtube.com/@J1mmy",
+      "payload": {
+        "prompt": "Which free-to-play comedic persona does J1mmy play while wandering World 301 as a perpetually confused new player?",
+        "options": [
+          "Bob Ross",
+          "Gary Gilbert",
+          "Swampletics",
+          "Timmy Turner"
+        ],
+        "answer_index": 1,
+        "explanation": "Gary Gilbert is J1mmy's chaotic F2P character exploring the social side of World 301."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_e1c5c6cf0cd9f93f",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "source_url": "https://www.youtube.com/@Gudi",
+      "payload": {
+        "prompt": "Which former Jagex moderator (formerly Mod Ronan) created the Bronzeman Mode concept and RuneLite plugin later popularized by Framed?",
+        "options": [
+          "Mod Archie",
+          "Gudi",
+          "Mat K",
+          "Sick Nerd"
+        ],
+        "answer_index": 1,
+        "explanation": "Gudi (MLGudi) created Bronzeman Mode, where items can only be bought on the Grand Exchange after you earn them yourself once."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_539f4c83fc6092b3",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "source_url": "https://www.youtube.com/@Rargh",
+      "payload": {
+        "prompt": "Which OSRS YouTube duo is known for their competitive \"Then We Fight\" series, gearing up under odd restrictions before battling in PvP?",
+        "options": [
+          "Tanzoo and Virtoso",
+          "Link's Ocarina and Rargh",
+          "Framed and Torvesta",
+          "Soup and J1mmy"
+        ],
+        "answer_index": 1,
+        "explanation": "Link's Ocarina and Rargh spend a set timer or challenge hunting gear under quirky rules before fighting head-to-head."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_25e599108dafe999",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "source_url": "https://www.youtube.com/@Jeporite",
+      "payload": {
+        "prompt": "Which YouTuber is behind \"Northern UIM\", an Ultimate Ironman restricted strictly north of the Wilderness ditch's latitude line?",
+        "options": [
+          "Verf",
+          "Limpwurt",
+          "Jeporite",
+          "Josh Isn't Gaming"
+        ],
+        "answer_index": 2,
+        "explanation": "Jeporite treats the Wilderness ditch as a horizontal border across the entire map, locking his UIM to the northern strip of Gielinor."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_05885ebd41c7299f",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "source_url": "https://www.youtube.com/@PortKhazard",
+      "payload": {
+        "prompt": "Which PvM creator claimed the world-first completion of Sol Heredit in the Fortis Colosseum upon its March 2024 release?",
+        "options": [
+          "Woox",
+          "Xzact",
+          "Port Khazard",
+          "Gnomonkey"
+        ],
+        "answer_index": 2,
+        "explanation": "Port Khazard was the first player to defeat Sol Heredit and earn Dizana's quiver, and is famed for extreme PvM endurance feats."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_31decd1fb1f3a2f3",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "quote"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Combat_Achievements",
+      "payload": {
+        "prompt": "Which Combat Achievement in the Inferno directly quotes Woox's reaction during his historic first-week progression?",
+        "options": [
+          "Jad, what are you doing here?",
+          "The Woox Walk",
+          "One Tick Away",
+          "Eat at Phials"
+        ],
+        "answer_index": 0,
+        "explanation": "\"Jad, what are you doing here?\" immortalizes Woox's deadpan line when a JalTok-Jad unexpectedly spawned during the TzKal-Zuk fight."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_cbc697c4b3be3fd8",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "source_url": "https://www.youtube.com/@MadSeasonShow",
+      "payload": {
+        "prompt": "Which former World of Warcraft creator won Best New OSRS Video Creator at the 2026 Golden Gnome Awards for his completely blind Old School RuneScape playthrough?",
+        "options": [
+          "Alien Food",
+          "MadSeasonShow",
+          "Sardaco",
+          "Fray"
+        ],
+        "answer_index": 1,
+        "explanation": "MadSeasonShow started playing Old School RuneScape blind with no prior knowledge and won Best New OSRS Video Creator at RuneFest 2026."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_e6109c32638dc838",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "quote"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Collection_log",
+      "payload": {
+        "prompt": "Searching \"verf\" in the in-game Collection Log displays which one-item Easter egg?",
+        "quote": "1 x ...",
+        "options": [
+          "Rake",
+          "Obsidian cape",
+          "Infernal cape",
+          "Banana"
+        ],
+        "answer_index": 0,
+        "explanation": "A nod to Verf's Karamja-only Ultimate Ironman series, where obtaining a simple rake was a memorable early milestone."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_f949affe0a8c8eb0",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "source_url": "https://oldschool.runescape.wiki/w/Mod_Archie",
+      "payload": {
+        "prompt": "Which former RuneScape Top 10 / community-clip YouTuber was hired by Jagex in 2014 and became the subject of the subreddit meme wishing him \"Happy Birthday\" every day?",
+        "options": [
+          "Mod Ronan (Gudi)",
+          "Mod Archie (ChrisArchieProds)",
+          "Mod Ayiza",
+          "Mod Ash"
+        ],
+        "answer_index": 1,
+        "explanation": "Chris Archie ran ChrisArchieProds before joining Jagex as Mod Archie, inspiring the perennial \"Happy Birthday Mod Archie\" joke."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_0b0f32822db82db3",
+      "type": "pick_all_that_apply",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "source_url": "https://www.youtube.com/@SoupRS",
+      "payload": {
+        "prompt": "Which of these creators have won a season of Soup's Gielinor Games (Seasons 1–5)?",
+        "options": [
+          "Zulu",
+          "Verf",
+          "Settled",
+          "Solo Mission",
+          "Framed",
+          "Torvesta"
+        ],
+        "answer_indices": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Seasons 1 through 5 were won by Zulu, Verf, V the Victim, Settled and Solo Mission respectively."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_a88bf3851f038e09",
+      "type": "pick_all_that_apply",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "source_url": "https://www.youtube.com/@JoshIsntGaming",
+      "payload": {
+        "prompt": "Which of these creators are best known for extreme one-chunk Ironman series?",
+        "options": [
+          "Limpwurt",
+          "Josh Isn't Gaming",
+          "Fray",
+          "SirPugger",
+          "Slayermusiq1"
+        ],
+        "answer_indices": [
+          0,
+          1,
+          2
+        ],
+        "explanation": "Limpwurt (Lumbridge), Josh Isn't Gaming (Yanille) and Fray (Canifis) all headline flagship extreme chunk-locked series."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_7c3eca020e716f11",
+      "type": "pick_all_that_apply",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Collection_log",
+      "payload": {
+        "prompt": "Typing \"settled\" into the in-game Collection Log search bar can display \"0 x\" for which two items?",
+        "options": [
+          "Rune crossbow",
+          "Dragon warhammer",
+          "Abyssal whip",
+          "Twisted bow",
+          "Ranger boots"
+        ],
+        "answer_indices": [
+          0,
+          1
+        ],
+        "explanation": "Both reference notorious grinds: Settled's Morytania lucky impling hunt for a rune crossbow and his dry streak for a dragon warhammer."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_cf183291981e67bb",
+      "type": "pick_all_that_apply",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "source_url": "https://www.youtube.com/@SoloMission",
+      "payload": {
+        "prompt": "Which of these creators played on Team Dino (Dino Nuggets), the winning team of Deadman Allstars Season 1?",
+        "options": [
+          "Dino",
+          "Westham",
+          "Muts",
+          "Raikesy",
+          "B0aty",
+          "Odablock"
+        ],
+        "answer_indices": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Team Dino (Dino, Westham, Muts, Raikesy and Mika) won Season 1 of Deadman Allstars in 2024."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_3d1ab4d35da6cc6d",
+      "type": "pick_all_that_apply",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "source_url": "https://secure.runescape.com/m=news/runefest-2026-golden-gnome-awards",
+      "payload": {
+        "prompt": "Which of these creators won a 2026 Golden Gnome Award at RuneFest 2026?",
+        "options": [
+          "Settled",
+          "Odablock",
+          "MadSeasonShow",
+          "Gnomonkey",
+          "A Friend",
+          "SirPugger"
+        ],
+        "answer_indices": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "At RuneFest 2026, Settled, Odablock, MadSeasonShow and Gnomonkey all took home Golden Gnome trophies."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_eb1330276c3c1ef8",
+      "type": "pick_all_that_apply",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Collection_log",
+      "payload": {
+        "prompt": "Which of these Collection Log search Easter eggs reference a content creator's real dry streak (\"0 x\")?",
+        "options": [
+          "b0aty → 0 x Berserker ring",
+          "faux → 0 x Pegasian crystal",
+          "mmorpg → 0 x Elysian sigil",
+          "kacy → 0 x Bloodhound",
+          "woox → 0 x Infernal cape",
+          "verf → 0 x Rake"
+        ],
+        "answer_indices": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "B0aty, Faux, MMORPG and Kacy all get \"0 x\" jokes; searching \"woox\" gives \"1 x Infernal cape\" and \"verf\" gives \"1 x Rake\"."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_83d252ddd487370c",
+      "type": "closest_number",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Lynx_Titan",
+      "payload": {
+        "prompt": "In what year did Lynx Titan become the first player in Old School RuneScape to reach 200 million XP in every skill?",
+        "answer": 2018,
+        "explanation": "Lynx Titan hit 200 million Mining XP in December 2018, reaching 4.6 billion total XP across all 23 skills."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_22c098ac21a6f9fd",
+      "type": "closest_number",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "source_url": "https://runescape.wiki/w/Golden_Gnome_Awards",
+      "payload": {
+        "prompt": "In what year did Jagex host the very first Golden Gnome Awards for RuneScape community creators?",
+        "answer": 2010,
+        "explanation": "The Golden Gnome Video Awards debuted at the first RuneFest in 2010."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_e636bf80eb6062ac",
+      "type": "closest_number",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "source_url": "https://www.youtube.com/@SoloMission",
+      "payload": {
+        "prompt": "How many total players competed in Solo Mission's Deadman Allstars Season 1?",
+        "answer": 30,
+        "unit": "players",
+        "explanation": "Six captains led teams of five creators each, for 30 competitors in total."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_dbbf275deece4ccd",
+      "type": "closest_number",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "source_url": "https://runescape.wiki/w/Zezima",
+      "payload": {
+        "prompt": "In what year did Zezima become the first player in RuneScape history to reach level 99 Slayer?",
+        "answer": 2005,
+        "explanation": "Zezima reached 99 Slayer on 9 July 2005, less than six months after the skill launched in January 2005."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_acc0208deebf8e99",
+      "type": "number_slider",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "source_url": "https://www.youtube.com/@Settledrs",
+      "payload": {
+        "prompt": "How many Barrows chests did Settled open on Swampletics in Episode 28 (\"Strongest Man in Morytania\")?",
+        "answer": 1000,
+        "min": 100,
+        "max": 2500,
+        "scale": "linear",
+        "unit": "chests",
+        "explanation": "Settled famously stacked and opened 1,000 Barrows chests on Swampletics in his hunt for full Guthan's and Theatre of Blood gear."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_0ab9051753132f7c",
+      "type": "number_slider",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "source_url": "https://www.youtube.com/@Xzact",
+      "payload": {
+        "prompt": "At what combat level did Xzact set a new record for the lowest-level Infernal cape in February 2025?",
+        "answer": 35,
+        "min": 3,
+        "max": 126,
+        "scale": "linear",
+        "explanation": "Xzact beat his earlier level-40 benchmark by earning an Infernal cape at combat level 35 in February 2025."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_575acae7b9db46bb",
+      "type": "number_slider",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "source_url": "https://www.youtube.com/@MrMammal",
+      "payload": {
+        "prompt": "How many Cerberus kills did it take Mr Mammal to get his first Primordial crystal on his original Ironman account?",
+        "answer": 3905,
+        "min": 500,
+        "max": 6000,
+        "scale": "linear",
+        "unit": "kills",
+        "explanation": "Mr Mammal went 3,905 Cerberus kills dry for his first Primordial crystal, nearly eight times the 1 in 512 drop rate."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_bacd697b0d50ef26",
+      "type": "number_slider",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "source_url": "https://www.youtube.com/@PortKhazard",
+      "payload": {
+        "prompt": "How many Awakened Leviathan kills did Port Khazard achieve in a single inventory?",
+        "answer": 54,
+        "min": 5,
+        "max": 100,
+        "scale": "linear",
+        "unit": "kills",
+        "explanation": "Port Khazard completed an astonishing 54 Awakened Leviathan kills without banking in one inventory."
+      },
+      "difficulty": "hard"
     }
   ]
 }

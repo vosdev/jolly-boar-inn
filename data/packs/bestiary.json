@@ -1051,6 +1051,804 @@
           4
         ]
       }
+    },
+    {
+      "id": "q_3ddfd1fdfd260c38",
+      "type": "multiple_choice",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "race"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Commander_Zilyana",
+      "payload": {
+        "prompt": "What race is Commander Zilyana, Saradomin's general in the God Wars Dungeon?",
+        "options": [
+          "Aviansie",
+          "Icyene",
+          "Demon",
+          "Elf"
+        ],
+        "answer_index": 1,
+        "explanation": "Commander Zilyana is an icyene, a winged humanoid race aligned with Saradomin."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_7ac9b6ecde559c4b",
+      "type": "multiple_choice",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "location"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Dagannoth_Kings",
+      "payload": {
+        "prompt": "Where in Gielinor do the Dagannoth Kings live?",
+        "options": [
+          "Fremennik Slayer Dungeon",
+          "Waterbirth Island Dungeon",
+          "Lighthouse basement",
+          "Catacombs of Kourend"
+        ],
+        "answer_index": 1,
+        "explanation": "Dagannoth Rex, Prime and Supreme dwell in the lowest cavern of the Waterbirth Island Dungeon."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_504ecf83c7f2af9c",
+      "type": "multiple_choice",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "bosses"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Dagannoth_Rex",
+      "payload": {
+        "prompt": "Which Dagannoth King attacks solely with Melee?",
+        "options": [
+          "Dagannoth Prime",
+          "Dagannoth Supreme",
+          "Dagannoth Rex",
+          "All three"
+        ],
+        "answer_index": 2,
+        "explanation": "Rex uses Melee, Prime uses Magic and Supreme uses Ranged — forming the combat triangle."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_ac0c228a04989fc7",
+      "type": "multiple_choice",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "location"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Scurrius",
+      "payload": {
+        "prompt": "Where is Scurrius, the Rat King, fought?",
+        "options": [
+          "Lumbridge Cellar",
+          "Edgeville Dungeon",
+          "Varrock Sewers",
+          "Draynor Sewers"
+        ],
+        "answer_index": 2,
+        "explanation": "Scurrius lurks in a lair inside the Varrock Sewers, introduced in January 2024 as an entry-level PvM boss."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_5f1f01666220ee23",
+      "type": "multiple_choice",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "bosses",
+        "lore"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Royal_Titans",
+      "payload": {
+        "prompt": "Which two elemental giants clash in the Royal Titans encounter?",
+        "options": [
+          "Branda the Fire Queen and Eldric the Ice King",
+          "Obor the Hill King and Bryophyta the Moss Queen",
+          "Skotizo and Zalcano",
+          "Dawn and Dusk"
+        ],
+        "answer_index": 0,
+        "explanation": "Branda the Fire Queen (from Karamja Volcano) and Eldric the Ice King (from Asgarnian Ice Dungeon) face off as the Royal Titans."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_f1f6a48e5231babd",
+      "type": "multiple_choice",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "lore"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Ahrim_the_Blighted",
+      "payload": {
+        "prompt": "Which of the six Barrows brothers fights using Magic?",
+        "options": [
+          "Karil the Tainted",
+          "Ahrim the Blighted",
+          "Verac the Defiled",
+          "Guthan the Infested"
+        ],
+        "answer_index": 1,
+        "explanation": "Ahrim the Blighted casts Fire Wave and stat-draining curses; Karil uses Ranged and the other four use Melee."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_239eb2dd8f63ef4b",
+      "type": "multiple_choice",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "race",
+        "bosses"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Kephri",
+      "payload": {
+        "prompt": "What kind of creature is Kephri, the boss of the Path of Scabaras in the Tombs of Amascut?",
+        "options": [
+          "Crocodile",
+          "Baboon",
+          "Dawn scarab",
+          "Scorpion"
+        ],
+        "answer_index": 2,
+        "explanation": "Kephri is a giant dawn scarab with the kalphite attribute, guarding the Path of Scabaras."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_ddd30729f55f1d80",
+      "type": "multiple_choice",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "bosses",
+        "location"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Bryophyta",
+      "payload": {
+        "prompt": "Which free-to-play boss is fought by unlocking a lair in the Varrock Sewers with a mossy key?",
+        "options": [
+          "Obor",
+          "Bryophyta",
+          "Scurrius",
+          "Giant Mole"
+        ],
+        "answer_index": 1,
+        "explanation": "Bryophyta is the level-128 moss giant boss in Varrock Sewers; Obor is the hill giant boss in Edgeville Dungeon."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_9d68d1ff0f6a4afc",
+      "type": "multiple_choice",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "race",
+        "bosses"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Kree%27arra",
+      "payload": {
+        "prompt": "What race is Kree'arra, Armadyl's general in the God Wars Dungeon?",
+        "options": [
+          "Icyene",
+          "Aviansie",
+          "Vampyre",
+          "Mahjarrat"
+        ],
+        "answer_index": 1,
+        "explanation": "Kree'arra is an aviansie, a proud race of bird-like warriors devoted to Armadyl."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_2285cf039db62862",
+      "type": "multiple_choice",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "trivia",
+        "bosses"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Phantom_Muspah",
+      "payload": {
+        "prompt": "Which attribute does the Phantom Muspah carry in its monster infobox?",
+        "options": [
+          "Demon",
+          "Undead",
+          "Spectral",
+          "Draconic"
+        ],
+        "answer_index": 2,
+        "explanation": "The Phantom Muspah has the spectral attribute (though it is not undead, so the salve amulet does not work on it)."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_de0af785d388b526",
+      "type": "free_text",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "bosses"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/TzKal-Zuk",
+      "payload": {
+        "prompt": "Which boss waits at the end of wave 69 of the Inferno?",
+        "accepted": [
+          "TzKal-Zuk",
+          "TzKal Zuk",
+          "Zuk"
+        ],
+        "explanation": "TzKal-Zuk, level 1,400, is the final boss of the Inferno."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_12f741a58e542edd",
+      "type": "free_text",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "bosses"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Obor",
+      "payload": {
+        "prompt": "Which hill giant boss can free-to-play players fight in Edgeville Dungeon using a giant key?",
+        "accepted": [
+          "Obor"
+        ],
+        "explanation": "Obor is a level-106 hill giant boss whose lair lies inside Edgeville Dungeon."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_dca4dfee2a13aabd",
+      "type": "free_text",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "bosses"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Sol_Heredit",
+      "payload": {
+        "prompt": "Which boss serves as the final champion of the Fortis Colosseum in Varlamore?",
+        "accepted": [
+          "Sol Heredit",
+          "Sol"
+        ],
+        "explanation": "Sol Heredit (combat level 1,563) awaits challengers on wave 12 of the Fortis Colosseum."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_01eb66f4917a3551",
+      "type": "free_text",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "bosses",
+        "location"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Skotizo",
+      "payload": {
+        "prompt": "Which archaic demon boss is summoned beneath the Catacombs of Kourend using a dark totem?",
+        "accepted": [
+          "Skotizo"
+        ],
+        "explanation": "Offering a dark totem at the altar in the centre of the Catacombs of Kourend teleports you to Skotizo's lair."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_f56a1ad86dc21232",
+      "type": "free_text",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "bosses"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Verzik_Vitur",
+      "payload": {
+        "prompt": "What is the name of the vampyre ruler fought as the final boss of the Theatre of Blood?",
+        "accepted": [
+          "Verzik Vitur",
+          "Lady Verzik Vitur",
+          "Verzik"
+        ],
+        "explanation": "Lady Verzik Vitur rules the Theatre of Blood in Ver Sinhaza and transforms into an arachnid Nylocas hybrid in her final phase."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_b531d3bd0d1548e5",
+      "type": "pick_all_that_apply",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "bosses"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Duke_Sucellus",
+      "payload": {
+        "prompt": "Which of these bosses are unlocked by completing Desert Treasure II - The Fallen Empire?",
+        "options": [
+          "Duke Sucellus",
+          "Vardorvis",
+          "The Leviathan",
+          "The Whisperer",
+          "Phantom Muspah",
+          "Nex"
+        ],
+        "answer_indices": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Duke Sucellus, Vardorvis, The Leviathan and The Whisperer are the four Desert Treasure II bosses; Phantom Muspah comes from Secrets of the North."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_87c27bea263f21e0",
+      "type": "pick_all_that_apply",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "race",
+        "bosses"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Draconic_(attribute)",
+      "payload": {
+        "prompt": "Which of these monsters carry the draconic attribute?",
+        "options": [
+          "Great Olm",
+          "Alchemical Hydra",
+          "The Hueycoatl",
+          "Skeletal Wyvern",
+          "Zulrah",
+          "Elvarg"
+        ],
+        "answer_indices": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Great Olm, Alchemical Hydra, The Hueycoatl and skeletal wyverns all have the draconic attribute; Zulrah and Elvarg are excluded."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_3787fd9211f1ca21",
+      "type": "pick_all_that_apply",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "race",
+        "trivia"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Undead_(attribute)",
+      "payload": {
+        "prompt": "Despite looking ghostly or undead, which of these are NOT classified as undead in Old School RuneScape?",
+        "options": [
+          "Barrows brothers",
+          "Spiritual creatures",
+          "Ghouls",
+          "Vorkath",
+          "Vet'ion"
+        ],
+        "answer_indices": [
+          0,
+          1,
+          2
+        ],
+        "explanation": "Barrows brothers (wights), spiritual creatures and ghouls do not have the undead attribute, so the salve amulet does not work on them. Vorkath and Vet'ion are undead."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_b04f65366cf47613",
+      "type": "number_slider",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "combat-level"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/TzKal-Zuk",
+      "payload": {
+        "prompt": "What is TzKal-Zuk's combat level?",
+        "answer": 1400,
+        "min": 500,
+        "max": 2000,
+        "scale": "linear",
+        "explanation": "TzKal-Zuk is combat level 1,400 with 1,200 Hitpoints."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_9f32c02949e5655c",
+      "type": "number_slider",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "hitpoints"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Nex",
+      "payload": {
+        "prompt": "How many Hitpoints does Nex have?",
+        "answer": 3400,
+        "min": 500,
+        "max": 6000,
+        "scale": "linear",
+        "explanation": "Nex has 3,400 Hitpoints (and combat level 1,001), with a mage becoming vulnerable every 680 HP lost."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_157a2e84f7e0a093",
+      "type": "number_slider",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "combat-level"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Dagannoth_Kings",
+      "payload": {
+        "prompt": "What is the combat level of each of the three Dagannoth Kings?",
+        "answer": 303,
+        "min": 100,
+        "max": 600,
+        "scale": "linear",
+        "explanation": "Dagannoth Rex, Prime and Supreme are all combat level 303 with 255 Hitpoints."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_c4b944bb5570c7fc",
+      "type": "number_slider",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "combat-level"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Sol_Heredit",
+      "payload": {
+        "prompt": "What is Sol Heredit's combat level?",
+        "answer": 1563,
+        "min": 800,
+        "max": 2000,
+        "scale": "linear",
+        "explanation": "Sol Heredit is combat level 1,563 with 1,500 Hitpoints."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_af488c9f5db1c52e",
+      "type": "closest_number",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Inferno",
+      "payload": {
+        "prompt": "How many waves are there in the Inferno, including TzKal-Zuk?",
+        "answer": 69,
+        "unit": "waves",
+        "explanation": "The Inferno has 69 waves, six more than the 63 waves of the TzHaar Fight Cave."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_97285ce9450fdb72",
+      "type": "closest_number",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "release"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/King_Black_Dragon",
+      "payload": {
+        "prompt": "In what year was the King Black Dragon first released in RuneScape?",
+        "answer": 2002,
+        "explanation": "24 September 2002, making the King Black Dragon one of RuneScape's oldest bosses."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_ca71691a01192e42",
+      "type": "closest_number",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "release"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Kalphite_Queen",
+      "payload": {
+        "prompt": "In what year was the Kalphite Queen first released in RuneScape?",
+        "answer": 2004,
+        "explanation": "7 September 2004, arriving alongside the famous dragon chainbody drop."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_2a81599d3376b802",
+      "type": "ordering",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "combat-level"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Callisto",
+      "payload": {
+        "prompt": "Sort these Wilderness bosses by combat level, lowest to highest.",
+        "ends": [
+          "Lowest",
+          "Highest"
+        ],
+        "entries": [
+          {
+            "text": "Scorpia",
+            "rank": 1,
+            "detail": "Level 225"
+          },
+          {
+            "text": "Chaos Elemental",
+            "rank": 2,
+            "detail": "Level 305"
+          },
+          {
+            "text": "Vet'ion",
+            "rank": 3,
+            "detail": "Level 454"
+          },
+          {
+            "text": "Venenatis",
+            "rank": 4,
+            "detail": "Level 464"
+          },
+          {
+            "text": "Callisto",
+            "rank": 5,
+            "detail": "Level 470"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Scorpia is level 225, Chaos Elemental 305, Vet'ion 454, Venenatis 464 and Callisto 470."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_d52c25492496dc30",
+      "type": "ordering",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "combat-level"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/The_Leviathan",
+      "payload": {
+        "prompt": "Sort the four post-quest Desert Treasure II bosses by combat level, lowest to highest.",
+        "ends": [
+          "Lowest",
+          "Highest"
+        ],
+        "entries": [
+          {
+            "text": "Duke Sucellus",
+            "rank": 1,
+            "detail": "Level 758"
+          },
+          {
+            "text": "Vardorvis",
+            "rank": 2,
+            "detail": "Level 784"
+          },
+          {
+            "text": "The Whisperer",
+            "rank": 3,
+            "detail": "Level 791"
+          },
+          {
+            "text": "The Leviathan",
+            "rank": 4,
+            "detail": "Level 798"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Post-quest combat levels are Duke Sucellus 758, Vardorvis 784, The Whisperer 791 and The Leviathan 798."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_1eb4dc750a25851d",
+      "type": "matching",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "bosses"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Barrows",
+      "payload": {
+        "prompt": "Match each Barrows brother to his signature weapon.",
+        "fields": [
+          {
+            "text": "Dharok the Wretched"
+          },
+          {
+            "text": "Verac the Defiled"
+          },
+          {
+            "text": "Guthan the Infested"
+          },
+          {
+            "text": "Karil the Tainted"
+          }
+        ],
+        "options": [
+          {
+            "text": "Greataxe"
+          },
+          {
+            "text": "Flail"
+          },
+          {
+            "text": "Warspear"
+          },
+          {
+            "text": "Crossbow"
+          },
+          {
+            "text": "Staff"
+          },
+          {
+            "text": "Hammers"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Ahrim wields a staff and Torag dual-wields hammers."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_7f4c21cdf5ffbc4b",
+      "type": "matching",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "bosses",
+        "pets"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Pet",
+      "payload": {
+        "prompt": "Match each Desert Treasure II boss to the pet it drops.",
+        "fields": [
+          {
+            "text": "Duke Sucellus"
+          },
+          {
+            "text": "Vardorvis"
+          },
+          {
+            "text": "The Whisperer"
+          },
+          {
+            "text": "The Leviathan"
+          }
+        ],
+        "options": [
+          {
+            "text": "Baron"
+          },
+          {
+            "text": "Butch"
+          },
+          {
+            "text": "Wisp"
+          },
+          {
+            "text": "Lil'viathan"
+          },
+          {
+            "text": "Muphin"
+          },
+          {
+            "text": "Huberte"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Muphin comes from the Phantom Muspah and Huberte from The Hueycoatl."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_1721e183187d9dab",
+      "type": "matching",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "bosses",
+        "location"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Tombs_of_Amascut",
+      "payload": {
+        "prompt": "Match each Tombs of Amascut demi-boss to the path it guards.",
+        "fields": [
+          {
+            "text": "Ba-Ba"
+          },
+          {
+            "text": "Kephri"
+          },
+          {
+            "text": "Akkha"
+          },
+          {
+            "text": "Zebak"
+          }
+        ],
+        "options": [
+          {
+            "text": "Path of Apmeken",
+            "detail": "Monkey"
+          },
+          {
+            "text": "Path of Scabaras",
+            "detail": "Scarab"
+          },
+          {
+            "text": "Path of Het",
+            "detail": "Warrior"
+          },
+          {
+            "text": "Path of Crondis",
+            "detail": "Crocodile"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Apmeken's path leads to Ba-Ba, Scabaras to Kephri, Het to Akkha and Crondis to Zebak."
+      },
+      "difficulty": "hard"
     }
   ]
 }

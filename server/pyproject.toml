@@ -1,6 +1,6 @@
 [project]
 name = "jolly-boar-inn"
-version = "0.268.2"
+version = "0.268.3"
 description = "Jolly Boar Inn Quiz Night server"
 requires-python = ">=3.14"
 license = "AGPL-3.0-only"

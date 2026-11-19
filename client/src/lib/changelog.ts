@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.268.3',
+    date: '2026-11-20',
+    text: 'Add 40 Slayer Master, 30 Bestiary and 30 Know Your Content Creator questions.',
+  },
+  {
     version: '0.268.2',
     date: '2026-11-20',
     text: 'Add 40 new Guess the Examine questions spanning items, bosses, pets and NPCs.',
