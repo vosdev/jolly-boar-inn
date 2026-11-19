@@ -30,7 +30,7 @@ jobs:
   # host gen-map supports: Java sizes its default heap from the machine, so a big runner hides
   # a render that a small server cannot finish.
   map:
-    name: Map (render under the memory floor)
+    name: ${{ github.event.pull_request.draft && 'Map (draft)' || 'Map (render under the memory floor)' }}
     if: ${{ !github.event.pull_request.draft }}
     runs-on: ${{ (vars.RUNNER && !github.event.pull_request.head.repo.fork) && vars.RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 15

@@ -3,7 +3,9 @@ name: CI
 on:
   push:
     branches: [main]
-  # A draft runs nothing until it is marked ready, which runs everything.
+  # A draft runs nothing until it is marked ready, which runs everything. Its skipped jobs
+  # take other names, since a skipped required check counts as passed and would let the PR
+  # merge in the seconds before the ready run's checks appear.
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
   # New vulnerabilities are published against code that has not changed.
@@ -21,7 +23,7 @@ permissions:
 
 jobs:
   server:
-    name: Server (ruff, pytest, packs, contrast)
+    name: ${{ github.event.pull_request.draft && 'Server (draft)' || 'Server (ruff, pytest, packs, contrast)' }}
     if: ${{ !github.event.pull_request.draft }}
     runs-on: ${{ (vars.RUNNER && !github.event.pull_request.head.repo.fork) && vars.RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 15
@@ -62,7 +64,7 @@ jobs:
       - run: uv run python scripts/check_contrast.py
 
   client:
-    name: Client (lint, svelte-check, vitest, build)
+    name: ${{ github.event.pull_request.draft && 'Client (draft)' || 'Client (lint, svelte-check, vitest, build)' }}
     if: ${{ !github.event.pull_request.draft }}
     runs-on: ${{ (vars.RUNNER && !github.event.pull_request.head.repo.fork) && vars.RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 15
@@ -92,7 +94,7 @@ jobs:
   # which holds pnpm itself, so the client goes through pnpm audit, whose --ignore-unfixable
   # reports nothing at all.
   audit:
-    name: Audit (lockfiles)
+    name: ${{ github.event.pull_request.draft && 'Audit (draft)' || 'Audit (lockfiles)' }}
     if: ${{ !github.event.pull_request.draft }}
     runs-on: ${{ (vars.RUNNER && !github.event.pull_request.head.repo.fork) && vars.RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 10
@@ -123,7 +125,7 @@ jobs:
   # gitleaks-action needs a licence for organisations, so this runs the release binary, checked
   # against the pinned hash of the release's checksum list; trivy-bump.yml moves both.
   secrets:
-    name: Secrets (gitleaks)
+    name: ${{ github.event.pull_request.draft && 'Secrets (draft)' || 'Secrets (gitleaks)' }}
     if: ${{ !github.event.pull_request.draft }}
     runs-on: ${{ (vars.RUNNER && !github.event.pull_request.head.repo.fork) && vars.RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 10
@@ -163,7 +165,7 @@ jobs:
         run: gitleaks git --no-banner --redact .
 
   containers:
-    name: Containers (build, compose, smoke test, scan)
+    name: ${{ github.event.pull_request.draft && 'Containers (draft)' || 'Containers (build, compose, smoke test, scan)' }}
     if: ${{ !github.event.pull_request.draft }}
     runs-on: ${{ (vars.RUNNER && !github.event.pull_request.head.repo.fork) && vars.RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 15
@@ -247,7 +249,7 @@ jobs:
   # runner is shared; the heavy scenarios are for manual runs. The report is an artifact, so a
   # later run can be held against it with --compare.
   loadtest:
-    name: Load test (smoke)
+    name: ${{ github.event.pull_request.draft && 'Load test (draft)' || 'Load test (smoke)' }}
     if: ${{ !github.event.pull_request.draft }}
     runs-on: ${{ (vars.RUNNER && !github.event.pull_request.head.repo.fork) && vars.RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 10
