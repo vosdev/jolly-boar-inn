@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { FIT_HEIGHT, PADDING, PLAY, ROOM, roomFit, stageEdges } from './roomFit'
+import { FIT_HEIGHT, PADDING, PLAY, ROOM_HEIGHT, roomFit, stageEdges } from './roomFit'
 
 const BAR = 56
 
@@ -21,10 +21,16 @@ describe('roomFit', () => {
     }
   })
 
-  it('scales smoothly below the last step', () => {
-    expect(roomFit({ width: 1280, height: 450 }, BAR)?.scale).toBeCloseTo((450 - BAR) / FIT_HEIGHT)
-    expect(roomFit({ width: 1100, height: 450 }, BAR)?.height).toBeCloseTo(FIT_HEIGHT)
-    expect(roomFit({ width: 1100, height: 450 }, BAR)?.scale).toBeLessThan(5 / 8)
+  it('keeps the last step below it, laid out at the fit height so the page scrolls', () => {
+    for (const view of [
+      { width: 1280, height: 450 },
+      { width: 1100, height: 450 },
+      { width: 1132, height: 340 },
+    ]) {
+      const fit = roomFit(view, BAR)
+      expect(fit?.scale, `${view.width}×${view.height}`).toBe(5 / 8)
+      expect(fit?.height).toBe(FIT_HEIGHT)
+    }
   })
 
   it('lays out at the window’s own height between the fit height and the full one', () => {
@@ -34,20 +40,21 @@ describe('roomFit', () => {
   })
 
   it('is compact under 920px of layout height and not at 920', () => {
-    expect(roomFit({ width: 1512, height: 919 + BAR }, BAR)?.compact).toBe(true)
-    expect(roomFit({ width: 1512, height: 920 + BAR }, BAR)?.compact).toBe(false)
+    expect(roomFit({ width: 1512, height: ROOM_HEIGHT - 1 + BAR }, BAR)?.compact).toBe(true)
+    expect(roomFit({ width: 1512, height: ROOM_HEIGHT + BAR }, BAR)?.compact).toBe(false)
     expect(roomFit({ width: 1512, height: 774 }, BAR)?.compact).toBe(true)
     expect(roomFit({ width: 2560, height: 1440 }, BAR)?.compact).toBe(false)
   })
 
-  it('scales up as a whole at 1920×1080 and 2560×1440', () => {
+  it('never draws above 1, laying out no taller than 920 and leaving the rest to the floor', () => {
     for (const view of [
       { width: 1920, height: 1080 },
       { width: 2560, height: 1440 },
+      { width: 3440, height: 1440 },
     ]) {
       const fit = roomFit(view, BAR)
-      expect(fit?.scale).toBeCloseTo((view.height - BAR) / ROOM.height)
-      expect(fit?.height).toBeCloseTo(ROOM.height)
+      expect(fit?.scale, `${view.width}×${view.height}`).toBe(1)
+      expect(fit?.height).toBe(ROOM_HEIGHT)
     }
   })
 

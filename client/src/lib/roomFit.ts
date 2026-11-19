@@ -4,17 +4,20 @@ import { writable } from 'svelte/store'
  * How a room sits in the window (section 8 of ideas/design.md): laid out at one size and
  * scaled as a whole, as the TV is, with the floor round it.
  *
- * At `ROOM` or larger it scales up as a whole. From `ROOM_LEAST_WIDTH` by `FIT_HEIGHT` up to
- * `ROOM` it lays out at the window's own size, compact under `ROOM.height`. A window short
- * of that draws the room at the largest of `STEPS` that leaves it both, and under the last
- * step scales smoothly. The room is never wider than its stage and table need; the floor
- * takes the rest. Under `STACK_BELOW` it is not fitted at all: the parts stack, as on a phone.
+ * It is never drawn above 1: from `ROOM_LEAST_WIDTH` by `FIT_HEIGHT` it lays out at the
+ * window's own height up to `ROOM_HEIGHT`, compact under it, and the floor takes whatever is
+ * left. A window short of that draws the room at the largest of `STEPS` that leaves it both,
+ * and one too short for the last step keeps it, laid out `FIT_HEIGHT` high, and scrolls.
+ * The room is never wider than its stage and table need. Under `STACK_BELOW` it is not
+ * fitted at all: the parts stack, as on a phone.
  */
-export const ROOM = { width: 1600, height: 920 }
+/** The tallest the room is laid out; a taller window gets floor under it. */
+export const ROOM_HEIGHT = 920
 export const ROOM_LEAST_WIDTH = 1280
 /** The layout height every mode's tallest screen fits on the compact stage. */
 export const FIT_HEIGHT = 760
 export const STEPS = [1, 7 / 8, 3 / 4, 5 / 8]
+const LEAST_STEP = 5 / 8
 export const STACK_BELOW = 1024
 
 /** The gap between stage and table, the table's width (the column is `tableReveal` wide always, so the stage never changes width), and the widest a stage grows. */
@@ -34,17 +37,14 @@ export interface RoomFit {
   height: number
   /** Where the scaled room's left edge is in the window, in px. */
   left: number
-  /** Laid out under `ROOM.height`: the smaller chathead and padding. */
+  /** Laid out under `ROOM_HEIGHT`: the smaller chathead and padding. */
   compact: boolean
 }
 
 /** The scale for a window `width` px wide with `area` px under the bar. */
 function scaleFor(width: number, area: number): number {
-  if (width >= ROOM.width && area >= ROOM.height) {
-    return Math.min(width / ROOM.width, area / ROOM.height)
-  }
   const step = STEPS.find((s) => width / s >= ROOM_LEAST_WIDTH && area / s >= FIT_HEIGHT)
-  return step ?? Math.min(width / ROOM_LEAST_WIDTH, area / FIT_HEIGHT)
+  return step ?? LEAST_STEP
 }
 
 /**
@@ -55,8 +55,8 @@ export function roomFit(view: { width: number; height: number }, bar: number): R
   if (view.width < STACK_BELOW) return null
   const area = Math.max(1, view.height - bar)
   const scale = scaleFor(view.width, area)
-  const height = area / scale
-  const compact = height < ROOM.height
+  const height = Math.min(ROOM_HEIGHT, Math.max(FIT_HEIGHT, area / scale))
+  const compact = height < ROOM_HEIGHT
   const side = (compact ? PADDING.compact : PADDING.full).side
   const widest = 2 * side + PLAY.stageWide + PLAY.gap + PLAY.tableReveal
   const width = Math.min(view.width / scale, widest)

@@ -75,9 +75,11 @@
     border-top: 0;
   }
 
+  /* Never the desktop stage's 1.5: five clues at that size wrap to two lines each and leave
+     no room for the answer list or the reveal's picture. */
   .clue {
     padding-block: 0.35rem;
-    font-size: max(1rem, 1.2rem * var(--scroll-text, 1));
+    font-size: max(1rem, 1.2rem * min(var(--scroll-text, 1), 1));
     line-height: 1.2;
     text-align: center;
     overflow-wrap: anywhere;

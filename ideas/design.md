@@ -267,10 +267,10 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
 - **The room's frame** (`lib/roomFit.ts`): the stage on the left, the table column on the right,
   380px wide always (the table is 300px until a reveal, so the stage never changes width), 28px apart,
   centred together, padded 30/40/28px; the extra width is floor, with the wall lights (§1) measured
-  from the room's edge. Laid out at 1600×920 under the bar, larger windows scale it up as a whole, as
-  the TV (§16). Under 920px of layout height it is compact: padding 16/32/16px, the chathead 72px
+  from the room's edge. It is never drawn above 1 nor laid out taller than 920px: a bigger window
+  gets more floor. Under 920px of layout height it is compact: padding 16/32/16px, the chathead 72px
   with room for two lines. From 1280 wide and `FIT_HEIGHT` (760px) high it lays out at the window's
-  size; a smaller window draws it at the largest of 1, ⅞, ¾ and ⅝ that leaves both, then scales smoothly.
+  size; a smaller window draws it at the largest of 1, ⅞, ¾ and ⅝ that leaves both; under ⅝ it scrolls.
   760 is measured: Who Said That?'s three-line quote needs 744, a pick-all event 756; Sort It Out's six
   rows, 36px tall with 3px between instead of 56 and 8, need 657 open and 754 revealed, and the fairy rings'
   nine (the tray two abreast) 707 open. The stage starts at the top of its
