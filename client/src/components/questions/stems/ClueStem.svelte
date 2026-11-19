@@ -15,15 +15,15 @@
 
 <script lang="ts">
   /**
-   * Riddles of the Sphinx's clue ladder: one rung a clue, each with what an answer on it pays.
+   * Riddles of the Sphinx's clue ladder: one rung a clue, vaguest first.
    *
    * Every clue is in `data` from the start (architecture section 6), so the ladder shows one a
    * step and keeps the rest as dots: rung k from the k-th step of the mode's `steps`, counted as
-   * the server counts them, so the points a rung shows are the points an answer then earns.
-   * Passed rungs strike their points; the current one carries a bar for the time it has left.
-   * The reveal shows every clue.
+   * the server counts them. A hidden rung already takes its clue's height, so a clue that wraps
+   * does not grow the stage when it arrives; the clue sits in an attribute drawn invisibly, out
+   * of the page's text. The reveal shows every clue.
    */
-  import { pointsOnStep, stepAt } from '../../../lib/samples'
+  import { stepAt } from '../../../lib/samples'
   import type { StemProps } from '../props'
 
   let { data, revealed, timing }: StemProps = $props()
@@ -39,29 +39,18 @@
   const elapsed = $derived(Math.max(0, now - from))
   const started = $derived(revealed || now >= from)
   const current = $derived(revealed ? clues.length : started ? stepAt(elapsed, seconds, steps) : 0)
-  /** Seconds on the step's clock, for the bar: each a share of the time, the last the rest. */
-  const left = $derived.by(() => {
-    if (revealed || current === 0) return 0
-    const stepMs = (seconds * 1000) / steps.of
-    const start = (current - 1) * stepMs
-    const end = current > steps.build ? seconds * 1000 : current * stepMs
-    return Math.max(0, Math.min(1, (end - elapsed) / (end - start)))
-  })
 </script>
 
 <ol class="ladder" aria-label="Clues">
   {#each clues as clue, index (index)}
     {@const rung = index + 1}
-    {@const shownClue = revealed || rung <= current}
-    <li class:past={!revealed && rung < current} class:now={!revealed && rung === current}>
-      <span class="points">{pointsOnStep(rung, clues.length)}</span>
-      {#if shownClue}
+    <li class:now={!revealed && rung === current}>
+      {#if revealed || rung <= current}
         <span class="clue">{clue}</span>
       {:else}
-        <span class="clue later" aria-label="Clue {rung}, still hidden">· · · · ·</span>
-      {/if}
-      {#if !revealed && rung === current}
-        <span class="left" aria-hidden="true"><i style:width="{left * 100}%"></i></span>
+        <span class="clue later" data-room={clue} aria-label="Clue {rung}, still hidden"
+          ><span aria-hidden="true">· · · · ·</span></span
+        >
       {/if}
     </li>
   {/each}
@@ -77,25 +66,13 @@
 
   li {
     display: grid;
-    grid-template-columns: 4.25rem 1fr;
     align-items: center;
-    column-gap: 0.75rem;
     min-height: 2.75rem;
     border-top: 1px dashed color-mix(in srgb, var(--scroll-ink) 45%, transparent);
   }
 
   li:first-child {
     border-top: 0;
-  }
-
-  .points {
-    justify-self: start;
-    padding: 0.1rem 0.45rem;
-    border: 2px solid transparent;
-    border-radius: 4px;
-    font-family: var(--font-numeric);
-    font-variant-numeric: tabular-nums;
-    font-size: max(1rem, 1.15rem * var(--scroll-text, 1));
   }
 
   .clue {
@@ -107,41 +84,25 @@
   }
 
   .later {
+    display: grid;
+    align-items: center;
     color: var(--scroll-muted);
     letter-spacing: 0.35em;
   }
 
-  li:has(.later) .points {
-    border-color: var(--scroll-muted);
+  .later::before {
+    content: attr(data-room);
+    visibility: hidden;
+    letter-spacing: normal;
   }
 
-  .past .points {
-    color: var(--scroll-muted);
-    text-decoration: line-through;
-  }
-
-  .now .points {
-    background: var(--scroll-ink);
-    color: var(--scroll-paper);
+  .later::before,
+  .later > span {
+    grid-area: 1 / 1;
   }
 
   .now .clue {
     animation: arrive 450ms ease-out;
-  }
-
-  .left {
-    grid-column: 1;
-    height: 3px;
-    margin-inline-end: 0.5rem;
-    border-radius: 2px;
-    background: color-mix(in srgb, var(--scroll-ink) 20%, transparent);
-    overflow: hidden;
-  }
-
-  .left i {
-    display: block;
-    height: 100%;
-    background: var(--scroll-ink);
   }
 
   @keyframes arrive {

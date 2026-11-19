@@ -535,7 +535,7 @@
       "clues": 5,
       "pictured": false,
       "picture_at_reveal": true,
-      "extra_answer": 5,
+      "extra_answer": 35,
       "stem": "clues",
       "hold_counts_prompt": false,
       "suggest": {

@@ -18,7 +18,7 @@ function ladder(secondsIn: number, revealed = false) {
   const now = writable(OPEN + secondsIn * 1000)
   const timing: StemTiming = {
     answerableAt: new Date(OPEN).toISOString(),
-    endsAt: new Date(OPEN + 30_000).toISOString(),
+    endsAt: new Date(OPEN + 60_000).toISOString(),
     now,
     steps: STEPS,
   }
@@ -31,11 +31,11 @@ function shown(): string[] {
 }
 
 function current(): string | null {
-  return document.querySelector('.now .points')?.textContent ?? null
+  return document.querySelector('.now .clue')?.textContent ?? null
 }
 
 describe('the clue ladder', () => {
-  it('has a step a clue, every 5 s of 30 and the last for 10', () => {
+  it('has a step a clue, every 10 s of 60 and the last for 20', () => {
     expect(STEPS).toEqual({ build: 4, of: 6 })
   })
 
@@ -45,30 +45,43 @@ describe('the clue ladder', () => {
     now.set(OPEN)
     await tick()
     expect(shown()).toEqual(CLUES.slice(0, 1))
-    expect(current()).toBe('1000')
+    expect(current()).toBe(CLUES[0])
   })
 
   it.each([
-    [4.9, 1, '1000'],
-    [5.1, 2, '850'],
-    [10.1, 3, '700'],
-    [15.1, 4, '550'],
-    [20.1, 5, '400'],
-    [29.9, 5, '400'],
-  ])('at %s s shows %s clues, on the step paying %s', (seconds, count, points) => {
+    [9.9, 1],
+    [10.1, 2],
+    [20.1, 3],
+    [30.1, 4],
+    [40.1, 5],
+    [59.9, 5],
+  ])('at %s s shows %s clues, the last of them new', (seconds, count) => {
     ladder(seconds)
     expect(shown()).toEqual(CLUES.slice(0, count))
-    expect(current()).toBe(points)
+    expect(current()).toBe(CLUES[count - 1])
+  })
+
+  it('shows no points on the ladder', () => {
+    ladder(25)
+    for (const points of ['1000', '850', '700', '550', '400']) {
+      expect(document.body.textContent).not.toContain(points)
+    }
+  })
+
+  it('keeps a hidden clue’s room, so its arrival does not grow the stage', () => {
+    ladder(12)
+    const hidden = [...document.querySelectorAll<HTMLElement>('.later')]
+    expect(hidden.map((rung) => rung.dataset.room)).toEqual(CLUES.slice(2))
   })
 
   it('keeps a later clue out of the page, not only out of sight', () => {
-    ladder(6)
+    ladder(12)
     expect(document.body.textContent).not.toContain(CLUES[2])
     expect(screen.getAllByLabelText(/still hidden/)).toHaveLength(3)
   })
 
   it('shows a player who reconnects mid-question the clues due by then, and no more', () => {
-    ladder(12)
+    ladder(24)
     expect(shown()).toEqual(CLUES.slice(0, 3))
   })
 
