@@ -255,12 +255,17 @@ class _AsciiJSONResponse(JSONResponse):
 
 
 async def _validation_error(request: Request, exc: RequestValidationError) -> JSONResponse:
-    """FastAPI's own 422 body, escaped to ASCII.
+    """FastAPI's own 422 body without the input, escaped to ASCII.
 
-    It echoes the input back, and a lone surrogate from a ``\\ud800`` escape has no UTF-8
-    encoding, so the default response would turn the 422 into a 500.
+    Echoing the input would hand a 7 MB upload back several times over before any rate limit
+    counts it. A ``loc`` still names the keys sent, and a lone surrogate from a ``\\ud800``
+    escape has no UTF-8 encoding, so the default response would turn the 422 into a 500.
     """
-    return _AsciiJSONResponse({"detail": jsonable_encoder(exc.errors())}, status_code=422)
+    errors = [
+        {key: value for key, value in error.items() if key not in ("input", "ctx")}
+        for error in exc.errors()
+    ]
+    return _AsciiJSONResponse({"detail": jsonable_encoder(errors)}, status_code=422)
 
 
 def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST) -> FastAPI:

@@ -5,7 +5,10 @@ cooldown on lobby ready and ``set_profile``; the body cap on ``/api/*``; the uvi
 flags that back them; and the rate limiter's key and its warning about proxies.
 """
 
+import asyncio
+import json
 import logging
+import random
 import re
 from contextlib import ExitStack, contextmanager
 from pathlib import Path
@@ -19,7 +22,7 @@ from starlette.websockets import WebSocketDisconnect
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from app.config import REPO_ROOT, Settings
-from app.http.bodylimit import MAX_BODY, MAX_DEPTH, nesting
+from app.http.bodylimit import MAX_BODY, MAX_DEPTH, UPLOADS_AT_ONCE, BodyLimit, nesting
 from app.http.ratelimit import (
     CONNECTS_PER_ADDRESS,
     CONNECTS_PER_SESSION,
@@ -380,6 +383,180 @@ def test_a_422_for_a_value_nested_to_the_cap_is_a_422(client: TestClient) -> Non
 def test_nesting_skips_brackets_inside_strings() -> None:
     assert nesting(b'{"a": "[[[{{\\"[", "b": [[1]]}') == 3
     assert nesting(b"not json at all") == 0
+
+
+def _walked(body: bytes) -> int:
+    """The depth token by token, as the cap counted it before it had to be fast."""
+    tokens = re.finditer(rb'"[^"\\]*(?:\\.[^"\\]*)*(?:"|\Z)|[\[\]{}]', body, re.DOTALL)
+    depth = deepest = 0
+    for token in tokens:
+        if token[0] in (b"[", b"{"):
+            depth += 1
+            deepest = max(deepest, depth)
+        elif token[0] in (b"]", b"}"):
+            depth -= 1
+    return deepest
+
+
+def _value(rng: random.Random, depth: int) -> Any:
+    # Mostly one child, now and then a few: deep documents that stay small.
+    if depth >= MAX_DEPTH - 1 or rng.random() < 0.02:
+        return rng.choice(["[{", '"]\\', "\\\\", "", 7, None, 'a\\\\\\"[['])
+    children = 1 if rng.random() < 0.9 else rng.choice([0, 2, 3])
+    if rng.random() < 0.5:
+        return [_value(rng, depth + 1) for _ in range(children)]
+    return {f"k{i}[": _value(rng, depth + 1) for i in range(children)}
+
+
+def test_nesting_counts_json_exactly_up_to_the_cap() -> None:
+    rng = random.Random(1008)
+    for _ in range(3000):
+        body = json.dumps(_value(rng, 0)).encode()
+        assert nesting(body) == _walked(body), body
+
+
+@pytest.mark.parametrize(
+    ("body", "depth"),
+    [
+        (b"[]" * 100_000, 1),
+        (b"{}" * 100_000, 1),
+        (b'""' * 100_000 + b"[[1]]", 2),
+        (b'["[[[",' + b'"]]{",' * 10_000 + b"[]]", 2),
+        ((b"[" * 64 + b"]" * 64) * 1000, 64),
+        ((b"[" * 8 + b"]" * 8) * 10_000, 8),
+        (b"[" * 30 + b"[[],[[]]]," * 10_000 + b"]" * 30, 33),
+        (b"[" * 65 + b"]" * 65, MAX_DEPTH + 1),
+        (b"[[],[]," * 70 + b"]" * 70, MAX_DEPTH + 1),
+        (b'"unclosed [[[[', 0),
+    ],
+    ids=[
+        "arrays",
+        "objects",
+        "strings",
+        "brackets-in-strings",
+        "chains-at-cap",
+        "chains",
+        "wide",
+        "past-cap",
+        "past-cap-nested",
+        "unclosed",
+    ],
+)
+def test_nesting_of_large_bodies(body: bytes, depth: int) -> None:
+    assert nesting(body) == depth
+
+
+def test_nesting_never_counts_less_than_a_parser_could_recurse() -> None:
+    rng = random.Random(1005)
+    for _ in range(5000):
+        body = bytes(rng.choice(b'[]{}"a') for _ in range(rng.randint(0, 60)))
+        assert nesting(body) >= min(_walked(body), MAX_DEPTH + 1), body
+
+
+def test_a_422_does_not_echo_what_was_sent(client: TestClient) -> None:
+    secret = "Zezima's bank pin " + "x" * 5000
+    for path, body in [
+        ("/api/rooms", {"display_name": "Zezima", "pad": secret}),
+        ("/api/rooms", {"display_name": secret}),
+        ("/api/stats/join-failure", {"reason": [secret]}),
+    ]:
+        response = client.post(path, json=body)
+        assert response.status_code == 422, response.text
+        assert "Zezima's" not in response.text
+        for error in response.json()["detail"]:
+            assert {"type", "loc", "msg"} <= error.keys()
+            assert not {"input", "ctx"} & error.keys()
+
+
+def _upload_scope(host: str, declared: int | None) -> dict[str, Any]:
+    headers = [] if declared is None else [(b"content-length", str(declared).encode())]
+    return {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/suggestions",
+        "headers": headers,
+        "client": (host, 50000),
+    }
+
+
+class _Upload:
+    """One request through ``BodyLimit`` whose body stalls after its first chunk until let go."""
+
+    def __init__(self, limit: BodyLimit, host: str, size: int, declared: bool = True) -> None:
+        self.go = asyncio.Event()
+        self.status: int | None = None
+        self.reached = False
+        first = b" " * min(size, MAX_BODY + 1)
+        self.chunks = [first, b" " * (size - len(first))]
+        scope = _upload_scope(host, size if declared else None)
+        self.task = asyncio.create_task(limit(scope, self._receive, self._send))
+
+    async def _receive(self) -> dict[str, Any]:
+        if len(self.chunks) == 1:
+            await self.go.wait()
+        chunk = self.chunks.pop(0)
+        return {"type": "http.request", "body": chunk, "more_body": bool(self.chunks)}
+
+    async def _send(self, message: dict[str, Any]) -> None:
+        if message["type"] == "http.response.start":
+            self.status = message["status"]
+
+    async def done(self) -> int | None:
+        self.go.set()
+        await self.task
+        return self.status
+
+
+def _limit() -> BodyLimit:
+    async def app(scope: Any, receive: Any, send: Any) -> None:
+        while (await receive()).get("more_body"):
+            pass
+        await send({"type": "http.response.start", "status": 204, "headers": []})
+        await send({"type": "http.response.body", "body": b""})
+
+    return BodyLimit(app)
+
+
+@pytest.mark.parametrize("declared", [True, False], ids=["content-length", "chunked"])
+async def test_an_address_reads_one_large_upload_at_a_time(declared: bool) -> None:
+    limit = _limit()
+    first = _Upload(limit, "203.0.113.7", 2 * MAX_BODY, declared)
+    await asyncio.sleep(0)
+    second = _Upload(limit, "203.0.113.7", 2 * MAX_BODY, declared)
+    small = _Upload(limit, "203.0.113.7", 1024, declared)
+    neighbour = _Upload(limit, "2001:db8::2", 2 * MAX_BODY, declared)
+    assert await second.done() == 503
+    assert await small.done() == 204
+    assert await neighbour.done() == 204
+    assert await first.done() == 204
+    assert await _Upload(limit, "203.0.113.7", 2 * MAX_BODY, declared).done() == 204
+
+
+async def test_the_server_reads_a_few_large_uploads_at_once() -> None:
+    limit = _limit()
+    held = [_Upload(limit, f"203.0.113.{i}", 2 * MAX_BODY) for i in range(UPLOADS_AT_ONCE)]
+    await asyncio.sleep(0)
+    refused = _Upload(limit, "198.51.100.1", 2 * MAX_BODY)
+    assert await refused.done() == 503
+    response = await _upload_response(limit)
+    assert response == {"code": "uploads_busy", "message": "too many uploads at once, try again"}
+    for upload in held:
+        assert await upload.done() == 204
+    assert await _Upload(limit, "198.51.100.1", 2 * MAX_BODY).done() == 204
+
+
+async def _upload_response(limit: BodyLimit) -> dict[str, Any]:
+    sent: list[dict[str, Any]] = []
+
+    async def receive() -> dict[str, Any]:
+        return {"type": "http.request", "body": b" " * (2 * MAX_BODY), "more_body": False}
+
+    async def send(message: dict[str, Any]) -> None:
+        sent.append(message)
+
+    await limit(_upload_scope("198.51.100.2", 2 * MAX_BODY), receive, send)
+    assert sent[0]["status"] == 503
+    return json.loads(sent[1]["body"])
 
 
 @pytest.mark.parametrize("content_type", [None, "text/plain", "application/x-www-form-urlencoded"])

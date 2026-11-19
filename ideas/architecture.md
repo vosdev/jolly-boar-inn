@@ -830,8 +830,9 @@ Limits:
   backstop.
 - Limits key on uvicorn's `--proxy-headers` address: from a peer in `FORWARDED_ALLOW_IPS`, the
   rightmost `X-Forwarded-For` entry not in it; else the peer. The first ignored one logs a warning.
-- `/api/*` bodies over 256 KiB get 413, nested over 64 levels 422 `too_deep`. Writes not declared `application/json` get 415, because a
-  cross-site `no-cors` fetch sends an untyped body without a preflight.
+- `/api/*` bodies over 256 KiB get 413, nested over 64 levels 422 `too_deep`. A 422's `detail` drops pydantic's `input` and `ctx`. Writes not declared `application/json` get 415, because a
+  cross-site `no-cors` fetch sends an untyped body without a preflight. Bodies over 256 KiB (only
+  `/api/suggestions`) are read one per address and four at once; past that 503 `uploads_busy`.
 - uvicorn runs `--host "" --ws-max-size 65536 --limit-concurrency 2500 --ws-per-message-deflate
   false --workers 1`. The empty host listens on `0.0.0.0` and, where there is IPv6, `::` too. The
   limit counts every connection, websockets included, and answers 503 past it, so the app holds at
@@ -931,9 +932,9 @@ key into them, so cleanup leaves it.
   A Forgetful Bard payload is a verse and `subject.name`, a plain item on the list or not, which the verse may not name (`verse`). A riddle is `subject.name`, listed or not, and five `clues` (`clued`). A place for Mark the Map is `prompt`, one target and a `reach`, nothing else (`_place_errors`), with a `wiki`.
   A `picture_pin` (`PICTURE_TYPES`) needs no link: its `picture`, base64 in the same body (6.9 MiB
   allowed on that route alone), is its proof. Past the limiter, `suggestion_pictures.py` takes a
-  PNG, JPEG or WebP of at most 5 MB, 200 px a side and 8192² pixels, turns it upright by its EXIF,
-  shrinks it to 1920 px on its longer side and writes it again as WebP, which drops all metadata,
-  off the event loop. `suggestion_pictures` keeps it per suggestion (cascading) as a fresh
+  PNG, JPEG or WebP of at most 5 MB, 200 px a side and 4096² pixels, shrinks it to 1920 px on its
+  longer side, turns it upright by its EXIF and writes it again as WebP, which drops all metadata,
+  off the event loop, one at a time. `suggestion_pictures` keeps it per suggestion (cascading) as a fresh
   `screenshot:suggested-<hex>`; the payload names it with its stored size, and an edit can move
   the target but not change the picture. `/admin` fetches it under the bearer. A question but an NPC's (`difficulty`) may carry a `difficulty`;
   `/suggest` requires picking one, loading with the toggle unselected. Each has a `credit`

@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.266.2',
+    date: '2026-11-19',
+    text: "Make screenshot uploads on Suggest sturdier, so a huge or broken picture can't stall the inn.",
+  },
+  {
     version: '0.266.1',
     date: '2026-11-19',
     text: 'Add 60 Riddles of the Sphinx questions across iconic items, NPCs, bosses and places.',
