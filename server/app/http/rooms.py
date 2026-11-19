@@ -7,13 +7,14 @@ from typing import Any, Self
 from uuid import UUID
 
 from fastapi import APIRouter, Request, Response
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from fastapi.exceptions import RequestValidationError
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.errors import ApiError
 from app.http.ratelimit import client_key, room_lookup
 from app.modes import offered
-from app.questions import custom
 from app.rooms import codes
+from app.rooms.errors import BadQuestion
 from app.rooms.models import Room, normalize_name
 from app.rooms.settings import MAX_QUESTIONS_PER_ROOM, NewRoomSettings
 from app.rooms.state import RoomManager
@@ -44,16 +45,10 @@ class CreateRoom(BaseModel):
     settings: NewRoomSettings = Field(default_factory=NewRoomSettings)
     # The host's own questions, each a random event in a round it does not belong to. The
     # bound is only the outer one; the start decides how many this room has room for.
+    # Checked by ``create``, after the attempt is counted: a bank of them is the dear part.
     custom_questions: list[dict[str, Any]] = Field(
         default_factory=list, max_length=MAX_QUESTIONS_PER_ROOM
     )
-
-    # Runs while the body is parsed, so a bad question is a 422 before the rate limiter has
-    # counted anything -- the same courtesy as a bad display name.
-    @field_validator("custom_questions")
-    @classmethod
-    def _complete_and_valid(cls, questions: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        return custom.envelopes(questions)
 
     @model_validator(mode="after")
     def _public_or_keyed(self) -> Self:
@@ -66,12 +61,8 @@ class SetQuestions(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     session: str = Field(max_length=200)  # as on ``DeleteRoom``
+    # Checked once the session is an admin's in a lobby, so a stranger's bank costs nothing.
     custom_questions: list[dict[str, Any]] = Field(max_length=MAX_QUESTIONS_PER_ROOM)
-
-    @field_validator("custom_questions")
-    @classmethod
-    def _complete_and_valid(cls, questions: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        return custom.envelopes(questions)
 
 
 class DeleteRoom(BaseModel):
@@ -98,6 +89,19 @@ class CrossSite(ApiError):
     status = 403
 
 
+def refused_questions(exc: BadQuestion) -> RequestValidationError:
+    """A bad question as the 422 it was when the body's parsing checked it."""
+    return RequestValidationError(
+        [
+            {
+                "type": "value_error",
+                "loc": ("body", "custom_questions"),
+                "msg": f"Value error, {exc.message}",
+            }
+        ]
+    )
+
+
 def refuse_cross_site(request: Request) -> None:
     """403 for a lookup another site's page made, before it costs the visitor's address.
 
@@ -112,6 +116,9 @@ def refuse_cross_site(request: Request) -> None:
 async def create_room(body: CreateRoom, request: Request) -> dict[str, Any]:
     ip = client_host(request)
     state = request.app.state
+    state.room_attempts.check(
+        client_key(ip), "too many attempts to create a room from this address, try again later"
+    )
     available = {mode.id for mode in offered(state.settings, state.packs, state.rooms.pictures)}
     # A surprise room's modes are drawn from the offered ones, so it names none of its own.
     picked = [] if body.settings.surprise_modes else body.settings.modes
@@ -124,21 +131,24 @@ async def create_room(body: CreateRoom, request: Request) -> dict[str, Any]:
     name = normalize_name(body.display_name)
     manager(request).check_avatar(body.avatar)
     manager(request).check_code(body.code)
-    request.app.state.ratelimiter.check(
-        client_key(ip), "too many rooms created from this address, try again later"
-    )
-    room, player, session = await manager(request).create(
-        name,
-        body.settings,
-        body.custom_questions,
-        body.avatar,
-        body.returning,
-        body.invite_only,
-        body.public,
-        Arrival(theme=body.theme, device=body.device),
-        body.code,
-        client_key(ip),
-    )
+    try:
+        room, player, session = await manager(request).create(
+            name,
+            body.settings,
+            body.custom_questions,
+            body.avatar,
+            body.returning,
+            body.invite_only,
+            body.public,
+            Arrival(theme=body.theme, device=body.device),
+            body.code,
+            client_key(ip),
+            charge=lambda: state.ratelimiter.check(
+                client_key(ip), "too many rooms created from this address, try again later"
+            ),
+        )
+    except BadQuestion as exc:
+        raise refused_questions(exc) from None
     # ``expires_at`` lets the host's "rooms you created" list drop a room once its code
     # may belong to someone else.
     return {
@@ -258,8 +268,15 @@ async def get_room(code: str, request: Request) -> dict[str, Any]:
 @router.post("/{code}/questions", status_code=204, response_class=Response)
 async def set_questions(code: str, body: SetQuestions, request: Request) -> Response:
     """Replace the host's own questions in a lobby; the session is in the body, as on delete."""
+    request.app.state.question_changes.check(
+        client_key(client_host(request)),
+        "too many question changes from this address, try again later",
+    )
     with room_lookup(request.app.state.lookup_misses, client_host(request)):
-        await manager(request).set_questions(code, body.session, body.custom_questions)
+        try:
+            await manager(request).set_questions(code, body.session, body.custom_questions)
+        except BadQuestion as exc:
+            raise refused_questions(exc) from None
     return Response(status_code=204)
 
 

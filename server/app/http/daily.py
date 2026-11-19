@@ -50,6 +50,13 @@ def result_view(result: DailyResult) -> dict[str, Any]:
     }
 
 
+def check_requests(request: Request, key: str) -> None:
+    """Count a start, resume or result lookup; each reads the database, a resume writes."""
+    request.app.state.daily_requests.check(
+        key, "too many daily requests from this address, try again later"
+    )
+
+
 @router.get("")
 async def today(request: Request) -> dict[str, Any]:
     """Today's day and number, and when the next opens, before anything is started."""
@@ -72,6 +79,7 @@ async def start(body: StartDaily, request: Request) -> dict[str, Any] | JSONResp
     """
     limiter = request.app.state.dailies
     key = client_key(client_host(request))
+    check_requests(request, key)
     try:
         code, session = await manager(request).start_daily(
             body.token,
@@ -91,6 +99,7 @@ async def start(body: StartDaily, request: Request) -> dict[str, Any] | JSONResp
 @router.post("/result")
 async def result(body: ResultOf, request: Request) -> dict[str, Any]:
     """This token's finished attempt on ``day``, for the end screen; it starts nothing."""
+    check_requests(request, client_key(client_host(request)))
     found = await manager(request).daily_result(body.token, body.day, datetime.now(UTC))
     if found is None:
         raise NoResult("no finished daily for that day")

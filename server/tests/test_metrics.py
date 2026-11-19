@@ -2,6 +2,7 @@
 
 import asyncio
 import hmac
+import logging
 import time
 from pathlib import Path
 
@@ -14,7 +15,7 @@ from pydantic import ValidationError
 from app import metrics
 from app.config import APP_VERSION, Settings
 from app.http import metrics as http_metrics
-from app.http.ratelimit import RateLimiter
+from app.http.ratelimit import AUTH_FAILURES, RateLimiter
 from app.main import create_app
 from tests.conftest import BASE
 from tests.game_api import Game
@@ -140,6 +141,23 @@ def test_metrics_token_is_compared_in_constant_time(
         assert client.get("/metrics", headers={"Authorization": "Bearer nope"}).status_code == 401
         assert client.get("/metrics", headers=BEARER).status_code == 200
     assert compared == [(b"nope", TOKEN.encode()), (TOKEN.encode(), TOKEN.encode())]
+
+
+def test_failed_scrapes_are_logged_and_lock_the_address_out(
+    settings: Settings, dist: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    caplog.set_level(logging.WARNING, logger="app.http")
+    guess = {"Authorization": "Bearer wrongguess-wrongguess-wrongguess"}
+    with offline(settings, dist) as client:
+        for _ in range(3 * AUTH_FAILURES):
+            assert client.get("/metrics", headers=BEARER).status_code == 200
+        for _ in range(AUTH_FAILURES):
+            assert client.get("/metrics", headers=guess).status_code == 401
+        assert client.get("/metrics", headers=BEARER).status_code == 429
+    warned = [r.getMessage() for r in caplog.records if r.name == "app.http"]
+    assert len(warned) == AUTH_FAILURES
+    assert "metrics" in warned[0] and "testclient" in warned[0] and "/metrics" in warned[0]
+    assert not [line for line in warned if "wrongguess" in line or TOKEN[:8] in line]
 
 
 # --- Gauges, counters and histograms --------------------------------------------------

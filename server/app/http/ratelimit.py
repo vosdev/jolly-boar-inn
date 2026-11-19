@@ -1,11 +1,12 @@
 """In-memory per-address limiters: at most ``limit`` hits per window.
 
-Room creation, free codes for the create page, joins, join failures reported,
-suggestions, checks for similar questions, suggestion tries, reports, websocket connects,
-and lookups of rooms that turn out not to exist. The last is what keeps the room list
-private. The live codes are a few of a few hundred words, and every request that names a
-room answers whether it exists, so an address that keeps asking for rooms that are not
-there is scanning and is refused for a while.
+Room creation and every attempt at it, changes to a host's own questions, free codes for
+the create page, joins, join failures reported, suggestions, checks for similar questions,
+suggestion tries, reports, daily starts and every daily request, websocket connects, wrong
+operator tokens, and lookups of rooms that turn out not to exist. The last is what keeps
+the room list private. The live codes are a few of a few hundred words, and every request
+that names a room answers whether it exists, so an address that keeps asking for rooms that
+are not there is scanning and is refused for a while.
 """
 
 import asyncio
@@ -21,12 +22,25 @@ from app.errors import ApiError
 from app.metrics import LimiterName
 from app.rooms.errors import RoomExpired, RoomNotFound
 
+# Every create, refused ones too, since checking a full bank of questions costs the loop
+# far more than a room does; twice the rooms an address may make leaves a host room to fix
+# typos.
+ROOM_ATTEMPTS_PER_HOUR = 60
+# A host editing their bank in the lobby saves it a few times a game, every save counted.
+QUESTION_CHANGES_PER_HOUR = 120
+# Daily starts, resumes and end-screen lookups together: each is a trip to the database, and
+# a player refreshing their day makes a handful.
+DAILY_REQUESTS_PER_HOUR = 120
 # A host rerolling the code for one they like; a script listing taken codes slowly.
 FREE_CODES = 5
 FREE_CODES_WINDOW = timedelta(seconds=10)
 # A mistyped code or two, or a phone retrying an old link, stays far below this.
 LOOKUP_MISSES = 30
 LOOKUP_WINDOW = timedelta(minutes=10)
+# An operator mistyping a pasted token, or a scraper left on an old one, stays below this; a
+# guess at a weak token gets a few a minute.
+AUTH_FAILURES = 10
+AUTH_FAILURES_WINDOW = timedelta(minutes=10)
 # High enough for a pub on one address, with every player's name clash retried; low
 # enough that a kicked player's script cannot keep coming back all evening.
 JOINS_PER_HOUR = 100
@@ -52,6 +66,11 @@ CONNECTS_WINDOW = timedelta(minutes=1)
 # socket opens, so a pub reconnecting together holds a few for milliseconds each, and the
 # oldest of them past this is the one silent longest.
 PENDING_HELLOS_PER_ADDRESS = 10
+# Those plus the ones still closing after being displaced or turned away, which keep their
+# global slot until the close ends. An honest close takes a round trip, so only a client that
+# stops reading to keep its closes hanging reaches twice the above, and then it holds no more
+# of ``MAX_SOCKETS`` than this: past it a new socket is refused before it is accepted.
+UNHELLOED_PER_ADDRESS = 2 * PENDING_HELLOS_PER_ADDRESS
 
 
 class RateLimited(ApiError):
@@ -100,6 +119,15 @@ class RateLimiter:
             return
         metrics.RATE_LIMITED.labels(limiter=self.name).inc()
         _, free_at = self.left(key, now)
+        raise RateLimited(message, None if free_at is None else free_at - now)
+
+    def refuse_if_spent(self, key: str, message: str, now: datetime | None = None) -> None:
+        """Raise ``RateLimited`` if ``key`` has no hits left. Records nothing."""
+        now = now or datetime.now(UTC)
+        left, free_at = self.left(key, now)
+        if left > 0:
+            return
+        metrics.RATE_LIMITED.labels(limiter=self.name).inc()
         raise RateLimited(message, None if free_at is None else free_at - now)
 
     def left(self, key: str, now: datetime | None = None) -> tuple[int, datetime | None]:

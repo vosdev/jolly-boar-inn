@@ -113,6 +113,10 @@ CLOSE_GONE = 4004
 # Expired rooms deleted per statement: small enough that a batch never nears the pool's
 # ``command_timeout``, whatever the backlog.
 PURGE_BATCH = 200
+# How long a room can sit in memory with nobody connected and nothing running before
+# ``evict_idle`` drops it. Postgres holds all of it, and ``_load`` brings it back in a few
+# indexed queries, so this bounds the memory abandoned rooms hold, not what they keep.
+IDLE_ROOM_SECONDS = 15 * 60
 # ``_round_under_way`` in SQL, per mode, for the playing rooms among $1. Questions open
 # and close in order, so a round is under way while some of its questions have been
 # shown and some are not closed. It is named as ``segments_of`` names it.
@@ -190,6 +194,7 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
         # How long a daily room's reveal waits for its player; shorter only in the test suite.
         self.daily_reveal_seconds: float = DAILY_REVEAL_SECONDS
         self.request_stale_seconds = REQUEST_STALE_SECONDS
+        self.idle_room_seconds: float = IDLE_ROOM_SECONDS
         # The items a drop deals from; the test suite swaps in its own.
         self.items: Sequence[items.Item] = items.ITEMS
         self.rooms: dict[str, Room] = {}
@@ -251,8 +256,12 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
         return self.pictures if question.source == "pack" else {}
 
     @asynccontextmanager
-    async def _locked(self, code: str) -> AsyncIterator[asyncio.Lock]:
-        """Hold ``code``'s room lock; a code no room could have raises ``RoomNotFound``."""
+    async def _locked(self, code: str, touch: bool = True) -> AsyncIterator[asyncio.Lock]:
+        """Hold ``code``'s room lock; a code no room could have raises ``RoomNotFound``.
+
+        ``touch`` marks the room active on the way out, which a lookup and the idle sweep
+        must not: polling a code would otherwise keep an empty room in memory for good.
+        """
         if not codes.well_formed(code):
             raise RoomNotFound("no room has that code")
         slot = self._locks.get(code)
@@ -261,7 +270,11 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
         slot.users += 1
         try:
             async with slot.lock:
-                yield slot.lock
+                try:
+                    yield slot.lock
+                finally:
+                    if touch and (room := self.rooms.get(code)) is not None:
+                        room.active_at = self.clock()
         finally:
             slot.users -= 1
             if slot.users == 0 and code not in self.rooms:
@@ -279,7 +292,7 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
         Callers share the returned object; read it, but mutate only through this class.
         """
         code = code.upper()
-        async with self._locked(code):
+        async with self._locked(code, touch=False):
             return await self._room(code)
 
     async def _room(self, code: str) -> Room:
@@ -288,6 +301,7 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
         if room is None:
             room = await self._load(code)
             room.awaiting_player = room.status == "playing"
+            room.active_at = self.clock()
             self.rooms[code] = room
         elif room.gone(self._grace, datetime.now(UTC)):
             raise RoomExpired(f"room {code} has expired")
@@ -542,6 +556,28 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
             for outbox in sockets:
                 if outbox.close(CLOSE_GONE, "this room has expired"):
                     metrics.WS_DISCONNECTS.labels(reason="room_gone").inc()
+
+    async def evict_idle(self) -> int:
+        """Drop from memory every room that has sat empty and still for ``idle_room_seconds``.
+
+        Only what Postgres already holds goes: no socket, no join request (memory only), no
+        timer task, no pending ``players_updated``, and a ``playing`` room only while it waits
+        for a player after a rehydrate, which is just what ``_load`` rebuilds. A playing room
+        whose timer runs on with nobody there stays until its game ends. The next lookup
+        rehydrates the rest as a restart would. Returns how many rooms left memory.
+        """
+        since = self.clock() - self.idle_room_seconds
+        dropped = 0
+        for code in [c for c, room in self.rooms.items() if _idle(room, since)]:
+            async with self._locked(code, touch=False):
+                room = self.rooms.get(code)
+                if room is None or not _idle(room, since):
+                    continue
+                self._forget(room)
+                dropped += 1
+        if dropped:
+            log.info("%d idle room%s left memory", dropped, "" if dropped == 1 else "s")
+        return dropped
 
     async def delete(self, code: str, session: str) -> None:
         """An admin removes their room: the row goes now, cascade and all.
@@ -803,6 +839,7 @@ class RoomManager(Joins, Lobby, Loop, DailyRooms):
             before = room.view()
             count_before = _counted(room)
             del room.sockets[player_id]
+            room.active_at = self.clock()
             outbox.close(1000, "disconnected")
             player = room.players.get(player_id)
             if player is not None:
@@ -1257,6 +1294,18 @@ def _band(room: Room, question: RoomQuestion, arrived: float) -> int | None:
         question.steps,
         team=bool(room.settings.teams),
         grace=grace_of(question.type),
+    )
+
+
+def _idle(room: Room, since: float) -> bool:
+    """Whether ``room`` holds nothing Postgres lacks and has been still since before ``since``."""
+    return (
+        room.active_at <= since
+        and not room.sockets
+        and not room.requests
+        and room.timer is None
+        and room.players_flush is None
+        and (room.status != "playing" or room.awaiting_player)
     )
 
 

@@ -423,6 +423,9 @@ class Room:
     # every change since, once whatever already waits on the lock has run.
     players_stale: set[UUID] = field(default_factory=set, repr=False)
     players_flush: asyncio.Task[None] | None = field(default=None, repr=False)
+    # The latest connect, disconnect or change, on the manager's monotonic clock: how long
+    # an empty room has sat still before ``evict_idle`` drops it from memory.
+    active_at: float = field(default=0.0, repr=False)
 
     @property
     def round_count(self) -> int:
