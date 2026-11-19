@@ -16,7 +16,11 @@ sys.path.insert(0, str(SCRIPTS))
 import wiki  # noqa: E402
 
 # They talk only to this app's own server, never to the wiki.
-LOCAL_ONLY = {"smoke_ws.py": "the running app", "loadtest.py": "the running app"}
+LOCAL_ONLY = {
+    "smoke_ws.py": "the running app",
+    "loadtest.py": "the running app",
+    "rooms.py": "the running app",
+}
 # One archive from OpenRS2, which has none of the wiki's rules and is too large for wiki.py.
 OPENRS2 = {"gen_map.py": "the pinned game cache"}
 NETWORK_MODULES = {"urllib.request", "http.client", "httpx", "requests", "aiohttp", "urllib3"}
