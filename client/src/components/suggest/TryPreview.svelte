@@ -66,9 +66,14 @@
   // What the server said about an older version of the question is not shown for this one.
   const current = $derived(trial !== null && trial.key === key ? trial.trial : null)
   const given = $derived(answer !== null && answer.key === key ? answer : null)
-  const shown = $derived<OpenQuestion>(
-    current === null ? question : { ...question, view: current.view },
+  // A trial names no picture, so a picture pin keeps the one the page draws.
+  const own = $derived(
+    typeof question.view.picture === 'string' ? { picture: question.view.picture } : {},
   )
+  const shown = $derived<OpenQuestion>(
+    current === null ? question : { ...question, view: { ...current.view, ...own } },
+  )
+  const revealed = $derived(current === null ? null : { ...current.reveal, ...own })
 
   function onAnswer(value: unknown): void {
     if (current === null || !answerable || key === null) return
@@ -99,7 +104,7 @@
     {#key `reveal ${key} ${given === null}`}
       <QuestionStage
         question={shown}
-        reveal={current.reveal}
+        reveal={revealed}
         yourValue={given?.value ?? null}
         result={given?.result ?? null}
         results={given === null ? {} : { you: given.result }}

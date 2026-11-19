@@ -21,6 +21,7 @@ import type {
 } from '../../lib/suggestions'
 import ItemForm from './ItemForm.svelte'
 import NamedForm from './NamedForm.svelte'
+import PictureForm from './PictureForm.svelte'
 import PlaceForm from './PlaceForm.svelte'
 
 export interface FormProgress {
@@ -40,6 +41,8 @@ export interface SuggestionFormProps {
    * when the picker swaps to another type and back.
    */
   name?: string
+  /** A URL of the picture a picture pin is drawn on, when the server holds it already. */
+  picture?: string | null
   /** The names a shadow may not give: the game asks about them already. */
   asked: readonly string[]
   /** Every type the round offers, and what to do with one another form writes. */
@@ -61,7 +64,8 @@ export interface SuggestionFormProps {
   /** Told the question whenever it changes: whole, or `undefined` while it has problems. */
   ondraft: (question: QuestionContent | undefined) => void
   onprogress: (state: FormProgress) => void
-  onsave: (content: SuggestionContent) => void
+  /** Given the content, and a picture read from the player's files in base64, if any. */
+  onsave: (content: SuggestionContent, picture?: string) => void
   oncancel: () => void
 }
 
@@ -72,5 +76,6 @@ export const SUGGESTION_FORMS: Record<
   shadow: { form: NamedForm, type: 'pick_from_list' },
   verse: { form: NamedForm, type: 'pick_from_list' },
   place: { form: PlaceForm, type: 'map_pin', stacks: true },
+  picture: { form: PictureForm, type: 'picture_pin' },
   item: { form: ItemForm },
 }

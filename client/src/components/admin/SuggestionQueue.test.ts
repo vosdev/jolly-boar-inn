@@ -23,6 +23,7 @@ vi.mock('../../lib/admin', async (importOriginal) => {
     editSuggestion: vi.fn(),
     exportSuggestions: vi.fn(),
     markImported: vi.fn(),
+    getSuggestionPicture: vi.fn(),
   }
 })
 
@@ -71,6 +72,54 @@ beforeEach(() => {
 afterEach(cleanup)
 
 describe('SuggestionQueue', () => {
+  describe('a picture pin', () => {
+    const payload = {
+      prompt: 'Which of these is a player in disguise?',
+      screenshot: 'screenshot:suggested-0123456789abcdef',
+      width: 800,
+      height: 450,
+      target: { min_x: 0.4, max_x: 0.5, min_y: 0.4, max_y: 0.6 },
+      reach: 0.1,
+    }
+    const pin = row({
+      content: { type: 'picture_pin', mode: 'prop_hunt', difficulty: 'easy', payload },
+    })
+
+    beforeEach(() => {
+      vi.mocked(admin.getQueue).mockResolvedValue({ suggestions: [pin], counts: COUNTS })
+      vi.mocked(admin.editSuggestion).mockResolvedValue(pin)
+      vi.mocked(admin.getSuggestionPicture).mockResolvedValue('blob:stored')
+    })
+
+    it('draws its own picture and names the target', async () => {
+      const { container } = render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+      await fireEvent.click((await screen.findByText(/player in disguise/)).closest('button')!)
+      expect(admin.getSuggestionPicture).toHaveBeenCalledWith('t', 'one')
+      await waitFor(() => expect(container.querySelector('img[src="blob:stored"]')).toBeTruthy())
+      expect(
+        screen.getByText('40%–50% across, 40%–60% down, near misses to 10%', {
+          selector: 'strong',
+        }),
+      ).toBeTruthy()
+    })
+
+    it('edits the target on the stored picture, which it never sends', async () => {
+      render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+      await fireEvent.click((await screen.findByText(/player in disguise/)).closest('button')!)
+      await waitFor(() => expect(admin.getSuggestionPicture).toHaveBeenCalled())
+      await fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+      expect(screen.queryByLabelText('Your screenshot', { selector: 'input' })).toBeNull()
+      expect(screen.getByRole('img', { name: 'Your screenshot' }).getAttribute('src')).toBe(
+        'blob:stored',
+      )
+      await fireEvent.click(screen.getByRole('radio', { name: 'Score nothing' }))
+      await fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+      const [, , body] = vi.mocked(admin.editSuggestion).mock.calls[0]!
+      expect((body.content as QuestionContent).payload).toEqual({ ...payload, reach: 0 })
+      expect('picture' in body).toBe(false)
+    })
+  })
+
   describe('a place on the map', () => {
     const payload = {
       prompt: 'Where is Falador?',

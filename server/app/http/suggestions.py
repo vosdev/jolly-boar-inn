@@ -4,9 +4,10 @@ A player sends a suggestion with no account: the client shows the form only afte
 finished game, which is a courtesy, and the backstop is ``SUGGESTIONS_PER_HOUR`` per
 address. ``GET .../allowance`` lets the form say the limit is reached before anything is
 typed. As with creating a room, a suggestion is checked before the limiter counts it, so a
-typo costs no quota. A request with the operator's bearer skips this limit and the next two.
-``POST .../similar`` names the pack questions one looks like while it
-is written, by label alone, under ``SIMILAR_PER_HOUR``. ``POST .../try`` shows one as a room
+typo costs no quota; its picture is decoded after, so a flood of pictures costs the sender's
+quota rather than the event loop's time. A request with the operator's bearer skips this limit
+and the next two. ``POST .../similar`` names the pack questions one looks like while it is
+written, by label alone, under ``SIMILAR_PER_HOUR``. ``POST .../try`` shows one as a room
 would, open and revealed, and grades an answer to it, under ``TRIES_PER_HOUR``.
 
 The admin routes are the one place the server hands out whole questions, answers
@@ -19,10 +20,10 @@ from typing import Any, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, ConfigDict, Field
 
-from app import suggestions
+from app import suggestion_pictures, suggestions
 from app.http.admin import is_operator, require_token
 from app.http.ratelimit import client_key
 from app.rooms.models import normalize_name
@@ -39,6 +40,8 @@ class Suggestion(BaseModel):
     # ``normalize_name`` holds it to 1-``NAME_MAX``; this only bounds what is read.
     credit: str = Field(max_length=200)
     credit_shown: bool = Field(strict=True)
+    # Base64, for the types in ``suggestions.PICTURE_TYPES`` and only them.
+    picture: str | None = Field(default=None, max_length=suggestion_pictures.MAX_ENCODED)
 
 
 def _host(request: Request) -> str:
@@ -59,12 +62,15 @@ async def allowance(request: Request) -> dict[str, Any]:
 async def suggest(body: Suggestion, request: Request) -> dict[str, Any]:
     credit = normalize_name(body.credit)
     content = suggestions.check(body.kind, body.content, body.credit_shown)
+    suggestions.picture_check(body.kind, content, body.picture is not None)
     if not is_operator(request):
         request.app.state.suggestions.check(
             client_key(_host(request)), "too many suggestions from this address, try again later"
         )
+    content, picture = await suggestions.with_picture(body.kind, content, body.picture)
+    content = suggestions.check(body.kind, content, body.credit_shown)
     pool = await request.app.state.database()
-    suggestion = await suggestions.add(pool, body.kind, content, credit, body.credit_shown)
+    suggestion = await suggestions.add(pool, body.kind, content, credit, body.credit_shown, picture)
     return {"id": suggestion}
 
 
@@ -127,6 +133,16 @@ class ExportRequest(BaseModel):
 async def queue(request: Request, status: suggestions.Status = "pending") -> dict[str, Any]:
     pool = await request.app.state.database()
     return await suggestions.listing(pool, status, request.app.state.packs)
+
+
+@admin_router.get("/{suggestion}/picture")
+async def picture(suggestion: UUID, request: Request) -> Response:
+    """The suggester's picture, for the queue to draw under the bearer."""
+    pool = await request.app.state.database()
+    data = await suggestion_pictures.data(pool, suggestion)
+    if data is None:
+        raise suggestions.SuggestionNotFound("no picture for this suggestion")
+    return Response(data, media_type="image/webp", headers={"Cache-Control": "no-store"})
 
 
 @admin_router.put("/{suggestion}")

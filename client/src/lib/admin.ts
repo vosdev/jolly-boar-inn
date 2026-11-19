@@ -198,6 +198,25 @@ export function setSuggestionStatus(
   })
 }
 
+/**
+ * A picture pin's own picture as an object URL, which the caller revokes: an `<img>` cannot
+ * send the bearer, so it is fetched and drawn from memory.
+ */
+export async function getSuggestionPicture(token: string, id: string): Promise<string> {
+  let response: Response
+  try {
+    response = await fetch(`/api/admin/suggestions/${encodeURIComponent(id)}/picture`, {
+      headers: { authorization: `Bearer ${token}` },
+    })
+  } catch {
+    throw new ApiFailure(0, 'unreachable', 'cannot reach the server')
+  }
+  if (!response.ok) {
+    throw new ApiFailure(response.status, 'error', `request failed (${response.status})`)
+  }
+  return URL.createObjectURL(await response.blob())
+}
+
 /** The file for `make import-suggestions`. Exporting the approved ones marks them exported. */
 export function exportSuggestions(
   token: string,

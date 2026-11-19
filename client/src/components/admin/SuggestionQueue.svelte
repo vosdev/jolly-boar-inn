@@ -12,13 +12,14 @@
    *
    * Everything a player typed is drawn as text, never as markup.
    */
-  import { untrack } from 'svelte'
+  import { onDestroy, untrack } from 'svelte'
 
   import {
     downloadJson,
     editSuggestion,
     exportSuggestions,
     getQueue,
+    getSuggestionPicture,
     markImported,
     setSuggestionStatus,
     type Queue,
@@ -66,6 +67,22 @@
   let busy = $state(false)
 
   const rows = $derived(queue?.suggestions ?? [])
+
+  /** Object URLs of the picture pins' own pictures, by suggestion, fetched as each opens. */
+  let pictures = $state<Record<string, string>>({})
+  onDestroy(() => Object.values(pictures).forEach((url) => URL.revokeObjectURL(url)))
+
+  $effect(() => {
+    const row = rows.find((one) => one.id === opened)
+    if (row === undefined || row.kind !== 'question') return
+    if ((row.content as QuestionContent).type !== 'picture_pin') return
+    const wanted = row.id
+    if (untrack(() => pictures[wanted]) !== undefined) return
+    getSuggestionPicture(token, wanted).then(
+      (url) => (pictures = { ...pictures, [wanted]: url }),
+      () => (failure = 'its picture did not load'),
+    )
+  })
   const exportable = $derived(rows.filter((row) => row.playable).length)
   const exported = $derived(rows.filter((row) => row.exported_at !== null).length)
 
@@ -296,11 +313,12 @@
                       </p>
                     </div>
                   {/if}
-                  {#key round}
+                  {#key `${round} ${pictures[row.id] ?? ''}`}
                     <SuggestionEditor
                       choice={placed ?? choice}
                       initial={editedAs(row)}
                       saveLabel="Save"
+                      picture={pictures[row.id] ?? null}
                       onsave={(body) => save(row, body)}
                       oncancel={() => (editing = null)}
                     />
@@ -312,7 +330,7 @@
                     {@const content = row.content as QuestionContent}
                     <TryPreview
                       {content}
-                      question={questionPreview(content)}
+                      question={questionPreview(content, pictures[row.id])}
                       answerable={!(
                         choiceOf(row.kind, content)?.editor === 'shadow' &&
                         content.type === 'pick_from_list'

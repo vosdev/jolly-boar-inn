@@ -30,7 +30,7 @@ data/                              assets, pets, popular-items/-npcs, player-nam
 branding/                          a selfhoster's logo, gitignored
 monitoring/                        Prometheus scrape config and alert rules, starter Grafana dashboard
 server/app/                        main, config, db, static, accesslog, errors, metrics, pets, daily, similar,
-                                   random_events, suggestions, reports, question_edits, roster_edits, stats,
+                                   random_events, suggestions, suggestion_pictures, reports, question_edits, roster_edits, stats,
                                    question_stats, pictures, map, profiling
 server/app/rooms/                  state, host, joins, lobby, loop, daily_room, models, errors, queries,
                                    settings, selection, segments, scoring, ready, codes, plan, duration, hold, teams, items
@@ -168,6 +168,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 | `uris_unravelling` | Uri's Unravelling | Bestiary's seven types, `extra_answer` 5 | hand-written | done: a clue is `multiple_choice`, its text the `quote`, never `free_text`; no map or coordinate clues |
 | `slayer_master` | Slayer Master | Bestiary's seven types | hand-written | done: how to fight a monster; what it is stays in Bestiary |
 | `mark_the_map` | Mark the Map | `map_pin`, one pin on the whole surface | hand-written, drafted once by `gen_locations.py` | done, hosted by Bill Teach; a place inside a town opens on both (`view`) with `reach` 50 |
+| `prop_hunt` | Prop Hunt | `picture_pin` on the suggester's own screenshot | player suggestions | upcoming: takes suggestions (#438) |
 | `minimap_guesser`, `name_that_spell` | Minimap Guesser, Name that spell | undecided | | Images (minimap), Sound (spell) |
 
 Create lists the unbuilt ones from their files in `lib/modes/`, in `UPCOMING` then `PLANNED` order.
@@ -924,7 +925,14 @@ key into them, so cleanup leaves it.
   or an `item` (a name not on the roster).
   A Who's That NPC? shadow's payload is its fixed prompt and `subject.name`, an NPC not on its
   list (`named`); a render's right option names its NPC, and it has no `image` (`render`).
-  A Forgetful Bard payload is a verse and `subject.name`, a plain item on the list or not, which the verse may not name (`verse`). A place for Mark the Map is `prompt`, one target and a `reach`, nothing else (`_place_errors`), with a `wiki`. A question but an NPC's (`difficulty`) may carry a `difficulty`;
+  A Forgetful Bard payload is a verse and `subject.name`, a plain item on the list or not, which the verse may not name (`verse`). A place for Mark the Map is `prompt`, one target and a `reach`, nothing else (`_place_errors`), with a `wiki`.
+  A `picture_pin` (`PICTURE_TYPES`) needs no link: its `picture`, base64 in the same body (6.9 MiB
+  allowed on that route alone), is its proof. Past the limiter, `suggestion_pictures.py` takes a
+  PNG, JPEG or WebP of at most 5 MB, 200 px a side and 8192² pixels, turns it upright by its EXIF,
+  shrinks it to 1920 px on its longer side and writes it again as WebP, which drops all metadata,
+  off the event loop. `suggestion_pictures` keeps it per suggestion (cascading) as a fresh
+  `screenshot:suggested-<hex>`; the payload names it with its stored size, and an edit can move
+  the target but not change the picture. `/admin` fetches it under the bearer. A question but an NPC's (`difficulty`) may carry a `difficulty`;
   `/suggest` requires picking one, loading with the toggle unselected. Each has a `credit`
   held to the name rules and `credit_shown`, never true for an item. Pending, approved,
   rejected or imported. A round not built yet takes questions; they wait in approved. The client offers the form after a finished game; 10 an hour
@@ -969,7 +977,7 @@ Right until it does (More/Less keeps `sample.json`'s five, which `live_packs` dr
 
 - The `make` targets for scripts that write into the checkout (`gen-*`, `fetch-assets`, `logo`) run
   them in `docker-compose.data.yml`, so a host needs only git, docker and make. Its `data` stage is
-  the builder's venv (no groups) plus git and the `data` group (Pillow); on top, `logo` adds the
+  the builder's venv (no groups, Pillow included for uploads) plus git; on top, `logo` adds the
   `logo` group for `make logo` and `map` a JRE for `make gen-map`. The runtime copies none. The repo is mounted, run as the host user.
 - Every wiki fetch goes through `scripts/wiki.py`: the operator's `WIKI_USER_AGENT` (environment or
   `.env`) or no request, and one request a second per process. Offline flags need neither. A test
@@ -987,7 +995,8 @@ Right until it does (More/Less keeps `sample.json`'s five, which `live_packs` dr
   which becomes `image`. A named NPC takes the first infobox row's id on its page (one
   `infobox_monster` query for the file, one `infobox_npc` for the rest), joins `popular-npcs.json`
   and gets its question filled in; a render's becomes its `image` and joins no list. A verse's item takes its roster id, or joins the roster as a suggested item does, and becomes `image`. Missing `assets.json` entries are added: the NPC's picture, the
-  item's detail image and icon. A generated pack never takes a suggestion: its mode's go in `<mode>_suggested.json`. One refused entry, or packs that would not load, writes nothing.
+  item's detail image and icon. A picture pin's `picture` must be WebP of its `width` × `height`,
+  staged as `.pictures/screenshot/<name>.webp` unless there. A generated pack never takes a suggestion: its mode's go in `<mode>_suggested.json`. One refused entry, or packs that would not load, writes nothing.
 - `make edit-packs FILE=…` applies an export of question changes: an edit replaces its question
   in place, keeping the file's key order, and recomputes its id; a delete removes it. A change to
   an id the packs no longer hold or in a generated pack, or packs that would not load, writes nothing.

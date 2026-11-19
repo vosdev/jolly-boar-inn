@@ -121,6 +121,7 @@ describe('the choices', () => {
       ['mark_the_map', ['map_pin']],
       ['sort_it_out', ['ordering']],
       ['release_order', ['ordering']],
+      ['prop_hunt', ['picture_pin']],
       ['no_round', trivia],
     ])
     const scaperune = CHOICES.find((c) => c.id === 'scaperune')
@@ -166,7 +167,13 @@ describe('the choices', () => {
     const quoting = CHOICES.filter((c) => c.quote).map((c) => c.id)
     expect(quoting).toEqual(['who_said_that', 'know_your_content_creator', 'uris_unravelling'])
     const silent = CHOICES.filter((c) => c.explanation === false).map((c) => c.id)
-    expect(silent).toEqual(['guess_examine', 'whos_that_npc', 'forgetful_bard', 'mark_the_map'])
+    expect(silent).toEqual([
+      'guess_examine',
+      'whos_that_npc',
+      'forgetful_bard',
+      'mark_the_map',
+      'prop_hunt',
+    ])
     expect(CHOICES.find((c) => c.id === 'release_order')?.host).toBe('aris')
   })
 
@@ -508,6 +515,27 @@ describe('steps in the suggestion form', () => {
       'whos_that_npc',
       'forgetful_bard',
       'mark_the_map',
+      'prop_hunt',
+    ])
+  })
+
+  it('asks a picture pin for no source: its own screenshot proves it', () => {
+    const prop = CHOICES.find((c) => c.id === 'prop_hunt')!
+    expect(prop.editor).toBe('picture')
+    const steps = stepsFor({
+      choice: prop,
+      attempted: true,
+      questionDone: true,
+      difficultyDone: true,
+      extrasFilled: false,
+      extrasValid: true,
+      sourceDone: false,
+      creditDone: true,
+    })
+    expect(steps.map((step) => [step.title, step.missing])).toEqual([
+      ['Question', false],
+      ['Difficulty', false],
+      ['Credit', false],
     ])
   })
 

@@ -287,13 +287,13 @@ wheels = [
 
 [[package]]
 name = "jolly-boar-inn"
-version = "0.264.0"
+version = "0.265.0"
 source = { editable = "." }
-default-groups = ["data", "dev"]
 dependencies = [
     { name = "asyncpg" },
     { name = "fastapi" },
     { name = "jsonschema" },
+    { name = "pillow" },
     { name = "prometheus-client" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
@@ -301,9 +301,6 @@ dependencies = [
 ]
 
 [package.dev-dependencies]
-data = [
-    { name = "pillow" },
-]
 dev = [
     { name = "httpx" },
     { name = "mypy" },
@@ -325,6 +322,7 @@ requires-dist = [
     { name = "asyncpg", specifier = ">=0.30" },
     { name = "fastapi", specifier = ">=0.115" },
     { name = "jsonschema", specifier = ">=4.23" },
+    { name = "pillow", specifier = ">=11" },
     { name = "prometheus-client", specifier = ">=0.21" },
     { name = "pydantic", specifier = ">=2" },
     { name = "pydantic-settings", specifier = ">=2" },
@@ -332,7 +330,6 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
-data = [{ name = "pillow", specifier = ">=11" }]
 dev = [
     { name = "httpx", specifier = ">=0.27" },
     { name = "mypy", specifier = "==2.4.1" },
