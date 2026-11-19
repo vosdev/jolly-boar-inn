@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.264.0',
+    date: '2026-11-19',
+    text: 'Hold updates back while a game or a filled lobby is running, so a new version no longer drops you mid-game.',
+  },
+  {
     version: '0.263.0',
     date: '2026-11-18',
     text: "Seat a new host as a cat until they pick a pet, and stop counting Certer's sketches twice in the footer's question count.",
