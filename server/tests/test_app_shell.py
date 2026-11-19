@@ -18,7 +18,7 @@ APP_CSS = CLIENT_SRC / "app.css"
 TOP_BAR = CLIENT_SRC / "components" / "TopBar.svelte"
 
 # Section 4: the wordmark hides at one width, and it is this one.
-BREAKPOINT = "26rem"
+BREAKPOINT = "37.5rem"
 
 
 def block_after(text: str, opening: str) -> str:
@@ -66,7 +66,7 @@ def test_the_bar_has_one_breakpoint_and_it_is_stylesheet_only() -> None:
 
 
 def test_the_wordmark_and_github_give_way_and_nothing_else_does() -> None:
-    """Section 5: under 26rem the wordmark and GitHub hide; sign, name, sound and theme stay."""
+    """Section 5: under 37.5rem the wordmark and GitHub hide; sign, name, sound and theme stay."""
     narrow = block_after(read(TOP_BAR), f"@media (max-width: {BREAKPOINT})")
     rules = re.findall(r"([^{}]+)\{[^{}]*display: none", narrow)
     hidden = sorted(selector.strip() for rule in rules for selector in rule.split(","))

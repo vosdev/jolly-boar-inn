@@ -46,7 +46,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.267.2',
     date: '2026-11-19',
-    text: 'Hide the GitHub link on phones so the title bar shows your name.',
+    text: 'Hide the title and GitHub link on phones so the title bar shows your name.',
   },
   {
     version: '0.267.1',

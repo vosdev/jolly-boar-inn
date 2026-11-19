@@ -161,7 +161,7 @@ learns the position, which is worth more than variety.
 - **Right:** GitHub (`--muted`, the one control not about the game), then one control: the pet,
   the name and the current theme's **emblem**. One thumb target, not three. The name is the bar's
   priority: it shows at every width and is the one item that shrinks, ellipsising.
-- **Under 26rem** the wordmark and GitHub hide. At 320px the name keeps about 155px.
+- **Under 37.5rem** the wordmark and GitHub hide. At 320px the name keeps about 155px.
 - **Width:** the bar and the footer are as wide as the screen under them: 42rem, or 64rem on Home, Daily,
   Create and Admin; Home's own column is 960px inside it, so the floor and its lights show. In a
   room the bar runs the window's width, and from 1024px its middle says where the night is:
