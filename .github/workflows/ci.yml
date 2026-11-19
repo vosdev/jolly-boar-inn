@@ -3,7 +3,9 @@ name: CI
 on:
   push:
     branches: [main]
+  # A draft runs nothing until it is marked ready, which runs everything.
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
   # New vulnerabilities are published against code that has not changed.
   schedule:
     - cron: "17 6 * * 1"
@@ -20,6 +22,7 @@ permissions:
 jobs:
   server:
     name: Server (ruff, pytest, packs, contrast)
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ${{ (vars.RUNNER && !github.event.pull_request.head.repo.fork) && vars.RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 15
     defaults:
@@ -60,6 +63,7 @@ jobs:
 
   client:
     name: Client (lint, svelte-check, vitest, build)
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ${{ (vars.RUNNER && !github.event.pull_request.head.repo.fork) && vars.RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 15
     defaults:
@@ -89,6 +93,7 @@ jobs:
   # reports nothing at all.
   audit:
     name: Audit (lockfiles)
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ${{ (vars.RUNNER && !github.event.pull_request.head.repo.fork) && vars.RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 10
     steps:
@@ -119,6 +124,7 @@ jobs:
   # against the pinned hash of the release's checksum list; trivy-bump.yml moves both.
   secrets:
     name: Secrets (gitleaks)
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ${{ (vars.RUNNER && !github.event.pull_request.head.repo.fork) && vars.RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 10
     env:
@@ -158,6 +164,7 @@ jobs:
 
   containers:
     name: Containers (build, compose, smoke test, scan)
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ${{ (vars.RUNNER && !github.event.pull_request.head.repo.fork) && vars.RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 15
     # docker-compose.yml requires this rather than defaulting to the dev password.
@@ -241,6 +248,7 @@ jobs:
   # later run can be held against it with --compare.
   loadtest:
     name: Load test (smoke)
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ${{ (vars.RUNNER && !github.event.pull_request.head.repo.fork) && vars.RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 10
     defaults:

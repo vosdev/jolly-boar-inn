@@ -1,11 +1,13 @@
 name: Map
 
 # The render takes minutes, so a pull request runs it only when something it reads changes.
-# Pushes to main and the weekly run always do: the pinned cache and the base image drift too.
+# Drafts wait until marked ready. Pushes to main and the weekly run always render: the pinned
+# cache and the base image drift too.
 on:
   push:
     branches: [main]
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - .github/workflows/map.yml
       - Dockerfile
@@ -29,6 +31,7 @@ jobs:
   # a render that a small server cannot finish.
   map:
     name: Map (render under the memory floor)
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ${{ (vars.RUNNER && !github.event.pull_request.head.repo.fork) && vars.RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 15
     steps:
