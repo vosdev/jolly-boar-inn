@@ -1,4 +1,4 @@
-.PHONY: all setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-protocol gen-modes gen-price-questions gen-pixel-hunt import-suggestions edit-packs edit-roster rehash-questions fetch-assets logo loadtest loadtest-smoke image
+.PHONY: all setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-protocol gen-modes gen-price-questions gen-pixel-hunt import-suggestions edit-packs edit-roster rehash-questions fetch-assets logo loadtest loadtest-smoke image rooms deploy
 
 # The app's version: /VERSION is the one place it lives (ideas/architecture.md, Versioning).
 VERSION := $(shell cat VERSION)
@@ -191,3 +191,20 @@ logo:
 # git tags, which CI creates on main when VERSION changes; this is the local image to match.
 image:
 	docker build --build-arg VERSION=$(VERSION) -t jolly-boar-inn:$(VERSION) -t jolly-boar-inn:latest .
+
+# The rooms a restart would interrupt: lobby or playing with someone connected. Exits 1 while
+# there are any, 2 when the check itself fails. Runs in the app container, which holds
+# ADMIN_TOKEN, so the server needs no uv and the token stays out of the shell.
+rooms:
+	docker compose exec -T app python scripts/rooms.py
+
+# Swap in the image `make all` built once no room is active, checking every minute for up to
+# DEPLOY_WAIT minutes. FORCE=1 deploys at once, e.g. when only lobbies are left. With no app
+# running there is nothing to interrupt. The check runs in the old container, so deploying
+# over a version older than the check needs FORCE=1 once.
+DEPLOY_WAIT ?= 30
+deploy:
+	@if [ "$(FORCE)" != 1 ] && [ -n "$$(docker compose ps -q app)" ]; then \
+		docker compose exec -T app python scripts/rooms.py --wait $$(( $(DEPLOY_WAIT) * 60 )) || exit $$?; \
+	fi
+	docker compose up -d

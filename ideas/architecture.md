@@ -23,7 +23,7 @@ final. The licence is AGPL-3.0.
 ```
 Dockerfile, docker-compose.yml     three-stage image + data, logo, map; app + postgres:18 (+ .dev.yml, .data.yml)
 Makefile, .github/workflows/ci.yml all, setup, dev, lint, test, gen-*, import-suggestions, edit-packs,
-                                   edit-roster, rehash-questions, fetch-assets, logo, image, loadtest(-smoke); CI: audit, loadtest, release; map.yml renders the map when its inputs change
+                                   edit-roster, rehash-questions, fetch-assets, logo, image, rooms, deploy, loadtest(-smoke); CI: audit, loadtest, release; map.yml renders the map when its inputs change
 schema/                            question.schema.json (4), protocol.schema.json (6), modes.json (3)
 data/packs/                        prices (generated, ignored), examine, sample (stale), random_events/
 data/                              assets, pets, popular-items/-npcs, player-names, room-words
@@ -1042,6 +1042,8 @@ CLAUDE.md has the bump rule.
   needs an entry for every version, a stacked PR's too.
 - CI's `release` job tags `v<VERSION>` with a GitHub Release once the other jobs but `audit` pass,
   and fails if `VERSION` went backwards. `/api/health` returns the version for the README badge. `make image` builds locally; no registry.
+- A restart costs every room a reconnect, a reload and an open question (section 9). `make deploy` runs
+  `scripts/rooms.py` in the old container until no lobby or game has anyone connected (`DEPLOY_WAIT`, `FORCE=1`), then `docker compose up -d`.
 - Dependabot gathers every ecosystem's minor and patch updates into one PR, Mondays and Thursdays, which keeps
   the version: no bump, no changelog entry. CI fails on a high or critical known vulnerability in a lockfile or the image, or a secret in the image. Trivy's and gitleaks' versions are pinned in `ci.yml`; `trivy-bump.yml` opens the PR for a release three days old.
 - CI's `secrets` job runs gitleaks with `.gitleaks.toml`, the defaults plus the test fixtures by path and value: a PR over its own commits, from its base, main and the weekly run over the whole history. A leak in history is fixed by rotating it, never by rewriting main.
