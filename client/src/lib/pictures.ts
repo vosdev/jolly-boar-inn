@@ -9,5 +9,7 @@
 
 /** Where the picture named `name` is served, or null for a question without one. */
 export function pictureUrl(name: string | null | undefined): string | null {
-  return name ? `/pictures/${name}` : null
+  if (!name) return null
+  // A suggester's own picture, previewed before any server has a name for it.
+  return name.startsWith('blob:') ? name : `/pictures/${name}`
 }

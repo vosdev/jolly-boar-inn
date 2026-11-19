@@ -56,14 +56,6 @@ ENV PYTHONUNBUFFERED=1 \
     HOME=/tmp \
     PYTHONPATH=/repo/server \
     PATH="/app/server/.venv/bin:$PATH"
-# Pillow, which the builder's venv leaves out for the runtime. uv and the lock are mounted, so
-# the group is the only new layer.
-RUN --mount=from=builder,source=/usr/local/bin/uv,target=/usr/local/bin/uv \
-    --mount=type=bind,source=server/pyproject.toml,target=/app/server/pyproject.toml \
-    --mount=type=bind,source=server/uv.lock,target=/app/server/uv.lock \
-    --mount=type=cache,target=/root/.cache/uv \
-    UV_CACHE_DIR=/root/.cache/uv UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PYTHON_DOWNLOADS=never \
-    uv sync --project /app/server --locked --no-default-groups --group data --no-install-project --inexact
 WORKDIR /repo/server
 
 # ---- Logo: the data stage plus what `make logo` draws with ---------------------

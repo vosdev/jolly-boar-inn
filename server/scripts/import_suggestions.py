@@ -27,6 +27,10 @@ A Drop Table or Minigame Madness question's ``picture_item`` is found the same w
 its payload's ``image``, ``item:<id>``. ``data/assets.json`` gains the item's detail image and
 inventory icon when it lacks either, for ``make fetch-assets``.
 
+A picture pin carries the suggester's screenshot as ``picture``, base64 of the WebP the server
+stored, which is staged as ``.pictures/screenshot/<name>.webp`` for ``build_pictures.py``. It
+must be the ``width`` by ``height`` its question says. A staged file of that name is left as it is.
+
 Each keeps its ``credit``, and ``credit_shown`` when it is true. A round's question keeps its
 ``difficulty``, or is ``medium`` without one, so every round-pack question has a tier.
 Anything a pack or the roster already holds is skipped: a question by content id, an
@@ -47,10 +51,14 @@ of the detail image titles that exist, instead.
 Usage (from ``server/``)::
 
     uv run python scripts/import_suggestions.py FILE [--packs-dir DIR] [--roster PATH]
-        [--npcs PATH] [--assets PATH] [--items-file PATH] [--npcs-file PATH] [--detail-file PATH]
+        [--npcs PATH] [--assets PATH] [--pictures-dir DIR] [--items-file PATH]
+        [--npcs-file PATH] [--detail-file PATH]
 """
 
 import argparse
+import base64
+import binascii
+import io
 import json
 import re
 import shutil
@@ -67,6 +75,7 @@ from urllib.parse import urlencode
 import add_detail_pictures
 import wiki
 from fetch_assets import Located, WikiSource
+from PIL import Image, UnidentifiedImageError
 
 from app import suggestions
 from app.errors import ApiError
@@ -82,6 +91,7 @@ DEFAULT_PACKS = REPO_ROOT / "data" / "packs"
 DEFAULT_ROSTER = REPO_ROOT / "data" / "popular-items.json"
 DEFAULT_NPCS = REPO_ROOT / "data" / "popular-npcs.json"
 DEFAULT_ASSETS = REPO_ROOT / "data" / "assets.json"
+DEFAULT_PICTURES = REPO_ROOT / ".pictures"
 WIKI_API = "https://oldschool.runescape.wiki/api.php"
 SECTIONS = ("questions", "items")
 CREDIT_KEYS = {"credit", "credit_shown"}
@@ -99,6 +109,8 @@ class Plan:
     npcs: list[dict[str, Any]] = field(default_factory=list)
     # ``data/assets.json``, target to wiki file, as it will be written.
     assets: dict[str, str] = field(default_factory=dict)
+    # Suggested screenshots to stage, by asset id.
+    screenshots: dict[str, bytes] = field(default_factory=dict)
     added: list[str] = field(default_factory=list)
     skipped: list[str] = field(default_factory=list)
     refused: list[str] = field(default_factory=list)
@@ -441,6 +453,42 @@ def named_item(
     return {**content, "payload": payload}
 
 
+def own_picture(entry: dict[str, Any], content: dict[str, Any], where: str, plan: Plan) -> bool:
+    """Take an entry's own picture into ``plan``; whether it was good, refusing it if not."""
+    encoded = entry.get("picture")
+    payload = content["payload"]
+    if (content["type"] in suggestions.PICTURE_TYPES) != (encoded is not None):
+        plan.refused.append(f"{where}: a picture with a picture pin, and only with one")
+        return False
+    if encoded is None:
+        return True
+    try:
+        body = base64.b64decode(encoded, validate=True) if isinstance(encoded, str) else b""
+        with Image.open(io.BytesIO(body)) as opened:
+            shape, kind = opened.size, opened.format
+    except binascii.Error, UnidentifiedImageError, OSError:
+        plan.refused.append(f"{where}.picture: not a picture in base64")
+        return False
+    if kind != "WEBP" or shape != (payload["width"], payload["height"]):
+        plan.refused.append(f"{where}.picture: not the WebP of the width and height it says")
+        return False
+    plan.screenshots[payload["screenshot"]] = body
+    return True
+
+
+def stage_screenshots(screenshots: dict[str, bytes], pictures_dir: Path) -> list[Path]:
+    """Write each screenshot ``pictures_dir`` lacks, as ``build_pictures.py`` looks for it."""
+    written = []
+    for asset, body in sorted(screenshots.items()):
+        path = pictures_dir / "screenshot" / f"{asset.removeprefix('screenshot:')}.webp"
+        if path.exists():
+            continue
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(body)
+        written.append(path)
+    return written
+
+
 def plan_questions(
     entries: list[Any],
     packs_dir: Path,
@@ -457,10 +505,12 @@ def plan_questions(
             plan.refused.append(f"{where}: an entry is a JSON object")
             continue
         credit = credited(entry, where, plan)
-        content = {k: v for k, v in entry.items() if k not in CREDIT_KEYS}
+        content = {k: v for k, v in entry.items() if k not in CREDIT_KEYS | {"picture"}}
         found = suggestions.errors("question", content)
         if found:
             plan.refused.extend(f"{where} {problem}" for problem in found)
+            continue
+        if not own_picture(entry, content, where, plan):
             continue
         if content["mode"] not in MODES:
             plan.refused.append(f"{where}: {content['mode']!r} is not a round this build plays")
@@ -597,6 +647,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--roster", type=Path, default=DEFAULT_ROSTER)
     parser.add_argument("--npcs", type=Path, default=DEFAULT_NPCS)
     parser.add_argument("--assets", type=Path, default=DEFAULT_ASSETS)
+    parser.add_argument("--pictures-dir", type=Path, default=DEFAULT_PICTURES)
     parser.add_argument("--items-file", type=Path, help="saved infobox_item rows, for offline runs")
     parser.add_argument(
         "--npcs-file", type=Path, help="saved monster and NPC infobox rows, for offline runs"
@@ -717,6 +768,8 @@ def main(argv: list[str]) -> int:
     if plan.assets != assets:
         manifest = dict(sorted(plan.assets.items()))
         args.assets.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    for path in stage_screenshots(plan.screenshots, args.pictures_dir):
+        print(f"staged {path.name}: run make fetch-assets")
     for target in sorted(plan.assets.keys() - assets.keys()):
         print(f"added {target} to {args.assets.name}: run make fetch-assets")
     for line in plan.added:

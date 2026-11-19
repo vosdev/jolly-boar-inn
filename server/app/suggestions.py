@@ -13,7 +13,9 @@ A player who has finished a game may suggest one of two kinds of content:
   verses. A round not built yet takes them too, so its pack is ready when it opens;
   such a suggestion waits in the queue until it is. A player who cannot place a question may
   send it with no mode: the operator picks its round before approving it. A place for Mark
-  the Map is one box and perhaps a ``reach``, on the whole map, with no picture.
+  the Map is one box and perhaps a ``reach``, on the whole map, with no picture. A picture
+  pin is drawn on the suggester's own screenshot, sent with it (``suggestion_pictures``); the
+  picture is its proof, so it needs no link.
 - ``item``: an item name for the roster (``data/popular-items.json``) that is not on it yet.
   The import script finds its id, so a player needs to know no more than the name.
 
@@ -28,13 +30,14 @@ held to its type's alone, and to the rest once the operator gives it one. Conten
 server stores goes back out only to the operator, and the client draws it as text.
 """
 
+import base64
 from collections.abc import Callable, Sequence
 from typing import Any, Literal
 from uuid import UUID
 
 import asyncpg
 
-from app import reports, similar
+from app import reports, similar, suggestion_pictures
 from app.errors import ApiError
 from app.modes import MODES, SUGGESTIBLE, TRIVIA_TYPES, entry, steps_of
 from app.modes.mode import Suggest
@@ -88,6 +91,9 @@ PLACE_REACH = (50, 200)
 # What a question with no round may be: the types most rounds take. No NPC, intro, quote or
 # fixed prompt, which only a round gives.
 UNPLACED_TYPES = TRIVIA_TYPES
+
+# The types a suggester sends their own picture for, stored apart from the content.
+PICTURE_TYPES = frozenset({"picture_pin"})
 
 _QUESTION_KEYS = {"type", "payload"}
 _QUESTION_OPTIONAL = frozenset(
@@ -148,7 +154,8 @@ def _question_errors(content: dict[str, Any], sourced: bool) -> list[str]:
     found = _keys(content, _QUESTION_KEYS, _QUESTION_OPTIONAL)
     if found:
         return found
-    if sourced and not {"wiki", "source_url"} & content.keys():
+    own_picture = content["type"] in PICTURE_TYPES
+    if sourced and not own_picture and not {"wiki", "source_url"} & content.keys():
         return ["$.wiki: a wiki page, or $.source_url: another https link, to check it against"]
     mode = content.get("mode")
     if "mode" in content and not isinstance(mode, str):
@@ -533,18 +540,64 @@ def view(row: asyncpg.Record) -> dict[str, Any]:
     }
 
 
+Picture = tuple[bytes, int, int]
+
+
+def wants_picture(kind: str, content: dict[str, Any]) -> bool:
+    """Whether a checked suggestion is drawn on a picture of the suggester's own."""
+    return kind == "question" and content["type"] in PICTURE_TYPES
+
+
+def picture_check(kind: str, content: dict[str, Any], sent: bool) -> None:
+    """``BadSuggestion`` when a picture is ``sent`` with a question that takes none, or not
+    with one that needs it."""
+    wanted = wants_picture(kind, content)
+    if wanted and not sent:
+        raise BadSuggestion(f"$.picture: required for a {content['type']} question")
+    if sent and not wanted:
+        types = ", ".join(sorted(PICTURE_TYPES))
+        raise BadSuggestion(f"$.picture: only a {types} question takes a picture")
+
+
+async def with_picture(
+    kind: str, content: dict[str, Any], picture: str | None
+) -> tuple[dict[str, Any], tuple[str, Picture] | None]:
+    """``content`` naming its re-encoded picture, and the picture under its new name.
+
+    ``BadSuggestion`` as ``picture_check`` says; ``suggestion_pictures.BadPicture`` when the
+    picture is not one.
+    """
+    picture_check(kind, content, picture is not None)
+    if picture is None:
+        return content, None
+    stored = await suggestion_pictures.prepare(picture)
+    name = suggestion_pictures.fresh_name()
+    payload = suggestion_pictures.placed(content["payload"], name, stored[1], stored[2])
+    return {**content, "payload": payload}, (name, stored)
+
+
 async def add(
-    pool: asyncpg.Pool, kind: str, content: dict[str, Any], credit: str, shown: bool
+    pool: asyncpg.Pool,
+    kind: str,
+    content: dict[str, Any],
+    credit: str,
+    shown: bool,
+    picture: tuple[str, Picture] | None = None,
 ) -> UUID:
-    """Store a checked suggestion as pending; its id."""
-    return await pool.fetchval(
-        "insert into suggestions (kind, content, credit, credit_shown)"
-        " values ($1, $2, $3, $4) returning id",
-        kind,
-        content,
-        credit,
-        shown,
-    )
+    """Store a checked suggestion as pending, with its picture if it has one; its id."""
+    async with pool.acquire() as conn, conn.transaction():
+        suggestion: UUID = await conn.fetchval(
+            "insert into suggestions (kind, content, credit, credit_shown)"
+            " values ($1, $2, $3, $4) returning id",
+            kind,
+            content,
+            credit,
+            shown,
+        )
+        if picture is not None:
+            name, (data, width, height) = picture
+            await suggestion_pictures.add(conn, suggestion, name, data, width, height)
+    return suggestion
 
 
 async def listing(pool: asyncpg.Pool, status: Status, packs: list[Pack]) -> dict[str, Any]:
@@ -591,7 +644,16 @@ async def edit(
     if current is None:
         raise SuggestionNotFound("no such suggestion")
     kind = current["kind"]
+    stored = await suggestion_pictures.shape(pool, suggestion)
+    if stored is not None and isinstance(content.get("payload"), dict):
+        # The operator moves the target; the picture stays the suggester's.
+        payload = suggestion_pictures.placed(
+            content["payload"], stored["name"], stored["width"], stored["height"]
+        )
+        content = {**content, "payload": payload}
     content = check(kind, content, shown)
+    if wants_picture(kind, content) != (stored is not None):
+        raise BadSuggestion("$.type: a picture pin keeps its picture, and only it has one")
     if current["status"] == "approved" and not _placed(kind, content):
         raise NoRound("an approved question keeps a round")
     row = await pool.fetchrow(
@@ -635,8 +697,11 @@ async def set_status(
     return view(row)
 
 
-def export_entry(kind: str, content: dict[str, Any], credit: str, shown: bool) -> dict[str, Any]:
-    """One suggestion as the import script reads it. A question is in Create's export shape."""
+def export_entry(
+    kind: str, content: dict[str, Any], credit: str, shown: bool, picture: bytes | None = None
+) -> dict[str, Any]:
+    """One suggestion as the import script reads it. A question is in Create's export shape,
+    plus its own picture in base64, for the import to stage."""
     if kind == "question":
         entry = {"type": content["type"], "payload": content["payload"]}
         if "random_event" in content:
@@ -647,17 +712,33 @@ def export_entry(kind: str, content: dict[str, Any], credit: str, shown: bool) -
             for key in ("wiki", "source_url", "picture_item", "difficulty")
             if key in content
         }
+        if picture is not None:
+            entry["picture"] = base64.b64encode(picture).decode("ascii")
     else:
         entry = dict(content)
     return entry | {"credit": credit, "credit_shown": shown}
 
 
-def export_file(rows: Sequence[asyncpg.Record]) -> dict[str, list[dict[str, Any]]]:
+async def export_file(
+    pool: asyncpg.Pool, rows: Sequence[asyncpg.Record]
+) -> dict[str, list[dict[str, Any]]]:
     """The file an export downloads: questions and items, oldest first."""
+    pictures = dict(
+        await pool.fetch(
+            "select suggestion_id, data from suggestion_pictures where suggestion_id = any($1)",
+            [row["id"] for row in rows],
+        )
+    )
     out: dict[str, list[dict[str, Any]]] = {"questions": [], "items": []}
     for row in rows:
         out[f"{row['kind']}s"].append(
-            export_entry(row["kind"], row["content"], row["credit"], row["credit_shown"])
+            export_entry(
+                row["kind"],
+                row["content"],
+                row["credit"],
+                row["credit_shown"],
+                pictures.get(row["id"]),
+            )
         )
     return out
 
@@ -672,14 +753,14 @@ async def export(pool: asyncpg.Pool, status: Literal["approved", "imported"]) ->
         rows = await pool.fetch(
             f"select {_COLUMNS} from suggestions where status = 'imported' order by created_at, id"
         )
-        return export_file(rows)
+        return await export_file(pool, rows)
     rows = await pool.fetch(
         "update suggestions set exported_at = now()"
         " where status = 'approved' and (kind <> 'question' or content->>'mode' = any($1::text[]))"
         f" returning {_COLUMNS}",
         list(MODES),
     )
-    return export_file(sorted(rows, key=lambda row: (row["created_at"], row["id"])))
+    return await export_file(pool, sorted(rows, key=lambda row: (row["created_at"], row["id"])))
 
 
 async def mark_imported(pool: asyncpg.Pool) -> int:

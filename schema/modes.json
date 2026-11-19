@@ -831,6 +831,27 @@
         "tags": [],
         "right_first": false
       }
+    },
+    {
+      "id": "prop_hunt",
+      "suggest": {
+        "types": [
+          "picture_pin"
+        ],
+        "quote": false,
+        "intro": false,
+        "explanation": false,
+        "difficulty": true,
+        "fixed_prompt": null,
+        "wiki_only": false,
+        "named": null,
+        "verse": false,
+        "render": false,
+        "picture_item": false,
+        "lined": false,
+        "tags": [],
+        "right_first": false
+      }
     }
   ],
   "planned": [

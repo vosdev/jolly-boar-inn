@@ -8,9 +8,10 @@
    * round is saved with no mode and previewed in none. A round may hold
    * its options to a range, or its proof to a wiki page. A Drop Table question may name an
    * item to picture, and a Who's That NPC? shadow is only the NPC's name, its render four
-   * buttons whose right one names the NPC. A shadow, a verse, a place and an item are written
-   * in forms of their own (`forms.ts`), inside the same frame; an item's credit is kept but
-   * cannot be shown.
+   * buttons whose right one names the NPC. A shadow, a verse, a place, a picture pin and an
+   * item are written in forms of their own (`forms.ts`), inside the same frame; an item's
+   * credit is kept but cannot be shown, and neither an item nor a picture pin, whose own
+   * screenshot proves it, asks for a source.
    *
    * Nothing is red until the first Save, and Save hands back only a body the server takes.
    * A new question names the pack questions it looks like above Save; the operator, editing
@@ -29,6 +30,7 @@
     creditProblem,
     hasExtras,
     itemPage,
+    needsSource,
     QUESTION_DIFFICULTIES,
     takesDifficulty,
     takesIntro,
@@ -62,6 +64,7 @@
     asked = [],
     saveLabel = 'Send to Reldo',
     hero = null,
+    picture = null,
     onnpc = undefined,
     onsave,
     oncancel,
@@ -77,6 +80,8 @@
     saveLabel?: string
     /** The selfhoster's hero, who stands on the preview's stage when the host asks. */
     hero?: string | null
+    /** A URL of the stored picture a picture pin is drawn on, for the operator's editor. */
+    picture?: string | null
     /** Told which NPC asks a random event's question whenever that changes, `''` for none. */
     onnpc?: (npc: string) => void
     onsave: (body: SuggestionBody) => void
@@ -104,9 +109,8 @@
   // An NPC's question is drawn whatever the room's difficulty, so it is asked for none.
   // svelte-ignore state_referenced_locally
   const tiered = choice.kind === 'question' && takesDifficulty(choice.id)
-  // An item is checked against the roster alone, so it asks for no source.
   // svelte-ignore state_referenced_locally
-  const sourced = choice.kind !== 'item'
+  const sourced = needsSource(choice)
   let attempted = $state(false)
 
   const customTypes = $derived(
@@ -115,7 +119,8 @@
         type !== 'ordering' &&
         type !== 'matching' &&
         type !== 'pick_from_list' &&
-        type !== 'map_pin',
+        type !== 'map_pin' &&
+        type !== 'picture_pin',
     ),
   )
   // The type the form opened on, and the one picked since. A round may sort, match and ask,
@@ -155,7 +160,8 @@
     start?.type === 'ordering' ||
     start?.type === 'matching' ||
     start?.type === 'pick_from_list' ||
-    start?.type === 'map_pin'
+    start?.type === 'map_pin' ||
+    start?.type === 'picture_pin'
       ? undefined
       : start?.type === undefined
         ? roundPrompt === undefined
@@ -172,7 +178,8 @@
       current === 'ordering' ||
       current === 'matching' ||
       current === 'pick_from_list' ||
-      current === 'map_pin'
+      current === 'map_pin' ||
+      current === 'picture_pin'
       ? question
       : { type: current, payload: prompted({}) },
   )
@@ -238,10 +245,13 @@
   const difficultyStepIndex = $derived(tiered ? 1 : -1)
   const extrasStepIndex = $derived(withExtras ? (tiered ? 2 : 1) : -1)
   const sourceStepIndex = $derived(sourced ? 1 + Number(tiered) + Number(withExtras) : -1)
-  const creditStepIndex = $derived(sourced ? sourceStepIndex + 1 : 1)
+  const creditStepIndex = $derived(
+    sourced ? sourceStepIndex + 1 : 1 + Number(tiered) + Number(withExtras),
+  )
 
-  function send(content: SuggestionContent): void {
-    onsave({ kind: choice.kind, content, credit: credit.trim(), credit_shown: shown })
+  function send(content: SuggestionContent, picture?: string): void {
+    const body = { kind: choice.kind, content, credit: credit.trim(), credit_shown: shown }
+    onsave(picture === undefined ? body : { ...body, picture })
   }
 
   /** The fields beside a question: whether they pass, asked on the editor's Save. */
@@ -256,16 +266,19 @@
     return Object.fromEntries(Object.entries(links).filter(([, url]) => url !== ''))
   }
 
-  function saveQuestion(built: QuestionContent): void {
-    const given = givenLinks()
+  function saveQuestion(built: QuestionContent, picture?: string): void {
+    const given = sourced ? givenLinks() : {}
     const pictured = choice.pictureItem && pictureItem.trim() !== ''
-    send({
-      ...built,
-      ...(choice.id === NO_ROUND ? {} : { mode: choice.id }),
-      ...given,
-      ...(pictured ? { picture_item: pictureItem.trim() } : {}),
-      ...(tiered && difficulty !== undefined ? { difficulty } : {}),
-    })
+    send(
+      {
+        ...built,
+        ...(choice.id === NO_ROUND ? {} : { mode: choice.id }),
+        ...given,
+        ...(pictured ? { picture_item: pictureItem.trim() } : {}),
+        ...(tiered && difficulty !== undefined ? { difficulty } : {}),
+      },
+      picture,
+    )
   }
 
   // The page fills in as the name it follows does, until the player writes one of their own.
@@ -273,8 +286,8 @@
     if (wiki.trim() === '' || wiki === itemPage(before)) wiki = itemPage(after)
   }
 
-  function saveOwn(content: SuggestionContent): void {
-    if (sourced) saveQuestion(content as QuestionContent)
+  function saveOwn(content: SuggestionContent, picture?: string): void {
+    if (choice.kind === 'question') saveQuestion(content as QuestionContent, picture)
     else send(content)
   }
 </script>
@@ -431,6 +444,7 @@
         {id}
         {choice}
         content={initial?.content}
+        {picture}
         bind:name={subjectName}
         {asked}
         {picker}

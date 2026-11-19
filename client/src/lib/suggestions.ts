@@ -47,9 +47,11 @@ export type SuggestionStatus = 'pending' | 'approved' | 'rejected' | 'imported'
 /**
  * The types a suggestion may be: Create's, an ordering for the rounds that sort and the NPCs,
  * a matching for the rounds that match, text fields only, a pick from the list for
- * Who's That NPC? and a pin on the map for the rounds that ask for a place.
+ * Who's That NPC?, a pin on the map for the rounds that ask for a place and a pin on the
+ * suggester's own screenshot.
  */
-export type SuggestedType = CustomType | 'ordering' | 'matching' | 'pick_from_list' | 'map_pin'
+export type SuggestedType =
+  CustomType | 'ordering' | 'matching' | 'pick_from_list' | 'map_pin' | 'picture_pin'
 
 export const SUGGESTED_TYPE_LABELS: Record<SuggestedType, string> = {
   ...TYPE_LABELS,
@@ -57,6 +59,7 @@ export const SUGGESTED_TYPE_LABELS: Record<SuggestedType, string> = {
   matching: 'Match them up',
   pick_from_list: 'Pick from the list',
   map_pin: 'Pin on the map',
+  picture_pin: 'Pin on a picture',
 }
 
 export interface QuestionContent {
@@ -99,8 +102,11 @@ export function difficultyName(difficulty: QuestionDifficulty): string {
   return QUESTION_DIFFICULTIES.find((option) => option.value === difficulty)?.label ?? difficulty
 }
 
-/** The question as players will see it open, drawn by `QuestionStage` or `RandomEvent`. */
-export function questionPreview(content: QuestionContent): OpenQuestion {
+/**
+ * The question as players will see it open, drawn by `QuestionStage` or `RandomEvent`. A
+ * picture pin draws `picture`, a URL of the suggester's own picture, which no server names.
+ */
+export function questionPreview(content: QuestionContent, picture?: string | null): OpenQuestion {
   const mode = stageMode(content.mode ?? NO_ROUND)
   if (content.type === 'ordering') return orderingPreview(content as OrderingQuestion, mode)
   if (content.type === 'matching') return matchingPreview(content as MatchingQuestion, mode)
@@ -117,6 +123,12 @@ export function questionPreview(content: QuestionContent): OpenQuestion {
     const open = previewOf({ type: 'multiple_choice', payload: {} }, mode)
     return { ...open, type: 'map_pin', view: { prompt: content.payload.prompt, pins: 1 } }
   }
+  if (content.type === 'picture_pin') {
+    const open = previewOf({ type: 'multiple_choice', payload: {} }, mode)
+    const { prompt, width, height, grid } = content.payload
+    const view = { prompt, width, height, ...(grid === undefined ? {} : { grid }) }
+    return { ...open, type: 'picture_pin', view: { ...view, ...(picture ? { picture } : {}) } }
+  }
   return previewOf(content as CustomQuestion, mode === 'random_event' ? undefined : mode)
 }
 
@@ -131,6 +143,8 @@ export interface SuggestionBody {
   content: SuggestionContent
   credit: string
   credit_shown: boolean
+  /** A picture pin's own picture, base64, sent once with it: the server stores it apart. */
+  picture?: string
 }
 
 /** One row of the operator's queue. */
@@ -171,9 +185,10 @@ export interface QueueMatch {
 /**
  * A form of its own: `shadow`, an NPC's name (`named` on the server); `verse`, a verse and
  * the item it describes (`verse`); `place`, a place on the world map, so this server needs
- * its tiles; `item`, an item. `components/suggest/forms.ts` maps each to its component.
+ * its tiles; `picture`, a spot on a screenshot the suggester sends with it; `item`, an item.
+ * `components/suggest/forms.ts` maps each to its component.
  */
-export type EditorKind = 'shadow' | 'verse' | 'place' | 'item'
+export type EditorKind = 'shadow' | 'verse' | 'place' | 'picture' | 'item'
 
 /** One thing the form offers to write. */
 export interface Choice {
@@ -224,6 +239,7 @@ const TYPE_ORDER: readonly SuggestedType[] = [
   'ordering',
   'matching',
   'map_pin',
+  'picture_pin',
 ]
 
 function inTypeOrder(types: readonly string[]): SuggestedType[] {
@@ -255,6 +271,7 @@ function formOf(id: string, rules: SuggestRules): Exclude<EditorKind, 'item'> | 
   if (rules.verse) return 'verse'
   if (rules.named !== null) return 'shadow'
   if (only === 'map_pin') return 'place'
+  if (only === 'picture_pin') return 'picture'
   if (!(rulesOf(id)?.is_round ?? true) || only === 'ordering') return 'plain'
   return 'choice'
 }
@@ -300,6 +317,8 @@ function roundChoice(id: string, rules: SuggestRules): Choice | undefined {
       return { ...base, explanation, editor: 'verse' }
     case 'place':
       return { ...base, explanation, wikiOnly: rules.wiki_only, editor: 'place' }
+    case 'picture':
+      return { ...base, prompt, explanation, editor: 'picture' }
   }
 }
 
@@ -553,6 +572,11 @@ export interface SuggestStep {
   missing?: boolean
 }
 
+/** Whether a choice asks where it was checked: an item is held to the roster, a picture is its own proof. */
+export function needsSource(choice: Choice): boolean {
+  return choice.kind !== 'item' && choice.editor !== 'picture'
+}
+
 /** Whether a question choice offers the optional extras card (intro, picture item, or explanation). */
 export function hasExtras(choice: Choice): boolean {
   if (choice.kind !== 'question') return false
@@ -604,14 +628,14 @@ export function stepsFor(state: {
       missing: attempted && !extrasValid,
     })
   }
-  steps.push(
-    {
+  if (needsSource(choice)) {
+    steps.push({
       title: choice.wikiOnly ? 'Wiki page' : 'Source',
       done: sourceDone,
       missing: attempted && !sourceDone,
-    },
-    { title: 'Credit', done: creditDone, missing: attempted && !creditDone },
-  )
+    })
+  }
+  steps.push({ title: 'Credit', done: creditDone, missing: attempted && !creditDone })
   return steps
 }
 
@@ -655,7 +679,24 @@ export function answerOf(suggestion: Pick<SuggestionBody, 'kind' | 'content'>): 
     const reach = payload.reach ?? DEFAULT_REACH
     return `${place.name} (${box}, reach ${String(reach)})`
   }
+  if (type === 'picture_pin') return pictureAnswer(payload)
   return [String(payload.answer), payload.unit].filter((part) => part !== undefined).join(' ')
+}
+
+const percent = (fraction: unknown): string => `${Math.round(Number(fraction) * 100)}%`
+
+function pictureAnswer(payload: Record<string, unknown>): string {
+  const cells = payload.cells as { col: number; row: number }[] | undefined
+  if (cells !== undefined) {
+    const grid = payload.grid as { cols: number; rows: number }
+    const named = cells.map((cell) => `column ${cell.col + 1} row ${cell.row + 1}`)
+    return `${named.join(', ')} of ${grid.cols} by ${grid.rows}`
+  }
+  const box = payload.target as { min_x: number; max_x: number; min_y: number; max_y: number }
+  const across = `${percent(box.min_x)}–${percent(box.max_x)} across`
+  const down = `${percent(box.min_y)}–${percent(box.max_y)} down`
+  const reach = payload.reach === 0 ? 'the box only' : `near misses to ${percent(payload.reach)}`
+  return `${across}, ${down}, ${reach}`
 }
 
 // --- similar questions ----------------------------------------------------------------

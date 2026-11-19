@@ -112,17 +112,19 @@ def test_only_the_logo_stage_has_the_logo_group() -> None:
     assert with_group == ["logo"]
 
 
-def test_pillow_is_in_the_data_stage_and_not_in_the_runtimes_venv() -> None:
-    """The builder's venv, which the runtime copies, leaves every group out."""
+def test_pillow_is_in_the_runtime_and_the_logo_packages_are_not() -> None:
+    """The server re-encodes uploaded screenshots, so Pillow is a dependency the builder's venv
+    holds; it leaves every group out, so the logo's packages never reach the runtime."""
     stages = _stages((REPO_ROOT / "Dockerfile").read_text(encoding="utf-8"))
     syncs = re.findall(r"uv sync[^\n]*", stages["builder"])
     assert syncs and all("--no-default-groups" in sync for sync in syncs)
     assert "--group" not in stages["builder"]
-    assert [name for name, text in stages.items() if "--group data" in text] == ["data"]
+    assert [name for name, text in stages.items() if "--group" in text] == ["logo"]
     with open(REPO_ROOT / "server" / "pyproject.toml", "rb") as file:
-        groups = tomllib.load(file)["dependency-groups"]
-    assert any(dep.startswith("pillow") for dep in groups["data"])
-    assert not any(dep.startswith("pillow") for name in ("dev", "logo") for dep in groups[name])
+        project = tomllib.load(file)
+    assert any(dep.startswith("pillow") for dep in project["project"]["dependencies"])
+    groups = project["dependency-groups"]
+    assert not any(dep.startswith("pillow") for deps in groups.values() for dep in deps)
 
 
 def test_the_runtime_never_carries_the_data_stages() -> None:

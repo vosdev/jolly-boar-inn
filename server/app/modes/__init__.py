@@ -195,6 +195,7 @@ MODES: dict[str, Mode] = {
 # ready when they open.
 UPCOMING: dict[str, Suggest] = {
     "release_order": Suggest(types=frozenset({"ordering"})),
+    "prop_hunt": Suggest(types=frozenset({"picture_pin"}), explanation=False),
 }
 
 # Rounds still being planned, which take no suggestions yet: the create form shows each as a
