@@ -7,7 +7,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
     paths:
       - .github/workflows/map.yml
       - Dockerfile
@@ -24,6 +24,11 @@ on:
 # Same runner rule as ci.yml: pull requests from forks never reach a self-hosted runner.
 permissions:
   contents: read
+
+# Same as ci.yml: a PR's newer run cancels the one before it.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   # The real renderer, which test_gen_map.py stubs, in a container no bigger than the smallest

@@ -7,7 +7,7 @@ on:
   # take other names, since a skipped required check counts as passed and would let the PR
   # merge in the seconds before the ready run's checks appear.
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
   # New vulnerabilities are published against code that has not changed.
   schedule:
     - cron: "17 6 * * 1"
@@ -20,6 +20,12 @@ on:
 # GitHub-hosted runners.
 permissions:
   contents: read
+
+# A PR's newer run, a draft's skipped one too, cancels the run before it: only the head counts.
+# Main and the weekly run each get a group of their own.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   server:
