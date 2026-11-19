@@ -5,13 +5,18 @@
    * since it exists only once imported, and a shadow of an NPC the game already asks about is
    * refused before it is sent. A Forgetful Bard question is a verse and its item, from the list
    * or typed if the list lacks it; the item fills in its wiki page, and the preview's reveal
-   * has no picture, which a room alone may name.
+   * has no picture, which a room alone may name. A Riddles of the Sphinx question is its subject,
+   * found on the round's own list the same way, and its five clues, each field labelled by its
+   * rung with the mode's sample clue for a placeholder.
    */
   import { onMount } from 'svelte'
 
   import { fieldHints } from '../../lib/placeholders'
   import { codePoints } from '../../lib/questionSchema'
+  import { sample as riddleSample } from '../../lib/modes/riddles_of_the_sphinx'
   import {
+    CLUE_RUNGS,
+    clueProblem,
     npcNameProblem,
     onList,
     plainItems,
@@ -52,13 +57,20 @@
   const start = content as Partial<QuestionContent> | undefined
   // svelte-ignore state_referenced_locally
   const verses = choice.editor === 'verse'
+  // svelte-ignore state_referenced_locally
+  const riddles = choice.editor === 'riddle'
+  const startClues = start?.payload?.clues
+  let clues = $state<string[]>(
+    CLUE_RUNGS.map((_, n) => (Array.isArray(startClues) ? String(startClues[n] ?? '') : '')),
+  )
+  const examples = (riddleSample.view.clues as string[] | undefined) ?? []
   let verse = $state(verses ? ((start?.payload?.prompt as string | undefined) ?? '') : '')
   let attempted = $state(false)
   let roster = $state<readonly VocabEntry[] | 'loading' | 'failed'>('loading')
 
   onMount(() => {
-    if (!verses) return
-    loadVocab('items').then(
+    if (!verses && !riddles) return
+    loadVocab(riddles ? 'subjects' : 'items').then(
       (list) => (roster = list.entries),
       () => (roster = 'failed'),
     )
@@ -66,20 +78,32 @@
 
   const verseError = $derived(verseProblem(verse, name))
   const itemError = $derived(verseItemProblem(name))
-  const error = $derived(verses ? (verseError ?? itemError) : npcNameProblem(name, asked))
+  const clueErrors = $derived(clues.map(clueProblem))
+  const subjectError = $derived(name.trim() === '' ? 'Required: what the clues describe.' : null)
+  const error = $derived(
+    riddles
+      ? (subjectError ?? clueErrors.find((e) => e !== null) ?? null)
+      : verses
+        ? (verseError ?? itemError)
+        : npcNameProblem(name, asked),
+  )
   const question = $derived<QuestionContent>({
     type: 'pick_from_list',
     payload: {
       prompt: verses ? verse.trim() : (choice.prompt?.text ?? ''),
       subject: { name: name.trim() },
+      ...(riddles ? { clues: clues.map((clue) => clue.trim()) } : {}),
     },
     mode: choice.id,
   })
-  const items = $derived(typeof roster === 'string' ? [] : plainItems(roster))
-  const listed = $derived(verses && onList(name, items))
+  const items = $derived(
+    typeof roster === 'string' ? [] : riddles ? [...roster] : plainItems(roster),
+  )
+  const listed = $derived((verses || riddles) && onList(name, items))
   const shown = $derived.by(() => {
     const open = questionPreview(question)
-    return listed ? { ...open, view: { ...open.view, vocab: 'items' } } : open
+    const list = riddles ? 'subjects' : 'items'
+    return listed ? { ...open, view: { ...open.view, vocab: list } } : open
   })
 
   $effect(() => ondraft(error === null ? question : undefined))
@@ -115,7 +139,25 @@
       />
     </div>
   {/if}
-  {#if verses}
+  {#if riddles}
+    <ItemPicker
+      entries={items}
+      {name}
+      label="The NPC, item or place it describes"
+      problem={attempted ? subjectError : null}
+      onname={pickItem}
+    />
+    {#if name.trim() !== '' && !listed && typeof roster !== 'string'}
+      <p class="note hint">Not on the list yet: Reldo adds it if your riddle is approved.</p>
+    {/if}
+    {#each CLUE_RUNGS as rung, n (rung)}
+      <div class="field">
+        <label for="{id}-clue-{n}">{n + 1}. {rung}</label>
+        <input id="{id}-clue-{n}" type="text" placeholder={examples[n]} bind:value={clues[n]} />
+        {@render problem(clueErrors[n] ?? null, attempted)}
+      </div>
+    {/each}
+  {:else if verses}
     <div class="field">
       <label for="{id}-verse">The verse Falo sings</label>
       <textarea

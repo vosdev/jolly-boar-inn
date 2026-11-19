@@ -24,6 +24,7 @@ import type { Line } from '../../lib/typing.svelte'
 import type { StemProps, TypeViewProps } from './props'
 import AssetStem, { lines as assetLines } from './stems/AssetStem.svelte'
 import BoardStem, { lines as boardLines } from './stems/BoardStem.svelte'
+import ClueStem, { lines as clueLines } from './stems/ClueStem.svelte'
 import ExamineStem, { lines as examineLines } from './stems/ExamineStem.svelte'
 import MoreLessStem, { lines as moreLessLines } from './stems/MoreLessStem.svelte'
 import PriceStem, { lines as priceLines } from './stems/PriceStem.svelte'
@@ -67,6 +68,7 @@ export const STEMS: Record<StemId, Component<StemProps>> = {
   more_less: MoreLessStem,
   price: PriceStem,
   board: BoardStem,
+  clues: ClueStem,
 }
 
 const STEM_LINES: Record<StemId, (data: Record<string, unknown>) => Line[]> = {
@@ -77,6 +79,7 @@ const STEM_LINES: Record<StemId, (data: Record<string, unknown>) => Line[]> = {
   more_less: moreLessLines,
   price: priceLines,
   board: boardLines,
+  clues: clueLines,
 }
 
 function stemOf(mode: string): StemId | null {

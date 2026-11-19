@@ -1,0 +1,53 @@
+{
+  "pack": "riddles_of_the_sphinx",
+  "questions": [
+    {
+      "id": "q_e785f762f42d2056",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 6,
+        "clues": [
+          "I have travelled further than most adventurers.",
+          "I was not always the shape I am now.",
+          "You will find me wandering towns, never the same one for long.",
+          "A certain amulet lets you hear what I have to say.",
+          "Meow."
+        ],
+        "image": "npc:2635",
+        "subject": {
+          "name": "Bob (cat)"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_8fc5cc707e6a6157",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 46,
+        "clues": [
+          "Kings and councils have argued within my walls for centuries.",
+          "I am the beating heart of Misthalin's trade.",
+          "A fountain, a museum and a palace stand within me.",
+          "The Grand Exchange lies just beyond my north-west gate.",
+          "Zaff, Aubury and Horvik all call me home."
+        ],
+        "image": "place:varrock",
+        "subject": {
+          "name": "Varrock"
+        }
+      },
+      "difficulty": "easy"
+    }
+  ]
+}

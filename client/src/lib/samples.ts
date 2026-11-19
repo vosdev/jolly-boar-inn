@@ -215,16 +215,29 @@ export function speedPoints(
   return at === -1 ? 0 : Math.round(rules.buckets[at]![1] * credit)
 }
 
-/** `rooms/scoring.py`'s `step` and `step_points`: what `elapsedMs` pays while a picture builds up. */
+/** `rooms/scoring.py`'s `step`: which step, from 1, is on screen `elapsedMs` into `seconds`. */
+export function stepAt(
+  elapsedMs: number,
+  seconds: number,
+  steps: { build: number; of: number },
+): number {
+  let step = 1
+  while (step <= steps.build && (elapsedMs / 1000) * steps.of > step * seconds) step += 1
+  return step
+}
+
+/** `rooms/scoring.py`'s `step_points`: 1000 on the first of `count` steps down to 400 on the last. */
+export function pointsOnStep(step: number, count: number): number {
+  return count < 2 ? 1000 : Math.round(400 + (600 * (count - step)) / (count - 1))
+}
+
+/** What `elapsedMs` pays while a picture builds up or the clues come in. */
 export function stepPoints(
   elapsedMs: number,
   seconds: number,
   steps: { build: number; of: number },
 ): number {
-  const count = steps.build + 1
-  let step = 1
-  while (step < count && (elapsedMs / 1000) * steps.of > step * seconds) step += 1
-  return Math.round(400 + (600 * (count - step)) / (count - 1))
+  return pointsOnStep(stepAt(elapsedMs, seconds, steps), steps.build + 1)
 }
 
 /** The points a room would pay `credit`, `elapsedMs` into the sample. */

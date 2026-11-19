@@ -25,6 +25,7 @@ export interface SuggestRules {
   render: boolean
   picture_item: boolean
   lined: boolean
+  clued: boolean
   tags: [string, string][]
   right_first: boolean
 }
@@ -42,6 +43,7 @@ export interface ModeRules {
   setting: string | null
   options: [number, number] | null
   steps: { build: number; of: number } | null
+  clues: number
   pictured: boolean
   picture_at_reveal: boolean
   extra_answer: number
@@ -120,10 +122,11 @@ export function suggestRulesOf(mode: string): SuggestRules | undefined {
 
 /**
  * How a mode's picture shows while a question is open: `shadow` for one that is the whole
- * question, `build` for one that builds up, `reveal` for one held back until the reveal.
+ * question, `build` for one that builds up, `reveal` for one held back until the reveal. A
+ * clued mode's steps are its clues, so its picture waits for the reveal.
  */
 export function pictureOf(mode: ModeRules): 'shadow' | 'build' | 'reveal' | undefined {
-  if (mode.steps !== null) return 'build'
+  if (mode.steps !== null && mode.clues === 0) return 'build'
   if (mode.picture_at_reveal) return 'reveal'
   return mode.pictured ? 'shadow' : undefined
 }

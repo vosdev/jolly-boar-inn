@@ -31,7 +31,8 @@ class Suggest:
     answer is named on, by name, for the import script to find; ``verse`` makes the prompt
     the player's own, about an item that may be listed already. ``render`` names an NPC as a
     ``multiple_choice`` right option, for the import script to picture. ``picture_item``
-    takes an item's name to picture, ``lined`` a prompt of several lines. ``tags`` are the
+    takes an item's name to picture, ``lined`` a prompt of several lines, ``clued`` the
+    mode's clues, vaguest first. ``tags`` are the
     pack's tags a question of each type gets, as ``(type, tag)`` pairs. ``right_first`` is a
     pack that lists the right option first and asks each prompt once.
     """
@@ -48,6 +49,7 @@ class Suggest:
     render: bool = False
     picture_item: bool = False
     lined: bool = False
+    clued: bool = False
     tags: tuple[tuple[str, str], ...] = ()
     right_first: bool = False
 
@@ -86,8 +88,10 @@ class Mode:
     schema's two to six would make the round a guess.
 
     ``steps`` is how a round's picture builds up, for its ``STEP`` questions; without it they
-    score on speed. ``pictured`` keeps a question whose picture this install lacks out of the
-    round: the picture is the whole question. ``picture_at_reveal`` holds a question's picture
+    score on speed. ``clues`` is how many clues each question carries, one shown a step, so a
+    clued mode's steps count as many; 0 for a round whose questions carry none. ``pictured``
+    keeps a question whose picture this install lacks out of the round: the picture is the
+    whole question. ``picture_at_reveal`` holds a question's picture
     back until it closes, for a round where the picture would give the answer away.
 
     ``stem`` is what the client draws above the answers (``lib/modes/``), or ``None`` for a
@@ -108,6 +112,7 @@ class Mode:
     setting: str | None = None
     options: tuple[int, int] | None = None
     steps: Steps | None = None
+    clues: int = 0
     pictured: bool = False
     picture_at_reveal: bool = False
     extra_answer: int = 0

@@ -85,7 +85,7 @@ A **type** is an answer shape: what a player sends, how it is checked, how it ea
 planned modes share `multiple_choice`; as five types they would be five copies of `grade`.
 
 `Mode(id, types, is_round=True, questions=None, pool=None, setting=None, options=None,
-steps=None, pictured=False, picture_at_reveal=False, extra_answer=0, stem="text",
+steps=None, clues=0, pictured=False, picture_at_reveal=False, extra_answer=0, stem="text",
 hold_counts_prompt=False, suggest=None, report="question", compare="question")` in `modes/`,
 registered in `MODES` in the create form's order. A mode's rules are its entry's alone: no other
 module lists mode ids, which a test greps for.
@@ -111,7 +111,7 @@ module lists mode ids, which a test greps for.
   the `Settings` flag that offers the mode; off, or with an empty pool, `/api/modes` omits it and
   `POST /api/rooms` is a 403 `mode_not_offered`. A stored room keeps playing it. `options` holds a
   round's `multiple_choice` questions to fewer options than the schema's two to six; `mode_errors`
-  refuses the rest. `steps` is Pixel Hunt's and `pictured` Pixel Hunt's and Who's That NPC?'s (sections 8 and 12); `BUILT_UP` in `random_events.py` gives Certer both. `picture_at_reveal` keeps a question's `picture` off the open view. `extra_answer` adds seconds to a question's answer time, before the pace, for a round that takes longer to read.
+  refuses the rest. `steps` is Pixel Hunt's and `pictured` Pixel Hunt's and Who's That NPC?'s (sections 8 and 12); `BUILT_UP` in `random_events.py` gives Certer both. `clues` is how many `clues` each question carries, one a step, so `steps.count` equals it; every other mode's carry none. `picture_at_reveal` keeps a question's `picture` off the open view. `extra_answer` adds seconds to a question's answer time, before the pace, for a round that takes longer to read.
 
 Each module in `questions/types/` exports:
 
@@ -163,6 +163,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 | `whos_that_npc` | Who's That NPC? | `pick_from_list` over `popular-npcs.json`, a shadow; `multiple_choice`, a render | hand-written | done |
 | `pixel_hunt` | Pixel Hunt | `pick_from_list` over `popular-items.json`, a detail picture built up | generated from the roster | done: Zoom out, Pixelate, Tiles, Slide puzzle, Lantern, Sketch |
 | `forgetful_bard` | The Forgetful Bard | `pick_from_list` over `popular-items.json`, a verse; its picture at the reveal | hand-written | done: one item may have several verses |
+| `riddles_of_the_sphinx` | Riddles of the Sphinx | `pick_from_list` over `riddle-subjects.json`, five clues one a step; its picture at the reveal | hand-written | done, hosted by the Sphinx: NPCs, items and places on one list, mostly decoys, with no kind shown; `extra_answer` 5 |
 | `scaperune` | ScapeRune | `multiple_choice`, four options, `extra_answer` 12 | hand-written | done: `prompt` is the answer, a line per entry if ordered, and `options` are questions, at most 120 characters; `/suggest` relabels its form to say so |
 | `tales_of_gielinor` | Tales of Gielinor | Bestiary's seven types | hand-written | done, hosted by the Wise Old Man, who is therefore off the roster |
 | `uris_unravelling` | Uri's Unravelling | Bestiary's seven types, `extra_answer` 5 | hand-written | done: a clue is `multiple_choice`, its text the `quote`, never `free_text`; no map or coordinate clues |
@@ -197,7 +198,7 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   envelope fields stay out, so a mode rename rewrites no id.
 - Length caps live in the schema, not only in forms. Every choice array references
   `$defs/choices`, six at most, one per gem; `ordering.entries` and `matching.options` do too.
-- Assets are `item:<id>` or `npc:<id>`, or `screenshot:<name>`, an own screenshot, never a URL. No
+- Assets are `item:<id>`, `npc:<id>` or `place:<slug>`, or `screenshot:<name>`, an own screenshot, never a URL. No
   `client_view` or `reveal` carries one: for some modes that id is the answer. A pack question's
   picture goes out as `picture` (section 6), a `matching` field's `icon` as the field's `picture`
   and a `picture_pin`'s `screenshot` as the view's, added by the type's `pictured`.
@@ -431,7 +432,7 @@ PlayerResult { value, correct, credit, points, item_points, item, by_book }
   (section 12), or null: no image, a host's question, or a file the client lacks: `client/dist`,
   or `client/public` under `make dev`. Served immutable, and drawn under the stem, open and revealed,
   but for a `picture_at_reveal` round's, which only `question_closed` names. Devtools still show the
-  whole picture before it builds up or loses its shadow. A `picture_pin`'s screenshot is
+  whole picture before it builds up or loses its shadow, and a riddle's every clue. A `picture_pin`'s screenshot is
   `view.picture` instead, open and revealed, and its target only the reveal's.
 - `answerable_at` is `opened_at` plus the hold the question types in (`rooms/hold.py`): 0.4 s (0.9 s
   for an event), each line, a round's host's ask line counted as 50 letters, at 50 letters a second
@@ -487,8 +488,8 @@ What the server withholds. The admin is a player with a flag; there is no admin 
 | 1012 | the room left memory; the reconnect rehydrates it | reconnects |
 | 1013 | the server holds `MAX_SOCKETS` sockets already | reconnects |
 
-`GET /api/vocab/{name}` serves `items` (`popular-items.json`) and `npcs` (`popular-npcs.json`,
-each the infobox's first NPC id) as `{vocab, version, entries: [{id, name}]}`, built at startup. One name under two ids, or one id under two names, refuses to load. The client fetches a list once, when a question
+`GET /api/vocab/{name}` serves `items` (`popular-items.json`), `npcs` (`popular-npcs.json`,
+each the infobox's first NPC id) and `subjects` (`riddle-subjects.json`, ids of its own) as `{vocab, version, entries: [{id, name}]}`, built at startup. One name under two ids, or one id under two names, refuses to load. The client fetches a list once, when a question
 first names it; per question it would resend the list every time. It gives nothing away: it is every
 entry, not the question's options.
 
@@ -663,8 +664,10 @@ linearly from that band's edge to 0 at a quarter of the log width; the reveal ti
 `number_slider` has no band: 1.0 on the answer, 0 a quarter of the track's width away.
 
 Steps (Pixel Hunt, and Certer anywhere): `Steps(build=17, of=25)`, 17 steps of a 25th of the question's seconds while
-the picture builds up, then the whole picture as step 18. Points fall from 1000 to 435 on step
-17 and 400 on 18, `round(400 + 600 × (18 - k) / 17)`. A mode without `steps` scores on speed.
+the picture builds up, then the whole picture as step 18. Points fall from 1000 to 400 on the last
+of n steps, `round(400 + 600 × (n - k) / (n - 1))`: 435 on Pixel Hunt's 17th. Riddles of the Sphinx
+is `Steps(build=4, of=6)`, a clue a sixth and the last for two: 1000, 850, 700, 550, 400. A mode
+without `steps` scores on speed.
 
 - There is no `question_update` message. Clients work the schedule out from `answerable_at` and
   `ends_at`, and the reveal (`lib/pixelHunt.ts`, one `<canvas>`, a function of the picture, the
@@ -925,7 +928,7 @@ key into them, so cleanup leaves it.
   or an `item` (a name not on the roster).
   A Who's That NPC? shadow's payload is its fixed prompt and `subject.name`, an NPC not on its
   list (`named`); a render's right option names its NPC, and it has no `image` (`render`).
-  A Forgetful Bard payload is a verse and `subject.name`, a plain item on the list or not, which the verse may not name (`verse`). A place for Mark the Map is `prompt`, one target and a `reach`, nothing else (`_place_errors`), with a `wiki`.
+  A Forgetful Bard payload is a verse and `subject.name`, a plain item on the list or not, which the verse may not name (`verse`). A riddle is `subject.name`, listed or not, and five `clues` (`clued`). A place for Mark the Map is `prompt`, one target and a `reach`, nothing else (`_place_errors`), with a `wiki`.
   A `picture_pin` (`PICTURE_TYPES`) needs no link: its `picture`, base64 in the same body (6.9 MiB
   allowed on that route alone), is its proof. Past the limiter, `suggestion_pictures.py` takes a
   PNG, JPEG or WebP of at most 5 MB, 200 px a side and 8192² pixels, turns it upright by its EXIF,
@@ -994,7 +997,7 @@ Right until it does (More/Less keeps `sample.json`'s five, which `live_packs` dr
   comes from the wiki's `infobox_item` bucket, untradeables included, as does a `picture_item`'s,
   which becomes `image`. A named NPC takes the first infobox row's id on its page (one
   `infobox_monster` query for the file, one `infobox_npc` for the rest), joins `popular-npcs.json`
-  and gets its question filled in; a render's becomes its `image` and joins no list. A verse's item takes its roster id, or joins the roster as a suggested item does, and becomes `image`. Missing `assets.json` entries are added: the NPC's picture, the
+  and gets its question filled in; a render's becomes its `image` and joins no list. A verse's item takes its roster id, or joins the roster as a suggested item does, and becomes `image`. A riddle's subject takes its `riddle-subjects.json` id or the next free one; its `image` is its page's NPC, else its item, else `place:<slug>` with the page's `<page>.png`. Missing `assets.json` entries are added: the NPC's picture, the
   item's detail image and icon. A picture pin's `picture` must be WebP of its `width` × `height`,
   staged as `.pictures/screenshot/<name>.webp` unless there. A generated pack never takes a suggestion: its mode's go in `<mode>_suggested.json`. One refused entry, or packs that would not load, writes nothing.
 - `make edit-packs FILE=…` applies an export of question changes: an edit replaces its question

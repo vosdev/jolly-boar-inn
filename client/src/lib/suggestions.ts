@@ -113,10 +113,11 @@ export function questionPreview(content: QuestionContent, picture?: string | nul
   if (content.type === 'pick_from_list') {
     // No picture or list: neither exists until the import finds the answer's id.
     const open = previewOf({ type: 'multiple_choice', payload: {} }, mode)
+    const clues = content.payload.clues
     return {
       ...open,
       type: 'pick_from_list',
-      view: { prompt: content.payload.prompt },
+      view: { prompt: content.payload.prompt, ...(Array.isArray(clues) ? { clues } : {}) },
     }
   }
   if (content.type === 'map_pin') {
@@ -185,10 +186,11 @@ export interface QueueMatch {
 /**
  * A form of its own: `shadow`, an NPC's name (`named` on the server); `verse`, a verse and
  * the item it describes (`verse`); `place`, a place on the world map, so this server needs
- * its tiles; `picture`, a spot on a screenshot the suggester sends with it; `item`, an item.
+ * its tiles; `picture`, a spot on a screenshot the suggester sends with it; `item`, an item;
+ * `riddle`, five clues and the subject they describe (`clued`).
  * `components/suggest/forms.ts` maps each to its component.
  */
-export type EditorKind = 'shadow' | 'verse' | 'place' | 'picture' | 'item'
+export type EditorKind = 'shadow' | 'verse' | 'riddle' | 'place' | 'picture' | 'item'
 
 /** One thing the form offers to write. */
 export interface Choice {
@@ -269,6 +271,7 @@ function cardCopy(id: string): { label: string; hint: string; host: string } | u
 function formOf(id: string, rules: SuggestRules): Exclude<EditorKind, 'item'> | 'choice' | 'plain' {
   const only = rules.types.length === 1 ? rules.types[0] : undefined
   if (rules.verse) return 'verse'
+  if (rules.clued) return 'riddle'
   if (rules.named !== null) return 'shadow'
   if (only === 'map_pin') return 'place'
   if (only === 'picture_pin') return 'picture'
@@ -315,6 +318,8 @@ function roundChoice(id: string, rules: SuggestRules): Choice | undefined {
       }
     case 'verse':
       return { ...base, explanation, editor: 'verse' }
+    case 'riddle':
+      return { ...base, prompt, explanation, editor: 'riddle' }
     case 'place':
       return { ...base, explanation, wikiOnly: rules.wiki_only, editor: 'place' }
     case 'picture':
@@ -495,6 +500,23 @@ export function npcNameProblem(name: string, asked: readonly string[] = []): str
   const wanted = fold(name.trim())
   if (wanted !== '' && asked.some((known) => fold(known) === wanted)) return 'Already in the game.'
   return textProblem(name, NPC_NAME_MAX, 'the NPC’s name')
+}
+
+/** The rungs of a riddle's ladder, vaguest first, as the form labels them. */
+export const CLUE_RUNGS = [
+  'Vague / atmospheric',
+  'Domain / context',
+  'Specific trait',
+  'Strong giveaway',
+  'Punchline',
+] as const
+
+/** A clue's limit: the schema's `pick_from_list.clues` items. */
+export const CLUE_MAX = 120
+
+/** What is wrong with one of a riddle's clues, or null. */
+export function clueProblem(clue: string): string | null {
+  return textProblem(clue, CLUE_MAX, 'a clue')
 }
 
 /** A verse's limit: the schema's `pick_from_list` prompt. */

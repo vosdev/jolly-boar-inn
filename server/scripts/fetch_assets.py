@@ -6,7 +6,8 @@ several chatheads for some NPCs and the owner picks which. A target's top folder
 category (``items``, ``npcs``, ``pets``, ``teams``, ``themes``, ``trophies``): the folder a
 client lookup already globs, so a fetched file is used on the next build with no code change.
 ``logo`` is the exception: the sources ``make logo`` draws the owner's logo from, which the
-client never looks for. ``pictures`` is the other: ``pictures/<item|npc>/<id>.<ext>``, a
+client never looks for. ``pictures`` is the other: ``pictures/<item|npc>/<id>.<ext>`` or
+``pictures/place/<slug>.<ext>``, a
 question's picture, lands in ``.pictures/`` at the repo root, where the build never sees it
 under a name that is the answer. Every run but a dry one ends with ``build_pictures.py``,
 which copies each into the client under a random name, even when a fetch failed.
@@ -69,7 +70,7 @@ TARGET = re.compile(
 )
 # A question's picture is named by the asset id its payload's ``image`` holds.
 PICTURE = re.compile(
-    rf"^(?P<category>pictures)/(?P<stem>(?:item|npc)/[0-9]{{1,7}})\.(?P<ext>{'|'.join(EXTENSIONS)})$"
+    rf"^(?P<category>pictures)/(?P<stem>(?:item|npc)/[0-9]{{1,7}}|place/[a-z0-9][a-z0-9-]{{0,63}})\.(?P<ext>{'|'.join(EXTENSIONS)})$"
 )
 
 
@@ -107,7 +108,7 @@ def manifest_errors(manifest: Any) -> list[str]:
     for target, title in manifest.items():
         if target.startswith("pictures/"):
             match = PICTURE.match(target)
-            shape = "pictures/<item|npc>/<id>"
+            shape = "pictures/<item|npc>/<id> or pictures/place/<slug>"
         else:
             match = TARGET.match(target)
             shape = "<category>/<snake_case_name>"

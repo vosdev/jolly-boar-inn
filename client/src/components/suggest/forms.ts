@@ -75,6 +75,7 @@ export const SUGGESTION_FORMS: Record<
 > = {
   shadow: { form: NamedForm, type: 'pick_from_list' },
   verse: { form: NamedForm, type: 'pick_from_list' },
+  riddle: { form: NamedForm, type: 'pick_from_list' },
   place: { form: PlaceForm, type: 'map_pin', stacks: true },
   picture: { form: PictureForm, type: 'picture_pin' },
   item: { form: ItemForm },

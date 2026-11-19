@@ -2,8 +2,8 @@
 
 Payload shape (schema ``$defs/pick_from_list``)::
 
-    {"intro"?: str, "prompt": str, "vocab": "items" | "npcs", "answer_id": int,
-     "subject"?: {"name", "asset"?}, "image"?: asset, "explanation"?: str}
+    {"intro"?: str, "prompt": str, "vocab": "items" | "npcs" | "subjects", "answer_id": int,
+     "clues"?: [str x 5], "subject"?: {"name", "asset"?}, "image"?: asset, "explanation"?: str}
 
 Who's That NPC? and Pixel Hunt answer this way: questions you
 can only answer by knowing, not by ruling out a few buttons. The player searches the
@@ -18,8 +18,10 @@ edit that drops or renames an item that a question answers to fails CI rather th
 quiz night. For the same reason ``parse_value`` refuses an id the vocabulary does not
 have: a submission that could never be right is a malformed one, not a wrong one.
 
-``STEP`` scoring takes its steps from the mode: Pixel Hunt's picture builds up, and every
-other round's question shows one thing and scores on speed (section 8).
+``STEP`` scoring takes its steps from the mode: Pixel Hunt's picture builds up, Riddles of the
+Sphinx shows its ``clues`` one a step, and every other round's question shows one thing and
+scores on speed (section 8). The clues go out whole when the question opens and the client
+shows each on its step: a later one is in the frame early, as Pixel Hunt's whole picture is.
 
 The subject is the answer, so it is withheld with ``answer_id`` until the reveal.
 """
@@ -39,11 +41,11 @@ GRACE = 0.0
 ANSWER = Timing(base=25)
 REVEAL = Timing(base=6)
 
-_OPEN_KEYS = ("intro", "prompt", "vocab")
+_OPEN_KEYS = ("intro", "prompt", "vocab", "clues")
 
 
 def client_view(payload: dict[str, Any]) -> dict[str, Any]:
-    """What everyone sees while it is open: the prompt and which list to pick from."""
+    """What everyone sees while it is open: the prompt, any clues and which list to pick from."""
     return {key: payload[key] for key in _OPEN_KEYS if key in payload}
 
 

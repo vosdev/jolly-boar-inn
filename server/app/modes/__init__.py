@@ -147,6 +147,22 @@ MODES: dict[str, Mode] = {
         suggest=Suggest(explanation=False, named="items", verse=True),
         compare="item",
     ),
+    # Five clues, vaguest first, one every 5 s and the last for 10, each a step down in points.
+    # The answer is any NPC, item or place on its own list, its picture held for the reveal.
+    # The Sphinx's ask line is the question, and the clues come in after the hold.
+    "riddles_of_the_sphinx": Mode(
+        id="riddles_of_the_sphinx",
+        types=frozenset({"pick_from_list"}),
+        steps=Steps(build=4, of=6),
+        clues=5,
+        picture_at_reveal=True,
+        extra_answer=5,
+        stem="clues",
+        suggest=Suggest(
+            explanation=False, fixed_prompt="Who or what am I?", named="subjects", clued=True
+        ),
+        compare="item",
+    ),
     # The answer on the stage, four questions on the buttons, which take 30 s to read.
     "scaperune": Mode(
         id="scaperune",
@@ -314,6 +330,8 @@ def suggest_problems(mode: str, rules: Suggest) -> list[str]:
         found.append(f"{mode}: a verse is about a named answer, and it names none")
     if rules.named is not None and (rules.verse == (rules.fixed_prompt is not None)):
         found.append(f"{mode}: a named answer asks either its fixed prompt or a verse")
+    if rules.clued and "pick_from_list" not in types:
+        found.append(f"{mode}: clues are a pick_from_list field, which it does not suggest")
     if rules.render and "multiple_choice" not in types:
         found.append(f"{mode}: a render is a multiple_choice option, which it does not suggest")
     found += [
@@ -340,6 +358,10 @@ def problems(mode: Mode) -> list[str]:
         return found
     if not mode.types:
         found.append(f"{mode.id}: a round needs at least one type")
+    if mode.clues and (mode.steps is None or mode.steps.count != mode.clues):
+        found.append(f"{mode.id}: shows a clue a step, so it needs {mode.clues} steps")
+    if mode.clues and mode.types != {"pick_from_list"}:
+        found.append(f"{mode.id}: clues are a pick_from_list field, its only type")
     if mode.questions is None and len({type_questions(t) for t in mode.types}) > 1:
         found.append(f"{mode.id}: its types disagree on questions, so it must state them")
     return found

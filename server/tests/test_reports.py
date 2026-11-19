@@ -142,6 +142,8 @@ READ_AS = {
     ),
     "pixel_hunt": lambda q: q["payload"]["subject"]["name"],
     "forgetful_bard": _prompt,
+    # Every prompt is the same and the first clue is what shows first.
+    "riddles_of_the_sphinx": lambda q: q["payload"]["clues"][0],
     "scaperune": _prompt,
     "tales_of_gielinor": _prompt,
     "uris_unravelling": _prompt,

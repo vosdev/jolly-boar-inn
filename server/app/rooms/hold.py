@@ -38,8 +38,9 @@ def _text(view: dict[str, Any], key: str) -> str:
 
 
 def _silent(mode: Mode) -> bool:
-    # A mode with no stem asks its standing question in the host's ask line alone.
-    return mode.stem is None and not mode.hold_counts_prompt
+    # A mode with no stem asks its standing question in the host's ask line alone, and so
+    # does a clued one, whose stem shows nothing before the answers open.
+    return (mode.stem is None or mode.clues > 0) and not mode.hold_counts_prompt
 
 
 def stem_lines(type_id: str, mode: str, view: dict[str, Any]) -> list[int]:
