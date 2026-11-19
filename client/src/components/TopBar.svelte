@@ -20,7 +20,7 @@
    * the space the real control takes. GitHub is `--muted`, the one control not about the
    * game, and it is a link rather than a slot because it is the same on every screen.
    *
-   * **The player's name is the bar's priority.** Under 26rem the wordmark and GitHub go,
+   * **The player's name is the bar's priority.** Under 37.5rem the wordmark and GitHub go,
    * and whatever width is left belongs to the name, which ellipsises rather than
    * disappearing. The sign keeps its size.
    *
@@ -482,8 +482,8 @@
     stroke: currentColor;
   }
 
-  /* The wordmark and GitHub give way under 26rem; the sign never does. */
-  @media (max-width: 26rem) {
+  /* The wordmark and GitHub give way under 37.5rem; the sign never does. */
+  @media (max-width: 37.5rem) {
     .wordmark,
     .controls .github {
       display: none;

@@ -169,6 +169,13 @@ def test_a_name_in_the_room_or_already_asking_is_taken(client: TestClient) -> No
         assert response.json()["code"] == "name_taken"
 
 
+def test_a_request_folds_names_as_the_join_does(client: TestClient) -> None:
+    code, admin = create_keyed(client)
+    key = key_of(client, code, admin["session"])
+    assert join(client, code, "Straße", key=key).status_code == 200
+    assert ask(client, code, "STRASSE").status_code == 201
+
+
 def test_a_room_anyone_can_join_takes_no_requests(client: TestClient) -> None:
     code, _ = create_keyed(client, invite_only=False)
     response = ask(client, code, "Zezima")
