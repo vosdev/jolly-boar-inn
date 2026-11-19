@@ -104,3 +104,18 @@ def test_past_its_limit_the_oldest_open_is_told_to_go() -> None:
     held.leave("a", second)
     held.leave("a", third)
     assert held.held("a") == 0
+
+
+def test_refuse_if_spent_records_nothing_and_frees_with_the_window() -> None:
+    limiter = RateLimiter(limit=2, window=timedelta(minutes=10))
+    now = datetime(2026, 1, 1, tzinfo=UTC)
+    for _ in range(5):
+        limiter.refuse_if_spent("a", "no", now)
+    assert limiter.left("a", now) == (2, None)
+    limiter.allow("a", now)
+    limiter.allow("a", now)
+    with pytest.raises(RateLimited) as refused:
+        limiter.refuse_if_spent("a", "no", now)
+    assert refused.value.headers == {"Retry-After": "600"}
+    limiter.refuse_if_spent("b", "no", now)
+    limiter.refuse_if_spent("a", "no", now + timedelta(minutes=10))

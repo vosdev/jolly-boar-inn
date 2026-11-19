@@ -763,7 +763,10 @@ log or `Referer` sees it; the page `replaceState`s it away and keeps it in `loca
 once accepted, else falls back to the stored one. Both return chosen fields only, never a name, an answer or a question. Only the
 suggestion and report queues, `/api/admin/questions` and its pending changes (section 11) return
 questions, answers included: players' suggestions and the packs, never a room's. `METRICS_TOKEN`
-gates `GET /metrics` (OpenMetrics text, fixed-set labels only) by the same rules.
+gates `GET /metrics` (OpenMetrics text, fixed-set labels only) by the same rules. A wrong token logs
+a warning with the address and route template, never the token: any request to those routes without
+the right one, or one sending `Authorization` where the operator's bearer is optional (suggestions).
+After 10 per address in 10 minutes, any token attempt is 429 until the window frees, the right one too.
 
 `POST /api/rooms {display_name, avatar?, returning, theme?, device?, invite_only?, public?, code?, settings, custom_questions}`, in one transaction:
 
@@ -854,8 +857,8 @@ directive plus `img-src data:`, with `base-uri`, `form-action` and `frame-ancest
 The build has no inline script or style. The access log drops query strings. There is no HSTS: TLS
 ends at the proxy, and HSTS would lock out a LAN selfhoster on plain HTTP.
 
-- The container runs read-only, `cap_drop: ALL`, `no-new-privileges`, as uid 10001 over root-owned
-  code.
+- The container runs read-only (`/tmp` a `noexec,nosuid,nodev` tmpfs), `cap_drop: ALL`,
+  `no-new-privileges`, as uid 10001 over root-owned code. Both services cap memory and PIDs.
 - `profiling.py` starts `pyroscope-io` CPU profiling only when `PYROSCOPE_SERVER_ADDRESS` is set,
   tagged `service_name` and the app version, never a room, name or address. It adds no
   capability to the container above, and a failed start is logged, not fatal.

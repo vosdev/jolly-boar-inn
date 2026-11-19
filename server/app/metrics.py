@@ -54,6 +54,7 @@ LimiterName = Literal[
     "daily_requests",
     "ws_messages",
     "connects",
+    "auth_failures",
 ]
 DisconnectReason = Literal[
     "client",

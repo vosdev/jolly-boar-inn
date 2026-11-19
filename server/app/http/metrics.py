@@ -11,15 +11,19 @@ from fastapi import APIRouter, Depends, Request, Response
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from app import metrics
-from app.http.admin import Unauthorized
+from app.http.admin import Unauthorized, guarded_bearer
 
 
-def require_metrics_token(request: Request) -> None:
-    """Refuse the scrape unless it carries ``METRICS_TOKEN``."""
+def _metrics_bearer(request: Request) -> bool:
     expected: str = request.app.state.settings.metrics_token
     scheme, _, given = request.headers.get("authorization", "").partition(" ")
     sent = given.strip().encode("latin-1")
-    if not hmac.compare_digest(sent, expected.encode("ascii")) or scheme.lower() != "bearer":
+    return hmac.compare_digest(sent, expected.encode("ascii")) and scheme.lower() == "bearer"
+
+
+def require_metrics_token(request: Request) -> None:
+    """Refuse the scrape unless it carries ``METRICS_TOKEN``; any other is a failure."""
+    if not guarded_bearer(request, "metrics", _metrics_bearer):
         raise Unauthorized("a valid metrics token is required")
 
 

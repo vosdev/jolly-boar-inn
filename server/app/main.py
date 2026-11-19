@@ -40,6 +40,8 @@ from app.http.headers import SecurityHeaders, content_security_policy
 from app.http.jsonbody import JsonBody
 from app.http.metrics import HttpMetrics
 from app.http.ratelimit import (
+    AUTH_FAILURES,
+    AUTH_FAILURES_WINDOW,
     CONNECTS_PER_ADDRESS,
     CONNECTS_PER_SESSION,
     CONNECTS_WINDOW,
@@ -326,6 +328,7 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
     app.state.daily_requests = RateLimiter(DAILY_REQUESTS_PER_HOUR, name="daily_requests")
     app.state.connects = RateLimiter(CONNECTS_PER_ADDRESS, CONNECTS_WINDOW, name="connects")
     app.state.session_connects = RateLimiter(CONNECTS_PER_SESSION, CONNECTS_WINDOW, name="connects")
+    app.state.auth_failures = RateLimiter(AUTH_FAILURES, AUTH_FAILURES_WINDOW, name="auth_failures")
     app.state.pending_hellos = OldestOut(PENDING_HELLOS_PER_ADDRESS)
     app.state.unhelloed = OpenCount(UNHELLOED_PER_ADDRESS)
     app.state.sockets = OpenCount(app.state.settings.max_sockets)

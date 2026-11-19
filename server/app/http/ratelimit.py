@@ -2,11 +2,11 @@
 
 Room creation and every attempt at it, changes to a host's own questions, free codes for
 the create page, joins, join failures reported, suggestions, checks for similar questions,
-suggestion tries, reports, daily starts and every daily request, websocket connects, and
-lookups of rooms that turn out not to exist. The last is what keeps the room list
-private. The live codes are a few of a few hundred words, and every request that names a
-room answers whether it exists, so an address that keeps asking for rooms that are not
-there is scanning and is refused for a while.
+suggestion tries, reports, daily starts and every daily request, websocket connects, wrong
+operator tokens, and lookups of rooms that turn out not to exist. The last is what keeps
+the room list private. The live codes are a few of a few hundred words, and every request
+that names a room answers whether it exists, so an address that keeps asking for rooms that
+are not there is scanning and is refused for a while.
 """
 
 import asyncio
@@ -37,6 +37,10 @@ FREE_CODES_WINDOW = timedelta(seconds=10)
 # A mistyped code or two, or a phone retrying an old link, stays far below this.
 LOOKUP_MISSES = 30
 LOOKUP_WINDOW = timedelta(minutes=10)
+# An operator mistyping a pasted token, or a scraper left on an old one, stays below this; a
+# guess at a weak token gets a few a minute.
+AUTH_FAILURES = 10
+AUTH_FAILURES_WINDOW = timedelta(minutes=10)
 # High enough for a pub on one address, with every player's name clash retried; low
 # enough that a kicked player's script cannot keep coming back all evening.
 JOINS_PER_HOUR = 100
@@ -115,6 +119,15 @@ class RateLimiter:
             return
         metrics.RATE_LIMITED.labels(limiter=self.name).inc()
         _, free_at = self.left(key, now)
+        raise RateLimited(message, None if free_at is None else free_at - now)
+
+    def refuse_if_spent(self, key: str, message: str, now: datetime | None = None) -> None:
+        """Raise ``RateLimited`` if ``key`` has no hits left. Records nothing."""
+        now = now or datetime.now(UTC)
+        left, free_at = self.left(key, now)
+        if left > 0:
+            return
+        metrics.RATE_LIMITED.labels(limiter=self.name).inc()
         raise RateLimited(message, None if free_at is None else free_at - now)
 
     def left(self, key: str, now: datetime | None = None) -> tuple[int, datetime | None]:

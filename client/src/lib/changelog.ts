@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.266.7',
+    date: '2026-11-19',
+    text: 'Lock out addresses that keep guessing the admin token, and cap the database memory.',
+  },
+  {
     version: '0.266.6',
     date: '2026-11-19',
     text: 'Turn away floods of room, question and daily requests, so one address cannot slow every game.',

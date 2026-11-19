@@ -17,9 +17,11 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from app.config import Settings
 from app.http import admin
+from app.http.ratelimit import AUTH_FAILURES, SUGGESTIONS_PER_HOUR
 from app.main import create_app
 from app.rooms import codes
 from tests.conftest import BASE
@@ -172,6 +174,100 @@ def test_the_token_never_reaches_the_access_log(
     access = [r.getMessage() for r in caplog.records if r.name == "uvicorn.access"]
     assert len(access) == 3, access
     assert not [line for line in access if TOKEN in line]
+
+
+# --- Failed tokens --------------------------------------------------------------------
+
+GUESS = {"Authorization": "Bearer wrongguess-wrongguess-wrongguess"}
+
+
+def proxied(settings: Settings, dist: Path) -> TestClient:
+    """A client whose requests name their address in ``X-Forwarded-For``."""
+    app = create_app(settings.model_copy(update={"admin_token": TOKEN}), dist)
+    return TestClient(ProxyHeadersMiddleware(app, trusted_hosts="testclient"))
+
+
+def from_(address: str, headers: dict[str, str]) -> dict[str, str]:
+    return {**headers, "X-Forwarded-For": address}
+
+
+def test_a_failed_token_is_logged_with_address_and_route_but_not_the_token(
+    settings: Settings, dist: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    caplog.set_level(logging.WARNING, logger="app.http")
+    with offline(settings, dist) as client:
+        assert client.get("/api/admin/rooms", headers=GUESS).status_code == 401
+        assert client.get("/api/admin/stats", headers={"Authorization": f"Bearer {TOKEN}x"})
+        assert client.get("/api/admin/rooms").status_code == 401
+    warned = [r.getMessage() for r in caplog.records if r.name == "app.http"]
+    assert len(warned) == 3, warned
+    assert "testclient" in warned[0] and "/api/admin/rooms" in warned[0]
+    for line in warned:
+        assert "wrongguess" not in line and TOKEN[:8] not in line, line
+
+
+def test_ten_failures_lock_one_address_out_even_with_the_right_token(
+    settings: Settings, dist: Path
+) -> None:
+    with proxied(settings, dist) as client:
+        for _ in range(AUTH_FAILURES):
+            response = client.get("/api/admin/rooms", headers=from_("203.0.113.7", GUESS))
+            assert response.status_code == 401
+        for headers in (GUESS, BEARER, {}):
+            refused = client.get("/api/admin/rooms", headers=from_("203.0.113.7", headers))
+            assert refused.status_code == 429
+            assert refused.json()["code"] == "rate_limited"
+            assert int(refused.headers["retry-after"]) > 0
+        other = client.get("/api/admin/rooms", headers=from_("203.0.113.8", BEARER))
+        assert other.status_code == 200
+
+
+def test_the_right_token_costs_nothing(settings: Settings, dist: Path) -> None:
+    with offline(settings, dist) as client:
+        for _ in range(3 * AUTH_FAILURES):
+            assert client.get("/api/admin/rooms", headers=BEARER).status_code == 200
+        for _ in range(AUTH_FAILURES):
+            assert client.get("/api/admin/rooms", headers=GUESS).status_code == 401
+        assert client.get("/api/admin/rooms", headers=GUESS).status_code == 429
+
+
+def test_a_player_sending_no_token_is_neither_charged_nor_logged(
+    settings: Settings, dist: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    caplog.set_level(logging.WARNING, logger="app.http")
+    with proxied(settings, dist) as client:
+        for _ in range(3 * AUTH_FAILURES):
+            allowance = client.get("/api/suggestions/allowance", headers=from_("203.0.113.7", {}))
+            assert allowance.status_code == 200
+        assert not [r for r in caplog.records if r.name == "app.http"]
+        assert (
+            client.get("/api/admin/rooms", headers=from_("203.0.113.7", BEARER)).status_code == 200
+        )
+
+
+def test_a_wrong_operator_token_on_the_allowance_is_a_failure(
+    settings: Settings, dist: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    caplog.set_level(logging.WARNING, logger="app.http")
+    with proxied(settings, dist) as client:
+        for _ in range(AUTH_FAILURES):
+            allowance = client.get(
+                "/api/suggestions/allowance", headers=from_("203.0.113.7", GUESS)
+            )
+            assert allowance.status_code == 200
+        warned = [r.getMessage() for r in caplog.records if r.name == "app.http"]
+        assert len(warned) == AUTH_FAILURES
+        assert "203.0.113.7" in warned[0] and "/api/suggestions/allowance" in warned[0]
+        assert not [line for line in warned if "wrongguess" in line]
+        for headers in (GUESS, BEARER):
+            refused = client.get(
+                "/api/suggestions/allowance", headers=from_("203.0.113.7", headers)
+            )
+            assert refused.status_code == 429
+        player = client.get("/api/suggestions/allowance", headers=from_("203.0.113.7", {}))
+        assert player.status_code == 200
+        other = client.get("/api/suggestions/allowance", headers=from_("203.0.113.8", BEARER))
+        assert other.json()["left"] == SUGGESTIONS_PER_HOUR
 
 
 # --- What it shows --------------------------------------------------------------------
