@@ -33,6 +33,8 @@ export interface StemTiming {
   endsAt: string
   /** The server's time in ms (`lib/clock.ts`), which the schedule is counted against. */
   now: Readable<number>
+  /** The mode's steps, for a stem that shows a clue a step; null for a mode without. */
+  steps?: { build: number; of: number } | null
 }
 
 export interface StemProps extends Drawn {

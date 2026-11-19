@@ -72,6 +72,8 @@ def label(question: dict[str, Any]) -> str:
         return ", ".join(payload["options"])
     if mode.report == "npc" and question["type"] == "multiple_choice":
         return payload["options"][payload["answer_index"]]
+    if "clues" in payload:
+        return payload["clues"][0]
     named = not mode.picture_at_reveal
     if question["type"] == "pick_from_list" and "image" in payload and named:
         names = vocab.get(payload["vocab"])

@@ -1,7 +1,7 @@
 """Copy each question's picture into the client under a name that says nothing about it.
 
-A pack question's ``image``, and a ``matching`` field's ``icon``, is an asset id, ``item:<id>``
-or ``npc:<id>``, and for Who's That NPC? and Pixel Hunt that id is the answer.
+A pack question's ``image``, and a ``matching`` field's ``icon``, is an asset id, ``item:<id>``,
+``npc:<id>`` or ``place:<slug>``, and for Who's That NPC? and Pixel Hunt that id is the answer.
 ``fetch_assets.py`` stages the files under those ids in ``.pictures/<kind>/<id>.<ext>``,
 outside the client. A ``picture_pin``'s ``screenshot``, ``screenshot:<name>``, is an own
 screenshot staged by hand as ``.pictures/screenshot/<name>.<ext>``, copied as it is, and must

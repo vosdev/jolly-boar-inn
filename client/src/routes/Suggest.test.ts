@@ -751,6 +751,71 @@ describe('Suggest', () => {
     expect(api.sendSuggestion).not.toHaveBeenCalled()
   })
 
+  const CLUE_TEXT = [
+    'I have travelled further than most adventurers.',
+    'I was not always the shape I am now.',
+    'You will find me wandering towns, never the same one for long.',
+    'A certain amulet lets you hear what I have to say.',
+    'Meow.',
+  ]
+  const RUNGS = [
+    '1. Vague / atmospheric',
+    '2. Domain / context',
+    '3. Specific trait',
+    '4. Strong giveaway',
+    '5. Punchline',
+  ]
+
+  async function riddleForm(): Promise<void> {
+    vi.mocked(api.getVocab).mockResolvedValue({
+      vocab: 'subjects',
+      version: 'v',
+      entries: [
+        { id: 6, name: 'Bob (cat)' },
+        { id: 49, name: 'Varrock' },
+      ],
+    })
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /Riddles of the Sphinx/ }))
+    await screen.findByLabelText(RUNGS[0]!)
+    await waitFor(() => expect(api.getVocab).toHaveBeenCalledWith('subjects'))
+  }
+
+  it('writes five clues, each rung labelled with its example greyed out', async () => {
+    await riddleForm()
+    RUNGS.forEach((rung, n) => {
+      expect(screen.getByLabelText<HTMLInputElement>(rung).placeholder).toBe(CLUE_TEXT[n])
+    })
+    await type('The NPC, item or place it describes', 'bob')
+    await fireEvent.click(await screen.findByRole('option', { name: 'Bob (cat)' }))
+    for (const [n, rung] of RUNGS.entries()) await type(rung, ` ${CLUE_TEXT[n]} `)
+    await fireEvent.click(screen.getByRole('radio', { name: 'Medium' }))
+    await type('Your name', 'AFKFisher')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
+    expect(api.sendSuggestion).toHaveBeenCalledWith({
+      kind: 'question',
+      content: {
+        type: 'pick_from_list',
+        payload: { prompt: 'Who or what am I?', subject: { name: 'Bob (cat)' }, clues: CLUE_TEXT },
+        mode: 'riddles_of_the_sphinx',
+        wiki: 'https://oldschool.runescape.wiki/w/Bob_(cat)',
+        difficulty: 'medium',
+      },
+      credit: 'AFKFisher',
+      credit_shown: false,
+    })
+  })
+
+  it('refuses a riddle with a clue left out', async () => {
+    await riddleForm()
+    await type('The NPC, item or place it describes', 'Varrock')
+    for (const [n, rung] of RUNGS.slice(0, 4).entries()) await type(rung, CLUE_TEXT[n]!)
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
+    expect(screen.getByText('Required: a clue.')).toBeTruthy()
+    expect(api.sendSuggestion).not.toHaveBeenCalled()
+  })
+
   it('does not offer the list’s variants for a verse', async () => {
     vi.mocked(api.getVocab).mockResolvedValue({
       vocab: 'items',

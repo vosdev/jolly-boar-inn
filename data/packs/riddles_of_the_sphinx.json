@@ -1,0 +1,1493 @@
+{
+  "pack": "riddles_of_the_sphinx",
+  "questions": [
+    {
+      "id": "q_e785f762f42d2056",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 6,
+        "clues": [
+          "I have travelled further than most adventurers.",
+          "I was not always the shape I am now.",
+          "You will find me wandering towns, never the same one for long.",
+          "A certain amulet lets you hear what I have to say.",
+          "Meow."
+        ],
+        "image": "npc:2635",
+        "subject": {
+          "name": "Bob (cat)"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_8fc5cc707e6a6157",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 46,
+        "clues": [
+          "Kings and councils have argued within my walls for centuries.",
+          "I am the beating heart of Misthalin's trade.",
+          "A fountain, a museum and a palace stand within me.",
+          "The Grand Exchange lies just beyond my north-west gate.",
+          "Zaff, Aubury and Horvik all call me home."
+        ],
+        "image": "place:varrock",
+        "subject": {
+          "name": "Varrock"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_0550f41933902656",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 1,
+        "clues": [
+          "I have been the mark of a seasoned warrior for more than two decades.",
+          "I come from a creature that only those trained to 85 Slayer may harm.",
+          "I am held in one hand, yet I cannot train Strength on my own.",
+          "A kraken's appendage can be bound to me, though I will eventually crumble to dust.",
+          "A coiled demonic spine that cracks through the air."
+        ],
+        "image": "item:4151",
+        "subject": {
+          "name": "Abyssal whip"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_74adf006e3e08733",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 12,
+        "clues": [
+          "Countless adventurers have trained their strength with me at their side.",
+          "You must survive an island of hostile primates before you may wield me.",
+          "Daga sells me for 100,000 coins once you earn the right.",
+          "My special attack can sever an opponent's protection prayers.",
+          "The curved crimson blade of Ape Atoll."
+        ],
+        "image": "item:4587",
+        "subject": {
+          "name": "Dragon scimitar"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_6940060c068a5d5b",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 21,
+        "clues": [
+          "Many wear me with pride, though some still tremble at the memory of earning me.",
+          "No coin can buy me; you must survive sixty-three waves to claim me.",
+          "I am forged in the volcanic heart of Karamja.",
+          "Defeating TzTok-Jad is the final trial before I drape across your shoulders.",
+          "Molten lava flows endlessly down my back."
+        ],
+        "image": "item:6570",
+        "subject": {
+          "name": "Fire cape"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_169a7fea51c9f196",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 36,
+        "clues": [
+          "In the old days, wearing me meant you had truly made it.",
+          "Free-to-play warriors still chase the quest required to put me on.",
+          "Oziach in Edgeville refuses to sell me until you prove your worth.",
+          "You must slay Elvarg on Crandor before my straps will fit you.",
+          "The brightest cyan chestpiece a free-to-play adventurer can wear."
+        ],
+        "image": "item:1127",
+        "subject": {
+          "name": "Rune platebody"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_3e4d6ead92cb2664",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 41,
+        "clues": [
+          "I cost almost nothing, yet treasure hunters never leave home without me.",
+          "I turn earth for farmers and uncover graves for the brave.",
+          "Six crypts in Morytania only open their doors to my iron edge.",
+          "Wilderness player-killers have long been mocked for claiming me as loot.",
+          "Dig here."
+        ],
+        "image": "item:952",
+        "subject": {
+          "name": "Spade"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_ed685309af2a8c85",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 11,
+        "clues": [
+          "I change hands millions of times a day without ever tiring.",
+          "No matter how many of me you gather, I take up only one slot.",
+          "My pile changes shape ten times as I grow from one to ten thousand.",
+          "A single stack of me stops growing at 2,147,483,647.",
+          "Gold pieces — the lifeblood of the Grand Exchange."
+        ],
+        "image": "item:995",
+        "subject": {
+          "name": "Coins"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_dedd4a989f2abc34",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 53,
+        "clues": [
+          "I look humble and battered, yet I have saved more lives than most gilded armour.",
+          "I am handed out freely to those brave enough to face a winged terror.",
+          "Duke Horacio keeps a supply of me upstairs in Lumbridge Castle.",
+          "Attach a draconic visage to me and I become something far mightier.",
+          "Without me, a single breath of dragonfire will roast you alive."
+        ],
+        "image": "item:1540",
+        "subject": {
+          "name": "Anti-dragon shield"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_f659aa5f05116f85",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 54,
+        "clues": [
+          "I am one of the first tools placed into a newcomer's hands.",
+          "I am useless alone, yet paired with wood I light the way.",
+          "Those who have trained with Otto can leave me behind, though most still carry me.",
+          "Every Wintertodt brazier and campfire across Gielinor owes its spark to me.",
+          "Strike flint and steel: logs become ashes."
+        ],
+        "image": "item:590",
+        "subject": {
+          "name": "Tinderbox"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_175fae6bf71fe4c3",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 55,
+        "clues": [
+          "I am the reward at the end of a very long feast.",
+          "Despite my name, I have nothing to do with Morytania's six brothers.",
+          "You need 175 Quest Points and a defeated Culinaromancer to unlock me.",
+          "A chest in the Lumbridge Castle cellar sells me for 130,000 coins.",
+          "The iconic brown handwear at the climax of Recipe for Disaster."
+        ],
+        "image": "item:7462",
+        "subject": {
+          "name": "Barrows gloves"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_32e5426263978443",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 13,
+        "clues": [
+          "I begin my life as a humble branch cut beneath watchful spirits.",
+          "You must carve me yourself on an island where weapons are forbidden.",
+          "I am the key to a hidden market upon Gielinor's moon.",
+          "Complete the Lumbridge and Draynor Elite Diary and you may finally bank me for good.",
+          "Hold me in hand to step through a fairy ring."
+        ],
+        "image": "item:772",
+        "subject": {
+          "name": "Dramen staff"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_001638acc6ce240b",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 38,
+        "clues": [
+          "Three hidden keys must be gathered before you can even touch my hilt.",
+          "Sir Prysin lost track of how to open my case in Varrock Palace.",
+          "A fortune teller in Varrock Square knows the words that wake my power.",
+          "Shadow magic later stains me black, and ancient shards turn me purple.",
+          "Wally's blade, forged to banish Delrith."
+        ],
+        "image": "item:2402",
+        "subject": {
+          "name": "Silverlight"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_9ba0e809404b4122",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 35,
+        "clues": [
+          "I am wielded in two hands, yet I deal no damage at all.",
+          "I first arrived as a springtime gift rather than a drop from any monster.",
+          "Diango in Draynor Village will happily hand you another if you misplace me.",
+          "My only combat option lets you whack another player harmlessly on the head.",
+          "Bwak! Dance with me and flap your arms."
+        ],
+        "image": "item:4566",
+        "subject": {
+          "name": "Rubber chicken"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_7ab004ecb746250f",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 52,
+        "clues": [
+          "I am cheap, deadly and carried into battle far more often than weapons ten times my price.",
+          "You must visit the fairy city before you are allowed to wield me.",
+          "Most adventurers smear my tip with green venom before a fight.",
+          "A quarter of your special attack bar buys two lightning-fast strikes.",
+          "Four specs in a row — the classic p++ knockout."
+        ],
+        "image": "item:1215",
+        "subject": {
+          "name": "Dragon dagger"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_a3cb44c74f66539d",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 56,
+        "clues": [
+          "I am a gift from a grateful burgher on a northern isle.",
+          "I require 55 Defence and a peace won against ice trolls.",
+          "I grant both a Strength bonus and a Prayer bonus without hurting your magic or range.",
+          "A basilisk jaw transforms me into a much stronger faceguard.",
+          "White wings rise from either side of my golden brow."
+        ],
+        "image": "item:10828",
+        "subject": {
+          "name": "Helm of Neitiznot"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_59eba8d9f833cca2",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 57,
+        "clues": [
+          "Without me, certain conversations sound like little more than eerie wails.",
+          "A hermit in Lumbridge Swamp gives me away to those trying to lay a spirit to rest.",
+          "I am one of the earliest quest items new players keep in their bank for years.",
+          "Father Urhney crafted me, and the people of Port Phasmatys expect you to wear me.",
+          "Woo wooo woooo — now in plain English."
+        ],
+        "image": "item:552",
+        "subject": {
+          "name": "Ghostspeak amulet"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_52fdd5e9cf9cb012",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 58,
+        "clues": [
+          "I am a strange contraption stitched together inside a haunted manor.",
+          "An undead bird, a magnet and a strip of metal keep me working.",
+          "Wear metallic chest armour and my clever trick stops working.",
+          "I snatch most of your fired arrows and bolts back into your quiver, and occasionally make steel arrows from thin air.",
+          "The green backpack every mid-level ranger wears."
+        ],
+        "image": "item:10499",
+        "subject": {
+          "name": "Ava's accumulator"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_5f564b6b7a2243e4",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 59,
+        "clues": [
+          "The stronger my foe's arcane power, the deadlier I become.",
+          "I wait at the bottom of Mount Quidamortem for a lucky raiding party.",
+          "My power scales with the target's Magic level or Magic accuracy.",
+          "Once, a forgotten spawn outside the Farming Guild let players pick me straight off the ground.",
+          "The pale, crooked mega-rare of the Chambers of Xeric."
+        ],
+        "image": "item:20997",
+        "subject": {
+          "name": "Twisted bow"
+        }
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_434cbb794e1f6c13",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 60,
+        "clues": [
+          "I never eat, never complain and never run away, though I weigh a surprising amount.",
+          "Askeladden in Rellekka hands me out to anyone willing to take care of me.",
+          "You can tell me to fetch a stick, though you will end up fetching it yourself.",
+          "Solo adventurers leave me behind on a pressure pad inside Waterbirth Island Dungeon.",
+          "You can stroke me, feed me or drop me on the floor, and I remain utterly motionless."
+        ],
+        "image": "item:3695",
+        "subject": {
+          "name": "Pet rock"
+        }
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_070bfedd6a702c43",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 61,
+        "clues": [
+          "I slumber inside golden chests and stone sarcophagi beneath the desert sands.",
+          "Thieves searching an eight-room tomb hope to pull me out before the timer runs dry.",
+          "I can be built into an occult altar in a player's house, or recharged with ancient artefacts.",
+          "I teleport my bearer straight to Jalsavrah, Jaleustrophos and Jaldraocht.",
+          "The golden desert rod looted from Pyramid Plunder."
+        ],
+        "image": "item:26948",
+        "subject": {
+          "name": "Pharaoh's sceptre"
+        }
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_b01528ceb2fdf274",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 62,
+        "clues": [
+          "I look like a mechanic's tool, yet I carry a pirate's blessing.",
+          "You earn me by helping the undead crew of Braindeath Island brew a special rum.",
+          "I do not need to be equipped; simply sitting in your inventory is enough.",
+          "Carry me and every sip of a prayer potion restores a little more.",
+          "A blessed spanner that stretches your Prayer points further."
+        ],
+        "image": "item:6714",
+        "subject": {
+          "name": "Holy wrench"
+        }
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_56221f2a30dfd686",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 63,
+        "clues": [
+          "I am a relic from an era when rule-breakers were sent underground.",
+          "I am a flat, glowing ring that no longer serves my original purpose.",
+          "Long ago, Thordur sold me to prisoners who needed a way out of the Black Hole.",
+          "Nowadays I am handed out during holiday events and traded purely as a curiosity.",
+          "Spin me to revisit a vanished dwarven prison — if only I still worked."
+        ],
+        "image": "item:981",
+        "subject": {
+          "name": "Disk of Returning"
+        }
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_663411d6c1a6dfdb",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 64,
+        "clues": [
+          "I was meant to be a snack, yet I hit like a club.",
+          "Only a sudden visit from a travelling baker can ever place me in your hands.",
+          "Completionists dread me because no grind on earth can guarantee my drop.",
+          "I come from the Quiz Master's mystery box or a one-in-sixty-four surprise from the Sandwich Lady.",
+          "A rock-hard French loaf you can wield in your main hand."
+        ],
+        "image": "item:20590",
+        "subject": {
+          "name": "Stale baguette"
+        }
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_ed5640bbf6479123",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 65,
+        "clues": [
+          "I was forged in the desert to cut through armour that turns ordinary blades aside.",
+          "Raiders pull me from a chest guarded by the spirits of the Kharidian pantheon.",
+          "My damage never hits the very bottom or the very top of my range.",
+          "I roll accuracy twice on every stab, making high Defence almost meaningless.",
+          "The curved, dark-bladed Tombs of Amascut melee staple."
+        ],
+        "image": "item:26219",
+        "subject": {
+          "name": "Osmumten's fang"
+        }
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_92591cc60b0a02b1",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 66,
+        "clues": [
+          "I belong to the dark son of Zamorak, deep beneath the western mountains.",
+          "You must navigate a vast, trapped cavern and cast a doll into a well to claim me.",
+          "Freshly claimed, I hold only 120 charges until a dark mage in West Ardougne upgrades me to 2,500.",
+          "I require 50 Attack and 50 Magic, and I draw power from the Well of Voyage.",
+          "Five Fire runes and a Death rune unleash my signature blast."
+        ],
+        "image": "item:1409",
+        "subject": {
+          "name": "Iban's staff"
+        }
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_4529a9ce504e0a9f",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 48,
+        "clues": [
+          "I live quietly by the water now, surrounded by dusty books and old memories.",
+          "Once I was a famous adventurer, though my neighbours might not approve of my retirement plan.",
+          "I can clear your bank of junk you no longer need from finished quests.",
+          "Security footage in Draynor Village shows me blowing a hole straight through a bank wall.",
+          "Dionysius himself — still wearing his stolen blue partyhat."
+        ],
+        "image": "npc:2108",
+        "subject": {
+          "name": "Wise Old Man"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_9b9ae22afd3d21d2",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 24,
+        "clues": [
+          "I have walked the same quiet loop for longer than almost anyone alive.",
+          "I rarely leave the courtyard I know so well.",
+          "Ask me nicely and I will tell you how long you have spent in this world.",
+          "I am the oldest NPC in RuneScape, greeting newcomers outside a famous castle.",
+          "I pace endlessly around Lumbridge Castle."
+        ],
+        "image": "npc:3105",
+        "subject": {
+          "name": "Hans"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_712a832f6832b48c",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 17,
+        "clues": [
+          "I am the terror that ruined an island of sailors and mages.",
+          "A guild master sends brave free-to-play heroes across the sea to end my reign.",
+          "You must patch up the Lady Lumbridge just to reach my volcanic lair.",
+          "Bring my severed head to Oziach to prove you have earned your platebody.",
+          "The green dragon of Crandor."
+        ],
+        "image": "npc:817",
+        "subject": {
+          "name": "Elvarg"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_e908186b11a2229f",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 45,
+        "clues": [
+          "Thousands of hearts have raced at the mere sound of my footsteps.",
+          "I wait at the end of a long ordeal in a volcanic cavern.",
+          "Watch my feet carefully: stomp means one prayer, dangle means another.",
+          "At half health, four smaller kin crawl out to mend my wounds.",
+          "Wave 63 of the TzHaar Fight Cave."
+        ],
+        "image": "npc:3127",
+        "subject": {
+          "name": "TzTok-Jad"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_9ef9df11ed4b0805",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 67,
+        "clues": [
+          "I am one of the oldest bosses adventurers ever dared to challenge.",
+          "To reach my lair you must brave the deep Wilderness, though my cavern itself is safe from other players.",
+          "I breathe four different kinds of fire: fiery, poisonous, icy and shocking.",
+          "Pull a lever beside the Lava Maze and step into my soot-black chamber.",
+          "Three dark heads, one royal title."
+        ],
+        "image": "npc:239",
+        "subject": {
+          "name": "King Black Dragon"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_0a2ed1116baa4b9e",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 68,
+        "clues": [
+          "I spend my days in the dark, far beneath a tidy garden.",
+          "Bring a spade to a park and you will drop straight into my tunnels.",
+          "Without a Falador hard shield to track me, you will spend half the fight chasing me in the dark.",
+          "Wyson the Gardener happily trades my claws and skins for bird nests.",
+          "Hit me below half health and I dig away across the cavern."
+        ],
+        "image": "npc:5779",
+        "subject": {
+          "name": "Giant Mole"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_a4a8ea12e7b816a9",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 69,
+        "clues": [
+          "I am small, green and almost certainly one of the first foes you ever fought.",
+          "My kind once marched for Bandos, though now we mostly squabble over armour colours.",
+          "General Bentnoze and General Wartface argue endlessly over whether green or orange is best.",
+          "You will find plenty of us wandering east of the River Lum, dropping chef's hats and coins.",
+          "Two combat levels and a fondness for mail that fits no human."
+        ],
+        "image": "npc:3045",
+        "subject": {
+          "name": "Goblin"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_6f5dd44709aa9186",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 31,
+        "clues": [
+          "I live for music, laughter and watching crowds scramble across the floor.",
+          "My hall once stood in Seers' Village before moving south to a white-walled city.",
+          "Pull my lever and I can summon knights to dance on the table.",
+          "Drop your treasures into my chest and I will hide them inside colourful balloons.",
+          "The balding, grinning host of the Falador Party Room."
+        ],
+        "image": "npc:5792",
+        "subject": {
+          "name": "Party Pete"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_f30d80657b990095",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 47,
+        "clues": [
+          "I was cast aside by my creator as a failure, left to sleep in the frozen north.",
+          "Poke me awake after Dragon Slayer II and I will greet you with frost and venom.",
+          "Every seventh attack I unleash either a hail of acid or a crawling undead spawn.",
+          "I guard Ungael and drop the head needed to upgrade Ava's finest backpack.",
+          "The undead blue dragon known as the money printer."
+        ],
+        "image": "npc:8058",
+        "subject": {
+          "name": "Vorkath"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_877f7c191f3b6855",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 51,
+        "clues": [
+          "The people of a misty swamp village offer sacrifices to keep me appeased.",
+          "I never stay still for long, diving beneath toxic water only to rise in a new form.",
+          "Green, red and blue — each hue demands a different combat style and prayer.",
+          "My fangs and scales forge a toxic blowpipe, a serpentine helm and a venom-laced trident.",
+          "The profit snek of Zul-Andra."
+        ],
+        "image": "npc:2042",
+        "subject": {
+          "name": "Zulrah"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_9d887d392c6928e4",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 30,
+        "clues": [
+          "I keep to a small hut on the edge of dangerous ground.",
+          "Players have whispered my name for years, convinced I secretly control their drop luck.",
+          "I will forge a dragonfire shield from a visage for a hefty fee.",
+          "I send boastful adventurers to slay a dragon on Crandor before I will sell them my finest chestplate.",
+          "Did you remember to talk to me in Edgeville before hunting for your drop?"
+        ],
+        "image": "npc:822",
+        "subject": {
+          "name": "Oziach"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_2e9f29228582248f",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 70,
+        "clues": [
+          "I am the last of an ancient dwarven order, living far from my mountain kin.",
+          "I built my small hut on a rocky southern peninsula south of Port Sarim.",
+          "I am grumpy with strangers, until a certain sweet pastry melts my heart.",
+          "I can forge a Blurite sword and award the Smithing Skillcape to masters of the anvil.",
+          "Bring me a redberry pie and I will happily talk."
+        ],
+        "image": "npc:4733",
+        "subject": {
+          "name": "Thurgo"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_4d72dd7a61a291b0",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 71,
+        "clues": [
+          "I am the last surviving ourg, still fighting a war that ended an age ago.",
+          "Three loyal bodyguards — Sergeant Strongstack, Steelwill and Grimspike — fight beside me.",
+          "You must hammer a heavy door with 70 Strength just to enter my frozen stronghold.",
+          "I drop the chestplate and tassets that defined melee armour for over a decade.",
+          "For the glory of the Big High War God! Split their skulls!"
+        ],
+        "image": "npc:2215",
+        "subject": {
+          "name": "General Graardor"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_61bda108a4a35df3",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 26,
+        "clues": [
+          "I rule a vast subterranean hive beneath the Kharidian sands.",
+          "Drop two ropes into my lair — unless the Desert Elite Diary has made them permanent.",
+          "Slay my crawling first form and I burst into the air with brand-new prayers.",
+          "I was the very first boss to drop the coveted dragon chainbody.",
+          "A giant desert beetle whose second form takes wing."
+        ],
+        "image": "npc:965",
+        "subject": {
+          "name": "Kalphite Queen"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_f327ebabffc5e10b",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 15,
+        "clues": [
+          "I rule over a peaceful riverside town, though goblins and restless spirits still trouble my lands.",
+          "You will find me pacing the first floor of my castle, never far from my balcony.",
+          "I once entrusted a mysterious air talisman to an adventurer bound for the Wizards' Tower.",
+          "I hand out free anti-dragon shields to anyone preparing to face Elvarg.",
+          "The nobleman who governs Lumbridge."
+        ],
+        "image": "npc:815",
+        "subject": {
+          "name": "Duke Horacio"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_1cad4ff97f7e8b2c",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 72,
+        "clues": [
+          "I wore an Elysian spirit shield and a fire cape, and stood ready beside a dark cavern.",
+          "For years I assigned monsters to slayers inside the Tree Gnome Stronghold.",
+          "My cousin Steve steps in to take my post once a certain grandmaster quest concludes.",
+          "I fought beside you against Glough's demonic gorillas — and paid the ultimate price.",
+          "The beloved Slayer Master lost in Monkey Madness II."
+        ],
+        "image": "npc:6797",
+        "subject": {
+          "name": "Nieve"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_62ea3a968b53cf80",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 50,
+        "clues": [
+          "I grew up underground, longing to see the sun-drenched surface world my people feared.",
+          "A strange mark on my forehead ties me to an ancient goblin prophecy.",
+          "I have been kidnapped by H.A.M., guided through Lumbridge and trusted with a crossbow.",
+          "I am the Chosen Commander of the peaceful Dorgeshuun tribe.",
+          "The brave cave goblin who wears a green tunic and carries a bone crossbow."
+        ],
+        "image": "npc:2318",
+        "subject": {
+          "name": "Zanik"
+        }
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_89284b7ba89ea6da",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 73,
+        "clues": [
+          "I live in a modest cottage along the northern road out of Falador.",
+          "I ask travellers for a handful of clay, copper and iron before letting them use my tools.",
+          "My task is famous for taking under ten seconds if you bring the ores with you.",
+          "Finish my little errand and my pair of anvils are yours to hammer forever.",
+          "The dwarf whose quest is the shortest in all of Gielinor."
+        ],
+        "image": "npc:3893",
+        "subject": {
+          "name": "Doric"
+        }
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_daecff10a0b62a7e",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 74,
+        "clues": [
+          "I guard the river of souls deep beneath Taverley Dungeon.",
+          "You need 91 Slayer and a hellhound task just to step past the flames into my lair.",
+          "When I howl 'Arooooo!', three ghostly figures march forward to drain your Prayer.",
+          "I drop primordial, pegasian and eternal crystals to upgrade your boots.",
+          "The three-headed hellhound of the underworld."
+        ],
+        "image": "npc:5862",
+        "subject": {
+          "name": "Cerberus"
+        }
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_fb9cb0958c13e24d",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 75,
+        "clues": [
+          "I am a vast, pale creature that slumbers in the deepest cavern of Mount Quidamortem.",
+          "My left claw and right claw must be crippled together before my head can be felled.",
+          "I breathe crystal spikes, falling rocks, acid trails and swirling teleport portals.",
+          "Solo raiders learn to run left and right across my room in a four-tick rhythm.",
+          "The final boss of the Chambers of Xeric."
+        ],
+        "image": "npc:7551",
+        "subject": {
+          "name": "Great Olm"
+        }
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_ec7a0ed22a85fc23",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 76,
+        "clues": [
+          "I haunt a barren cavern in the Wilderness, though no player-killer can reach you inside my chamber.",
+          "Most weapons deal only half their damage to me — bring a spear or halberd instead.",
+          "A leaping Dark Energy Core drains your life to heal me unless you stun or trap it.",
+          "My rarest drops are the arcane, spectral and elysian sigils.",
+          "A colossal, spectral hound of 2,000 hitpoints."
+        ],
+        "image": "npc:319",
+        "subject": {
+          "name": "Corporeal Beast"
+        }
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_53f7a453e565652b",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 77,
+        "clues": [
+          "I sit upon a grand throne, applauding as mortals bleed for my entertainment.",
+          "I rule over the vampyric nobility of Ver Sinhaza in Morytania.",
+          "First you must shatter my shield with the Dawnbringer, then survive my webs, yellow pools and purple tornadoes.",
+          "In my final phase I shed my regal form and skitter across the arena as a monstrous spider.",
+          "The Lady of the Theatre of Blood."
+        ],
+        "image": "npc:8369",
+        "subject": {
+          "name": "Verzik Vitur"
+        }
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_b33cbbbabfedcce9",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 78,
+        "clues": [
+          "I am a towering beast locked inside the lowest tier of Mount Karuulm.",
+          "Only Konar quo Maten can assign you the task needed to enter my chamber at 95 Slayer.",
+          "Lure me over red, green and blue chemical vents to weaken my scales.",
+          "Count my attacks in threes: poison, lightning, fire, and finally jad-like fury.",
+          "My claw forges the dragon hunter lance, and my leather becomes ferocious gloves."
+        ],
+        "image": "npc:8615",
+        "subject": {
+          "name": "Alchemical Hydra"
+        }
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_85e74da6301dad7d",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 79,
+        "clues": [
+          "I rule a flourishing woodland kingdom from the base of a colossal tree.",
+          "My trusted advisor Glough has caused me no end of trouble and betrayal.",
+          "I send adventurers across the sea to Ape Atoll and out to stop a corrupted battleship.",
+          "Find me on the ground floor of the Grand Tree in the Tree Gnome Stronghold.",
+          "The royal gnome monarch with a crown upon his head."
+        ],
+        "image": "npc:8019",
+        "subject": {
+          "name": "King Narnode Shareen"
+        }
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_253c37987dee56af",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 28,
+        "clues": [
+          "Almost every legend in Gielinor began its very first step upon my cobblestones.",
+          "A gentle river splits my castle from fields of goblins, cows and chickens.",
+          "A frantic cook in my kitchen is always short an egg, a pot of flour and a bucket of milk.",
+          "Fall in battle anywhere in the world and, by default, you wake up in my courtyard.",
+          "Home to Duke Horacio, Bob's Brilliant Axes and a world-famous starter castle."
+        ],
+        "image": "place:lumbridge",
+        "subject": {
+          "name": "Lumbridge"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_26ea64e3223a88c8",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 20,
+        "clues": [
+          "My bright white walls and manicured park make me the tidiest city in Asgarnia.",
+          "An order of pun-named knights governs my castle while dwarves tunnel beneath my eastern quarter.",
+          "On 6 June 2006, a famous glitch turned my peaceful streets into a massacre.",
+          "Party Pete hosts drop parties in my south-east corner, and Wyson tends the park.",
+          "The white-walled city of the White Knights."
+        ],
+        "image": "place:falador",
+        "subject": {
+          "name": "Falador"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_9894ee0fa7c62578",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 2,
+        "clues": [
+          "Warm desert winds sweep through my sandstone streets just east of the River Lum.",
+          "For years, travellers had to pay ten coins at my western gate unless they had rescued a prince.",
+          "Silk merchants, kebab sellers and a palace full of warriors crowd my bazaar.",
+          "Shantay guards the pass to the south, and a glider lands upon my northern cliffs.",
+          "The desert emirate east of Lumbridge."
+        ],
+        "image": "place:al-kharid",
+        "subject": {
+          "name": "Al Kharid"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_e6bcd7f773182eb8",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 44,
+        "clues": [
+          "Every adventurer knows my shores, yet once you leave, you can never return.",
+          "You will bake your first bread, smith your first bronze dagger and slay your first giant rat here.",
+          "Vannaka, Brother Brace and the Survival Expert each teach you a piece of the trade.",
+          "A final spell cast upon a chicken sends you on your way to the mainland.",
+          "Where Gielinor Guide greets brand-new accounts."
+        ],
+        "image": "place:tutorial-island",
+        "subject": {
+          "name": "Tutorial Island"
+        }
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_2e0dff370a82f0ec",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 14,
+        "clues": [
+          "I am a quiet, shadowed settlement tucked between Lumbridge and Port Sarim.",
+          "A dark manor looms to my north, and a haunted jail sits just to my east.",
+          "My marketplace offers seeds, dye, toys and a bank with a hole once blasted in its wall.",
+          "Aggie the witch, Ned the rope-maker and the Wise Old Man all live within a stone's throw.",
+          "Woodcutters chop willow trees along my southern shore, watched by dark wizards."
+        ],
+        "image": "place:draynor-village",
+        "subject": {
+          "name": "Draynor Village"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_0999b2b5d0b4ca6e",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 4,
+        "clues": [
+          "A tall stone wall splits my sprawling capital in two.",
+          "On one side, merchants hawk silk and cake around a bustling square; on the other, mourners guard a supposed plague.",
+          "Thieves have spent countless hours picking pockets and lifting cakes in my market.",
+          "King Lathas rules my eastern half, while a zoo and a monastery lie near my borders.",
+          "The divided capital of Kandarin."
+        ],
+        "image": "place:ardougne",
+        "subject": {
+          "name": "Ardougne"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_7c1aff9b17b7be37",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 32,
+        "clues": [
+          "The smell of salt air, tar and fresh fish hangs over my wooden piers.",
+          "Sailors gather at the Rusty Anchor while prisoners rattle the bars of my jail.",
+          "From my docks you can sail to Karamja, Entrana, Pest Control and Great Kourend.",
+          "A famous sea shanty plays the moment you stroll down my jetties.",
+          "Asgarnia's busiest harbour — home to Sea Shanty 2."
+        ],
+        "image": "place:port-sarim",
+        "subject": {
+          "name": "Port Sarim"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_91e5d99200ffa1dc",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 9,
+        "clues": [
+          "No sun ever warms my grey cobblestones, and my townsfolk hide a hairy secret.",
+          "Cross the River Salve and follow the swamp road north to find my gates.",
+          "My rooftops are one of the most popular places in Gielinor to gather Marks of Grace.",
+          "Mazchna assigns Slayer tasks here, and the Hair of the Dog tavern pours a grim pint.",
+          "The werewolf town of Morytania."
+        ],
+        "image": "place:canifis",
+        "subject": {
+          "name": "Canifis"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_d8c131c8b1b4395a",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 18,
+        "clues": [
+          "I am a peaceful sanctuary where violence is forbidden by holy law.",
+          "Monks inspect your pockets on the dock before letting you board the ship to my shore.",
+          "No weapons or armour may cross my waters — though raw materials and unstrung bows slip right past.",
+          "The Law Altar stands upon my grass, and a dangerous cavern hides beneath my church.",
+          "The sacred Saradominist island west of Port Sarim."
+        ],
+        "image": "place:entrana",
+        "subject": {
+          "name": "Entrana"
+        }
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_5cf939148911b08e",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 49,
+        "clues": [
+          "You will not find me on the world map, yet thousands of travellers pass through me every day.",
+          "A humble shed in Lumbridge Swamp hides the doorway to my glowing streets.",
+          "My wheat fields shimmer with crop circles, and my choir sings beside a cosmic altar.",
+          "Chaeldar assigns tasks here, and a fairy ring hub sits at my heart.",
+          "The hidden fairy city upon Gielinor's moon."
+        ],
+        "image": "place:zanaris",
+        "subject": {
+          "name": "Zanaris"
+        }
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_801c854dc5728a3b",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 33,
+        "clues": [
+          "For generations I existed only as a seed, hidden behind a wall of mist and mountains.",
+          "Eight elven clans share my gleaming spires and gardens.",
+          "Complete Song of the Elves and my gates finally open to you.",
+          "Zalcano's prison, the Gauntlet and a singing bowl for crystal gear all lie within my walls.",
+          "The ancient crystal city of Tirannwn."
+        ],
+        "image": "place:prifddinas",
+        "subject": {
+          "name": "Prifddinas"
+        }
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_2750e04e3dedd421",
+      "type": "pick_from_list",
+      "mode": "riddles_of_the_sphinx",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 40,
+        "clues": [
+          "I stand at the southernmost edge of a scorching desert, scarred by plague and jackals.",
+          "A high wall separates me from my grander sister city across the river.",
+          "Deep beneath my streets lie a temple of Icthlarin, a Slayer dungeon and a pyramid full of traps.",
+          "Thieves plunder my grandest tomb in search of a golden sceptre.",
+          "Look around, traveller — I am the very city where the Sphinx awaits."
+        ],
+        "image": "place:sophanem",
+        "subject": {
+          "name": "Sophanem"
+        }
+      },
+      "difficulty": "hard"
+    }
+  ]
+}

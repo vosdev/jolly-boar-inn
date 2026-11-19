@@ -256,12 +256,10 @@ def _place_errors(type_: str, payload: dict[str, Any]) -> list[str]:
 
 def _named_errors(mode: str | None, held: Suggest, payload: dict[str, Any]) -> list[str]:
     subject = payload.get("subject")
-    if (
-        payload.keys() != {"prompt", "subject"}
-        or not isinstance(subject, dict)
-        or set(subject) != {"name"}
-    ):
-        return ["$.payload: only a prompt and subject.name; the import script adds the rest"]
+    keys = {"prompt", "subject", "clues"} if held.clued else {"prompt", "subject"}
+    if payload.keys() != keys or not isinstance(subject, dict) or set(subject) != {"name"}:
+        wanted = "a prompt, clues" if held.clued else "a prompt"
+        return [f"$.payload: only {wanted} and subject.name; the import script adds the rest"]
     name = subject["name"]
     if not isinstance(name, str) or not 1 <= len(name.strip()) <= NPC_NAME_MAX:
         return [f"$.payload.subject.name: a name of 1 to {NPC_NAME_MAX} characters"]
@@ -269,7 +267,14 @@ def _named_errors(mode: str | None, held: Suggest, payload: dict[str, Any]) -> l
         return _verse_errors(held, payload, name)
     if payload["prompt"] != held.fixed_prompt:
         return [f"$.payload.prompt: {mode!r} always asks {held.fixed_prompt!r}"]
+    if held.clued:
+        return _clue_errors(held, payload)
     return []
+
+
+def _clue_errors(held: Suggest, payload: dict[str, Any]) -> list[str]:
+    # The id is the import's to find, so any will do to hold the clues to the schema.
+    return schema.payload_errors("pick_from_list", {**payload, "vocab": held.named, "answer_id": 0})
 
 
 def _verse_errors(held: Suggest, payload: dict[str, Any], name: str) -> list[str]:
@@ -344,6 +349,9 @@ def tidy(kind: str, content: dict[str, Any]) -> dict[str, Any]:
     if name is not None:
         prompt = content["payload"]["prompt"].strip()
         payload = {"prompt": prompt, "subject": {"name": name.strip()}}
+        clues = content["payload"].get("clues")
+        if isinstance(clues, list):
+            payload["clues"] = [c.strip() if isinstance(c, str) else c for c in clues]
         return {**content, "payload": payload}
     if rules(content.get("mode")).lined:
         typed = [line.strip() for line in content["payload"]["prompt"].splitlines()]
@@ -357,8 +365,9 @@ def _submission_errors(kind: str, content: dict[str, Any], shown: bool) -> list[
     # NPC already asked about, as one to skip, not one to refuse.
     name = named(content) if kind == "question" else None
     held = rules(content.get("mode"))
-    if name is not None and not held.verse:
-        # Every name on a named round's list is asked about, so the list is the pack's answers.
+    if name is not None and not (held.verse or held.clued):
+        # Every name on a shadow round's list is asked about, so the list is the pack's
+        # answers. A verse's list is the roster, a riddle's mostly decoys.
         listed = vocab.get(str(held.named))
         names = {vocab.fold(entry.name) for entry in listed.entries} if listed else set()
         if vocab.fold(name) in names:
@@ -396,21 +405,22 @@ _TRIER = UUID(int=0)
 
 
 def _listed_verse(content: dict[str, Any]) -> dict[str, Any] | None:
-    # A verse's payload as a room plays it, when the list has its item.
+    # A verse's or a riddle's payload as a room plays it, when the list has its answer.
     held = rules(content.get("mode"))
-    if not held.verse or held.named is None:
+    if not (held.verse or held.clued) or held.named is None:
         return None
     name = vocab.fold(content["payload"]["subject"]["name"])
     items = vocab.get(held.named)
     found = next((e for e in items.entries if vocab.fold(e.name) == name), None) if items else None
     if found is None:
         return None
-    return {
+    listed = {
         "prompt": content["payload"]["prompt"],
         "vocab": held.named,
         "answer_id": found.id,
         "subject": {"name": found.name},
     }
+    return listed | ({"clues": content["payload"]["clues"]} if held.clued else {})
 
 
 def trial(content: dict[str, Any], value: Any) -> dict[str, Any]:

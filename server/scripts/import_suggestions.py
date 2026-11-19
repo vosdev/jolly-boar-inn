@@ -20,6 +20,11 @@ as its ``image`` and the picture's entry, and the list stays as it is. One query
 ``infobox_monster`` bucket asks for every NPC in the file, and one to ``infobox_npc`` for those
 it did not find. A shadow's NPC the list already has is skipped.
 
+A Riddles of the Sphinx question is five clues and its subject's name. A subject not on
+``data/riddle-subjects.json`` joins it under the next free id. Its picture is its page's first
+NPC infobox row's, else its item's detail image, else the page's own image as a place,
+``place:<slug>``. The NPC rows come with the Who's That NPC? query.
+
 A Forgetful Bard question is a verse and its item's name. An item not on the roster joins it as
 an ``items`` entry below does, and the question gets the item's id, its ``image`` and ``subject``.
 
@@ -90,6 +95,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_PACKS = REPO_ROOT / "data" / "packs"
 DEFAULT_ROSTER = REPO_ROOT / "data" / "popular-items.json"
 DEFAULT_NPCS = REPO_ROOT / "data" / "popular-npcs.json"
+DEFAULT_SUBJECTS = REPO_ROOT / "data" / "riddle-subjects.json"
 DEFAULT_ASSETS = REPO_ROOT / "data" / "assets.json"
 DEFAULT_PICTURES = REPO_ROOT / ".pictures"
 WIKI_API = "https://oldschool.runescape.wiki/api.php"
@@ -107,6 +113,7 @@ class Plan:
     packs: dict[Path, dict[str, Any]] = field(default_factory=dict)
     items: list[dict[str, Any]] = field(default_factory=list)
     npcs: list[dict[str, Any]] = field(default_factory=list)
+    subjects: list[dict[str, Any]] = field(default_factory=list)
     # ``data/assets.json``, target to wiki file, as it will be written.
     assets: dict[str, str] = field(default_factory=dict)
     # Suggested screenshots to stage, by asset id.
@@ -145,6 +152,17 @@ def render_roster(text: str, items: list[dict[str, Any]], key: str = "items") ->
         f'    {{ "id": {item["id"]}, "name": {json.dumps(item["name"])} }}' for item in items
     )
     return f"{head}\n{lines}\n  ]\n}}"
+
+
+def render_subjects(text: str, subjects: list[dict[str, Any]]) -> str:
+    """``riddle-subjects.json`` with ``subjects`` in place of its list, one entry a line."""
+    head = text[: text.index('"subjects": [') + len('"subjects": [')]
+    lines = ",\n".join(
+        f'    {{ "id": {s["id"]}, "name": {json.dumps(s["name"], ensure_ascii=False)},'
+        f' "wiki": {json.dumps(s["wiki"], ensure_ascii=False)} }}'
+        for s in subjects
+    )
+    return f"{head}\n{lines}\n  ]\n}}\n"
 
 
 def credited(entry: dict[str, Any], where: str, plan: Plan) -> dict[str, Any] | None:
@@ -453,6 +471,63 @@ def named_item(
     return {**content, "payload": payload}
 
 
+def place_slug(page: str) -> str:
+    """A place's asset name from its wiki page: lower case, a hyphen for each other run."""
+    return re.sub(r"[^a-z0-9]+", "-", fold(page)).strip("-")[:64]
+
+
+def subject_picture(
+    content: dict[str, Any],
+    page: str,
+    lookup: Callable[[str], list[dict[str, Any]]],
+    rows: list[dict[str, Any]],
+    plan: Plan,
+) -> str:
+    """The asset a riddle's subject is pictured by, its manifest entry added if missing."""
+    npc = npc_id({**content, "wiki": f"https://oldschool.runescape.wiki/w/{page}"}, rows)
+    if not isinstance(npc, str):
+        number, _, picture = npc
+        if not has_target(plan.assets, f"pictures/npc/{number}"):
+            plan.assets[f"pictures/npc/{number}.png"] = picture
+        return f"npc:{number}"
+    item = find_item(page, lookup)
+    if not isinstance(item, str):
+        number, spelled, _ = item
+        if not has_target(plan.assets, f"pictures/item/{number}"):
+            plan.assets[f"pictures/item/{number}.png"] = f"{spelled} detail.png"
+        return f"item:{number}"
+    slug = place_slug(page)
+    if not has_target(plan.assets, f"pictures/place/{slug}"):
+        plan.assets[f"pictures/place/{slug}.png"] = f"{page}.png"
+    return f"place:{slug}"
+
+
+def named_subject(
+    content: dict[str, Any],
+    where: str,
+    lookup: Callable[[str], list[dict[str, Any]]],
+    rows: list[dict[str, Any]],
+    plan: Plan,
+) -> dict[str, Any]:
+    """A riddle made whole, its subject added to the list if new."""
+    name = str(suggestions.named(content)).strip()
+    subject = next((s for s in plan.subjects if fold(s["name"]) == fold(name)), None)
+    if subject is None:
+        number = max((s["id"] for s in plan.subjects), default=0) + 1
+        subject = {"id": number, "name": name, "wiki": wiki_page(content["wiki"])}
+        plan.subjects.append(subject)
+        plan.added.append(f"{where}: {name!r} as subject {number}")
+    payload = {
+        "prompt": content["payload"]["prompt"],
+        "vocab": suggestions.rules(content["mode"]).named,
+        "answer_id": subject["id"],
+        "clues": content["payload"]["clues"],
+        "image": subject_picture(content, subject["wiki"], lookup, rows, plan),
+        "subject": {"name": subject["name"]},
+    }
+    return {**content, "payload": payload}
+
+
 def own_picture(entry: dict[str, Any], content: dict[str, Any], where: str, plan: Plan) -> bool:
     """Take an entry's own picture into ``plan``; whether it was good, refusing it if not."""
     encoded = entry.get("picture")
@@ -520,6 +595,8 @@ def plan_questions(
         content = pictured(content, where, lookup, plan)
         if content is not None and suggestions.rules(content["mode"]).verse:
             content = named_item(content, where, lookup, plan)
+        elif content is not None and suggestions.rules(content["mode"]).clued:
+            content = named_subject(content, where, lookup, npc_rows, plan)
         elif content is not None and suggestions.named(content) is not None:
             content = named_npc(content, where, npc_rows, plan)
         elif content is not None and suggestions.rendered(content) is not None:
@@ -646,6 +723,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--packs-dir", type=Path, default=DEFAULT_PACKS)
     parser.add_argument("--roster", type=Path, default=DEFAULT_ROSTER)
     parser.add_argument("--npcs", type=Path, default=DEFAULT_NPCS)
+    parser.add_argument("--subjects", type=Path, default=DEFAULT_SUBJECTS)
     parser.add_argument("--assets", type=Path, default=DEFAULT_ASSETS)
     parser.add_argument("--pictures-dir", type=Path, default=DEFAULT_PICTURES)
     parser.add_argument("--items-file", type=Path, help="saved infobox_item rows, for offline runs")
@@ -675,10 +753,11 @@ def main(argv: list[str]) -> int:
         )
         return 1
     try:
-        with lists_of(args.roster, args.npcs):
+        with lists_of(args.roster, args.npcs, args.subjects):
             loaded = load_packs(args.packs_dir)
         roster_text = args.roster.read_text(encoding="utf-8")
         npcs_text = args.npcs.read_text(encoding="utf-8")
+        subjects_text = args.subjects.read_text(encoding="utf-8")
         assets = json.loads(args.assets.read_text(encoding="utf-8"))
     except (OSError, ValueError, PackError, vocab.VocabError) as exc:
         print(f"FAILED: {exc}", file=sys.stderr)
@@ -707,6 +786,7 @@ def main(argv: list[str]) -> int:
     plan = Plan(
         items=list(json.loads(roster_text)["items"]),
         npcs=list(json.loads(npcs_text)["npcs"]),
+        subjects=list(json.loads(subjects_text)["subjects"]),
         assets=dict(assets),
     )
     for pack in loaded:
@@ -714,6 +794,7 @@ def main(argv: list[str]) -> int:
     ids = {question["id"] for pack in loaded for question in pack.questions}
     original = {path: render_pack(pack) for path, pack in plan.packs.items()}
     roster_before, npcs_before = len(plan.items), len(plan.npcs)
+    subjects_before = len(plan.subjects)
     try:
         questions = data.get("questions", [])
         npc_rows = npc_lookup(wanted_npcs(questions))
@@ -751,8 +832,12 @@ def main(argv: list[str]) -> int:
     for npc in plan.npcs[npcs_before:]:
         insert_sorted(npcs, npc)
     npcs_rendered = render_roster(npcs_text, npcs, "npcs")
+    subjects = plan.subjects[:subjects_before]
+    for subject in plan.subjects[subjects_before:]:
+        insert_sorted(subjects, subject)
+    subjects_rendered = render_subjects(subjects_text, subjects)
     if changed or len(items) > roster_before:
-        trouble = check_packs(args.packs_dir, changed, roster, npcs_rendered)
+        trouble = check_packs(args.packs_dir, changed, roster, npcs_rendered, subjects_rendered)
         if trouble:
             for line in trouble:
                 print(line, file=sys.stderr)
@@ -765,6 +850,8 @@ def main(argv: list[str]) -> int:
         args.roster.write_text(roster, encoding="utf-8")
     if len(npcs) > npcs_before:
         args.npcs.write_text(npcs_rendered, encoding="utf-8")
+    if len(subjects) > subjects_before:
+        args.subjects.write_text(subjects_rendered, encoding="utf-8")
     if plan.assets != assets:
         manifest = dict(sorted(plan.assets.items()))
         args.assets.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
@@ -781,8 +868,11 @@ def main(argv: list[str]) -> int:
 
 
 @contextmanager
-def lists_of(roster: Path, npcs: Path | None = None) -> Iterator[None]:
-    """Hold ``pick_from_list`` questions to the item list this roster makes, and the NPC list.
+def lists_of(
+    roster: Path, npcs: Path | None = None, subjects: Path | None = None
+) -> Iterator[None]:
+    """Hold ``pick_from_list`` questions to the item list this roster makes, and the NPC and
+    riddle subject lists.
 
     The app reads the shipped lists; an import checks the ones it is about to write.
     """
@@ -790,6 +880,8 @@ def lists_of(roster: Path, npcs: Path | None = None) -> Iterator[None]:
     vocab.SOURCES["items"] = roster
     if npcs is not None:
         vocab.SOURCES["npcs"] = npcs
+    if subjects is not None:
+        vocab.SOURCES["subjects"] = subjects
     vocab._load.cache_clear()
     try:
         yield
@@ -799,7 +891,11 @@ def lists_of(roster: Path, npcs: Path | None = None) -> Iterator[None]:
 
 
 def check_packs(
-    packs_dir: Path, changed: dict[Path, str], roster: str, npcs: str | None = None
+    packs_dir: Path,
+    changed: dict[Path, str],
+    roster: str,
+    npcs: str | None = None,
+    subjects: str | None = None,
 ) -> list[str]:
     """Why the packs, with ``changed`` written, would not load; empty when they would."""
     with tempfile.TemporaryDirectory() as scratch:
@@ -814,7 +910,11 @@ def check_packs(
         if npcs is not None:
             npc_list = Path(scratch) / "npcs.json"
             npc_list.write_text(npcs, encoding="utf-8")
-        with lists_of(Path(scratch) / "roster.json", npc_list):
+        subject_list = None
+        if subjects is not None:
+            subject_list = Path(scratch) / "subjects.json"
+            subject_list.write_text(subjects, encoding="utf-8")
+        with lists_of(Path(scratch) / "roster.json", npc_list, subject_list):
             try:
                 vocab.load_all()
                 load_packs(copy)

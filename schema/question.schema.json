@@ -73,7 +73,7 @@
       "$comment": "One gem per answer (design §3). Every array of choices references this and may only narrow it.",
       "type": "array", "minItems": 2, "maxItems": 6
     },
-    "asset": { "type": "string", "pattern": "^(item|npc):[0-9]{1,7}$" },
+    "asset": { "type": "string", "pattern": "^((item|npc):[0-9]{1,7}|place:[a-z0-9][a-z0-9-]{0,63})$" },
     "screenshot": {
       "$comment": "An own screenshot, staged as .pictures/screenshot/<name>.<ext>. Never sent to players.",
       "type": "string", "pattern": "^screenshot:[a-z0-9][a-z0-9-]{0,63}$"
@@ -304,8 +304,12 @@
       "properties": {
         "prompt": { "$ref": "#/$defs/prompt" },
         "intro": { "$ref": "#/$defs/intro" },
-        "vocab": { "enum": ["items", "npcs"] },
+        "vocab": { "enum": ["items", "npcs", "subjects"] },
         "answer_id": { "type": "integer", "minimum": 0 },
+        "clues": {
+          "type": "array", "minItems": 5, "maxItems": 5,
+          "items": { "type": "string", "minLength": 1, "maxLength": 120 }
+        },
         "image": { "$ref": "#/$defs/asset" },
         "subject": { "$ref": "#/$defs/subject" },
         "explanation": { "type": "string", "maxLength": 300 }

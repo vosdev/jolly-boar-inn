@@ -72,6 +72,7 @@ NPC_ROWS = [
     {"page_name": "Araxxor", "id": ["13670"], "image": ["[[File:Araxxor (enraged).png]]"]},
     {"page_name": "Vorkath", "id": ["8058", "8059"], "image": "[[File:Vorkath.png]]"},
     {"page_name": "Bob the Cat", "id": ["2479"]},
+    {"page_name": "Bob (cat)", "id": ["2635"], "image": ["[[File:Bob the Jagex cat.png]]"]},
 ]
 
 
@@ -84,6 +85,8 @@ def repo(tmp_path: Path) -> dict[str, Path]:
     shutil.copy(REPO_ROOT / "data" / "popular-items.json", roster)
     npcs = tmp_path / "popular-npcs.json"
     shutil.copy(REPO_ROOT / "data" / "popular-npcs.json", npcs)
+    subjects = tmp_path / "riddle-subjects.json"
+    shutil.copy(REPO_ROOT / "data" / "riddle-subjects.json", subjects)
     npc_rows = tmp_path / "npc-rows.json"
     npc_rows.write_text(json.dumps(NPC_ROWS))
     assets = tmp_path / "assets.json"
@@ -96,6 +99,7 @@ def repo(tmp_path: Path) -> dict[str, Path]:
         "packs": packs,
         "roster": roster,
         "npcs": npcs,
+        "subjects": subjects,
         "npc_rows": npc_rows,
         "assets": assets,
         "items": rows,
@@ -109,6 +113,7 @@ def run(repo: dict[str, Path], export: dict[str, Any]) -> int:
     file.write_text(json.dumps(export))
     args = [str(file), "--packs-dir", str(repo["packs"]), "--roster", str(repo["roster"])]
     args += ["--npcs", str(repo["npcs"]), "--assets", str(repo["assets"])]
+    args += ["--subjects", str(repo["subjects"])]
     args += ["--items-file", str(repo["items"]), "--npcs-file", str(repo["npc_rows"])]
     args += ["--detail-file", str(repo["details"])]
     return import_suggestions.main(args)
@@ -116,12 +121,13 @@ def run(repo: dict[str, Path], export: dict[str, Any]) -> int:
 
 def loads(repo: dict[str, Path]) -> bool:
     """Whether the imported packs load, held to the lists they make themselves."""
-    lists = repo["roster"].read_text(), repo["npcs"].read_text()
+    lists = repo["roster"].read_text(), repo["npcs"].read_text(), repo["subjects"].read_text()
     return import_suggestions.check_packs(repo["packs"], {}, *lists) == []
 
 
 def snapshot(repo: dict[str, Path]) -> dict[str, str]:
     files = [*repo["packs"].rglob("*.json"), repo["roster"], repo["npcs"], repo["assets"]]
+    files.append(repo["subjects"])
     return {str(path): path.read_text() for path in sorted(files)}
 
 
@@ -916,3 +922,91 @@ def test_two_verses_may_share_an_item(repo: dict[str, Path]) -> None:
     assert run(repo, {"questions": [VERSE, other]}) == 0
     assert [q["payload"]["answer_id"] for q in verses(repo)[-2:]] == [4151, 4151]
     assert loads(repo)
+
+
+CLUES = [
+    "I have travelled further than most adventurers.",
+    "I was not always the shape I am now.",
+    "You will find me wandering towns, never the same one for long.",
+    "A certain amulet lets you hear what I have to say.",
+    "Mrrrow.",
+]
+RIDDLE = {
+    "type": "pick_from_list",
+    "payload": {"prompt": "Who or what am I?", "subject": {"name": "Bob (cat)"}, "clues": CLUES},
+    "mode": "riddles_of_the_sphinx",
+    "wiki": "https://oldschool.runescape.wiki/w/Bob_(cat)",
+    "difficulty": "hard",
+    "credit": "AFKFisher",
+    "credit_shown": True,
+}
+
+
+def riddle_about(name: str, page: str) -> dict[str, Any]:
+    return {
+        **RIDDLE,
+        "payload": {**RIDDLE["payload"], "subject": {"name": name}},
+        "wiki": f"https://oldschool.runescape.wiki/w/{page}",
+    }
+
+
+def riddles(repo: dict[str, Path]) -> list[dict[str, Any]]:
+    return json.loads((repo["packs"] / "riddles_of_the_sphinx.json").read_text())["questions"]
+
+
+def subjects(repo: dict[str, Path]) -> list[dict[str, Any]]:
+    return json.loads(repo["subjects"].read_text())["subjects"]
+
+
+def test_a_riddle_about_a_listed_npc_answers_to_its_entry_and_pictures_the_npc(
+    repo: dict[str, Path],
+) -> None:
+    listed, before = subjects(repo), len(riddles(repo))
+    assert run(repo, {"questions": [RIDDLE]}) == 0
+    assert len(riddles(repo)) == before + 1
+    added = riddles(repo)[-1]
+    assert added["payload"] == {
+        "prompt": "Who or what am I?",
+        "vocab": "subjects",
+        "answer_id": 6,
+        "clues": CLUES,
+        "image": "npc:2635",
+        "subject": {"name": "Bob (cat)"},
+    }
+    assert subjects(repo) == listed
+    assert loads(repo)
+
+
+def test_a_riddle_about_a_new_place_adds_it_to_the_list_with_its_pages_picture(
+    repo: dict[str, Path],
+) -> None:
+    before = max(s["id"] for s in subjects(repo))
+    assert run(repo, {"questions": [riddle_about("Lumbridge Castle", "Lumbridge_Castle")]}) == 0
+    entry = {"id": before + 1, "name": "Lumbridge Castle", "wiki": "Lumbridge Castle"}
+    assert entry in subjects(repo)
+    payload = riddles(repo)[-1]["payload"]
+    assert (payload["answer_id"], payload["image"]) == (before + 1, "place:lumbridge-castle")
+    assets = json.loads(repo["assets"].read_text())
+    assert assets["pictures/place/lumbridge-castle.png"] == "Lumbridge Castle.png"
+    assert loads(repo)
+
+
+def test_a_riddle_about_a_new_item_pictures_its_detail_and_leaves_the_roster(
+    repo: dict[str, Path],
+) -> None:
+    roster = repo["roster"].read_text()
+    assert run(repo, {"questions": [riddle_about("Dusty key", "Dusty_key")]}) == 0
+    assert riddles(repo)[-1]["payload"]["image"] == "item:1590"
+    assert (
+        json.loads(repo["assets"].read_text())["pictures/item/1590.png"] == "Dusty key detail.png"
+    )
+    assert repo["roster"].read_text() == roster
+    assert loads(repo)
+
+
+def test_importing_a_riddle_twice_changes_nothing_the_second_time(repo: dict[str, Path]) -> None:
+    new = riddle_about("Lumbridge Castle", "Lumbridge_Castle")
+    assert run(repo, {"questions": [new]}) == 0
+    before = snapshot(repo)
+    assert run(repo, {"questions": [new]}) == 0
+    assert snapshot(repo) == before

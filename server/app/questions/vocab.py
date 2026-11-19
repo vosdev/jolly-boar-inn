@@ -11,7 +11,9 @@ sound, and this module is where it is held to that:
 - **Ids are distinct**, because the id is the answer.
 
 ``items`` is the curated item roster, ``data/popular-items.json``, and ``npcs`` its
-counterpart for monsters and NPCs, ``data/popular-npcs.json``. A missing file is no
+counterpart for monsters and NPCs, ``data/popular-npcs.json``. ``subjects`` is Riddles of the
+Sphinx's own, ``data/riddle-subjects.json``: NPCs, items and places in one list with its own
+ids, since item and NPC ids overlap and places have none. A missing file is no
 vocabulary, and ``GET /api/vocab/<name>`` a 404, rather than an empty list that would look
 like a vocabulary with nobody in it.
 
@@ -34,6 +36,7 @@ from app.config import REPO_ROOT
 SOURCES: dict[str, Path] = {
     "items": REPO_ROOT / "data" / "popular-items.json",
     "npcs": REPO_ROOT / "data" / "popular-npcs.json",
+    "subjects": REPO_ROOT / "data" / "riddle-subjects.json",
 }
 
 

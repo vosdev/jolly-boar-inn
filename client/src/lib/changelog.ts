@@ -44,6 +44,16 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.266.1',
+    date: '2026-11-19',
+    text: 'Add 60 Riddles of the Sphinx questions across iconic items, NPCs, bosses and places.',
+  },
+  {
+    version: '0.266.0',
+    date: '2026-11-19',
+    text: 'Add Riddles of the Sphinx: name the NPC, item or place from five clues, vaguest first. Answer early for more points.',
+  },
+  {
     version: '0.265.0',
     date: '2026-11-19',
     text: 'Suggest Prop Hunt questions on your own screenshot: mark the spot or cells players must tap.',

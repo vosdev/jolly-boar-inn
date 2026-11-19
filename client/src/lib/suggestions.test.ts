@@ -122,6 +122,7 @@ describe('the choices', () => {
       ['sort_it_out', ['ordering']],
       ['release_order', ['ordering']],
       ['prop_hunt', ['picture_pin']],
+      ['riddles_of_the_sphinx', ['pick_from_list']],
       ['no_round', trivia],
     ])
     const scaperune = CHOICES.find((c) => c.id === 'scaperune')
@@ -173,6 +174,7 @@ describe('the choices', () => {
       'forgetful_bard',
       'mark_the_map',
       'prop_hunt',
+      'riddles_of_the_sphinx',
     ])
     expect(CHOICES.find((c) => c.id === 'release_order')?.host).toBe('aris')
   })
@@ -427,6 +429,7 @@ describe('a question’s round', () => {
     expect(roundsFor('pick_from_list').map((c) => c.id)).toEqual([
       'whos_that_npc',
       'forgetful_bard',
+      'riddles_of_the_sphinx',
     ])
     expect(roundsFor('multiple_choice').map((c) => c.id)).not.toContain(NO_ROUND)
   })
@@ -516,6 +519,7 @@ describe('steps in the suggestion form', () => {
       'forgetful_bard',
       'mark_the_map',
       'prop_hunt',
+      'riddles_of_the_sphinx',
     ])
   })
 

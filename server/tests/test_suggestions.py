@@ -1627,6 +1627,74 @@ def test_a_verse_about_a_listed_item_is_answered_from_the_list(client: TestClien
     assert tried(client, VERSE, 11802)["result"]["correct"] is False
 
 
+RIDDLE: dict[str, Any] = {
+    "kind": "question",
+    "content": {
+        "type": "pick_from_list",
+        "mode": "riddles_of_the_sphinx",
+        "wiki": "https://oldschool.runescape.wiki/w/Bob_(cat)",
+        "difficulty": "medium",
+        "payload": {
+            "prompt": "Who or what am I?",
+            "subject": {"name": "Bob (cat)"},
+            "clues": [
+                "I have travelled further than most adventurers.",
+                "I was not always the shape I am now.",
+                "You will find me wandering towns, never the same one for long.",
+                "A certain amulet lets you hear what I have to say.",
+                "Meow.",
+            ],
+        },
+    },
+    "credit": "AFKFisher",
+    "credit_shown": True,
+}
+
+
+def _riddle(**payload: Any) -> dict[str, Any]:
+    return _with(RIDDLE, payload={**RIDDLE["content"]["payload"], **payload})
+
+
+def test_a_riddle_and_its_subject_are_suggested_and_exported(client: TestClient) -> None:
+    approve(client, suggest(client, RIDDLE))
+    (question,) = export(client)["questions"]
+    assert question == {**RIDDLE["content"], "credit": "AFKFisher", "credit_shown": True}
+
+
+def test_a_riddle_may_name_a_subject_not_on_the_list(client: TestClient) -> None:
+    suggest(client, _riddle(subject={"name": "Kebab"}))
+    assert len(queue(client, "pending")["suggestions"]) == 1
+
+
+@pytest.mark.parametrize(
+    ("body", "problem"),
+    [
+        (_riddle(clues=RIDDLE["content"]["payload"]["clues"][:2]), "$.payload.clues"),
+        (_riddle(clues=RIDDLE["content"]["payload"]["clues"][:4]), "$.payload.clues"),
+        (_riddle(clues=[*RIDDLE["content"]["payload"]["clues"], "Purr."]), "$.payload.clues"),
+        (_riddle(clues=["", "b", "c", "d", "e"]), "$.payload.clues"),
+        (_riddle(prompt="Who am I?"), "always asks"),
+        (_without(RIDDLE, "wiki"), "$.wiki"),
+        (_riddle(answer_id=6), "only a prompt, clues and subject.name"),
+    ],
+    ids=["two", "four", "six", "empty_clue", "prompt", "no_link", "answer_id"],
+)
+def test_a_riddle_is_refused(client: TestClient, body: dict[str, Any], problem: str) -> None:
+    response = client.post("/api/suggestions", json=body)
+    assert response.status_code == 422, response.text
+    assert problem in response.text
+
+
+def test_a_riddle_about_a_listed_subject_shows_its_clues_and_is_answered_from_the_list(
+    client: TestClient,
+) -> None:
+    trial = tried(client, RIDDLE)
+    assert trial["view"]["clues"] == RIDDLE["content"]["payload"]["clues"]
+    assert trial["view"]["vocab"] == "subjects"
+    assert trial["reveal"]["subject"] == {"name": "Bob (cat)"}
+    assert tried(client, RIDDLE, 6)["result"]["correct"] is True
+
+
 def test_a_verse_about_a_new_item_reveals_its_name_and_takes_no_answer(client: TestClient) -> None:
     new = _verse(subject={"name": "Dusty key"})
     trial = tried(client, new)

@@ -403,6 +403,7 @@ describe('the stem’s schedule', () => {
       answerableAt: '2026-09-21T20:00:02Z',
       endsAt: '2026-09-21T20:00:10Z',
       now: serverNow,
+      steps: null,
     })
   })
 

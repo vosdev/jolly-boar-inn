@@ -11,6 +11,7 @@
       "setting": null,
       "options": null,
       "steps": null,
+      "clues": 0,
       "pictured": false,
       "picture_at_reveal": false,
       "extra_answer": 0,
@@ -31,6 +32,7 @@
       "setting": null,
       "options": null,
       "steps": null,
+      "clues": 0,
       "pictured": false,
       "picture_at_reveal": false,
       "extra_answer": 0,
@@ -54,6 +56,7 @@
         6
       ],
       "steps": null,
+      "clues": 0,
       "pictured": false,
       "picture_at_reveal": false,
       "extra_answer": 0,
@@ -74,6 +77,7 @@
         "render": false,
         "picture_item": false,
         "lined": false,
+        "clued": false,
         "tags": [
           [
             "multiple_choice",
@@ -96,6 +100,7 @@
       "setting": null,
       "options": null,
       "steps": null,
+      "clues": 0,
       "pictured": false,
       "picture_at_reveal": false,
       "extra_answer": 0,
@@ -116,6 +121,7 @@
         "render": false,
         "picture_item": false,
         "lined": false,
+        "clued": false,
         "tags": [],
         "right_first": false
       },
@@ -133,6 +139,7 @@
       "setting": null,
       "options": null,
       "steps": null,
+      "clues": 0,
       "pictured": false,
       "picture_at_reveal": false,
       "extra_answer": 0,
@@ -153,6 +160,7 @@
         "render": false,
         "picture_item": false,
         "lined": false,
+        "clued": false,
         "tags": [],
         "right_first": false
       },
@@ -173,6 +181,7 @@
       "setting": null,
       "options": null,
       "steps": null,
+      "clues": 0,
       "pictured": false,
       "picture_at_reveal": false,
       "extra_answer": 0,
@@ -196,6 +205,7 @@
         "render": false,
         "picture_item": false,
         "lined": false,
+        "clued": false,
         "tags": [],
         "right_first": false
       },
@@ -219,6 +229,7 @@
       "setting": null,
       "options": null,
       "steps": null,
+      "clues": 0,
       "pictured": false,
       "picture_at_reveal": false,
       "extra_answer": 0,
@@ -245,6 +256,7 @@
         "render": false,
         "picture_item": false,
         "lined": false,
+        "clued": false,
         "tags": [],
         "right_first": false
       },
@@ -267,6 +279,7 @@
       "setting": null,
       "options": null,
       "steps": null,
+      "clues": 0,
       "pictured": false,
       "picture_at_reveal": false,
       "extra_answer": 0,
@@ -292,6 +305,7 @@
         "render": false,
         "picture_item": true,
         "lined": false,
+        "clued": false,
         "tags": [],
         "right_first": false
       },
@@ -312,6 +326,7 @@
         6
       ],
       "steps": null,
+      "clues": 0,
       "pictured": false,
       "picture_at_reveal": false,
       "extra_answer": 0,
@@ -332,6 +347,7 @@
         "render": false,
         "picture_item": false,
         "lined": false,
+        "clued": false,
         "tags": [],
         "right_first": false
       },
@@ -355,6 +371,7 @@
       "setting": null,
       "options": null,
       "steps": null,
+      "clues": 0,
       "pictured": false,
       "picture_at_reveal": false,
       "extra_answer": 0,
@@ -381,6 +398,7 @@
         "render": false,
         "picture_item": true,
         "lined": false,
+        "clued": false,
         "tags": [],
         "right_first": false
       },
@@ -399,6 +417,7 @@
       "setting": null,
       "options": null,
       "steps": null,
+      "clues": 0,
       "pictured": true,
       "picture_at_reveal": false,
       "extra_answer": 0,
@@ -420,6 +439,7 @@
         "render": true,
         "picture_item": false,
         "lined": false,
+        "clued": false,
         "tags": [
           [
             "pick_from_list",
@@ -449,6 +469,7 @@
         "build": 17,
         "of": 25
       },
+      "clues": 0,
       "pictured": true,
       "picture_at_reveal": false,
       "extra_answer": 0,
@@ -469,6 +490,7 @@
       "setting": null,
       "options": null,
       "steps": null,
+      "clues": 0,
       "pictured": false,
       "picture_at_reveal": true,
       "extra_answer": 0,
@@ -489,6 +511,49 @@
         "render": false,
         "picture_item": false,
         "lined": false,
+        "clued": false,
+        "tags": [],
+        "right_first": false
+      },
+      "report": "question",
+      "compare": "item"
+    },
+    {
+      "id": "riddles_of_the_sphinx",
+      "types": [
+        "pick_from_list"
+      ],
+      "is_round": true,
+      "questions": null,
+      "pool": null,
+      "setting": null,
+      "options": null,
+      "steps": {
+        "build": 4,
+        "of": 6
+      },
+      "clues": 5,
+      "pictured": false,
+      "picture_at_reveal": true,
+      "extra_answer": 5,
+      "stem": "clues",
+      "hold_counts_prompt": false,
+      "suggest": {
+        "types": [
+          "pick_from_list"
+        ],
+        "quote": false,
+        "intro": false,
+        "explanation": false,
+        "difficulty": true,
+        "fixed_prompt": "Who or what am I?",
+        "wiki_only": false,
+        "named": "subjects",
+        "verse": false,
+        "render": false,
+        "picture_item": false,
+        "lined": false,
+        "clued": true,
         "tags": [],
         "right_first": false
       },
@@ -509,6 +574,7 @@
         4
       ],
       "steps": null,
+      "clues": 0,
       "pictured": false,
       "picture_at_reveal": false,
       "extra_answer": 12,
@@ -529,6 +595,7 @@
         "render": false,
         "picture_item": false,
         "lined": true,
+        "clued": false,
         "tags": [],
         "right_first": false
       },
@@ -552,6 +619,7 @@
       "setting": null,
       "options": null,
       "steps": null,
+      "clues": 0,
       "pictured": false,
       "picture_at_reveal": false,
       "extra_answer": 0,
@@ -578,6 +646,7 @@
         "render": false,
         "picture_item": false,
         "lined": false,
+        "clued": false,
         "tags": [],
         "right_first": false
       },
@@ -601,6 +670,7 @@
       "setting": null,
       "options": null,
       "steps": null,
+      "clues": 0,
       "pictured": false,
       "picture_at_reveal": false,
       "extra_answer": 5,
@@ -627,6 +697,7 @@
         "render": false,
         "picture_item": false,
         "lined": false,
+        "clued": false,
         "tags": [],
         "right_first": false
       },
@@ -650,6 +721,7 @@
       "setting": null,
       "options": null,
       "steps": null,
+      "clues": 0,
       "pictured": false,
       "picture_at_reveal": false,
       "extra_answer": 0,
@@ -676,6 +748,7 @@
         "render": false,
         "picture_item": false,
         "lined": false,
+        "clued": false,
         "tags": [],
         "right_first": false
       },
@@ -693,6 +766,7 @@
       "setting": null,
       "options": null,
       "steps": null,
+      "clues": 0,
       "pictured": false,
       "picture_at_reveal": false,
       "extra_answer": 0,
@@ -713,6 +787,7 @@
         "render": false,
         "picture_item": false,
         "lined": false,
+        "clued": false,
         "tags": [],
         "right_first": false
       },
@@ -741,6 +816,7 @@
       "setting": "random_event_game_mode",
       "options": null,
       "steps": null,
+      "clues": 0,
       "pictured": false,
       "picture_at_reveal": false,
       "extra_answer": 0,
@@ -759,6 +835,7 @@
       "setting": null,
       "options": null,
       "steps": null,
+      "clues": 0,
       "pictured": false,
       "picture_at_reveal": false,
       "extra_answer": 0,
@@ -777,6 +854,7 @@
       "setting": null,
       "options": null,
       "steps": null,
+      "clues": 0,
       "pictured": false,
       "picture_at_reveal": false,
       "extra_answer": 0,
@@ -803,6 +881,7 @@
         "render": false,
         "picture_item": false,
         "lined": false,
+        "clued": false,
         "tags": [],
         "right_first": false
       },
@@ -828,6 +907,7 @@
         "render": false,
         "picture_item": false,
         "lined": false,
+        "clued": false,
         "tags": [],
         "right_first": false
       }
@@ -849,6 +929,7 @@
         "render": false,
         "picture_item": false,
         "lined": false,
+        "clued": false,
         "tags": [],
         "right_first": false
       }
