@@ -44,6 +44,7 @@ from app.http.ratelimit import (
     CONNECTS_PER_SESSION,
     CONNECTS_WINDOW,
     DAILIES_PER_HOUR,
+    DAILY_REQUESTS_PER_HOUR,
     FREE_CODES,
     FREE_CODES_WINDOW,
     JOIN_FAILURES_PER_HOUR,
@@ -51,7 +52,9 @@ from app.http.ratelimit import (
     LOOKUP_MISSES,
     LOOKUP_WINDOW,
     PENDING_HELLOS_PER_ADDRESS,
+    QUESTION_CHANGES_PER_HOUR,
     REPORTS_PER_HOUR,
+    ROOM_ATTEMPTS_PER_HOUR,
     SIMILAR_PER_HOUR,
     SUGGESTIONS_PER_HOUR,
     TRIES_PER_HOUR,
@@ -309,6 +312,8 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
     app.state.cleanup = None
     app.state.idle_sweep = None
     app.state.ratelimiter = RateLimiter(app.state.settings.rooms_per_ip_per_hour, name="rooms")
+    app.state.room_attempts = RateLimiter(ROOM_ATTEMPTS_PER_HOUR, name="room_attempts")
+    app.state.question_changes = RateLimiter(QUESTION_CHANGES_PER_HOUR, name="question_changes")
     app.state.lookup_misses = RateLimiter(LOOKUP_MISSES, LOOKUP_WINDOW, name="lookup_misses")
     app.state.free_codes = RateLimiter(FREE_CODES, FREE_CODES_WINDOW, name="free_codes")
     app.state.joins = RateLimiter(JOINS_PER_HOUR, name="joins")
@@ -318,6 +323,7 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
     app.state.similar = RateLimiter(SIMILAR_PER_HOUR, name="similar")
     app.state.tries = RateLimiter(TRIES_PER_HOUR, name="tries")
     app.state.dailies = RateLimiter(DAILIES_PER_HOUR, name="dailies")
+    app.state.daily_requests = RateLimiter(DAILY_REQUESTS_PER_HOUR, name="daily_requests")
     app.state.connects = RateLimiter(CONNECTS_PER_ADDRESS, CONNECTS_WINDOW, name="connects")
     app.state.session_connects = RateLimiter(CONNECTS_PER_SESSION, CONNECTS_WINDOW, name="connects")
     app.state.pending_hellos = OldestOut(PENDING_HELLOS_PER_ADDRESS)

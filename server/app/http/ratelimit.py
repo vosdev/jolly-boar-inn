@@ -1,8 +1,9 @@
 """In-memory per-address limiters: at most ``limit`` hits per window.
 
-Room creation, free codes for the create page, joins, join failures reported,
-suggestions, checks for similar questions, suggestion tries, reports, websocket connects,
-and lookups of rooms that turn out not to exist. The last is what keeps the room list
+Room creation and every attempt at it, changes to a host's own questions, free codes for
+the create page, joins, join failures reported, suggestions, checks for similar questions,
+suggestion tries, reports, daily starts and every daily request, websocket connects, and
+lookups of rooms that turn out not to exist. The last is what keeps the room list
 private. The live codes are a few of a few hundred words, and every request that names a
 room answers whether it exists, so an address that keeps asking for rooms that are not
 there is scanning and is refused for a while.
@@ -21,6 +22,15 @@ from app.errors import ApiError
 from app.metrics import LimiterName
 from app.rooms.errors import RoomExpired, RoomNotFound
 
+# Every create, refused ones too, since checking a full bank of questions costs the loop
+# far more than a room does; twice the rooms an address may make leaves a host room to fix
+# typos.
+ROOM_ATTEMPTS_PER_HOUR = 60
+# A host editing their bank in the lobby saves it a few times a game, every save counted.
+QUESTION_CHANGES_PER_HOUR = 120
+# Daily starts, resumes and end-screen lookups together: each is a trip to the database, and
+# a player refreshing their day makes a handful.
+DAILY_REQUESTS_PER_HOUR = 120
 # A host rerolling the code for one they like; a script listing taken codes slowly.
 FREE_CODES = 5
 FREE_CODES_WINDOW = timedelta(seconds=10)

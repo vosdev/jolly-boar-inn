@@ -273,10 +273,6 @@ class Lobby(RoomHost):
         sends them is their author, and no client is told: they stay the host's until played.
         """
         code = code.upper()
-        try:
-            own = custom.envelopes(questions)
-        except QuestionError as exc:
-            raise BadQuestion(str(exc)) from None
         pool = await self._pool()
         async with self._locked(code):
             room = await self._room(code)
@@ -286,6 +282,11 @@ class Lobby(RoomHost):
             _require_admin(player)
             if room.status != "lobby":
                 raise BadState(f"room {code} is {room.status}, not in the lobby")
+            # Only now, so checking a bank of them is something only the room's admin can cost.
+            try:
+                own = custom.envelopes(questions)
+            except QuestionError as exc:
+                raise BadQuestion(str(exc)) from None
             async with pool.acquire() as conn:
                 await conn.execute(
                     "update rooms set custom_questions = $2, custom_author = $3 where id = $1",

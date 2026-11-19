@@ -28,8 +28,9 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from app.http.ratelimit import QUESTION_CHANGES_PER_HOUR, ROOM_ATTEMPTS_PER_HOUR
 from app.modes import MODES, Mode
-from app.questions import schema
+from app.questions import custom, schema
 from app.random_events import RANDOM_EVENTS
 from app.rooms import codes, errors, joins, queries
 from app.rooms.settings import RoomSettings
@@ -558,10 +559,107 @@ def test_a_seven_option_custom_question_is_a_422_naming_the_field(client: TestCl
 
 
 def test_a_bad_custom_question_costs_no_rate_limit_quota(client: TestClient) -> None:
-    """Checked while the body is parsed, before the limiter counts anything."""
+    """Checked before the room limiter counts anything."""
     for _ in range(11):
         assert post(client, [own_question(type="trivia")]).status_code == 422
     assert post(client, [own_question()]).status_code == 201
+
+
+TRIVIA_REFUSED = {
+    "detail": [
+        {
+            "type": "value_error",
+            "loc": ["body", "custom_questions"],
+            "msg": "Value error, custom_questions[0] $.type: 'trivia' is not one of"
+            " ['more_less', 'price_is_right', 'multiple_choice', 'free_text', 'closest_number',"
+            " 'number_slider', 'pick_from_list', 'pick_all_that_apply', 'ordering', 'matching',"
+            " 'map_pin', 'picture_pin']",
+        }
+    ]
+}
+
+
+def counted_envelopes(monkeypatch: pytest.MonkeyPatch) -> list[int]:
+    """Count every call of ``custom.envelopes``, which still does the checking."""
+    calls: list[int] = []
+    real = custom.envelopes
+
+    def counting(raw: Any) -> list[dict[str, Any]]:
+        calls.append(len(raw))
+        return real(raw)
+
+    monkeypatch.setattr(custom, "envelopes", counting)
+    return calls
+
+
+def test_a_bad_custom_question_is_the_same_422_as_ever(client: TestClient) -> None:
+    response = post(client, [own_question(type="trivia")])
+    assert response.status_code == 422
+    assert response.json() == TRIVIA_REFUSED
+
+
+def test_create_checks_the_hosts_questions_once(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls = counted_envelopes(monkeypatch)
+    assert post(client, [own_question(), own_question("Who?")]).status_code == 201
+    assert calls == [2]
+
+
+def test_every_create_attempt_counts_bad_ones_too(client: TestClient, db) -> None:
+    """A bad question still costs an attempt, though never a room from the hourly quota."""
+    for index in range(ROOM_ATTEMPTS_PER_HOUR):
+        bad = (
+            post(client, [own_question(type="trivia")])
+            if index % 2
+            else client.post("/api/rooms", json={"returning": False, "display_name": "a<b>"})
+        )
+        assert bad.status_code == 422
+    refused = post(client, [own_question()])
+    assert refused.status_code == 429
+    assert refused.json()["message"] == (
+        "too many attempts to create a room from this address, try again later"
+    )
+    assert "retry-after" in refused.headers
+    assert_no_room(db)
+
+
+def test_own_questions_with_a_bad_session_are_never_checked(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    code, admin = create(client)
+    player = join(client, code, "Woox").json()
+    calls = counted_envelopes(monkeypatch)
+    for session, status in (("not-a-session", 401), (player["session"], 403)):
+        body = {"session": session, "custom_questions": [own_question(type="trivia")] * 100}
+        response = client.post(f"/api/rooms/{code}/questions", json=body)
+        assert response.status_code == status, response.text
+    assert calls == []
+    body = {"session": admin["session"], "custom_questions": [own_question()]}
+    assert client.post(f"/api/rooms/{code}/questions", json=body).status_code == 204
+    assert calls == [1]
+
+
+def test_a_bad_own_question_from_the_admin_is_the_same_422_as_ever(client: TestClient) -> None:
+    code, admin = create(client)
+    body = {"session": admin["session"], "custom_questions": [own_question(type="trivia")]}
+    response = client.post(f"/api/rooms/{code}/questions", json=body)
+    assert response.status_code == 422
+    assert response.json() == TRIVIA_REFUSED
+
+
+def test_question_changes_from_one_address_are_limited(client: TestClient) -> None:
+    """Counted whatever the answer, so a stranger's posts to a room are refused too."""
+    code, admin = create(client)
+    stranger = {"session": "not-a-session", "custom_questions": [own_question()]}
+    for _ in range(QUESTION_CHANGES_PER_HOUR):
+        assert client.post(f"/api/rooms/{code}/questions", json=stranger).status_code == 401
+    own = {"session": admin["session"], "custom_questions": [own_question()]}
+    refused = client.post(f"/api/rooms/{code}/questions", json=own)
+    assert refused.status_code == 429
+    assert refused.json()["message"] == (
+        "too many question changes from this address, try again later"
+    )
 
 
 def test_an_exported_question_posts_back_as_it_came_out(client: TestClient) -> None:
@@ -661,6 +759,23 @@ def test_duplicate_name_is_409(client: TestClient) -> None:
         assert response.status_code == 409, name
         assert response.json()["code"] == "name_taken"
     assert join(client, code, "admin").status_code == 409  # the admin counts too
+
+
+def test_a_name_in_the_room_is_taken_before_the_database_is_asked(
+    app: FastAPI, client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The unique index is the fallback; the room's own players answer first."""
+    code, _ = create(client)
+    assert join(client, code, "Zezima").status_code == 200
+
+    async def no_database() -> None:
+        raise AssertionError("the join asked the database")
+
+    monkeypatch.setattr(app.state.rooms, "_pool", no_database)
+    for name in ("zezima", "ADMIN"):
+        response = join(client, code, name)
+        assert response.status_code == 409, response.text
+        assert response.json()["code"] == "name_taken"
 
 
 def test_over_max_players_is_409(client: TestClient) -> None:

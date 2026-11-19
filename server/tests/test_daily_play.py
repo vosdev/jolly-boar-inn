@@ -13,6 +13,7 @@ from fastapi.testclient import TestClient
 from starlette.testclient import WebSocketTestSession
 
 from app.daily import day_of, next_opens
+from app.http.ratelimit import DAILY_REQUESTS_PER_HOUR
 from app.question_stats import counts
 from app.questions.submission import Submission
 from app.questions.types import TYPES, pictured
@@ -385,6 +386,29 @@ def test_a_resume_costs_no_start(quick: FastAPI, client: TestClient) -> None:
     for _ in range(3):
         started(client)
     assert start(client, OTHER).status_code == 429
+
+
+def test_every_daily_request_from_an_address_counts(quick: FastAPI, client: TestClient) -> None:
+    """Resumes, finished days, bad names and result lookups alike: each is a database trip."""
+    started(client)
+    day = day_of(datetime.now(UTC)).isoformat()
+    for index in range(DAILY_REQUESTS_PER_HOUR - 1):
+        match index % 3:
+            case 0:
+                assert start(client).status_code == 200
+            case 1:
+                assert start(client, OTHER, name="a<b>").status_code == 422
+            case _:
+                asked = {"token": OTHER, "day": day}
+                assert client.post("/api/daily/result", json=asked).status_code == 404
+    for refused in (
+        start(client),
+        client.post("/api/daily/result", json={"token": TOKEN, "day": day}),
+    ):
+        assert refused.status_code == 429
+        assert refused.json()["message"] == (
+            "too many daily requests from this address, try again later"
+        )
 
 
 def test_the_day_and_its_number(quick: FastAPI, client: TestClient) -> None:

@@ -767,8 +767,9 @@ gates `GET /metrics` (OpenMetrics text, fixed-set labels only) by the same rules
 
 `POST /api/rooms {display_name, avatar?, returning, theme?, device?, invite_only?, public?, code?, settings, custom_questions}`, in one transaction:
 
-1. Validate the name before the rate limiter, so a typo costs no quota: NFKC, trimmed, single
-   spaces, 1–12 Latin letters (accents allowed), digits, spaces, `_` and `-`.
+1. Count the attempt, then validate the name and `custom_questions` before the room limiter, so a
+   typo costs no room: NFKC, trimmed, single spaces, 1–12 Latin letters (accents allowed), digits,
+   spaces, `_` and `-`.
 2. Rate limit per IPv4 address or IPv6 /64.
 3. Take `code` if sent: one a draw could give (422 `bad_code`, checked before the limiter), else 409
    `code_taken`. Without it, draw from `room-words.json` with `secrets.SystemRandom`: five plain
@@ -782,9 +783,10 @@ gates `GET /metrics` (OpenMetrics text, fixed-set labels only) by the same rules
    logged. Any failure rolls everything back.
 
 - `POST /api/rooms/{code}/questions {session, custom_questions}` replaces them in a lobby, for an
-  admin. A POST, since a bank of 100 outgrows a websocket frame. Only the browser that made the
-  room offers it: the bank is that browser's.
+  admin. A POST, since a bank of 100 outgrows a websocket frame; checked only once the session is
+  an admin's in a lobby. Only the browser that made the room offers it: the bank is that browser's.
 - Join is `POST /api/rooms/{code}/join {display_name, avatar?, returning, key?, theme?, device?, via?}` → `{session, player}`.
+  A name the room holds (`lower()`, as the unique index) is 409 `name_taken` before any insert.
 - Create's `invite_only` gives the room a key, `secrets.token_urlsafe(9)` in `rooms.invite_key`.
   A join then needs it before anything else is checked: 403 `key_required` or `bad_key`, compared
   with `hmac.compare_digest`. It is a door code, not a credential, so it travels in the link's
@@ -818,8 +820,9 @@ gates `GET /metrics` (OpenMetrics text, fixed-set labels only) by the same rules
 
 Limits:
 
-- 30 creates an hour (`ROOMS_PER_IP_PER_HOUR`), 100 joins an hour, 10 daily starts an hour (a resume is
-  free), 30 lookups of missing rooms per 10 minutes, 5 free codes per 10 seconds. Past those, every room request is 429 with a `Retry-After` (1008 on a socket), so a refusal never reveals
+- An hour: 60 create attempts, bad ones included, of which 30 rooms (`ROOMS_PER_IP_PER_HOUR`); 120
+  question saves; 100 joins; 120 daily requests (starts, resumes, results), of which 10 new
+  starts. Also 30 lookups of missing rooms per 10 minutes, 5 free codes per 10 seconds. Past those, every room request is 429 with a `Retry-After` (1008 on a socket), so a refusal never reveals
   which codes are live. A `hello` whose session a room in memory holds skips the miss and address
   connect budgets, so one device cannot lock a shared address out; nor can its silent sockets,
   since past 10 awaiting `hello` the oldest closes (in at most 2 s, still counted). A `/ws` from

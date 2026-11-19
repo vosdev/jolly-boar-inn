@@ -10,7 +10,7 @@ made with ``promote``.
 
 import asyncio
 import hmac
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID, uuid4
@@ -122,6 +122,7 @@ class Joins(RoomHost):
         arrival: Arrival = UNREPORTED,
         code: str | None = None,
         creator_key: str | None = None,
+        charge: Callable[[], None] | None = None,
     ) -> tuple[Room, Player, str]:
         """Insert the room and its admin, in one transaction; its questions wait for the start.
 
@@ -129,9 +130,9 @@ class Joins(RoomHost):
         different code, so the host is never handed one they did not see.
 
         ``custom_questions`` are the creator's own, held until ``start_game`` places each
-        as a random event. The HTTP body has already checked them; they are checked again
-        here for callers that did not come through it, before anything is written. How many
-        fit is the start's to say, since the settings can change until then.
+        as a random event, checked here before anything is written. How many fit is the
+        start's to say, since the settings can change until then. ``charge`` runs once they
+        pass, so a bad bank costs no room from the creator's quota.
 
         Returns the room, the admin player and their plaintext session token, once.
         """
@@ -146,6 +147,8 @@ class Joins(RoomHost):
             own = custom.envelopes(custom_questions)
         except QuestionError as exc:
             raise BadQuestion(str(exc)) from None
+        if charge is not None:
+            charge()
         cap = self.settings.max_players_per_room
         if settings.max_players is None:
             settings = settings.model_copy(update={"max_players": cap})
@@ -265,6 +268,11 @@ class Joins(RoomHost):
         """Insert a player into a lobby with room for them. Call with the room lock held."""
         avatar = self._pet_for(avatar, _pets_worn(room))
         session = new_token()
+        # The unique index on ``lower(display_name)`` is the fallback for a race this lock
+        # already rules out; asking the room first keeps a clash from costing a transaction.
+        folded = name.lower()
+        if any(other.display_name.lower() == folded for other in room.players.values()):
+            raise NameTaken(f"the name {name!r} is taken in room {room.code}")
         pool = await self._pool()
         async with pool.acquire() as conn, conn.transaction():
             try:
