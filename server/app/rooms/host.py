@@ -45,7 +45,7 @@ class RoomHost(ABC):
     rooms: dict[str, Room]
 
     @abstractmethod
-    def _locked(self, code: str) -> AbstractAsyncContextManager[asyncio.Lock]:
+    def _locked(self, code: str, touch: bool = True) -> AbstractAsyncContextManager[asyncio.Lock]:
         """Hold ``code``'s room lock."""
 
     @abstractmethod

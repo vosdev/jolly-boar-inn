@@ -79,6 +79,8 @@ class DatabaseUnavailable(ApiError):
 
 # Any constant does, as long as every process that shares a database uses the same one.
 INSTANCE_LOCK = 0x4A42_4900
+# A minute adds at most that much to the 15 an idle room is kept, for a walk over memory.
+IDLE_SWEEP_SECONDS = 60
 
 
 class AnotherInstance(RuntimeError):
@@ -184,6 +186,21 @@ async def cleanup_expired_rooms(app: FastAPI) -> None:
         await asyncio.sleep(interval)
 
 
+async def evict_idle_rooms(app: FastAPI) -> None:
+    """``RoomManager.evict_idle`` every ``IDLE_SWEEP_SECONDS``, for as long as the app runs.
+
+    Its own task rather than a step of the hourly cleanup: it touches no database, so a
+    pass is a walk over memory, and an hour would let an idle room outstay its 15 minutes
+    fivefold. A pass that fails is logged and the next one runs on schedule.
+    """
+    while True:
+        await asyncio.sleep(IDLE_SWEEP_SECONDS)
+        try:
+            await app.state.rooms.evict_idle()
+        except Exception:
+            log.exception("idle room sweep failed; trying again in %d seconds", IDLE_SWEEP_SECONDS)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings: Settings = app.state.settings
@@ -216,6 +233,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     except (OSError, asyncpg.PostgresError) as exc:
         log.warning("database unavailable, will retry on demand: %s", exc)
     app.state.cleanup = asyncio.create_task(cleanup_expired_rooms(app), name="room-cleanup")
+    app.state.idle_sweep = asyncio.create_task(evict_idle_rooms(app), name="idle-rooms")
     app.state.lag_probe = asyncio.create_task(
         metrics.monitor_event_loop_lag(), name="event-loop-lag"
     )
@@ -223,6 +241,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.lag_probe.cancel()
     with suppress(asyncio.CancelledError):
         await app.state.lag_probe
+    app.state.idle_sweep.cancel()
+    with suppress(asyncio.CancelledError):
+        await app.state.idle_sweep
     app.state.cleanup.cancel()
     with suppress(asyncio.CancelledError):
         await app.state.cleanup  # before the pool goes, like the timers below
@@ -286,6 +307,7 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
     app.state.packs = []
     app.state.rooms = None
     app.state.cleanup = None
+    app.state.idle_sweep = None
     app.state.ratelimiter = RateLimiter(app.state.settings.rooms_per_ip_per_hour, name="rooms")
     app.state.lookup_misses = RateLimiter(LOOKUP_MISSES, LOOKUP_WINDOW, name="lookup_misses")
     app.state.free_codes = RateLimiter(FREE_CODES, FREE_CODES_WINDOW, name="free_codes")

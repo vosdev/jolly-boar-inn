@@ -100,7 +100,7 @@ class Joins(RoomHost):
     async def get_listed(self, code: str) -> Room:
         """``get`` for a stranger holding a code: a daily room is nobody else's to find."""
         code = code.upper()
-        async with self._locked(code):
+        async with self._locked(code, touch=False):
             return await self._listed_room(code)
 
     async def _listed_room(self, code: str) -> Room:

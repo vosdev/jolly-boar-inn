@@ -64,10 +64,10 @@ Nothing else writes `rooms`, `players`, `questions` or `answers` after creation.
 `free_code`, `connect`, `disconnect`, `set_profile`, `check_avatar`, `set_ready`, `set_editing`, `set_team`,
 `move_team`, `set_teams`, `set_settings`, `set_questions`, `set_tv`, `start_game`, `submit_answer`, `skip`,
 `end_round`, `rotate_key`, `request_join`, `poll_request`, `cancel_request`, `decide_request`, `promote`, `kick`,
-`end_game`, `rematch`, `delete`, `purge_expired`, `evict`, `shutdown`. A `Room` holds `players`, `requests`, `plan`,
+`end_game`, `rematch`, `delete`, `purge_expired`, `evict_idle`, `evict`, `shutdown`. A `Room` holds `players`, `requests`, `plan`,
 `custom_questions`, `custom_author`, `played_ids`, `questions`, `totals`, `totals_round`, `current_index`, `phase`,
 `next_at`, `next_mono`, `sockets`, `timer`, `awaiting_player`, `daily`, `advance`, `rescheduled`, `players_stale`,
-`players_flush` and `lock`.
+`players_flush`, `active_at` and `lock`.
 
 - One `asyncio.Lock` per room. Every public method takes it. Nothing locks across rooms.
 - A method writes to Postgres before it changes memory, so a failed write leaves memory as it was.
@@ -922,7 +922,9 @@ key into them, so cleanup leaves it.
   memory; `rooms.rematches` counts the games before this one.
 - Cleanup deletes expired rooms, and finished ones past their grace, 200 at a time, at startup
   and every `ROOM_CLEANUP_INTERVAL_SECONDS`, then drops them from memory. A failed pass is logged
-  and the next runs. There is no external cron.
+  and the next runs. There is no external cron. Every minute, `evict_idle` drops rooms 15 minutes
+  past `active_at` (a change, connect or disconnect; never a lookup) with no socket, join request
+  or timer task, and no game but one rehydrated and awaiting a player; the next lookup reloads them.
 - `suggestions` holds what players send to `POST /api/suggestions` (`app/suggestions.py`): a
   `question` in Create's shape plus a `wiki` or `source_url`, or both, and a `mode`, held to its
   `Suggest` (`quote`, `intro`, `picture_item`, `explanation`, `wiki_only`, `fixed_prompt`), or
@@ -955,7 +957,8 @@ key into them, so cleanup leaves it.
   address (`TRIES_PER_HOUR`). A shadow, or a verse whose item is not on the list, reveals the name and takes no value; a trial gives no picture, whose file name would tie it to the item. The previews
   on `/suggest` and in the queue toggle Question/Reveal and answer through it.
 - `/api/admin/suggestions` lists, edits and moves them, each question with its top 3 matches at 60
-  or more among the packs and the other pending and approved suggestions, whole; a question with no
+  or more among the packs and the other pending and approved suggestions, whole, compared in a
+  worker thread; a question with no
   round can't be approved (422). Export downloads the playable approved ones and stamps
   `exported_at`; "mark as imported" moves exactly those. An edit clears the stamp.
 - `reports` holds what players send to `POST /api/reports` (`app/reports.py`): a mode, a question
