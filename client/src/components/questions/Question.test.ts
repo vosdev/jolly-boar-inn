@@ -829,6 +829,34 @@ describe('The Forgetful Bard’s picture', () => {
   })
 })
 
+describe('Riddles of the Sphinx’s picture', () => {
+  const VIEW_CLUES = {
+    prompt: 'Who or what am I?',
+    vocab: 'subjects',
+    clues: ['First.', 'Second.', 'Third.', 'Fourth.', 'Fifth.'],
+  }
+
+  it('follows the clues on the reveal, its name over it', () => {
+    render(QuestionStage, {
+      question: {
+        ...open('pick_from_list', 'riddles_of_the_sphinx', VIEW_CLUES),
+        picture: 'feedc0de.png',
+      },
+      reveal: { ...VIEW_CLUES, answer_id: 6, subject: { name: 'Tutorial Island' } },
+      yourValue: null,
+      onAnswer,
+    })
+    const paper = document.querySelector('.paper') as HTMLElement
+    const last = screen.getByText('Fifth.')
+    const name = paper.querySelector('.caption')!
+    const img = paper.querySelector('.picture.large img')!
+    expect(name.textContent).toBe('Tutorial Island')
+    expect(last.compareDocumentPosition(name) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(name.compareDocumentPosition(img) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(paper.querySelector('.beside')).toBeNull()
+  })
+})
+
 describe('Pixel Hunt’s picture', () => {
   const VIEW_ITEM = { prompt: 'Which item is this?', vocab: 'items' }
   const question = { ...open('pick_from_list', 'pixel_hunt', VIEW_ITEM), picture: 'feedc0de.png' }

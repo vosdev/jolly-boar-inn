@@ -147,19 +147,10 @@
       <p class="note">Sit this one out — the game carries on.</p>
     {/if}
   {:else}
-    {#if clued && revealed}
-      <div class="beside">
-        {#if Stem !== null}
-          <div class="clues"><Stem {data} {revealed} {timing} {shown} /></div>
-        {/if}
-        {@render figure()}
-      </div>
-    {:else}
-      {#if Stem !== null}
-        <Stem {data} {revealed} {timing} {shown} />
-      {/if}
-      {@render figure()}
+    {#if Stem !== null}
+      <Stem {data} {revealed} {timing} {shown} />
     {/if}
+    {@render figure()}
   {/if}
 {/snippet}
 
@@ -173,6 +164,7 @@
       {build}
       lifted={revealed}
       caption={pictured && revealed ? subjectName : null}
+      captionAbove={clued}
     />
   {/if}
 {/snippet}
@@ -249,31 +241,6 @@
 {/key}
 
 <style>
-  /* The answer's picture and name beside the clues it was hidden in. A narrow sheet has no
-     room for both, so it keeps the picture and name. */
-  .beside {
-    container-type: inline-size;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1.25rem;
-  }
-
-  .beside .clues {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .beside > :global(:last-child) {
-    flex: none;
-  }
-
-  @container (max-width: 26rem) {
-    .beside .clues {
-      display: none;
-    }
-  }
-
   .gate {
     transition: opacity 200ms ease-out;
   }

@@ -147,7 +147,8 @@ MODES: dict[str, Mode] = {
         suggest=Suggest(explanation=False, named="items", verse=True),
         compare="item",
     ),
-    # Five clues, vaguest first, one every 5 s and the last for 10, each a step down in points.
+    # Five clues, vaguest first, one every 10 s and the last for 20, each a step down in points:
+    # at 5 s players spent a clue reading it, with no time left to think.
     # The answer is any NPC, item or place on its own list, its picture held for the reveal.
     # The Sphinx's ask line is the question, and the clues come in after the hold.
     "riddles_of_the_sphinx": Mode(
@@ -156,7 +157,7 @@ MODES: dict[str, Mode] = {
         steps=Steps(build=4, of=6),
         clues=5,
         picture_at_reveal=True,
-        extra_answer=5,
+        extra_answer=35,
         stem="clues",
         suggest=Suggest(
             explanation=False, fixed_prompt="Who or what am I?", named="subjects", clued=True

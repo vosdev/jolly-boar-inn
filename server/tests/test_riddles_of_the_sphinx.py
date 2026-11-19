@@ -7,11 +7,11 @@ from typing import Any
 import pytest
 
 from app.config import REPO_ROOT
-from app.modes import MODES, problems
+from app.modes import MODES, extra_answer_seconds, problems
 from app.modes.mode import Mode
 from app.questions import vocab
 from app.questions.schema import content_id, errors
-from app.questions.types import pick_from_list
+from app.questions.types import answer_seconds, pick_from_list
 from app.questions.types.scoring import Steps
 from app.rooms.hold import HOST_ASK, typed_lines
 from tests.game_api import answer_after
@@ -37,6 +37,12 @@ def test_the_mode_steps_through_five_clues_with_its_picture_held_back() -> None:
     assert mode.clues == 5
     assert mode.steps == Steps(build=4, of=6)
     assert mode.picture_at_reveal
+
+
+def test_a_clue_stays_ten_seconds_and_the_full_set_twenty() -> None:
+    payload = riddles()[0]["payload"]
+    extra = extra_answer_seconds("riddles_of_the_sphinx")
+    assert answer_seconds("pick_from_list", payload, "run", extra) == 60
 
 
 def test_every_question_carries_five_clues_on_the_subject_list() -> None:
@@ -100,12 +106,12 @@ def test_the_hold_types_only_the_sphinxs_ask() -> None:
 
 
 def test_an_answer_pays_the_clue_it_arrived_on(table, pictures) -> None:
-    """A clue every 5 s of 30, the last for 10: 1000, 850, 700, 550, then 400."""
+    """A clue every 10 s of 60, the last for 20: 1000, 850, 700, 550, then 400."""
     names = ("Zezima", "Woox", "Lynx", "Cow31337", "Durial321", "B0aty")
-    game = table(*names, modes=["riddles_of_the_sphinx"], seconds=30, close_when_all_answered=False)
+    game = table(*names, modes=["riddles_of_the_sphinx"], seconds=60, close_when_all_answered=False)
     game.start()
     game.opened(0)
-    timings = (0.5, 6.0, 11.0, 16.0, 21.0, 29.0)
+    timings = (0.5, 11.0, 21.0, 31.0, 41.0, 58.0)
     acks = [
         answer_after(game, seat, 0, game.right(0), seconds)
         for seat, seconds in zip(game.players, timings, strict=True)
@@ -126,12 +132,12 @@ def test_an_answer_pays_the_clue_it_arrived_on(table, pictures) -> None:
 
 
 def test_a_team_game_keeps_the_clue_steps(table, pictures) -> None:
-    game = team_table(table, "Zezima", "Woox", modes=["riddles_of_the_sphinx"], seconds=30)
+    game = team_table(table, "Zezima", "Woox", modes=["riddles_of_the_sphinx"], seconds=60)
     zezima, woox = game.players
     game.start()
     game.opened(0)
     first = answer_after(game, zezima, 0, game.right(0), 0.5)
-    third = answer_after(game, woox, 0, game.right(0), 11.0)
+    third = answer_after(game, woox, 0, game.right(0), 21.0)
     assert (first["band"], third["band"]) == (1, 3)
     game.skip()
     closed = game.admin.take("question_closed")

@@ -18,7 +18,8 @@
    * into the render, as the reveal does. It is an animation, not a transition, because the
    * reveal draws a new picture that is lifted from its first frame. `build` draws Pixel
    * Hunt's build-up over the image held invisible the same way, until it is `lifted`.
-   * `caption` is the name under it.
+   * `caption` is the name under it, or over it with `captionAbove`, where the picture follows
+   * a stem that already fills the sheet's width.
    *
    * A `large` picture on a room's stage (the nearest `[data-fit-stage]`) takes the height the
    * stage has left once everything else is in, and the room under the answer input for its
@@ -41,6 +42,7 @@
     lifted = false,
     large = false,
     caption = null,
+    captionAbove = false,
     build = null,
   }: {
     name: string | null | undefined
@@ -52,6 +54,7 @@
     /** The picture is the whole question, so it gets the room a prompt would have had. */
     large?: boolean
     caption?: string | null
+    captionAbove?: boolean
   } = $props()
 
   const src = $derived(url ?? pictureUrl(name))
@@ -113,7 +116,18 @@
   })
 </script>
 
+{#snippet label()}
+  {#if caption}
+    <p class="caption" class:above={captionAbove}>{caption}</p>
+  {:else if large}
+    <p class="reserve" class:above={captionAbove} aria-hidden="true">&nbsp;</p>
+  {/if}
+{/snippet}
+
 {#if src !== null || large}
+  {#if captionAbove}
+    {@render label()}
+  {/if}
   <div
     class="picture"
     class:large
@@ -133,10 +147,8 @@
       <p class="placeholder">The picture is added once imported.</p>
     {/if}
   </div>
-  {#if caption}
-    <p class="caption">{caption}</p>
-  {:else if large}
-    <p class="reserve" aria-hidden="true">&nbsp;</p>
+  {#if !captionAbove}
+    {@render label()}
   {/if}
 {/if}
 
@@ -232,6 +244,11 @@
     font-size: 1.25em;
     font-weight: 700;
     color: var(--scroll-ink);
+  }
+
+  .caption.above,
+  .reserve.above {
+    margin: 0 0 0.25rem;
   }
 
   .reserve {
