@@ -317,10 +317,10 @@ class Joins(RoomHost):
             if room.invite_key is None:
                 raise BadState(f"room {code} takes anyone with its code")
             _check_joinable(room)
-            folded = name.casefold()
+            folded = name.lower()
             taken = [p.display_name for p in room.players.values()]
             taken += [r.display_name for r in room.requests.values()]
-            if any(other.casefold() == folded for other in taken):
+            if any(other.lower() == folded for other in taken):
                 raise NameTaken(f"the name {name!r} is taken in room {code}")
             held = sum(1 for r in room.requests.values() if r.address == address)
             if len(room.requests) >= MAX_JOIN_REQUESTS or held >= MAX_JOIN_REQUESTS_PER_ADDRESS:
