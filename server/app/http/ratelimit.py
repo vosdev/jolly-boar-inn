@@ -52,6 +52,11 @@ CONNECTS_WINDOW = timedelta(minutes=1)
 # socket opens, so a pub reconnecting together holds a few for milliseconds each, and the
 # oldest of them past this is the one silent longest.
 PENDING_HELLOS_PER_ADDRESS = 10
+# Those plus the ones still closing after being displaced or turned away, which keep their
+# global slot until the close ends. An honest close takes a round trip, so only a client that
+# stops reading to keep its closes hanging reaches twice the above, and then it holds no more
+# of ``MAX_SOCKETS`` than this: past it a new socket is refused before it is accepted.
+UNHELLOED_PER_ADDRESS = 2 * PENDING_HELLOS_PER_ADDRESS
 
 
 class RateLimited(ApiError):

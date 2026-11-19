@@ -482,7 +482,7 @@ What the server withholds. The admin is a player with a flag; there is no admin 
 | 4003 | kicked | stops |
 | 4004 | unknown, expired or deleted room; no `error` frame | stops |
 | 4008 | protocol error, after an `error` frame | stops |
-| 1008 | no `hello` in 10 s, over 10 messages a second after a burst of 20, over 10 connects a minute per session or 30 per address, the oldest of over 10 sockets per address awaiting `hello`, an `Origin` of another site, or rate limited | reconnects |
+| 1008 | no `hello` in 10 s, over 10 messages a second after a burst of 20, over 10 connects a minute per session or 30 per address, the oldest of over 10 sockets per address awaiting `hello`, or rate limited | reconnects |
 | 1009 | a frame over 64 KiB | reconnects |
 | 1011 | a send failed or timed out, or the server failed a connect or command | reconnects |
 | 1012 | the room left memory; the reconnect rehydrates it | reconnects |
@@ -822,9 +822,10 @@ Limits:
   free), 30 lookups of missing rooms per 10 minutes, 5 free codes per 10 seconds. Past those, every room request is 429 with a `Retry-After` (1008 on a socket), so a refusal never reveals
   which codes are live. A `hello` whose session a room in memory holds skips the miss and address
   connect budgets, so one device cannot lock a shared address out; nor can its silent sockets,
-  since past 10 awaiting `hello` the oldest closes. A room `GET` with
-  `Sec-Fetch-Site: cross-site` is 403 and charges nothing, and so is a `/ws` (1008) whose `Origin`
-  host is neither `Host` nor `PUBLIC_BASE_URL`'s, since browsers open cross-site sockets.
+  since past 10 awaiting `hello` the oldest closes (in at most 2 s, still counted). A `/ws` from
+  an address holding 20 such is a 403 before the upgrade, as is one whose `Origin` host is neither
+  `Host` nor `PUBLIC_BASE_URL`'s; a room `GET` with `Sec-Fetch-Site: cross-site` is 403 too. None
+  charges a budget.
 - Create refuses a sixth room while `jbi:created` holds five the server still has; one that
   answers 404 or 410 drops off the list. Clearing storage bypasses it; the create limit is the
   backstop.

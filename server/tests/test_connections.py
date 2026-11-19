@@ -20,8 +20,9 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
-from websockets.exceptions import ConnectionClosed
+from websockets.exceptions import ConnectionClosed, InvalidStatus
 from websockets.sync.client import ClientConnection, connect
+from websockets.typing import Origin
 
 from app.config import REPO_ROOT
 from app.main import create_app
@@ -131,6 +132,20 @@ def test_the_container_does_not_compress_websocket_frames(test_db_dsn: str, tmp_
         assert ws.request is not None and ws.response is not None
         assert "permessage-deflate" in ws.request.headers["Sec-WebSocket-Extensions"]
         assert "Sec-WebSocket-Extensions" not in ws.response.headers
+
+
+def test_the_container_answers_a_cross_site_socket_403_at_the_handshake(
+    test_db_dsn: str, tmp_path: Path
+) -> None:
+    """Never upgraded, it is gone before it can hold a ``--limit-concurrency`` slot closing."""
+    with container_server(test_db_dsn, tmp_path) as base:
+        with pytest.raises(InvalidStatus) as refused:
+            connect(
+                f"ws{base.removeprefix('http')}/ws/ANYTHING",
+                origin=Origin("https://evil.example"),
+                open_timeout=5,
+            )
+        assert refused.value.response.status_code == 403
 
 
 # --- the cap in the app ---------------------------------------------------------------

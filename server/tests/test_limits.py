@@ -10,6 +10,9 @@ import json
 import logging
 import random
 import re
+import threading
+import time
+from collections.abc import Iterator
 from contextlib import ExitStack, contextmanager
 from pathlib import Path
 from typing import Any
@@ -27,6 +30,7 @@ from app.http.ratelimit import (
     CONNECTS_PER_ADDRESS,
     CONNECTS_PER_SESSION,
     PENDING_HELLOS_PER_ADDRESS,
+    UNHELLOED_PER_ADDRESS,
     RateLimiter,
     client_key,
 )
@@ -37,6 +41,16 @@ from app.ws.handler import MAX_FRAME, RATE_BURST, TokenBucket
 from tests.conftest import BASE, stub_mode
 from tests.rooms_api import closed_with, create, hello, next_of
 from tests.test_type_contract import EXAMPLES
+
+
+def refused(client: TestClient, path: str, **kwargs: Any) -> None:
+    """Open a socket that the app must refuse before accepting it.
+
+    The test client raises ``WebSocketDisconnect`` for a close before ``accept``; one that is
+    accepted first opens a session instead, which fails here.
+    """
+    with client.websocket_connect(path, **kwargs):
+        pytest.fail("the socket was accepted")
 
 
 def until_pong(ws: WebSocketTestSession) -> list[dict[str, Any]]:
@@ -150,6 +164,101 @@ def test_sockets_that_never_say_hello_are_capped_per_address(app: FastAPI) -> No
                 assert closed_with(newest, drain=True) == 4001
 
 
+@contextmanager
+def stalled_closes(monkeypatch: pytest.MonkeyPatch) -> Iterator[threading.Event]:
+    """Every close the handler starts waits for the event, as for a client that stopped reading."""
+    gate = threading.Event()
+    close = ws_handler._close
+
+    async def stalled(ws: Any, code: int, reason: str) -> None:
+        await asyncio.to_thread(gate.wait)
+        await close(ws, code, reason)
+
+    monkeypatch.setattr(ws_handler, "_close", stalled)
+    try:
+        yield gate
+    finally:
+        gate.set()
+
+
+def test_a_displaced_socket_counts_against_its_address_until_its_close_ends(
+    app: FastAPI, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Otherwise an address that never reads its closes cycles through every global slot."""
+    unhelloed = app.state.unhelloed
+    with (
+        TestClient(ProxyHeadersMiddleware(app, trusted_hosts="testclient")) as proxied,
+        stalled_closes(monkeypatch) as gate,
+        ExitStack() as held,
+    ):
+        crowd = {"X-Forwarded-For": "192.0.2.1"}
+        silent = [
+            held.enter_context(proxied.websocket_connect("/ws/ZZZ", headers=crowd))
+            for _ in range(PENDING_HELLOS_PER_ADDRESS + 1)
+        ]
+        assert unhelloed._open["192.0.2.1"] == PENDING_HELLOS_PER_ADDRESS + 1
+        gate.set()
+        assert closed_with(silent[0]) == 1008
+        deadline = time.monotonic() + 5
+        while unhelloed._open["192.0.2.1"] > PENDING_HELLOS_PER_ADDRESS:
+            assert time.monotonic() < deadline
+            time.sleep(0.01)
+
+
+def test_an_address_with_too_many_sockets_closing_is_refused_before_accept(
+    app: FastAPI, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Refused before ``accept``, they take no global slot; another address still gets in."""
+    with (
+        TestClient(ProxyHeadersMiddleware(app, trusted_hosts="testclient")) as proxied,
+        stalled_closes(monkeypatch) as gate,
+        ExitStack() as held,
+    ):
+        code, admin = create(proxied)
+        crowd = {"X-Forwarded-For": "192.0.2.1"}
+        for _ in range(UNHELLOED_PER_ADDRESS):
+            held.enter_context(proxied.websocket_connect(f"/ws/{code}", headers=crowd))
+        taken = app.state.sockets._open[""]
+        with pytest.raises(WebSocketDisconnect) as info:
+            refused(proxied, f"/ws/{code}", headers=crowd)
+        assert info.value.code == 1008
+        assert app.state.sockets._open[""] == taken
+        with proxied.websocket_connect(
+            f"/ws/{code}", headers={"X-Forwarded-For": "192.0.2.2"}
+        ) as ws:
+            hello(ws, admin["session"])
+        gate.set()
+        deadline = time.monotonic() + 5
+        while app.state.unhelloed._open["192.0.2.1"] > PENDING_HELLOS_PER_ADDRESS:
+            assert time.monotonic() < deadline
+            time.sleep(0.01)
+        with proxied.websocket_connect(f"/ws/{code}", headers=crowd) as ws:
+            hello(ws, admin["session"])
+
+
+def test_a_frame_nested_too_deep_is_a_bad_hello(client: TestClient) -> None:
+    with client.websocket_connect("/ws/ANYTHING") as ws:
+        ws.send_text('{"t": "hello", "session": "x", "pad": ' + "[" * 1000 + "]" * 1000 + "}")
+        error = ws.receive_json()
+        assert (error["code"], error["message"]) == (
+            "bad_hello",
+            f"frame nested over {MAX_DEPTH} levels",
+        )
+        assert closed_with(ws) == 4001
+
+
+def test_a_frame_nested_too_deep_after_hello_is_a_protocol_error(client: TestClient, lobby) -> None:
+    with client.websocket_connect(f"/ws/{lobby['code']}") as ws:
+        hello(ws, lobby["player"]["session"])
+        ws.send_text('{"t": "ping", "pad": ' + "[" * 1000 + "]" * 1000 + "}")
+        error = next_of(ws, "error")
+        assert (error["code"], error["message"]) == (
+            "bad_message",
+            f"frame nested over {MAX_DEPTH} levels",
+        )
+        assert closed_with(ws) == 4008
+
+
 def test_silent_sockets_from_an_address_cannot_keep_its_players_out(app: FastAPI) -> None:
     """An honest client says hello at once, so the one silent longest is the one to go."""
     with TestClient(ProxyHeadersMiddleware(app, trusted_hosts="testclient")) as proxied:
@@ -174,11 +283,12 @@ def test_a_socket_from_another_site_is_closed_before_any_budget(
 
     before = budgets()
     for _ in range(CONNECTS_PER_ADDRESS + 5):
-        with client.websocket_connect("/ws/ZZZ", headers={"Origin": "https://evil.example"}) as ws:
-            with pytest.raises(WebSocketDisconnect) as info:
-                ws.receive_json()
-            assert (info.value.code, info.value.reason) == (1008, "cross-site socket")
+        with pytest.raises(WebSocketDisconnect) as info:
+            refused(client, "/ws/ZZZ", headers={"Origin": "https://evil.example"})
+        assert info.value.code == 1008
     assert budgets() == before
+    assert app.state.sockets._open == {}
+    assert app.state.unhelloed._open == {}
     with client.websocket_connect(f"/ws/{lobby['code']}") as ws:
         ws.send_json({"t": "hello", "session": "not-a-session"})
         assert closed_with(ws, drain=True) == 4001
@@ -297,8 +407,10 @@ def _unshipped(app: FastAPI, type_id: str) -> list[dict[str, Any]] | None:
 @pytest.mark.parametrize("shape", ["list", "object"])
 @pytest.mark.parametrize("type_id", sorted(TYPES))
 def test_an_answer_nested_past_any_recursion_limit_is_bad_value_for_every_type(
-    app: FastAPI, table, type_id: str, shape: str
+    app: FastAPI, table, type_id: str, shape: str, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    """Each type's check holds even past the frame's depth cap, which is lifted here."""
+    monkeypatch.setattr(ws_handler, "MAX_DEPTH", MAX_FRAME)
     questions = _unshipped(app, type_id)
     with contextmanager(stub_mode)(app, f"deep_{type_id}", type_id, questions) as mode:
         game = table("Zezima", modes=[mode], seconds=30)

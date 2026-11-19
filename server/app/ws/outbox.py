@@ -61,32 +61,34 @@ class _Close:
     reason: str
 
 
-async def send(ws: Socket, message: Frame | dict[str, Any]) -> bool:
+async def send(ws: Socket, message: Frame | dict[str, Any], seconds: float | None = None) -> bool:
     """Send one frame; ``False`` if the socket is gone, refused it or took too long."""
     frame = message if isinstance(message, Frame) else Frame(message)
-    return await _deliver(ws, frame) is None
+    return await _deliver(ws, frame, seconds) is None
 
 
-async def _deliver(ws: Socket, frame: Frame) -> DisconnectReason | None:
+async def _deliver(
+    ws: Socket, frame: Frame, seconds: float | None = None
+) -> DisconnectReason | None:
     """Send one frame; on failure, the reason the socket is counted as lost.
 
     Only a send that ran out of time is the client's backpressure. Anything else raised
     means the connection is already gone, as when a player leaves with a broadcast queued.
     """
-    timeout = asyncio.timeout(SEND_TIMEOUT)
+    deadline = asyncio.timeout(SEND_TIMEOUT if seconds is None else seconds)
     try:
-        async with timeout:
+        async with deadline:
             await ws.send_text(frame.text)
     except Exception as exc:  # closed from either side, transport error, timeout
         log.info("dropping socket after failed send: %r", exc)
-        return "send_failed" if timeout.expired() else "client"
+        return "send_failed" if deadline.expired() else "client"
     return None
 
 
-async def close(ws: Socket, code: int, reason: str) -> None:
+async def close(ws: Socket, code: int, reason: str, seconds: float | None = None) -> None:
     """Best-effort close of a socket we are done with. Never raises, never hangs."""
     try:
-        async with asyncio.timeout(SEND_TIMEOUT):
+        async with asyncio.timeout(SEND_TIMEOUT if seconds is None else seconds):
             await ws.close(code=code, reason=reason[:_REASON_MAX])
     except Exception as exc:  # already closed, client gone, or stalled: all the same to us
         log.debug("closing socket with %d failed: %r", code, exc)
