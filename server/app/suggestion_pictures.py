@@ -31,12 +31,18 @@ MAX_BYTES = 5 * 1024 * 1024
 MAX_SIDE = 1920
 # Smaller than this is not a screenshot a player could pin anything on.
 MIN_SIDE = 200
-# Checked on the header before any pixel is decoded: a few bytes can claim a huge image.
-MAX_PIXELS = 8192 * 8192
+# Checked on the header before any pixel is decoded: a few bytes can claim a huge image. A
+# 4K or 5K screenshot fits; decoded as RGBA it is 64 MiB of a container's 512.
+MAX_PIXELS = 4096 * 4096
 QUALITY = 90
 # The base64 of ``MAX_BYTES``; the route's body limit allows it.
 MAX_ENCODED = 4 * -(-MAX_BYTES // 3)
 PREFIX = "screenshot:"
+# Modes Pillow shrinks smoothly as they are. Any other is converted first, at full size: a
+# palette shrinks by nearest neighbour, and the rest are rare.
+SHRINKS = frozenset({"RGB", "RGBA", "L", "LA"})
+# One decode at a time, so concurrent uploads cannot each hold a full-size picture.
+DECODES = asyncio.Semaphore(1)
 
 
 class BadPicture(ApiError):
@@ -63,28 +69,62 @@ def reencode(body: bytes) -> tuple[bytes, int, int]:
     """
     try:
         with Image.open(io.BytesIO(body)) as opened:
-            if opened.format not in FORMATS:
-                raise BadPicture("a picture is a PNG, JPEG or WebP")
-            width, height = opened.size
-            if width * height > MAX_PIXELS:
-                raise BadPicture("the picture has too many pixels")
-            # A phone photo stores its rotation in EXIF, which the re-encode drops.
-            image = ImageOps.exif_transpose(opened)
-            image = image.convert("RGBA" if image.mode in ("RGBA", "LA", "P") else "RGB")
-    except (UnidentifiedImageError, OSError, Image.DecompressionBombError) as exc:
+            _check(opened)
+            image = _small_upright(opened)
+    except (
+        UnidentifiedImageError,
+        OSError,
+        ValueError,
+        SyntaxError,
+        Image.DecompressionBombError,
+    ) as exc:
         raise BadPicture("the picture could not be read") from exc
-    if min(image.size) < MIN_SIDE:
+    with image:
+        out = io.BytesIO()
+        image.save(out, "WEBP", quality=QUALITY, method=4)
+        return out.getvalue(), image.width, image.height
+
+
+def _check(opened: Image.Image) -> None:
+    if opened.format not in FORMATS:
+        raise BadPicture("a picture is a PNG, JPEG or WebP")
+    width, height = opened.size
+    if width * height > MAX_PIXELS:
+        raise BadPicture("the picture has too many pixels")
+    if min(width, height) < MIN_SIDE:
         raise BadPicture(f"a picture is at least {MIN_SIDE} pixels each way")
-    if max(image.size) > MAX_SIDE:
-        image.thumbnail((MAX_SIDE, MAX_SIDE), Image.Resampling.LANCZOS)
-    out = io.BytesIO()
-    image.save(out, "WEBP", quality=QUALITY, method=4)
-    return out.getvalue(), image.width, image.height
+
+
+def _small_upright(opened: Image.Image) -> Image.Image:
+    """``opened`` shrunk, turned upright and in the mode the WebP keeps.
+
+    Shrinking comes first, so the copies the turn and the conversion make are small ones; the
+    bound is square, so shrinking before the turn gives the same size as after.
+    """
+    alpha = opened.mode in ("RGBA", "LA") or "transparency" in opened.info
+    target = "RGBA" if alpha else "RGB"
+    # A JPEG can decode straight to a fraction of its size, so the full one never exists.
+    opened.draft(None, (MAX_SIDE, MAX_SIDE))
+    if opened.mode in SHRINKS:
+        image = opened
+    else:
+        image = opened.convert(target)
+        opened.close()
+    image.thumbnail((MAX_SIDE, MAX_SIDE), Image.Resampling.LANCZOS)
+    # A phone photo stores its rotation in EXIF, which the re-encode drops.
+    ImageOps.exif_transpose(image, in_place=True)
+    if image.mode == target:
+        return image.copy() if image is opened else image
+    converted = image.convert(target)
+    image.close()
+    return converted
 
 
 async def prepare(encoded: str) -> tuple[bytes, int, int]:
     """``encoded`` decoded and re-encoded off the event loop, which runs every room."""
-    return await asyncio.to_thread(reencode, decode(encoded))
+    body = decode(encoded)
+    async with DECODES:
+        return await asyncio.to_thread(reencode, body)
 
 
 def fresh_name() -> str:

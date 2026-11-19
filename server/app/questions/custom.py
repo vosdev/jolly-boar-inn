@@ -18,10 +18,9 @@ id, the mode rule and the type's own ``check``. A room is created with its quest
 at all, so one bad question refuses the room, and the error names the question by its
 place in the list and the field by its path.
 
-``POST /api/rooms`` runs this while it parses the body, before the rate limiter, for the
-reason the display name is checked there: fixing a typo in question three should not cost
-the host a room from their hourly quota. ``RoomManager.create`` runs it again for callers
-that did not come through HTTP, and it changes nothing the second time.
+``RoomManager.create`` runs this once, after the create attempt is counted but before a
+room is, for the reason the display name is checked first: fixing a typo in question three
+should not cost the host a room from their hourly quota.
 """
 
 from collections.abc import Sequence

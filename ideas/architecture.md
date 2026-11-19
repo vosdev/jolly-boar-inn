@@ -64,10 +64,10 @@ Nothing else writes `rooms`, `players`, `questions` or `answers` after creation.
 `free_code`, `connect`, `disconnect`, `set_profile`, `check_avatar`, `set_ready`, `set_editing`, `set_team`,
 `move_team`, `set_teams`, `set_settings`, `set_questions`, `set_tv`, `start_game`, `submit_answer`, `skip`,
 `end_round`, `rotate_key`, `request_join`, `poll_request`, `cancel_request`, `decide_request`, `promote`, `kick`,
-`end_game`, `rematch`, `delete`, `purge_expired`, `evict`, `shutdown`. A `Room` holds `players`, `requests`, `plan`,
+`end_game`, `rematch`, `delete`, `purge_expired`, `evict_idle`, `evict`, `shutdown`. A `Room` holds `players`, `requests`, `plan`,
 `custom_questions`, `custom_author`, `played_ids`, `questions`, `totals`, `totals_round`, `current_index`, `phase`,
 `next_at`, `next_mono`, `sockets`, `timer`, `awaiting_player`, `daily`, `advance`, `rescheduled`, `players_stale`,
-`players_flush` and `lock`.
+`players_flush`, `active_at` and `lock`.
 
 - One `asyncio.Lock` per room. Every public method takes it. Nothing locks across rooms.
 - A method writes to Postgres before it changes memory, so a failed write leaves memory as it was.
@@ -482,7 +482,7 @@ What the server withholds. The admin is a player with a flag; there is no admin 
 | 4003 | kicked | stops |
 | 4004 | unknown, expired or deleted room; no `error` frame | stops |
 | 4008 | protocol error, after an `error` frame | stops |
-| 1008 | no `hello` in 10 s, over 10 messages a second after a burst of 20, over 10 connects a minute per session or 30 per address, the oldest of over 10 sockets per address awaiting `hello`, an `Origin` of another site, or rate limited | reconnects |
+| 1008 | no `hello` in 10 s, over 10 messages a second after a burst of 20, over 10 connects a minute per session or 30 per address, the oldest of over 10 sockets per address awaiting `hello`, or rate limited | reconnects |
 | 1009 | a frame over 64 KiB | reconnects |
 | 1011 | a send failed or timed out, or the server failed a connect or command | reconnects |
 | 1012 | the room left memory; the reconnect rehydrates it | reconnects |
@@ -763,12 +763,16 @@ log or `Referer` sees it; the page `replaceState`s it away and keeps it in `loca
 once accepted, else falls back to the stored one. Both return chosen fields only, never a name, an answer or a question. Only the
 suggestion and report queues, `/api/admin/questions` and its pending changes (section 11) return
 questions, answers included: players' suggestions and the packs, never a room's. `METRICS_TOKEN`
-gates `GET /metrics` (OpenMetrics text, fixed-set labels only) by the same rules.
+gates `GET /metrics` (OpenMetrics text, fixed-set labels only) by the same rules. A wrong token logs
+a warning with the address and route template, never the token: any request to those routes without
+the right one, or one sending `Authorization` where the operator's bearer is optional (suggestions).
+After 10 per address in 10 minutes, any token attempt is 429 until the window frees, the right one too.
 
 `POST /api/rooms {display_name, avatar?, returning, theme?, device?, invite_only?, public?, code?, settings, custom_questions}`, in one transaction:
 
-1. Validate the name before the rate limiter, so a typo costs no quota: NFKC, trimmed, single
-   spaces, 1–12 Latin letters (accents allowed), digits, spaces, `_` and `-`.
+1. Count the attempt, then validate the name and `custom_questions` before the room limiter, so a
+   typo costs no room: NFKC, trimmed, single spaces, 1–12 Latin letters (accents allowed), digits,
+   spaces, `_` and `-`.
 2. Rate limit per IPv4 address or IPv6 /64.
 3. Take `code` if sent: one a draw could give (422 `bad_code`, checked before the limiter), else 409
    `code_taken`. Without it, draw from `room-words.json` with `secrets.SystemRandom`: five plain
@@ -782,9 +786,10 @@ gates `GET /metrics` (OpenMetrics text, fixed-set labels only) by the same rules
    logged. Any failure rolls everything back.
 
 - `POST /api/rooms/{code}/questions {session, custom_questions}` replaces them in a lobby, for an
-  admin. A POST, since a bank of 100 outgrows a websocket frame. Only the browser that made the
-  room offers it: the bank is that browser's.
+  admin. A POST, since a bank of 100 outgrows a websocket frame; checked only once the session is
+  an admin's in a lobby. Only the browser that made the room offers it: the bank is that browser's.
 - Join is `POST /api/rooms/{code}/join {display_name, avatar?, returning, key?, theme?, device?, via?}` → `{session, player}`.
+  A name the room holds (`lower()`, as the unique index) is 409 `name_taken` before any insert.
 - Create's `invite_only` gives the room a key, `secrets.token_urlsafe(9)` in `rooms.invite_key`.
   A join then needs it before anything else is checked: 403 `key_required` or `bad_key`, compared
   with `hmac.compare_digest`. It is a door code, not a credential, so it travels in the link's
@@ -818,20 +823,23 @@ gates `GET /metrics` (OpenMetrics text, fixed-set labels only) by the same rules
 
 Limits:
 
-- 30 creates an hour (`ROOMS_PER_IP_PER_HOUR`), 100 joins an hour, 10 daily starts an hour (a resume is
-  free), 30 lookups of missing rooms per 10 minutes, 5 free codes per 10 seconds. Past those, every room request is 429 with a `Retry-After` (1008 on a socket), so a refusal never reveals
+- An hour: 60 create attempts, bad ones included, of which 30 rooms (`ROOMS_PER_IP_PER_HOUR`); 120
+  question saves; 100 joins; 120 daily requests (starts, resumes, results), of which 10 new
+  starts. Also 30 lookups of missing rooms per 10 minutes, 5 free codes per 10 seconds. Past those, every room request is 429 with a `Retry-After` (1008 on a socket), so a refusal never reveals
   which codes are live. A `hello` whose session a room in memory holds skips the miss and address
   connect budgets, so one device cannot lock a shared address out; nor can its silent sockets,
-  since past 10 awaiting `hello` the oldest closes. A room `GET` with
-  `Sec-Fetch-Site: cross-site` is 403 and charges nothing, and so is a `/ws` (1008) whose `Origin`
-  host is neither `Host` nor `PUBLIC_BASE_URL`'s, since browsers open cross-site sockets.
+  since past 10 awaiting `hello` the oldest closes (in at most 2 s, still counted). A `/ws` from
+  an address holding 20 such is a 403 before the upgrade, as is one whose `Origin` host is neither
+  `Host` nor `PUBLIC_BASE_URL`'s; a room `GET` with `Sec-Fetch-Site: cross-site` is 403 too. None
+  charges a budget.
 - Create refuses a sixth room while `jbi:created` holds five the server still has; one that
   answers 404 or 410 drops off the list. Clearing storage bypasses it; the create limit is the
   backstop.
 - Limits key on uvicorn's `--proxy-headers` address: from a peer in `FORWARDED_ALLOW_IPS`, the
   rightmost `X-Forwarded-For` entry not in it; else the peer. The first ignored one logs a warning.
-- `/api/*` bodies over 256 KiB get 413, nested over 64 levels 422 `too_deep`. Writes not declared `application/json` get 415, because a
-  cross-site `no-cors` fetch sends an untyped body without a preflight.
+- `/api/*` bodies over 256 KiB get 413, nested over 64 levels 422 `too_deep`. A 422's `detail` drops pydantic's `input` and `ctx`. Writes not declared `application/json` get 415, because a
+  cross-site `no-cors` fetch sends an untyped body without a preflight. Bodies over 256 KiB (only
+  `/api/suggestions`) are read one per address and four at once; past that 503 `uploads_busy`.
 - uvicorn runs `--host "" --ws-max-size 65536 --limit-concurrency 2500 --ws-per-message-deflate
   false --workers 1`. The empty host listens on `0.0.0.0` and, where there is IPv6, `::` too. The
   limit counts every connection, websockets included, and answers 503 past it, so the app holds at
@@ -849,8 +857,8 @@ directive plus `img-src data:`, with `base-uri`, `form-action` and `frame-ancest
 The build has no inline script or style. The access log drops query strings. There is no HSTS: TLS
 ends at the proxy, and HSTS would lock out a LAN selfhoster on plain HTTP.
 
-- The container runs read-only, `cap_drop: ALL`, `no-new-privileges`, as uid 10001 over root-owned
-  code.
+- The container runs read-only (`/tmp` a `noexec,nosuid,nodev` tmpfs), `cap_drop: ALL`,
+  `no-new-privileges`, as uid 10001 over root-owned code. Both services cap memory and PIDs.
 - `profiling.py` starts `pyroscope-io` CPU profiling only when `PYROSCOPE_SERVER_ADDRESS` is set,
   tagged `service_name` and the app version, never a room, name or address. It adds no
   capability to the container above, and a failed start is logged, not fatal.
@@ -920,7 +928,9 @@ key into them, so cleanup leaves it.
   memory; `rooms.rematches` counts the games before this one.
 - Cleanup deletes expired rooms, and finished ones past their grace, 200 at a time, at startup
   and every `ROOM_CLEANUP_INTERVAL_SECONDS`, then drops them from memory. A failed pass is logged
-  and the next runs. There is no external cron.
+  and the next runs. There is no external cron. Every minute, `evict_idle` drops rooms 15 minutes
+  past `active_at` (a change, connect or disconnect; never a lookup) with no socket, join request
+  or timer task, and no game but one rehydrated and awaiting a player; the next lookup reloads them.
 - `suggestions` holds what players send to `POST /api/suggestions` (`app/suggestions.py`): a
   `question` in Create's shape plus a `wiki` or `source_url`, or both, and a `mode`, held to its
   `Suggest` (`quote`, `intro`, `picture_item`, `explanation`, `wiki_only`, `fixed_prompt`), or
@@ -931,9 +941,9 @@ key into them, so cleanup leaves it.
   A Forgetful Bard payload is a verse and `subject.name`, a plain item on the list or not, which the verse may not name (`verse`). A riddle is `subject.name`, listed or not, and five `clues` (`clued`). A place for Mark the Map is `prompt`, one target and a `reach`, nothing else (`_place_errors`), with a `wiki`.
   A `picture_pin` (`PICTURE_TYPES`) needs no link: its `picture`, base64 in the same body (6.9 MiB
   allowed on that route alone), is its proof. Past the limiter, `suggestion_pictures.py` takes a
-  PNG, JPEG or WebP of at most 5 MB, 200 px a side and 8192² pixels, turns it upright by its EXIF,
-  shrinks it to 1920 px on its longer side and writes it again as WebP, which drops all metadata,
-  off the event loop. `suggestion_pictures` keeps it per suggestion (cascading) as a fresh
+  PNG, JPEG or WebP of at most 5 MB, 200 px a side and 4096² pixels, shrinks it to 1920 px on its
+  longer side, turns it upright by its EXIF and writes it again as WebP, which drops all metadata,
+  off the event loop, one at a time. `suggestion_pictures` keeps it per suggestion (cascading) as a fresh
   `screenshot:suggested-<hex>`; the payload names it with its stored size, and an edit can move
   the target but not change the picture. `/admin` fetches it under the bearer. A question but an NPC's (`difficulty`) may carry a `difficulty`;
   `/suggest` requires picking one, loading with the toggle unselected. Each has a `credit`
@@ -953,7 +963,8 @@ key into them, so cleanup leaves it.
   address (`TRIES_PER_HOUR`). A shadow, or a verse whose item is not on the list, reveals the name and takes no value; a trial gives no picture, whose file name would tie it to the item. The previews
   on `/suggest` and in the queue toggle Question/Reveal and answer through it.
 - `/api/admin/suggestions` lists, edits and moves them, each question with its top 3 matches at 60
-  or more among the packs and the other pending and approved suggestions, whole; a question with no
+  or more among the packs and the other pending and approved suggestions, whole, compared in a
+  worker thread; a question with no
   round can't be approved (422). Export downloads the playable approved ones and stamps
   `exported_at`; "mark as imported" moves exactly those. An edit clears the stamp.
 - `reports` holds what players send to `POST /api/reports` (`app/reports.py`): a mode, a question

@@ -1,9 +1,12 @@
 """A suggester's own screenshot: sent with a picture pin, re-encoded, reviewed and imported."""
 
+import asyncio
 import base64
 import io
 import json
 import sys
+import threading
+import time
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
@@ -156,6 +159,79 @@ def test_a_picture_claiming_too_many_pixels_is_refused_before_it_is_decoded(
     huge = picture((9000, 8200), "PNG", optimize=True)
     assert len(huge) < suggestion_pictures.MAX_ENCODED
     assert refused(client, with_picture(huge))["code"] == "bad_picture"
+
+
+def test_a_4k_or_5k_screenshot_fits_the_pixel_cap_and_one_past_it_does_not(
+    client: TestClient,
+) -> None:
+    suggestion = suggest(client, with_picture(picture((4096, 4096), "PNG", optimize=True)))
+    with Image.open(io.BytesIO(stored(client, suggestion))) as opened:
+        assert opened.size == (suggestion_pictures.MAX_SIDE, suggestion_pictures.MAX_SIDE)
+    over = picture((4097, 4096), "PNG", optimize=True)
+    response = client.post("/api/suggestions", json=with_picture(over))
+    assert response.status_code == 422, response.text
+    assert response.json()["code"] == "bad_picture"
+
+
+@pytest.mark.parametrize("error", [ValueError, SyntaxError])
+def test_a_picture_pillow_fails_on_is_a_bad_picture(
+    monkeypatch: pytest.MonkeyPatch, error: type[Exception]
+) -> None:
+    def fails(*args: Any, **kwargs: Any) -> None:
+        raise error("broken chunk")
+
+    monkeypatch.setattr(suggestion_pictures.ImageOps, "exif_transpose", fails)
+    with pytest.raises(suggestion_pictures.BadPicture):
+        suggestion_pictures.reencode(base64.b64decode(picture()))
+
+
+@pytest.mark.parametrize(
+    ("size", "mode", "kind"),
+    [
+        ((3000, 2000), "RGBA", "PNG"),
+        ((2400, 2400), "P", "PNG"),
+        ((2400, 1200), "LA", "PNG"),
+        ((2400, 1200), "L", "JPEG"),
+        ((2400, 1200), "CMYK", "JPEG"),
+        ((4096, 2160), "RGB", "JPEG"),
+    ],
+)
+def test_every_mode_is_shrunk_to_rgb_or_rgba(size: tuple[int, int], mode: str, kind: str) -> None:
+    out = io.BytesIO()
+    Image.new(mode, size).save(out, kind)
+    data, width, height = suggestion_pictures.reencode(out.getvalue())
+    with Image.open(io.BytesIO(data)) as opened:
+        assert opened.mode == ("RGBA" if mode in ("RGBA", "LA") else "RGB")
+        assert opened.size == (width, height)
+    assert max(width, height) == suggestion_pictures.MAX_SIDE
+    assert width / height == pytest.approx(size[0] / size[1], abs=0.01)
+
+
+def test_a_large_picture_turned_by_its_exif_is_shrunk_and_upright() -> None:
+    exif = Image.Exif()
+    exif[0x0112] = 6  # rotate 90 degrees to view
+    body = base64.b64decode(picture((3840, 2160), "JPEG", exif=exif.tobytes()))
+    assert suggestion_pictures.reencode(body)[1:] == (1080, 1920)
+
+
+async def test_pictures_are_decoded_one_at_a_time(monkeypatch: pytest.MonkeyPatch) -> None:
+    running, most = 0, 0
+    lock = threading.Lock()
+
+    def reencode(body: bytes) -> tuple[bytes, int, int]:
+        nonlocal running, most
+        with lock:
+            running += 1
+            most = max(most, running)
+        time.sleep(0.05)
+        with lock:
+            running -= 1
+        return body, 1, 1
+
+    monkeypatch.setattr(suggestion_pictures, "reencode", reencode)
+    monkeypatch.setattr(suggestion_pictures, "DECODES", asyncio.Semaphore(1))
+    await asyncio.gather(*(suggestion_pictures.prepare(picture()) for _ in range(3)))
+    assert most == 1
 
 
 def test_a_picture_over_five_megabytes_is_refused(client: TestClient) -> None:

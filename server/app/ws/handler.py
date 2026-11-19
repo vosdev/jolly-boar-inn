@@ -4,12 +4,12 @@ Close codes ("Websocket protocol"): ``4001`` bad ``hello``, ``4004`` unknown or 
 ``4008`` any protocol error after the handshake, each after a single ``error`` message where
 the protocol has a code for it. ``1008`` for no ``hello`` within ``HELLO_TIMEOUT``, a socket
 over its message rate, a session or address connecting too often, the oldest of too many
-sockets an address holds that have not said ``hello``, an address over its budget of rooms
-not found, or a page on another site opening the socket, before any budget is charged,
-``1009`` for a frame over ``MAX_FRAME``, ``1011`` for a call that failed on our side, and
-``1013`` for a socket past ``MAX_SOCKETS``, before its ``hello``: the client reconnects after
-these. ``4000`` (replaced by a newer socket) and ``1012`` (room left memory) come from the
-manager.
+sockets an address holds that have not said ``hello``, or an address over its budget of rooms
+not found, ``1009`` for a frame over ``MAX_FRAME``, ``1011`` for a call that failed on our
+side, and ``1013`` for a socket past ``MAX_SOCKETS``, before its ``hello``: the client
+reconnects after these. A page on another site, or an address with ``UNHELLOED_PER_ADDRESS``
+sockets yet to say ``hello`` or still closing, is a 403 before any budget is charged.
+``4000`` (replaced by a newer socket) and ``1012`` (room left memory) come from the manager.
 
 Every message after the handshake is one ``RoomManager`` call. A call that raises
 ``ApiError`` becomes a single ``error`` frame and the socket stays open: a rejected
@@ -40,6 +40,7 @@ from pydantic import ValidationError
 
 from app import metrics
 from app.errors import ApiError
+from app.http.bodylimit import MAX_DEPTH, nesting
 from app.http.ratelimit import OldestOut, OpenCount, RateLimited, client_key, room_lookup
 from app.rooms.errors import BadSession, RoomExpired, RoomNotFound
 from app.rooms.models import Player, hash_token
@@ -68,6 +69,10 @@ _EVERY_SOCKET = ""
 MAX_FRAME = 65536
 # Until ``hello`` the socket belongs to nobody, so nothing else would ever close it.
 HELLO_TIMEOUT = 10.0
+# A send or close before the socket has an outbox, which holds its slots while it waits. Our
+# close frame goes out first and an honest client answers it within a round trip, so only one
+# that stopped reading to keep the slot is cut short, and it never reads the code anyway.
+TEARDOWN_TIMEOUT = 2.0
 # Per socket, after the handshake. A player tapping as fast as they can stays far below.
 RATE_PER_SECOND = 10.0
 RATE_BURST = 20
@@ -125,6 +130,8 @@ async def _next_frame(ws: WebSocket) -> Any:
         raise BadFrame("only JSON text frames are accepted")
     if len(text) > MAX_FRAME:
         raise FrameTooBig
+    if nesting(text.encode()) > MAX_DEPTH:
+        raise BadFrame(f"frame nested over {MAX_DEPTH} levels")
     try:
         return json.loads(text)
     except ValueError:
@@ -139,12 +146,12 @@ async def _send(ws: WebSocket, message: protocol.ServerMessage) -> bool:
     ``ClientDisconnected``, an ``OSError``), a transport error, or a client that has
     stopped reading and blows ``SEND_TIMEOUT``. The outbox treats sends the same way.
     """
-    return await outbox_send(ws, message.model_dump(mode="json"))
+    return await outbox_send(ws, message.model_dump(mode="json"), TEARDOWN_TIMEOUT)
 
 
 async def _close(ws: WebSocket, code: int, reason: str) -> None:
     """Close from our side; a client that is already gone is not an error."""
-    await outbox_close(ws, code, reason)
+    await outbox_close(ws, code, reason, TEARDOWN_TIMEOUT)
 
 
 async def _reject(ws: WebSocket, code: ErrorCode, message: str, close_code: int) -> None:
@@ -178,26 +185,50 @@ def _foreign_origin(ws: WebSocket) -> bool:
 
 @router.websocket("/ws/{code}")
 async def room_socket(ws: WebSocket, code: str) -> None:
-    sockets: OpenCount = ws.app.state.sockets
-    await ws.accept()
+    # Refused before ``accept``, a socket is a 403 to the handshake: it holds no slot here
+    # and leaves uvicorn's ``--limit-concurrency`` at once instead of after a close.
     if _foreign_origin(ws):
         metrics.WS_DISCONNECTS.labels(reason="cross_site").inc()
-        await _close(ws, CLOSE_POLICY, "cross-site socket")
+        await ws.close(code=CLOSE_POLICY)
         return
-    if not sockets.enter(_EVERY_SOCKET):
-        metrics.WS_DISCONNECTS.labels(reason="server_full").inc()
-        await _close(ws, CLOSE_TRY_AGAIN_LATER, "server is full, try again later")
-        return
-    try:
-        await _room_socket(ws, code)
-    finally:
-        sockets.leave(_EVERY_SOCKET)
-
-
-async def _room_socket(ws: WebSocket, code: str) -> None:
-    """One accepted socket, from its ``hello`` until it is finished with."""
-    manager: RoomManager = ws.app.state.rooms
     host = ws.client.host if ws.client else ""
+    key = client_key(host)
+    unhelloed: OpenCount = ws.app.state.unhelloed
+    if not unhelloed.enter(key):
+        metrics.RATE_LIMITED.labels(limiter="connects").inc()
+        metrics.WS_DISCONNECTS.labels(reason="rate_limited").inc()
+        await ws.close(code=CLOSE_POLICY)
+        return
+    counted = True
+
+    def said_hello() -> None:
+        nonlocal counted
+        if counted:
+            counted = False
+            unhelloed.leave(key)
+
+    sockets: OpenCount = ws.app.state.sockets
+    try:
+        await ws.accept()
+        if not sockets.enter(_EVERY_SOCKET):
+            metrics.WS_DISCONNECTS.labels(reason="server_full").inc()
+            await _close(ws, CLOSE_TRY_AGAIN_LATER, "server is full, try again later")
+            return
+        try:
+            await _room_socket(ws, code, host, said_hello)
+        finally:
+            sockets.leave(_EVERY_SOCKET)
+    finally:
+        said_hello()
+
+
+async def _room_socket(ws: WebSocket, code: str, host: str, said_hello: Callable[[], None]) -> None:
+    """One accepted socket, from its ``hello`` until it is finished with.
+
+    ``said_hello`` stops counting it among its address's sockets without one, which only a
+    ``hello`` or the end of the socket does: a socket turned away still counts while it closes.
+    """
+    manager: RoomManager = ws.app.state.rooms
     key = client_key(host)
     pending: OldestOut = ws.app.state.pending_hellos
     player: Player | None = None
@@ -210,6 +241,7 @@ async def _room_socket(ws: WebSocket, code: str) -> None:
             pending.leave(key, displaced)
         if hello is None:
             return
+        said_hello()
         try:
             # A session already in the room proves it knows the room exists, so letting it
             # past the address's budgets reveals nothing, and a shared address one device

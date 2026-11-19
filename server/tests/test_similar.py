@@ -1,5 +1,6 @@
 """Similar questions: the score, the player's lookup, and the matches in the operator's queue."""
 
+import threading
 from collections.abc import Iterator
 from copy import deepcopy
 from pathlib import Path
@@ -9,6 +10,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from app import similar as similar_module
 from app.config import Settings
 from app.http.ratelimit import SIMILAR_PER_HOUR, RateLimiter
 from app.main import create_app
@@ -337,6 +339,29 @@ def test_the_queue_matches_packs_and_other_suggestions_never_itself(
     assert all(
         match["suggestion"] != row_id for row_id, row in rows.items() for match in row["matches"]
     )
+
+
+def test_the_queue_compares_off_the_event_loop(
+    app: FastAPI, client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The comparisons run in a worker thread, so a long queue never stalls the rooms."""
+    loop_thread = client.portal.call(lambda: threading.get_ident())  # type: ignore[union-attr]
+    compared_in: list[int] = []
+    best = similar_module.best
+
+    def spy(*args: Any) -> Any:
+        compared_in.append(threading.get_ident())
+        return best(*args)
+
+    monkeypatch.setattr(similar_module, "best", spy)
+    first = suggest(client, _question(CHOICE))
+    suggest(client, _question(_with(CHOICE, prompt="Which boss guards the Kalphite Lair?")))
+    compared_in.clear()
+
+    rows = {row["id"]: row for row in queue(client)["suggestions"]}
+
+    assert rows[first]["matches"]
+    assert compared_in and loop_thread not in compared_in
 
 
 def test_items_have_no_matches(client: TestClient) -> None:

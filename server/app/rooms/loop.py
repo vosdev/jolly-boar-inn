@@ -369,6 +369,8 @@ class Loop(RoomHost):
             else:
                 voiding = _voidable(room)
                 cut_short = _round_under_way(room)
+                # The close of the round's last question settled it already.
+                settles = room.phase != "reveal" or _last_of_round(room, index) is None
                 closed_at = datetime.now(UTC)
                 async with pool.acquire() as conn, conn.transaction():
                     if voiding is not None:
@@ -378,7 +380,7 @@ class Loop(RoomHost):
                     )
                     if cut_short is not None:
                         await bump(conn, Metric.ROUNDS_ENDED_EARLY, cut_short.mode)
-                    settled = await self._settle_items(conn, room, segment)
+                    settled = await self._settle_items(conn, room, segment) if settles else {}
                     # Re-read from this round's start: one cut on its splash gained nothing,
                     # and the standings must not repeat the round before's gains.
                     totals = await _fetch_totals(conn, room.id, segment.start)
@@ -387,7 +389,10 @@ class Loop(RoomHost):
                     voiding.closed_at, voiding.voided = closed_at, True
                 _keep_settled(room, settled)
                 room.totals, room.totals_round = totals, segment.start
-                room.clear_deadline()
+                # Out of the guard's phases before the lock goes, so an end_round queued
+                # behind this one is a no-op; ``_standings`` gives the phase its clock.
+                room.enter("standings", now=self.clock(), wall=datetime.now(UTC))
+                room.drops = []
                 self._start_timer(room, following, standings_after=following - 1)
                 return
         for broadcast in broadcasts:

@@ -40,6 +40,8 @@ GameOutcome = Literal["finished", "ended_early", "abandoned"]
 CleanupResult = Literal["ok", "db_unavailable", "error"]
 LimiterName = Literal[
     "rooms",
+    "room_attempts",
+    "question_changes",
     "lookup_misses",
     "free_codes",
     "joins",
@@ -49,8 +51,10 @@ LimiterName = Literal[
     "similar",
     "tries",
     "dailies",
+    "daily_requests",
     "ws_messages",
     "connects",
+    "auth_failures",
 ]
 DisconnectReason = Literal[
     "client",

@@ -36,7 +36,7 @@ services:
     # Nothing under server/app writes to disk, so the root filesystem stays read-only.
     read_only: true
     tmpfs:
-      - /tmp:size=64m,mode=1777
+      - /tmp:size=64m,mode=1777,noexec,nosuid,nodev
     cap_drop: [ALL]
     security_opt:
       - no-new-privileges:true
@@ -51,7 +51,7 @@ services:
     restart: unless-stopped
 
   postgres:
-    image: postgres:18
+    image: postgres:18.7
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-jbi}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
@@ -64,6 +64,9 @@ services:
     cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETGID, SETUID]
     security_opt:
       - no-new-privileges:true
+    # An idle instance uses about 42 MB; this leaves headroom for a busy evening.
+    pids_limit: 256
+    mem_limit: 512m
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-jbi} -d ${POSTGRES_DB:-jbi}"]
       interval: 5s

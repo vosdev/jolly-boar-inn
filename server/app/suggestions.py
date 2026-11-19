@@ -30,6 +30,7 @@ held to its type's alone, and to the rest once the operator gives it one. Conten
 server stores goes back out only to the operator, and the client draws it as text.
 """
 
+import asyncio
 import base64
 from collections.abc import Callable, Sequence
 from typing import Any, Literal
@@ -630,20 +631,27 @@ async def listing(pool: asyncpg.Pool, status: Status, packs: list[Pack]) -> dict
         )
     totals = {"pending": 0, "approved": 0, "rejected": 0, "imported": 0}
     totals.update({row["status"]: row["n"] for row in counts})
+    # A thousand queued suggestions are seconds of comparisons, which on the event loop
+    # would freeze every room; the rows are plain data by now, so a thread can have them.
+    listed = await asyncio.to_thread(_listed, rows, queued, packs)
+    return {"suggestions": listed, "counts": totals}
+
+
+def _listed(
+    rows: list[asyncpg.Record], queued: list[asyncpg.Record], packs: list[Pack]
+) -> list[dict[str, Any]]:
+    """``listing``'s suggestions, each question with its matches."""
     features = {row["id"]: similar.features(row["content"]) for row in queued}
     candidates = _pack_candidates(packs)
-    return {
-        "suggestions": [
-            view(row)
-            | {
-                "matches": _matches(row, candidates, queued, features)
-                if row["kind"] == "question"
-                else []
-            }
-            for row in rows
-        ],
-        "counts": totals,
-    }
+    return [
+        view(row)
+        | {
+            "matches": _matches(row, candidates, queued, features)
+            if row["kind"] == "question"
+            else []
+        }
+        for row in rows
+    ]
 
 
 async def edit(

@@ -8,6 +8,8 @@ operator needs to see the box is healthy, not read a clan's names, answers or qu
 """
 
 import hmac
+import logging
+from collections.abc import Callable
 from datetime import date, datetime, timedelta
 
 from fastapi import APIRouter, Depends, Request
@@ -15,9 +17,12 @@ from pydantic import BaseModel
 
 from app import stats
 from app.errors import ApiError
+from app.http.ratelimit import RateLimiter, client_key
 from app.rooms import codes
 from app.rooms.models import Room
 from app.rooms.state import RoomManager
+
+log = logging.getLogger("app.http")
 
 
 class Unauthorized(ApiError):
@@ -25,22 +30,49 @@ class Unauthorized(ApiError):
     headers = {"WWW-Authenticate": "Bearer"}
 
 
-def is_operator(request: Request) -> bool:
-    """Whether the request carries the operator's token; false when none is configured."""
+def _admin_bearer(request: Request) -> bool:
     expected: str = request.app.state.settings.admin_token
     scheme, _, given = request.headers.get("authorization", "").partition(" ")
     # Headers arrive as latin-1, so encoding back gives the bytes that were sent.
     sent = given.strip().encode("latin-1")
-    return (
-        expected != ""
-        and hmac.compare_digest(sent, expected.encode("ascii"))
-        and scheme.lower() == "bearer"
-    )
+    return hmac.compare_digest(sent, expected.encode("ascii")) and scheme.lower() == "bearer"
+
+
+def guarded_bearer(request: Request, kind: str, matches: Callable[[Request], bool]) -> bool:
+    """Whether ``matches`` accepts the request's bearer, under the address's failure budget.
+
+    An address that has spent it is refused before anything is compared, so a guess that
+    happens to be right is refused too and the guessing learns nothing until the window
+    frees up. Only a wrong guess is charged and logged: the operator pays nothing.
+    """
+    failures: RateLimiter = request.app.state.auth_failures
+    host = request.client.host if request.client else ""
+    key = client_key(host)
+    failures.refuse_if_spent(key, "too many failed tokens from this address, try again later")
+    if matches(request):
+        return True
+    failures.allow(key)
+    # The route template, not the raw path: a request can carry anything in its path.
+    route = getattr(request.scope.get("route"), "path", None) or "unmatched"
+    log.warning("failed %s token from %s on %s", kind, host, route)
+    return False
+
+
+def is_operator(request: Request) -> bool:
+    """Whether the request carries the operator's token; false when none is configured.
+
+    Only a request that sends ``Authorization`` is trying a token, so a player who sends
+    none is neither charged nor logged.
+    """
+    expected: str = request.app.state.settings.admin_token
+    if expected == "" or "authorization" not in request.headers:
+        return False
+    return guarded_bearer(request, "admin", _admin_bearer)
 
 
 def require_token(request: Request) -> None:
-    """Refuse the request unless it carries the operator's token."""
-    if not is_operator(request):
+    """Refuse the request unless it carries the operator's token; any other is a failure."""
+    if not guarded_bearer(request, "admin", _admin_bearer):
         raise Unauthorized("a valid admin token is required")
 
 

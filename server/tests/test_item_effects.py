@@ -1,9 +1,10 @@
 """The phase-one items' effects: Super restore (4), Ring of Life and Phoenix necklace, on
 their own and in a game. The drop that deals them is ``test_items.py``."""
 
+import asyncio
 from collections.abc import Iterator, Mapping
 from typing import Any
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 from fastapi import FastAPI
@@ -13,8 +14,10 @@ from app import question_stats
 from app.rooms import items
 from app.rooms.items import PHOENIX_NECKLACE, RING_OF_LIFE, SUPER_RESTORE, Answered, Item, Worn
 from app.rooms.models import RoomQuestion
+from app.stats import Metric
 from tests.conftest import stub_mode
 from tests.game_api import AFTER, Game, answer_after, assert_memory_matches_db
+from tests.rooms_api import call
 from tests.test_items import BUCKETS, NAMES, play, seated, stored, to_standings
 
 
@@ -308,6 +311,69 @@ def test_a_round_cut_short_settles_phoenix_into_points_gained_only(
     assert all(m["settled"] == {} for m in game.admin.seen if m["t"] == "question_closed")
     rows = db("select item_points from answers where item = 'phoenix_necklace'")
     assert [r["item_points"] for r in rows] == [900]
+    assert_memory_matches_db(game, db)
+
+
+def test_a_round_ended_in_its_last_reveal_pays_phoenix_once(
+    table, second_mode, last_round, db
+) -> None:
+    modes = [*two_rounds(second_mode, 3), {"mode": last_round, "questions": 1}]
+    game = seated(table, *NAMES, table_items=(PHOENIX_NECKLACE,), modes=modes, reveal_seconds=30)
+    game.start()
+    play(game, 0, BUCKETS)
+    game.skip()
+    to_standings(game)
+    game.skip()
+    ann = game.players[4]
+
+    # Ann: 900, 600, then wrong; the close of the round's last question already raised the 0.
+    play(game, 1, {"Ann": 2})
+    game.skip()
+    play(game, 2, {"Ann": 5})
+    game.skip()
+    closed = play(game, 3, {}, wrong=["Ann"])
+    assert closed["settled"][ann.id] == {"item": "phoenix_necklace", "points": 750}
+    game.admin.send(t="end_round", index=3)
+    frame = to_standings(game)
+    gained = {s["player_id"]: s["points_gained"] for s in frame["standings"]}
+    assert gained[ann.id] == 900 + 600 + 750
+    rows = db("select item_points from answers where item = 'phoenix_necklace'")
+    assert [r["item_points"] for r in rows] == [750]
+    assert_memory_matches_db(game, db)
+
+
+def test_a_double_tapped_end_round_settles_and_counts_once(
+    table, second_mode, last_round, db
+) -> None:
+    modes = [*two_rounds(second_mode, 3), {"mode": last_round, "questions": 1}]
+    game = seated(table, *NAMES, table_items=(PHOENIX_NECKLACE,), modes=modes, reveal_seconds=30)
+    game.start()
+    play(game, 0, BUCKETS)
+    game.skip()
+    to_standings(game)
+    game.skip()
+    ann = game.players[4]
+    play(game, 1, {}, wrong=["Ann"])
+    game.skip()
+    play(game, 2, {"Ann": 2})
+    rooms = game.app.state.rooms
+    admin = game.room.players[UUID(game.admin.id)]
+
+    async def twice() -> None:
+        await asyncio.gather(*(rooms.end_round(game.code, admin, 2) for _ in range(2)))
+
+    call(game.client, twice)
+    frame = to_standings(game)
+    gained = {s["player_id"]: s["points_gained"] for s in frame["standings"]}
+    assert gained[ann.id] == 0 + 900 + 900
+    rows = db("select item_points from answers where item = 'phoenix_necklace'")
+    assert [r["item_points"] for r in rows] == [900]
+    (ended,) = db(
+        "select count from daily_stats where metric = $1 and key = $2",
+        Metric.ROUNDS_ENDED_EARLY.value,
+        second_mode,
+    )
+    assert ended["count"] == 1
     assert_memory_matches_db(game, db)
 
 
