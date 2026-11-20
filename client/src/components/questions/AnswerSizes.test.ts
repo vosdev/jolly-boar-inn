@@ -12,6 +12,7 @@ import type { OpenQuestion } from '../../lib/protocol'
 import dragLayout from './DragLayout.svelte?raw'
 import GemChoices from './GemChoices.svelte'
 import gemChoices from './GemChoices.svelte?raw'
+import matchingPairs from './types/MatchingPairs.svelte?raw'
 import Question from './Question.svelte'
 import moreLess from './types/MoreLess.svelte?raw'
 
@@ -148,6 +149,44 @@ describe('Sort It Out', () => {
     expect(rule(wide, '.list')).toContain('grid-column: 1')
     expect(rule(wide, '.actions')).toContain('grid-column: 2')
     expect(rule(wide, '.ask')).toContain('grid-column: 2')
+  })
+})
+
+describe('Matching', () => {
+  const VIEW = {
+    prompt: 'Match each primary herb to the potion it is used to make.',
+    fields: ['Ranarr weed', 'Toadflax', 'Snapdragon', 'Kwuarm', 'Cadantine'].map((text) => ({
+      text,
+    })),
+    options: [
+      'Prayer potion',
+      'Saradomin brew',
+      'Super restore',
+      'Super defence',
+      'Super strength',
+      'Stamina potion',
+    ].map((text) => ({ text })),
+  }
+
+  it('stands the tray beside the fields on a desktop, and under them on a phone', () => {
+    render(Question, {
+      question: question('matching', 'matching', VIEW),
+      yourValue: null,
+      onAnswer: () => {},
+    })
+    const board = document.querySelector('.board')!
+    expect([...board.children].map((child) => child.className.split(' ')[0])).toEqual([
+      'fields',
+      'tray',
+    ])
+    const { base, wide } = styles(matchingPairs)
+    expect(rule(base, '.board')).toBe('')
+    expect(rule(wide, '.board')).toContain('grid-template-columns: minmax(0, 9fr) minmax(0, 11fr)')
+    expect(rule(wide, '.board .tray')).toContain('margin-top: 0')
+  })
+
+  it("keeps its fields 8px apart, without the forms' field margin", () => {
+    expect(rule(styles(matchingPairs).base, '.field')).toContain('margin: 0')
   })
 })
 
