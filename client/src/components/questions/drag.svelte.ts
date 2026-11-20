@@ -229,6 +229,8 @@ export class Dragging {
 
 /** How long before `ends_at` an unsent answer goes, to land before the server stops taking it. */
 const EARLY_MS = 1000
+/** The longest delay `setTimeout` keeps; a longer one overflows and fires at once. */
+const MAX_TIMEOUT_MS = 2 ** 31 - 1
 
 /**
  * Sends `answer()` a second before `ends_at` while `waiting()` holds, since the server
@@ -245,7 +247,8 @@ export function sendBeforeEnd(
     const schedule = timing()
     if (!waiting() || schedule === undefined) return
     const left = msUntil(schedule.endsAt, get(schedule.now))
-    if (left === 0) return
+    // A preview's question never closes, and no room question stays open for weeks.
+    if (left === 0 || left > MAX_TIMEOUT_MS) return
     const timer = setTimeout(() => send(untrack(answer)), Math.max(0, left - EARLY_MS))
     return () => clearTimeout(timer)
   })

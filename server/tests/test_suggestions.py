@@ -150,26 +150,6 @@ QUOTE = {
     "credit": "AFKFisher",
     "credit_shown": False,
 }
-# Release Order is not built yet, so this one waits in the queue as not playable.
-RELEASE_ORDER = {
-    **SORT_IT_OUT,
-    "content": {
-        **SORT_IT_OUT["content"],
-        "mode": "release_order",
-        "wiki": "https://oldschool.runescape.wiki/w/Update:Quests",
-        "payload": {
-            "prompt": "Put these quests in the order they came out.",
-            "ends": ["Oldest", "Newest"],
-            "entries": [
-                {"text": "Cook's Assistant", "rank": 1, "detail": "4 January 2001"},
-                {"text": "Sheep Shearer", "rank": 1, "detail": "4 January 2001"},
-                {"text": "Dragon Slayer", "rank": 2, "detail": "4 January 2001"},
-            ],
-            "answer": [0, 1, 2],
-            "explanation": "Cook's Assistant and Sheep Shearer came out on one day.",
-        },
-    },
-}
 ITEM = {
     "kind": "item",
     "content": {"name": " Ancient mace "},
@@ -310,8 +290,7 @@ EVENT_ORDERING = _with(
         _with(EVENT, payload={**EVENT["content"]["payload"], "quote": "Said by Bob"}),
         _with(QUOTE, payload={**QUOTE["content"]["payload"], "quote": ""}),
         _with(QUOTE, payload={**QUOTE["content"]["payload"], "quote": "x" * 301}),
-        _with(RELEASE_ORDER, type="multiple_choice"),
-        _with(RELEASE_ORDER, type="free_text"),
+        _with(SORT_IT_OUT, type="free_text"),
         _with(SORT_IT_OUT, mode="drop_table"),
         _without(EVENT_ORDERING, "random_event"),
         _with(EVENT_ORDERING, random_event="nobody_at_all"),
@@ -426,12 +405,17 @@ def test_the_form_holds_the_same_rounds_to_the_same_prompts() -> None:
     assert "{ text: rules.fixed_prompt, fixed: true }" in client_source.read("lib/suggestions.ts")
 
 
-def test_a_release_order_suggestion_waits_as_not_playable(client: TestClient) -> None:
-    approve(client, suggest(client, RELEASE_ORDER))
-    (row,) = queue(client, "approved")["suggestions"]
-    assert row["content"] == RELEASE_ORDER["content"]
+def test_a_rejected_question_for_a_dropped_round_still_lists(client: TestClient, db) -> None:
+    suggestion = suggest(client, SORT_IT_OUT)
+    assert _status(client, suggestion, "rejected").status_code == 200
+    db(
+        "update suggestions set content = jsonb_set(content, '{mode}', '\"release_order\"')"
+        " where id = $1",
+        UUID(suggestion),
+    )
+    (row,) = queue(client, "rejected")["suggestions"]
+    assert row["content"]["mode"] == "release_order"
     assert row["playable"] is False
-    assert export(client)["questions"] == []
 
 
 @pytest.mark.parametrize("credit", ["", "   ", "x" * 13, "Zezima<b>", "名前"])

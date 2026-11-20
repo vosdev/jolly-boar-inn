@@ -120,7 +120,6 @@ describe('the choices', () => {
       ['forgetful_bard', ['pick_from_list']],
       ['mark_the_map', ['map_pin']],
       ['sort_it_out', ['ordering']],
-      ['release_order', ['ordering']],
       ['prop_hunt', ['picture_pin']],
       ['riddles_of_the_sphinx', ['pick_from_list']],
       ['no_round', trivia],
@@ -176,7 +175,7 @@ describe('the choices', () => {
       'prop_hunt',
       'riddles_of_the_sphinx',
     ])
-    expect(CHOICES.find((c) => c.id === 'release_order')?.host).toBe('aris')
+    expect(CHOICES.find((c) => c.id === 'prop_hunt')?.host).toBe('leela')
   })
 
   it('offers one with no round all seven types, from the house, and nothing a round adds', () => {
@@ -424,7 +423,7 @@ describe('a question’s round', () => {
       expect(roundsFor(type).map((c) => c.id)).toEqual(suggesting.map((c) => c.id))
     }
     expect(roundsFor('free_text').map((c) => c.id)).toContain('random_event')
-    expect(roundsFor('ordering').map((c) => c.id)).toContain('release_order')
+    expect(roundsFor('ordering').map((c) => c.id)).toContain('sort_it_out')
     expect(roundsFor('ordering').map((c) => c.id)).not.toContain('drop_table')
     expect(roundsFor('pick_from_list').map((c) => c.id)).toEqual([
       'whos_that_npc',

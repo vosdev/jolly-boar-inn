@@ -82,12 +82,12 @@ describe('ExistingQuestions', () => {
 
   it('says in one line that a mode not built here has none, rather than an error', async () => {
     vi.mocked(api.getReportChoices).mockRejectedValue(
-      new ApiFailure(422, 'bad_mode', "'release_order' is not a mode with pack questions here"),
+      new ApiFailure(422, 'bad_mode', "'prop_hunt' is not a mode with pack questions here"),
     )
-    render(ExistingQuestions, { mode: 'release_order', open: true })
+    render(ExistingQuestions, { mode: 'prop_hunt', open: true })
     await within(panel()).findByText('The game has no questions here yet.')
     expect(document.querySelector('.banner')).toBeNull()
-    expect(screen.queryByText(/release_order/)).toBeNull()
+    expect(screen.queryByText(/prop_hunt/)).toBeNull()
     expect(screen.queryByRole('searchbox')).toBeNull()
   })
 

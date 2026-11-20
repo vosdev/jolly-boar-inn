@@ -140,8 +140,8 @@ describe('hosts', () => {
   })
 
   it('has a mode still being built presented by its host-to-be, in the generic lines', () => {
-    expect(hostOf('release_order').host).toEqual({ id: 'aris', name: 'Aris' })
-    expect(hostOf('release_order').reveal).toBe(GENERIC_HOST.reveal)
+    expect(hostOf('prop_hunt').host).toEqual({ id: 'leela', name: 'Leela' })
+    expect(hostOf('prop_hunt').reveal).toBe(GENERIC_HOST.reveal)
   })
 
   it('has the house present a mode with no entry, in its generic lines', () => {

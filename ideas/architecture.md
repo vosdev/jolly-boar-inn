@@ -156,8 +156,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 | `drop_table` | Drop Table | `multiple_choice`, `free_text`, `pick_all_that_apply`, `closest_number`, `number_slider`, `matching`; `image` is its picture | hand-written | done |
 | `odd_one_out` | Odd One Out | `multiple_choice`, four to six names | hand-written | done |
 | `minigame_madness` | Minigame Madness | Bestiary's seven types; `image` is its picture | hand-written | done |
-| `release_order` | Release Order | `ordering` | hand-written | on hold: too few questions, waiting for player suggestions |
-| `sort_it_out` | Sort It Out | `ordering` | hand-written | done, the first on `ordering` |
+| `sort_it_out` | Sort It Out | `ordering` | hand-written | done, the first on `ordering`; holds the release-date orders, their dates as `detail` |
 | `who_said_that` | Who Said That? | `multiple_choice` | hand-written | done |
 | `know_your_content_creator` | Know Your Content Creator | `multiple_choice`, `closest_number`, `number_slider`, `pick_all_that_apply` | hand-written | done |
 | `whos_that_npc` | Who's That NPC? | `pick_from_list` over `popular-npcs.json`, a shadow; `multiple_choice`, a render | hand-written | done |
@@ -174,8 +173,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 
 Create lists the unbuilt ones from their files in `lib/modes/`, in `UPCOMING` then `PLANNED` order.
 
-- Sort It Out and Release Order are two modes over one type: their splash, prompt and pool differ.
-  So is a sort into bins: `matching` with `bins` (section 4), which every round with `matching`
+- A sort into bins is `matching` with `bins` (section 4), which every round with `matching`
   takes, timed and scored alike; players read "Sort" where a plain one says "Match".
 - Who's That NPC?'s shadows use a strict list, not free text: free text needs an alias list and a
   typo argument per item. Mostly monsters: people look alike in shadow. A render, for lesser-known
@@ -287,7 +285,7 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   order. Import adds unticked and skips duplicates; Export writes the bank; one the checks refuse is dropped on load.
 - `/suggest` adds an `ordering` form for the rounds that sort, Bestiary's and random events'
   (NPC and intro) beside their other types: entries first to last and a "tied with the one
-  above" box, so ranks follow, `picks` optional. Release Order's entries carry their date as `detail`.
+  above" box, so ranks follow, `picks` optional.
   `MatchingForm` writes field and answer pairs side by side, then decoys, for Bestiary, Drop Table,
   the NPCs and a question with no round; a suggestion's fields are names only, and `/admin` adds icons.
 - Every round on Create takes suggestions, the price rounds and Pixel Hunt as items and Random Events Only as the
@@ -1024,7 +1022,7 @@ Right until it does (More/Less keeps `sample.json`'s five, which `live_packs` dr
 - `make gen-pixel-hunt` writes `pixel_hunt.json` offline: a question per roster item with a detail
   picture in `assets.json` and off the script's blocklist, keeping its difficulty (else `medium`).
   A `pictured` round draws a question only when `data/pictures.json` has its picture.
-- Examine, Bestiary, Drop Table, Odd One Out, Release Order and Sort It Out are hand-written packs,
+- Examine, Bestiary, Drop Table, Odd One Out and Sort It Out are hand-written packs,
   like the random events. No importer fetches wiki facts, so the owner picks every monster and
   question.
 - `make fetch-assets` fetches `data/assets.json` (target under `client/src/assets/` to wiki title)

@@ -386,6 +386,14 @@ describe('ordering', () => {
     expect(onAnswer).not.toHaveBeenCalled()
   })
 
+  it('sends nothing on its own for a preview that never closes', async () => {
+    const onAnswer = vi.fn()
+    const preview = { ...open(), ends_at: new Date(8.64e15).toISOString() }
+    render(Question, { question: preview, yourValue: null, onAnswer })
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(onAnswer).not.toHaveBeenCalled()
+  })
+
   it('gives somebody who cannot answer neither numbers, handles nor Submit', () => {
     render(Question, { question: open(VIEW, false), yourValue: null, onAnswer: () => {} })
     expect(document.querySelector('.tick')).toBeNull()

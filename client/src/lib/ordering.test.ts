@@ -9,7 +9,6 @@ import {
   problems,
   questionOf,
   ranksOf,
-  wordingOf,
   type OrderingDraft,
   type OrderingQuestion,
 } from './ordering'
@@ -194,27 +193,6 @@ describe('problems', () => {
   it('refuses a key that is not part of an ordering', () => {
     const odd = { ...questionOf(draft()), random_event: 'bob' }
     expect(paths(odd)).toContain('random_event')
-  })
-})
-
-describe('a round whose entries are dated', () => {
-  it('needs a detail on every entry, which no other round does', () => {
-    const question = questionOf(draft())
-    expect(problems(question)).toEqual([])
-    const missing = problems(question, true).map((problem) => problem.path)
-    expect(missing).toEqual([
-      'payload.entries[1].detail',
-      'payload.entries[2].detail',
-      'payload.entries[3].detail',
-    ])
-  })
-
-  it('words its form for dates', () => {
-    expect(wordingOf('release_order')).toMatchObject({
-      ends: ['Oldest', 'Newest'],
-      detailRequired: true,
-    })
-    expect(wordingOf('sort_it_out').detailRequired).toBe(false)
   })
 })
 
