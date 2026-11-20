@@ -292,7 +292,7 @@ describe('Mystery Boxes on the standings', () => {
     await tick()
     const panel = screen.getByRole('heading', { name: 'You found' }).closest('section')
     expect(panel?.textContent).toContain('Ring of Life')
-    expect(panel?.textContent).toContain('Gone after More or Less')
+    expect(panel?.textContent).toContain('Expires after More or Less')
   })
 
   it('stands open at once on a screen that arrived after the standings began', () => {

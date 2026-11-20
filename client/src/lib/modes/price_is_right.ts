@@ -6,7 +6,7 @@ export const mode: Mode = {
   label: 'The Price is Right',
   hint: 'Test your Grand Exchange knowledge.',
   host: { id: 'grand_exchange_clerk', name: 'Grand Exchange Clerk' },
-  greeting: 'Welcome to the Grand Exchange. Step up to the booth whenever you are ready.',
+  greeting: "Welcome to the Grand Exchange. Step up to the booth whenever you're ready.",
   blurb:
     'One item and a slider of prices. Slide to what it really trades for on the Grand Exchange - no +5% button to save you here.',
   ask: [
@@ -21,11 +21,11 @@ export const mode: Mode = {
     'Hold on, someone at the west booth is still counting their gp.',
     'Offer logged. Feel free to bank-stand while the others finish.',
     'Still matching offers across the market. Won’t be a moment.',
-    'Waiting on the other traders. Please do not spam-click the booth.',
+    "Waiting on the other traders. Please don't spam-click the booth.",
   ],
   pace: {
     quick: [
-      'Instabought! You did not even haggle over a single coin.',
+      "Instabought! You didn't even haggle over a single coin.",
       'Offer placed in a single tick. Flippers hate you.',
       'Faster than a merch clan dumping their stock!',
       'Straight in! You must flip these every day.',
@@ -34,13 +34,13 @@ export const mode: Mode = {
       'Offer placed at guide price. Steady and sensible.',
       'Logged and queued. No need to mash the +5% button.',
       'A calm trade. Now we wait for the rest of the floor.',
-      'Offer in! Let us see if the market meets your price.',
+      "Offer in! Let's see if the market meets your price.",
     ],
     late: [
       'Offer placed just in time, right before the daily price update!',
-      'Slid across the counter just in time! The booth was closing.',
-      'Got that offer in just in time, nearly hit the four-hour limit.',
-      'Just in time! The clerk was already locking the till.',
+      'Slid across the counter right as the booth was closing!',
+      'Got that offer in right before the four-hour limit!',
+      'Close call! The clerk was already locking the till.',
     ],
     early: [
       'First offer in the book! Setting the market price yourself?',
@@ -55,14 +55,14 @@ export const mode: Mode = {
   },
   reveal: [
     'Your offer has completed.',
-    'Let us check the guide price.',
+    "Let's check the guide price.",
     'Collect your items and coins.',
-    'Here is what it goes for.',
+    "Here's what it goes for.",
   ],
   verdict: {
     right: [
       'Green bar! Your offer filled to the very last coin.',
-      'Spot on the guide price. You could run a booth yourself.',
+      'Right on the guide price. You could run a booth yourself.',
       'Matched the market to a tee. Pleasure doing business with you.',
       'Exact price! Not a single coin wasted on the margin.',
     ],
@@ -70,7 +70,7 @@ export const mode: Mode = {
       'Close enough to fill! You only overpaid by a few percent.',
       'Your offer partially completed. Respectable eye for the market.',
       'Right ballpark! A flipper would happily take that margin.',
-      'Near the guide price. You will not go broke trading like that.',
+      "Near the guide price. You won't go broke trading like that.",
     ],
     wrong: [
       'That offer is going to sit in your slot for six months.',

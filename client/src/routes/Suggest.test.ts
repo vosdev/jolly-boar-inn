@@ -180,7 +180,7 @@ describe('Suggest', () => {
       await fireEvent.click(await screen.findByRole('button', { name: new RegExp(card.label) }))
       await waitFor(() => expect(existingRows()).toEqual([`A ${card.id} question`]))
       expect(screen.getByLabelText('Search the questions already in the game')).toBeTruthy()
-      await fireEvent.click(screen.getByRole('button', { name: /Everything you can suggest/ }))
+      await fireEvent.click(screen.getByRole('button', { name: /All suggestion types/ }))
     }
     expect(vi.mocked(api.getReportChoices).mock.calls.map(([mode]) => mode)).toEqual(
       cards.map((c) => c.id).filter((id) => !['random_event', 'prop_hunt'].includes(id)),
@@ -1268,7 +1268,7 @@ describe('Suggest', () => {
       expect(stepDots()).toEqual(['1 Question', '2 Difficulty', '3 Wiki page', '4 Credit'])
       expect(screen.queryByRole('group', { name: 'Extras' })).toBeNull()
 
-      await fireEvent.click(screen.getByRole('button', { name: /Everything you can suggest/ }))
+      await fireEvent.click(screen.getByRole('button', { name: /All suggestion types/ }))
       await fireEvent.click(await screen.findByRole('button', { name: /A popular item/ }))
       expect(stepDots()).toEqual(['1 Item', '2 Credit'])
       await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))

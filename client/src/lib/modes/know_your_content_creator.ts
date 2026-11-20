@@ -38,8 +38,8 @@ export const mode: Mode = {
     ],
     late: [
       'Just in time. Or was time just in you?',
-      'Got it in just in time, on the very last tick.',
-      'Just in time. Does the timer bar even exist?',
+      'Got it in on the very last tick.',
+      'Right at the buzzer. Does the timer bar even exist?',
     ],
     early: [
       'You answered before you even read it. Interesting.',
@@ -66,14 +66,14 @@ export const mode: Mode = {
       'True. The birthday boy would be proud.',
     ],
     partial: [
-      'Partly right. 50/50: either you know it or you do not.',
+      "Partly right. 50/50 — either you know it or you don't.",
       'Some of it was true. Like most clips on Reddit.',
       'Half right. Close enough for the highlight reel.',
     ],
     wrong: [
       'Wrong. Back to Lumbridge, hcim btw.',
       '73. Wait, no. Zero points.',
-      'That was not it. Perhaps touch some Gnome Stronghold grass.',
+      'Not quite. Perhaps touch some Gnome Stronghold grass.',
       'Wrong. Clip that.',
     ],
     missed: [

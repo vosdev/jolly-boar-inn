@@ -16,7 +16,7 @@ export interface Refusal extends ProtocolError {
 }
 
 const PLAYER_TEXT: Partial<Record<ErrorCode, string>> = {
-  not_open: 'Too late, that question had closed.',
+  not_open: 'Too late — that question already closed.',
   already_answered: "You've already answered this one.",
   excluded: "You can't answer this question.",
   bad_value: "That answer didn't go through. Try again.",

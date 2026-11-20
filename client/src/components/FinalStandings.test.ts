@@ -60,7 +60,7 @@ describe('FinalStandings', () => {
     render(FinalStandings, { standings: TWO, youId: 'Woox', ceremony: true, children })
     const times = ceremonyTimes(LINES.map((line) => [...line].length))
     expect(document.querySelector('.hiscores')).toBeNull()
-    expect(screen.getByRole('button', { name: 'Skip to the hiscores' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Skip to hiscores' })).toBeTruthy()
 
     await vi.advanceTimersByTimeAsync(times.shows[0]!)
     await tick()
@@ -101,7 +101,7 @@ describe('FinalStandings', () => {
 
   it('skips to the hiscores', async () => {
     render(FinalStandings, { standings: TWO, youId: null, ceremony: true, children })
-    await fireEvent.click(screen.getByRole('button', { name: 'Skip to the hiscores' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Skip to hiscores' }))
     await vi.advanceTimersByTimeAsync(CEREMONY.leave)
     await tick()
     expect(document.querySelector('.hiscores')).not.toBeNull()
@@ -112,7 +112,7 @@ describe('FinalStandings', () => {
     expect(document.querySelectorAll('.hiscores tbody tr')).toHaveLength(3)
     expect(document.querySelector('.gain')).toBeNull()
     expect(screen.getByText('Gz, Zezima! Here are the full hiscores.')).toBeTruthy()
-    expect(screen.queryByRole('button', { name: 'Skip to the hiscores' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Skip to hiscores' })).toBeNull()
   })
 
   it('says his lines in his bubble and shows no Next up', () => {
@@ -209,7 +209,7 @@ describe('FinalStandings', () => {
         ceremony: true,
         children,
       })
-      await fireEvent.click(screen.getByRole('button', { name: 'Skip to the hiscores' }))
+      await fireEvent.click(screen.getByRole('button', { name: 'Skip to hiscores' }))
       await vi.advanceTimersByTimeAsync(CEREMONY.leave)
       await tick()
       expect(document.querySelectorAll('.team')).toHaveLength(2)
@@ -247,7 +247,7 @@ describe('FinalStandings share text', () => {
     players.set([{ ...PLAYER, id: 'Zezima', display_name: 'Zezima the Great' }])
     const writeText = clipboard(() => Promise.resolve())
     render(FinalStandings, { standings: FOUR, youId: 'Mod Ash', past: true, children })
-    await fireEvent.click(screen.getByRole('button', { name: 'Copy the result' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Copy result' }))
     expect(writeText).toHaveBeenCalledWith(
       [
         'Quiz night at The Jolly Boar Inn: 4 players.',
@@ -265,7 +265,7 @@ describe('FinalStandings share text', () => {
     const writeText = clipboard(() => Promise.resolve())
     render(FinalStandings, { standings: FOUR, youId: 'Mod Ash', past: true, children })
     await fireEvent.click(screen.getByRole('radio', { name: 'Everyone' }))
-    await fireEvent.click(screen.getByRole('button', { name: 'Copy the result' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Copy result' }))
     expect(writeText.mock.lastCall?.[0]).toContain('🥉 Lynx 100\n4. Mod Ash 0\nThink you can')
   })
 
@@ -283,7 +283,7 @@ describe('FinalStandings share text', () => {
       children,
     })
     await fireEvent.click(screen.getByRole('radio', { name: 'With players' }))
-    await fireEvent.click(screen.getByRole('button', { name: 'Copy the result' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Copy result' }))
     expect(writeText.mock.lastCall?.[0]).toContain(
       '🥇 Zamorak 450 avg\n   Zezima 900 · Lynx 0\n🥈 Saradomin 400 avg\n   Woox 400',
     )
@@ -293,7 +293,7 @@ describe('FinalStandings share text', () => {
   it('shows the text to copy by hand when the clipboard refuses', async () => {
     clipboard(() => Promise.reject(new Error('denied')))
     render(FinalStandings, { standings: TWO, youId: null, past: true, children })
-    await fireEvent.click(screen.getByRole('button', { name: 'Copy the result' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Copy result' }))
     const field = await screen.findByRole<HTMLTextAreaElement>('textbox', { name: 'The result' })
     expect(field.value).toContain('🥇 Zezima 900')
   })
@@ -309,7 +309,7 @@ describe('FinalStandings on the TV', () => {
       children,
     })
     expect(container.querySelector('.stage.tv.wide')).not.toBeNull()
-    expect(screen.queryByRole('button', { name: 'Skip to the hiscores' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Skip to hiscores' })).toBeNull()
     await vi.runAllTimersAsync()
     expect(screen.getByRole('table')).toBeTruthy()
     expect(screen.queryAllByRole('button')).toEqual([])

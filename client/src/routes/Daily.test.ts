@@ -79,7 +79,7 @@ describe('/daily', () => {
       new api.ApiFailure(404, 'daily_not_open', 'the daily has not opened yet'),
     )
     render(Daily, { navigate })
-    await screen.findByText('The daily is not available right now.')
+    await screen.findByText("The daily challenge isn't available right now.")
     expect(screen.queryByRole('button', { name: 'Start' })).toBeNull()
   })
 
@@ -113,7 +113,7 @@ describe('/daily', () => {
     noteDaily({ day: '2026-10-30', finished: false })
     vi.mocked(api.getDailyResult).mockRejectedValue(new ApiFailure(0, 'unreachable', 'no server'))
     render(Daily, { navigate })
-    await screen.findByText('The daily is not available right now.')
+    await screen.findByText("The daily challenge isn't available right now.")
     expect(api.startDaily).not.toHaveBeenCalled()
   })
 
@@ -133,7 +133,7 @@ describe('/daily', () => {
     )
     render(Daily, { navigate })
     await screen.findByRole('heading', { name: 'Daily #12' })
-    expect(screen.getByRole('button', { name: 'Copy your result' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Copy result' })).toBeTruthy()
     expect(api.getDailyResult).not.toHaveBeenCalled()
   })
 
@@ -205,7 +205,7 @@ describe('/daily', () => {
       server_time: new Date().toISOString(),
       server_version: __APP_VERSION__,
     })
-    await screen.findByRole('button', { name: 'Copy your result' })
+    await screen.findByRole('button', { name: 'Copy result' })
     expect(api.getDailyResult).toHaveBeenCalledWith(dailyToken(), '2026-10-30')
     expect(dailyScores().map((score) => score.number)).toEqual([11])
     expect(lastDaily()).toEqual({ day: '2026-10-30', finished: true })

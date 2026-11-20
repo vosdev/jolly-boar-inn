@@ -10,7 +10,7 @@ export const mode: Mode = {
   host: { id: 'wise_old_man', name: 'Wise Old Man' },
   greeting: 'Pull up a chair by the bookshelf. I have stories older than Draynor Village.',
   blurb:
-    "I have walked every road in Gielinor, fought Elvarg's kin and retired with a blue partyhat. Let's see how much of the lore you actually paid attention to.",
+    "I've walked every road in Gielinor, fought Elvarg's kin, and retired with a blue partyhat. Let's see how much of the lore you actually paid attention to.",
   ask: [
     'Tell me, do you remember how this tale goes?',
     'Here is one from my adventuring days.',
@@ -37,9 +37,9 @@ export const mode: Mode = {
       'Steady and sure, like an old campaigner.',
     ],
     late: [
-      'Got that in just in time, before I nodded off in my rocking chair!',
+      'Got that in right before I nodded off in my rocking chair!',
       'Just in time! The curtain was nearly falling on the act.',
-      'Squeezed your answer in just in time, like a last-second teleport!',
+      'Squeezed that in like a last-second teleport!',
     ],
     early: [
       'Barely opened the scroll and you knew the lore!',
@@ -53,7 +53,7 @@ export const mode: Mode = {
     ],
   },
   reveal: [
-    'Here is how the tale goes.',
+    "Here's how the tale goes.",
     'As written in the chronicles:',
     'I was there, you know.',
     'What says the quest journal?',
@@ -61,7 +61,7 @@ export const mode: Mode = {
   verdict: {
     right: [
       'Well remembered! Worthy of the blue partyhat on my head.',
-      'Spot on! You actually read the dialogue instead of holding spacebar.',
+      'Nice! You actually read the dialogue instead of holding spacebar.',
       'Correct! Two quest points and a bowl of monkfish stew for you.',
       'Exactly right! Dionysius himself is impressed.',
     ],
@@ -71,9 +71,9 @@ export const mode: Mode = {
       'Nearly there! Old memories get a little fuzzy for me, too.',
     ],
     wrong: [
-      'Rubbish! That is what happens when you spacebar through quests.',
+      "Rubbish! That's what happens when you hold spacebar through quests.",
       'Wrong! Even a Lumbridge goblin knows that bit of history.',
-      'No, no. You have muddled up the Fourth Age with a pub rumour.',
+      "No, no. You've muddled up the Fourth Age with a pub rumour.",
       'Incorrect! Go talk to Reldo and read a book or two.',
     ],
     missed: [

@@ -54,7 +54,7 @@
 <footer class="footer">
   <div class="inner" class:wide>
     <p>RuneScape and RuneScape Old School are the trademarks of Jagex Limited.</p>
-    <p>We count games and rounds per day. No cookies, no personal data.</p>
+    <p>We only count games and rounds played per day. No cookies, no personal data.</p>
     <ul>
       <li>
         <a class="repo" href={REPO_URL} target="_blank" rel="noopener">
@@ -82,7 +82,7 @@
         <button type="button" class="plain" onclick={() => void openChangelog()}
           >What's new in v{VERSION_LABEL}</button
         >
-        {#if changelogFailed}<span>What's new didn't load.</span>{/if}
+        {#if changelogFailed}<span>Couldn't load the changelog.</span>{/if}
       </li>
     </ul>
   </div>

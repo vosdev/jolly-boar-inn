@@ -162,7 +162,7 @@
     if (bank.length + fresh.length > BANK_MAX) {
       const room = BANK_MAX - bank.length
       importErrors = [
-        `This file has ${fresh.length} new questions, and your list has room for ${room} more of the ${BANK_MAX} it keeps. Delete some first.`,
+        `This file has ${fresh.length} new questions, but you only have room for ${room} more (limit ${BANK_MAX}). Delete some first.`,
       ]
       return
     }
@@ -173,7 +173,7 @@
     importNote =
       fresh.length === 0
         ? 'Every question in this file is already in your list.'
-        : `Added ${added}, unticked${skipped > 0 ? `; ${skipped} ${skipped === 1 ? 'was' : 'were'} already in your list` : ''}.`
+        : `Added ${added} (unchecked)${skipped > 0 ? `; ${skipped} already in your list` : ''}.`
   }
 </script>
 
@@ -202,7 +202,8 @@
     <span class="tag">Optional</span>
   </div>
   <p class="note">
-    An NPC asks each one you tick in place of a random event. Perfect for your clan's in-jokes.
+    Each checked question replaces a random event and is asked by an NPC. Great for clan inside
+    jokes.
   </p>
 
   {#if saved.dropped > 0}
@@ -287,7 +288,7 @@
       Write a question
     </button>
     {#if used > 0}
-      <button type="button" disabled={open !== null} onclick={untickAll}>Untick all</button>
+      <button type="button" disabled={open !== null} onclick={untickAll}>Uncheck all</button>
     {/if}
     <button type="button" disabled={bankFull} onclick={() => fileInput?.click()}>Import…</button>
     <button type="button" disabled={bank.length === 0} onclick={download}>Export</button>
@@ -303,13 +304,13 @@
   </div>
   {#if bank.length > 0}
     <p class="note">
-      Saved in this browser for your next room{bankFull ? `, ${BANK_MAX} at most` : ''}.
+      Saved in this browser for future rooms{bankFull ? ' (limit reached)' : ''}.
     </p>
   {/if}
   {#if full && used > 0 && over === null && open === null}
     <p class="note">
-      Every random event is already one of yours. Add round questions or pick More frequency to tick
-      another; a new question is saved unticked.
+      All random event slots are already filled by your questions. Add more round questions or
+      increase random event frequency to include more.
     </p>
   {/if}
   {#if importNote !== ''}

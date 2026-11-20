@@ -124,7 +124,7 @@ describe('QuestionTable items', () => {
     const slot = screen.getByRole('region', { name: 'Your item' })
     expect(slot.textContent).toContain('Super restore (3)')
     expect(slot.textContent).toContain('speed question')
-    expect(slot.textContent).toContain('Gone after this round')
+    expect(slot.textContent).toContain('Expires after this round')
   })
 
   it('is a square at the strip’s end on a phone, which opens what it does', async () => {

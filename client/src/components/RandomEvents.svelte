@@ -71,9 +71,9 @@
       <b>{atLeast ? 'At least ' : ''}{slots} in this game</b><br />
       <span class="note">
         {#if slots === 0}
-          Add round questions or pick More to make room for one.
+          Add more questions or pick More to include random events.
         {:else if mine === 0}
-          Each one a surprise.
+          All of them will be a surprise.
         {:else}
           {mine} written by you, {surprises} surprise{surprises === 1 ? '' : 's'}
         {/if}

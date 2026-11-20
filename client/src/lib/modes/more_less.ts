@@ -19,8 +19,8 @@ export const mode: Mode = {
   waiting: [
     'Take your time. While we wait, do you need any bulk runes?',
     'No rush! Can I interest you in a slightly used flying carpet?',
-    'A good haggle takes patience. My stall is not going anywhere.',
-    'Still counting their coins, the others. Have a look at my crates.',
+    "A good haggle takes patience. My stall isn't going anywhere.",
+    'The others are still counting their coins. Have a look at my crates.',
     'While they think, have you considered investing in Pollnivneach?',
   ],
   pace: {
@@ -38,9 +38,9 @@ export const mode: Mode = {
     ],
     late: [
       'Just in time, my friend! I was already packing the crates.',
-      'Got your bid in just in time before the camels left!',
-      'Just in time! Another second and I would have sold it to Traiborn.',
-      'In at the last moment, just in time to close the deal!',
+      'Got your bid in right before the camels left!',
+      'Close call! Another second and I would have sold it to Traiborn.',
+      'In at the last moment to close the deal!',
     ],
     early: [
       'Bought sight unseen! I admire your nerve, my friend.',
@@ -56,15 +56,15 @@ export const mode: Mode = {
     ],
   },
   reveal: [
-    'Let us check the ledger!',
-    'The scales do not lie.',
+    "Let's check the ledger!",
+    "The scales don't lie.",
     'What says the market?',
     'Count the coins, my friend!',
   ],
   verdict: {
     right: [
       'A shrewd eye! Have you ever thought of opening a stall?',
-      'Spot on, my friend! I could not swindle you if I tried.',
+      "Sharp eye, my friend! I couldn't swindle you if I tried.",
       'Right on the coin! You should come work for me in Pollnivneach.',
       'Pure profit! You know the value of everything in Gielinor.',
     ],
@@ -77,11 +77,11 @@ export const mode: Mode = {
     wrong: [
       'Ooh, painful! You just paid Al Kharid toll-gate prices.',
       'Wrong, my friend! Never mind, want to buy a magic carpet instead?',
-      'Ah, you have been fleeced! Even my nephew prices better than that.',
+      "Ah, you've been fleeced! Even my nephew prices better than that.",
       'No, no! My coin purse weeps for you.',
     ],
     missed: [
-      'No bid at all? I cannot haggle with silence, my friend!',
+      "No bid at all? I can't haggle with silence, my friend!",
       'You stood there window-shopping until the bazaar closed!',
       'Not a single coin offered? That is no way to do business.',
       'The deal walked right past you while you were daydreaming!',

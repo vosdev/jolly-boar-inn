@@ -21,7 +21,7 @@
   let { code, stamp, navigate }: { code: string; stamp: string; navigate: (to: string) => void } =
     $props()
 
-  const NO_RECORD = "I've no record of that game. This browser kept no hiscores for it."
+  const NO_RECORD = "I have no record of that game — its hiscores aren't saved in this browser."
 
   // The hiscores name players from the room's stores first, and a room left earlier may
   // still be in them.

@@ -136,8 +136,8 @@
     </p>
     <h1 tabindex="-1" bind:this={heading}>Random events</h1>
     <p>
-      The host sets how often random events appear under Random events on Create, and can even write
-      questions for specific NPCs to ask.
+      When creating a room, the host chooses how often random events appear, and can even write
+      custom questions for specific NPCs to ask.
     </p>
     <ul class="visitors">
       {#each RANDOM_EVENTS as npc (npc.id)}

@@ -44,7 +44,7 @@ describe('the daily’s end screen', () => {
     const writeText = vi.fn().mockResolvedValue(undefined)
     vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } })
     render(DailyResultScreen, { result: RESULT, onHome: () => {} })
-    await fireEvent.click(screen.getByRole('button', { name: 'Copy your result' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Copy result' }))
     expect(writeText).toHaveBeenCalledWith(
       `I scored 7,420 on daily challenge #12 at The Jolly Boar Inn. Think you can do better?\n🟩🟩🟨🟩🟥🟩🟩🟥🟨🟩\n${location.origin}/daily`,
     )
@@ -55,7 +55,7 @@ describe('the daily’s end screen', () => {
     const writeText = vi.fn().mockRejectedValue(new Error('denied'))
     vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } })
     render(DailyResultScreen, { result: RESULT, onHome: () => {} })
-    await fireEvent.click(screen.getByRole('button', { name: 'Copy your result' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Copy result' }))
     const field = await screen.findByRole<HTMLTextAreaElement>('textbox', { name: 'Your result' })
     expect(field.value).toContain('I scored 7,420 on daily challenge #12')
   })

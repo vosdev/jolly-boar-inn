@@ -9,7 +9,7 @@ export const mode: Mode = {
   label: "Host's Questions",
   hint: 'Questions the host wrote for this room.',
   host: HOUSE,
-  greeting: 'Pull up a stool. Your room’s host scribbled a few questions of their own.',
+  greeting: 'Pull up a stool — your host scribbled a few questions of their own.',
   blurb:
     'Your host wrote these ones on the back of a beer mat. Whatever they ask, give it your best shot.',
   ask: [
@@ -36,8 +36,8 @@ export const mode: Mode = {
     ],
     late: [
       'Just in time! Your host was already reaching for the bell.',
-      'Got that in just in time, right before last orders!',
-      'Slid across the table just in time!',
+      'Got that in right before last orders!',
+      'Slid your coaster across the table at the buzzer!',
     ],
     early: [
       'Called it before the ink on the scroll even dried!',
@@ -53,9 +53,9 @@ export const mode: Mode = {
   reveal: ['What did your host write?', 'Drinks on the winner!', 'The house reveals:'],
   verdict: {
     right: [
-      'Spot on! Your host owes you a pint for that one.',
-      "Nailed it! Even a custom question couldn't trip you up.",
-      'Dead right! You know your host’s tricks.',
+      'Well played! Your host owes you a pint for that one.',
+      "Even a custom question couldn't trip you up!",
+      "Right on the money! You know your host's tricks.",
     ],
     partial: [
       'Close enough for pub rules!',

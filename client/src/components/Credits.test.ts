@@ -70,15 +70,15 @@ describe('Credits', () => {
   it('leads to /suggest from the authors, in a new tab', async () => {
     vi.mocked(api.getCredits).mockResolvedValue({ authors: [] })
     render(Credits, { onclose })
-    const link = screen.getByRole('link', { name: 'Suggest one →' })
+    const link = screen.getByRole('link', { name: 'Suggest a question →' })
     expect(link.getAttribute('href')).toBe('/suggest')
     expect(link.getAttribute('target')).toBe('_blank')
   })
 
-  it('closes on Got it and on Escape', async () => {
+  it('closes on Close and on Escape', async () => {
     vi.mocked(api.getCredits).mockResolvedValue({ authors: [] })
     render(Credits, { onclose })
-    await fireEvent.click(screen.getByRole('button', { name: 'Got it' }))
+    await fireEvent.click(screen.getAllByRole('button', { name: 'Close' }).at(-1)!)
     await fireEvent(screen.getByRole('dialog'), new Event('cancel', { cancelable: true }))
     expect(onclose).toHaveBeenCalledTimes(2)
   })

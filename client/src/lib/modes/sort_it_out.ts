@@ -39,9 +39,9 @@ export const mode: Mode = {
     ],
     late: [
       'Slotted the last piece in just in time before closing bell!',
-      'Just in time! I heard Haig Halen climbing the stairs.',
-      'Got the display case locked just in time!',
-      'Finished just in time! Nearly had to hold the museum doors for you.',
+      'Close call! I could hear Haig Halen climbing the stairs.',
+      'Locked the display case with seconds to spare!',
+      'Made it before closing! Nearly had to hold the museum doors for you.',
     ],
     early: [
       'Catalogued before the dust even settled on the display!',
@@ -55,16 +55,16 @@ export const mode: Mode = {
     ],
   },
   reveal: [
-    'Let us check the catalogue.',
+    "Let's check the catalogue.",
     'How do they line up?',
-    'Here is the proper order.',
+    "Here's the proper order.",
     'What say the archives?',
   ],
   verdict: {
     right: [
       'Every single one in its proper place! Five Kudos to you.',
       'Flawless! Even Curator Haig Halen could not find fault with that.',
-      'Spot on! Worthy of an antique lamp from the top shelf.',
+      'Splendid! Worthy of an antique lamp from the top shelf.',
       'Exactly right! The Varrock Museum owes you a debt of gratitude.',
     ],
     partial: [
@@ -74,13 +74,13 @@ export const mode: Mode = {
       'Nearly there! Good enough that the tourists won’t notice.',
     ],
     wrong: [
-      'Oh dear, you have got the First Age mixed up with last Tuesday!',
-      'Completely backwards! Please do not touch the Oldones exhibit.',
+      "Oh dear, you've got the First Age mixed up with last Tuesday!",
+      "Completely backwards! Please don't touch the Oldones exhibit.",
       'Not a single placard in place. No Kudos for that, I’m afraid.',
       'Goodness, even the natural history goblins downstairs know better!',
     ],
     missed: [
-      'You did not move a single placard! The display is still a shambles.',
+      "You didn't move a single placard! The display is still a shambles.",
       'Too busy staring at the fossils to sort the case?',
       "No answer? You'll never reach the Fossil Island barge at this rate.",
     ],

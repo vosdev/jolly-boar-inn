@@ -46,7 +46,7 @@ describe('HowToPlay', () => {
     const order = await screen.findByRole('heading', { name: 'Put in order' })
     expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(1)
     expect(order.nextElementSibling?.querySelector('strong')?.textContent).toBe('Submit')
-    expect(screen.getByText('Quicker and correct answers score more.')).toBeTruthy()
+    expect(screen.getByText('Faster correct answers score more points.')).toBeTruthy()
   })
 
   it('shows every way of answering from Home', async () => {
@@ -82,9 +82,8 @@ describe('HowToPlay', () => {
     render(HowToPlay, { room: { settings, total: 5 }, onclose: () => {} })
     await screen.findByRole('heading', { name: 'Put in order' })
     expect(document.querySelector('.teams')?.textContent).toBe(`Teams. ${TEAMS_PARAGRAPH}`)
-    expect(TEAMS_PARAGRAPH).toContain("Speed doesn't count")
+    expect(TEAMS_PARAGRAPH).toContain('Speed is less important')
     expect(TEAMS_PARAGRAPH).toContain('average')
-    expect(TEAMS_PARAGRAPH).toContain('Pixel Hunt is the exception')
     expect(screen.queryByText(SCORING_LINE)).toBeNull()
   })
 

@@ -66,7 +66,7 @@
     <p class="note">The TV plays the sound in this room.</p>
   {:else if !$sound.question}
     <p class="note" id="sound-warning">
-      Some rounds are audio-only. You will not be able to answer those.
+      Some rounds are audio-only, so you won't be able to hear the clues.
     </p>
   {/if}
 </section>

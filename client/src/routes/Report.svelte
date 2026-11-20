@@ -46,8 +46,8 @@
     picked !== null
       ? null
       : listed?.by === 'item'
-        ? 'Pick the item, or Something else.'
-        : 'Pick the question, or Something else.',
+        ? 'Select the item, or choose "Something else".'
+        : 'Select the question, or choose "Something else".',
   )
   const length = $derived([...text.trim()].length)
 
@@ -70,7 +70,7 @@
       modes = await getReportModes()
       view = 'pick'
     } catch (error) {
-      failure = error instanceof ApiFailure ? error.message : 'the modes did not load'
+      failure = error instanceof ApiFailure ? error.message : "Couldn't load the game modes."
       view = 'pick'
     }
   }
@@ -90,7 +90,7 @@
       const found = await getReportChoices(next)
       if (mode === next) listed = found
     } catch (error) {
-      failure = error instanceof ApiFailure ? error.message : 'the questions did not load'
+      failure = error instanceof ApiFailure ? error.message : "Couldn't load the questions."
     }
   }
 
@@ -120,7 +120,8 @@
         view = 'limited'
         return
       }
-      failure = error instanceof ApiFailure ? error.message : 'the report was not sent'
+      failure =
+        error instanceof ApiFailure ? error.message : "Couldn't send your report. Please try again."
       view = 'write'
     }
   }
@@ -137,7 +138,7 @@
 {#if !allowed}
   <section class="panel">
     <h1>Report a question</h1>
-    <p>Play a game first. Once you have, come back here if a question was wrong.</p>
+    <p>Play a game first, then come back here if you spot a mistake.</p>
     <button type="button" onclick={() => navigate('/')}>Home</button>
   </section>
 {:else if view === 'checking'}
@@ -149,7 +150,7 @@
   <section class="panel">
     <h1>Report a question</h1>
     <p>
-      That's as many reports as we read from one connection in an hour. Try again
+      You've reached the hourly limit for reports. Try again
       {retryIn(retryAt, Date.now())}.
     </p>
     <button type="button" onclick={() => navigate('/')}>Home</button>
@@ -158,7 +159,7 @@
   <section class="panel">
     <h1>Thanks, we'll look into it</h1>
     <p>
-      A fixed question comes back in a later update. There's no account, so you won't hear back.
+      Any fixes will go out in a future update. Since there are no accounts, you won't get a reply.
     </p>
     <div class="row">
       <button type="button" class="primary" onclick={() => void another()}>Report another</button>
@@ -168,7 +169,9 @@
 {:else}
   <section class="panel">
     <h1>Report a question</h1>
-    <p class="note">A wrong answer, a typo, an outdated fact: tell us which question.</p>
+    <p class="note">
+      Spotted a wrong answer, typo, or outdated fact? Let us know which question it was.
+    </p>
   </section>
   {#if failure !== null}
     <div class="banner bad">{failure}</div>
@@ -191,11 +194,11 @@
   {:else}
     <section class="panel">
       <p class="back">
-        <button type="button" class="link" onclick={back}>← Every round</button>
+        <button type="button" class="link" onclick={back}>← All rounds</button>
       </p>
       <h2>{reportModeName(mode)}</h2>
       {#if listed === null}
-        <p class="note">Loading the questions…</p>
+        <p class="note">Loading questions…</p>
       {:else}
         <form
           novalidate

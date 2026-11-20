@@ -9,7 +9,7 @@ export const mode: Mode = {
   hint: 'An NPC interrupts the round with a question of their own.',
   host: HOUSE,
   greeting: 'Someone has come in off the road, and they want a word.',
-  blurb: 'Someone has turned up with a question. Answer it, and they will be on their way.',
+  blurb: "Someone has turned up with a question. Answer it, and they'll be on their way.",
   ask: [
     "Someone's come in off the road.",
     'A visitor has a question for the table.',
@@ -33,8 +33,8 @@ export const mode: Mode = {
     ],
     late: [
       'Just in time! Our visitor was about to despawn.',
-      'Got that in just in time before the door shut!',
-      'Answered just in time - nearly missed your reward!',
+      'Got that in right before the door shut!',
+      'Nearly missed your reward there!',
     ],
     early: [
       'Answered before the smoke even cleared!',
@@ -51,7 +51,7 @@ export const mode: Mode = {
   verdict: {
     right: [
       'Our guest liked that answer! Enjoy the reward.',
-      "Spot on! They'll leave you in peace with a prize.",
+      "They'll leave you in peace with a prize!",
       'Correct! Off they go, happy as can be.',
     ],
     partial: [

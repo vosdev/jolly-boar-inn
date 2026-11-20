@@ -158,7 +158,7 @@ describe('History', () => {
     vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } })
     savePastGame({ code: 'FireCape', finishedAt: FINISHED, standings: STANDINGS, youId: 'Woox' })
     render(History, { code: 'FireCape', stamp: historyStamp(FINISHED), navigate: vi.fn() })
-    await fireEvent.click(screen.getByRole('button', { name: 'Copy the result' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Copy result' }))
     const text: string = writeText.mock.lastCall?.[0]
     expect(text).toBe(
       [
@@ -177,7 +177,7 @@ describe('History', () => {
     const navigate = vi.fn()
     render(History, { code: 'FireCape', stamp: '2610252014', navigate })
     expect(document.querySelector('.speech')!.textContent).toContain(
-      "I've no record of that game. This browser kept no hiscores for it.",
+      "I have no record of that game — its hiscores aren't saved in this browser.",
     )
     expect(screen.getByRole('heading', { name: 'Room FireCape' })).toBeTruthy()
     expect(get(barPast)).toEqual({ code: 'FireCape', finishedAt: null })

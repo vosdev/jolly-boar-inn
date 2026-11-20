@@ -9,7 +9,7 @@ export const mode: Mode = {
   host: { id: 'uri', name: 'Uri' },
   greeting: 'I once named a duck after a girl. Big mistake.',
   blurb:
-    'No Runelite plugin or blinking yellow arrow to save you here. Only the clue scroll, your wits, and a man in a bowler hat.',
+    'No RuneLite plugin or blinking yellow arrow to save you here. Just the clue scroll, your wits, and a man in a bowler hat.',
   ask: [
     'Put on your rune heraldic helm and unravel this.',
     'No yellow arrow for this step. Read the scroll.',
@@ -21,14 +21,14 @@ export const mode: Mode = {
     'Want to see me bend a spoon while the others finish thinking?',
     'Standing in the Kharidian Desert in a bowler hat builds patience.',
     'The others are still searching their bank for a mitre and a crozier.',
-    'Do not mind me. I am simply waiting to vanish in a puff of smoke.',
+    "Don't mind me. I'm just waiting to vanish in a puff of smoke.",
   ],
   pace: {
     quick: [
       'Solved in a heartbeat, and without a clue helper plugin!',
       'Faster than a spade on a one-tick dig!',
       'Quick work, comrade. The Double Agent didn’t even finish spawning.',
-      'Instant decode! You have memorized every anagram in Gielinor.',
+      "Instant decode! You've memorized every anagram in Gielinor.",
     ],
     middling: [
       'Checked your sextant and chart at a measured pace.',
@@ -37,8 +37,8 @@ export const mode: Mode = {
     ],
     late: [
       'Finished the emote just in time before I vanished in smoke!',
-      'Dug up the casket just in time!',
-      'Unravelled it just in time - my smoke bomb was already in my hand.',
+      'Dug up the casket with a tick to spare!',
+      'Cut it close — my smoke bomb was already in my hand.',
     ],
     early: [
       'Didn’t even need to read the second half of the riddle!',
@@ -53,14 +53,14 @@ export const mode: Mode = {
   },
   reveal: [
     'Open the casket.',
-    'Here is what the scroll meant.',
+    "Here's what the scroll meant.",
     'Loser says what.',
     'The cipher unravels:',
   ],
   verdict: {
     right: [
       'Correct. Take your casket, may it be Ranger boots, not firelighters.',
-      'Spot on, and not a blinking yellow arrow in sight.',
+      'Solved, and not a blinking yellow arrow in sight.',
       'Well solved. I shall vanish in a puff of smoke now.',
       'Third-age material! You know your Treasure Trails by heart.',
     ],

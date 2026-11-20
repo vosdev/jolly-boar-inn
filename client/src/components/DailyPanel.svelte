@@ -49,7 +49,7 @@
       <h2 id="daily-heading">Daily challenge</h2>
       {#if today !== null}
         {#if running !== null}
-          <p>You left this one unfinished.</p>
+          <p>You still have a daily in progress.</p>
         {:else if score !== null}
           <p><strong>Daily #{score.number}: {points(score.points)} points</strong></p>
           <p>
@@ -57,7 +57,7 @@
           </p>
         {:else}
           <ul class="facts">
-            <li><Icon name="person" />By yourself</li>
+            <li><Icon name="person" />Solo</li>
             <li>10 questions</li>
             <li>One try</li>
           </ul>
@@ -70,7 +70,7 @@
           Finish Daily #{numberOn(running.day, today)}
         </button>
       {:else if score !== null}
-        <button type="button" onclick={onplay}>Your result</button>
+        <button type="button" onclick={onplay}>View result</button>
       {:else}
         <button type="button" class="primary" onclick={onplay}>Play Daily #{today.number}</button>
       {/if}
@@ -79,7 +79,7 @@
 
   {#if earlier.length > 0}
     <div class="history">
-      <h3>Your dailies</h3>
+      <h3>Past dailies</h3>
       <ul class="players">
         {#each shown as one (one.day)}
           <li>

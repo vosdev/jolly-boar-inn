@@ -32,7 +32,7 @@
   <Segmented legend="How to play" hideLegend options={MODES} bind:value={on} />
   {#if on}
     <p class="note">
-      Everyone picks a god. Speed doesn't count: each team scores its members' average.
+      Everyone picks a god. Speed matters less, and each team scores its members' average.
     </p>
     <fieldset class="gods">
       <legend>Gods</legend>

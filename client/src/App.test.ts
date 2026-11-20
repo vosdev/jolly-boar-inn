@@ -366,7 +366,9 @@ describe('App', () => {
     cleanup()
 
     at('/history/ABYSSAL/2610012006')
-    await screen.findByText("I've no record of that game. This browser kept no hiscores for it.")
+    await screen.findByText(
+      "I have no record of that game — its hiscores aren't saved in this browser.",
+    )
   })
 
   it("offers the credits in every screen's footer", async () => {

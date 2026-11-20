@@ -56,7 +56,7 @@ describe('HowToTrail', () => {
     draw()
     await fireEvent.click(screen.getByRole('button', { name: /Answer$/ }))
     expect(await screen.findByRole('heading', { name: 'Pick all that apply' })).toBeTruthy()
-    expect(screen.getByText('Quicker and correct answers score more.')).toBeTruthy()
+    expect(screen.getByText('Faster correct answers score more points.')).toBeTruthy()
   })
 
   it('moves focus on to the words when Continue goes, so it is not lost', async () => {

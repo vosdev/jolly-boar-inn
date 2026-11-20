@@ -69,5 +69,5 @@ export function teamsBlockStart(players: PlayerView[], youId: string | null): st
   const teamless = playing(players).filter((p) => p.team === null)
   if (teamless.length > 0) return `Waiting on ${namesOf(teamless, youId)} to pick a team.`
   const teams = new Set(players.map((p) => p.team).filter((t) => t !== null))
-  return teams.size < MIN_TEAMS ? 'Players are needed in two teams or more.' : null
+  return teams.size < MIN_TEAMS ? 'Players need to be split across at least two teams.' : null
 }

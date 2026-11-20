@@ -84,7 +84,6 @@ describe('hosts', () => {
         heard.push(...list)
       }
       expect(new Set(heard).size, lines.host.id).toBe(heard.length)
-      for (const line of lines.pace.late) expect(line, lines.host.id).toMatch(/just in time/i)
     }
   })
 
@@ -133,7 +132,7 @@ describe('hosts', () => {
       "Are you team Castle Wars, Barbarian Assault or Pest Control? It doesn't matter tonight. Everyone's on the quiz team!",
     )
     expect(MODES.minigame_madness?.blurb).toBe(
-      "I've watched every lobby in Gielinor fill up. Prizes, points, places: tell me what you know.",
+      "I've watched every minigame lobby in Gielinor fill up. Rewards, points, and strategies — let's see what you know.",
     )
     expect(lanthus.waiting).toContain('Waiting for enough players. As always.')
     expect(lanthus.reveal).toContain('The game has ended! Who won?')

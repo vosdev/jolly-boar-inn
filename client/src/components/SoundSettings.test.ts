@@ -40,7 +40,7 @@ describe('SoundSettings', () => {
     await fireEvent.click(question)
     expect(question.getAttribute('aria-pressed')).toBe('false')
     expect(
-      screen.getByText('Some rounds are audio-only. You will not be able to answer those.'),
+      screen.getByText("Some rounds are audio-only, so you won't be able to hear the clues."),
     ).toBeTruthy()
   })
 

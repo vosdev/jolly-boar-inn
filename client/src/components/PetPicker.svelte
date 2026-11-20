@@ -145,7 +145,7 @@
       {@render randomButton()}
     </div>
     {#if matches.length === 0}
-      <p class="note">No pet has that name.</p>
+      <p class="note">No matching pets.</p>
     {/if}
     {@render petGrid()}
   {:else}
@@ -176,7 +176,7 @@
         {@render searchField()}
         <p class="note">
           {matches.length === 0
-            ? 'No pet has that name.'
+            ? 'No matching pets.'
             : `${matches.length} ${matches.length === 1 ? 'pet' : 'pets'}`}
         </p>
         {@render petGrid()}

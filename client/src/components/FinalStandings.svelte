@@ -326,15 +326,14 @@
       <!-- Rank is dense (section 6), so level scores genuinely share a place; what the
            sort settles is the order they are listed in, not the rank. -->
       <p class="note">
-        Level scores share a place. Between them, more correct answers comes first, and after that
-        the earliest to join.
+        Tied players share a rank, ordered by most correct answers and then by who joined first.
       </p>
       <ShareStandings game={shared} />
       {@render children()}
     </div>
   {:else}
     <div class="row">
-      <button type="button" onclick={leave}>Skip to the hiscores</button>
+      <button type="button" onclick={leave}>Skip to hiscores</button>
     </div>
   {/if}
 </Stage>

@@ -38,8 +38,8 @@ export const mode: Mode = {
     ],
     late: [
       'Slid onto my desk just in time! My claw was on the bell.',
-      'Just in time! One second later and it would be detention.',
-      'Handed in just in time. Stop chewing your quill.',
+      'Close call! One second later and it would be detention.',
+      'Handed in at the bell. Stop chewing your quill.',
     ],
     early: [
       'Answered before the chalk dust settled on the board!',

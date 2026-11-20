@@ -22,7 +22,7 @@ describe('names the server refuses', () => {
   })
 
   it('says which characters a name may have', () => {
-    expect(nameProblem('Tom & Jerry')).toBe('Only letters, digits, spaces, _ and - in a name.')
+    expect(nameProblem('Tom & Jerry')).toBe('Only letters, numbers, spaces, _ and - are allowed.')
   })
 })
 
@@ -30,7 +30,7 @@ describe('the length', () => {
   it('stops a name, and so a credit, at 12 characters', () => {
     expect(NAME_MAX).toBe(12)
     expect(nameProblem('x'.repeat(12))).toBeNull()
-    expect(nameProblem('x'.repeat(13))).toBe('At most 12 characters.')
+    expect(nameProblem('x'.repeat(13))).toBe('Names can be at most 12 characters.')
   })
 })
 

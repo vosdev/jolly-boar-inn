@@ -8,7 +8,7 @@ export const mode: Mode = {
   greeting:
     'Ribbit. You adventurers kept clicking Dismiss on us, so tonight we brought the whole gang.',
   blurb:
-    'One random event after another is about to pop up in a puff of smoke. Answer every last one of them, or I turn you into a frog.',
+    "One random event after another is about to pop up in a puff of smoke. Answer every last one, or I'll turn you into a frog.",
   ask: [
     'Poof! Look who just spawned beside you.',
     'No Dismiss button tonight. Hear them out!',
@@ -16,7 +16,7 @@ export const mode: Mode = {
     'Ribbit! Someone else just teleported into the inn.',
   ],
   waiting: [
-    'Do not try to teleport away while the rest of the room answers.',
+    "Don't try to teleport away while the rest of the room answers.",
     'Polishing my crown while the others finish up. Ribbit.',
     'Hold still, the next random event is already queuing outside.',
     'Still waiting on a few of you. No frog tokens for stalling.',
@@ -34,8 +34,8 @@ export const mode: Mode = {
     ],
     late: [
       'Answered just in time! You were one second away from the frog cave.',
-      'Just in time! They were about to teleport you to ScapeRune.',
-      'Got that in just in time before they despawned in a puff of smoke!',
+      'Close call! They were about to teleport you to ScapeRune.',
+      'Got that in right before they despawned in a puff of smoke!',
     ],
     early: [
       'Answered before the smoke cloud even cleared!',
@@ -51,23 +51,23 @@ export const mode: Mode = {
   reveal: [
     'Back where they came from!',
     'And in a puff of smoke:',
-    'Ribbit! Here is the answer:',
+    "Ribbit! Here's the answer:",
     'Off they hop!',
   ],
   verdict: {
     right: [
       'Royally done! Have a frog token and a kiss on the cheek.',
-      'Spot on! You may keep your human legs for another question.',
+      'Nicely done! You may keep your human legs for another question.',
       'Correct! The whole court of the Frog Realm applauds you.',
     ],
     partial: [
       'Half right. Worth a kebab and a warm beer, at least.',
-      'Close enough! I will spare you the frog costume this time.',
+      "Close enough! I'll spare you the frog costume this time.",
       'Nearly there! Our visitor leaves reasonably satisfied.',
     ],
     wrong: [
-      'Ribbit! Wrong! You are one step closer to a slimy green makeover.',
-      'No, no! That is how people end up stranded on Bob’s Island.',
+      "Ribbit! Wrong! You're one step closer to a slimy green makeover.",
+      "No, no! That's how people end up stranded on Bob's Island.",
       'Incorrect! Keep answering like that and you’ll be catching flies.',
     ],
     missed: [

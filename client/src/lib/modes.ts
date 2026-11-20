@@ -142,28 +142,28 @@ export const TROPHY_LINES: readonly (readonly string[])[] = [
   [
     'For 1st place, the diamond trophy goes to…',
     'Top of the hiscores! 1st place and the diamond trophy go to…',
-    'The diamond trophy. 1st place. Gz to…',
-    'In all my years… 1st place, and the diamond trophy, goes to…',
+    '1st place and the diamond trophy — gz to…',
+    'In all my years… 1st place and the diamond trophy go to…',
   ],
   [
     'For 2nd place, the platinum trophy goes to…',
-    'So close! 2nd place, and the platinum trophy, goes to…',
-    'The platinum trophy, for a hard-fought 2nd place, goes to…',
+    'So close! 2nd place and the platinum trophy go to…',
+    'Taking a hard-fought 2nd place and the platinum trophy…',
   ],
   [
     'For 3rd place, the gold trophy goes to…',
-    '3rd place, and a gold trophy. Not bad at all. For…',
-    'The gold trophy, and 3rd place, goes to…',
+    'Not bad at all! 3rd place and the gold trophy go to…',
+    '3rd place and the gold trophy go to…',
   ],
   [
     'For 4th place, the silver trophy goes to…',
-    '4th place! In my day that earned a nod. Today, silver, for…',
-    'The silver trophy, for 4th place, goes to…',
+    '4th place! In my day that just earned a nod, but today it gets the silver trophy…',
+    'Taking 4th place and the silver trophy…',
   ],
   [
     'For 5th place, the bronze trophy goes to…',
-    '5th place, and a bronze trophy, for steady gains. To…',
-    'Every hiscore starts somewhere. 5th place, and bronze, for…',
+    'Steady gains! 5th place and the bronze trophy go to…',
+    'Every hiscore starts somewhere! 5th place and the bronze trophy go to…',
   ],
 ]
 
@@ -171,7 +171,7 @@ export const TROPHY_LINES: readonly (readonly string[])[] = [
 export const SHARED_TROPHY_LINES: readonly string[] = [
   'Tied for {place} place, a {tier} trophy each for…',
   '{place} place is shared! A {tier} trophy each for…',
-  'Level on points! Tied for {place}, a {tier} trophy for each of…',
+  'All tied up for {place}! A {tier} trophy each goes to…',
 ]
 
 const PLACE_SUFFIXES = ['st', 'nd', 'rd', 'th', 'th']

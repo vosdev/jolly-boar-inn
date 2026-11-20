@@ -260,11 +260,11 @@ describe('Lobby', () => {
 
     it('lets an admin make the TV a player again, or kick it', async () => {
       lobby([HOST, WOOX, TV])
-      await fireEvent.click(tile('Lounge', 'kick or not the TV'))
+      await fireEvent.click(tile('Lounge', 'kick or turn off TV mode'))
       expect(within(dialog()).queryByRole('button', { name: 'Make TV' })).toBeNull()
       expect(within(dialog()).queryByRole('button', { name: 'Make host…' })).toBeNull()
       expect(within(dialog()).getByRole('button', { name: 'Kick' })).toBeTruthy()
-      await fireEvent.click(within(dialog()).getByRole('button', { name: 'Not the TV' }))
+      await fireEvent.click(within(dialog()).getByRole('button', { name: 'Turn off TV mode' }))
       expect(sent).toEqual([{ t: 'set_tv', player_id: 't', on: false }])
     })
 
@@ -293,8 +293,8 @@ describe('Lobby', () => {
       expect(names('TV')).toEqual(['Lounge'])
       expect(names('Ready')).toEqual(['Zezima'])
       expect(names('Not ready yet')).toEqual(['Woox'])
-      expect(tile('Lounge', 'kick or not the TV').getAttribute('aria-label')).toBe(
-        'Lounge, TV: kick or not the TV',
+      expect(tile('Lounge', 'kick or turn off TV mode').getAttribute('aria-label')).toBe(
+        'Lounge, TV: kick or turn off TV mode',
       )
     })
 
@@ -364,7 +364,7 @@ describe('Lobby', () => {
     expect(bubble.textContent).toContain('Pull up a stool and share the code.')
     const paper = document.querySelector('.paper') as HTMLElement
     expect(within(paper).getByRole('heading', { level: 1, name: 'Lobby' })).toBeTruthy()
-    expect(within(paper).getByText('Your friends join with this code')).toBeTruthy()
+    expect(within(paper).getByText('Share this code to invite friends')).toBeTruthy()
     expect(within(paper).getByText('ABYSSAL')).toBeTruthy()
     expect(within(paper).getByRole('button', { name: 'Copy invite link' })).toBeTruthy()
   })
@@ -419,7 +419,7 @@ describe('Lobby', () => {
     await fireEvent.click(screen.getByRole('button', { name: 'New link' }))
     expect(sent).toEqual([])
     expect(dialog().textContent).toContain(
-      'The current one stops working. Players already here stay.',
+      'The old one will stop working, but players already in the room will stay.',
     )
     await fireEvent.click(within(dialog()).getByRole('button', { name: 'New link' }))
     expect(sent).toEqual([{ t: 'rotate_key' }])
@@ -447,7 +447,7 @@ describe('Lobby', () => {
       expect.stringContaining('Durial'),
     ])
     await fireEvent.click(within(rows[0]!).getByRole('button', { name: 'Let in' }))
-    await fireEvent.click(within(rows[1]!).getByRole('button', { name: 'Turn away' }))
+    await fireEvent.click(within(rows[1]!).getByRole('button', { name: 'Decline' }))
     expect(screen.queryByRole('dialog')).toBeNull()
     expect(sent).toEqual([
       { t: 'decide_request', request_id: 'r1', accept: true },
@@ -657,8 +657,8 @@ describe('Lobby', () => {
       'More or Less 5 questions',
     ])
     expect(cards.every((card) => card.querySelector('.face img') !== null)).toBe(true)
-    expect(screen.getByText('Listed A–Z, not in the order they play.')).toBeTruthy()
-    expect(screen.getByText('Quicker and correct answers score more.')).toBeTruthy()
+    expect(screen.getByText('Listed A–Z, not in play order.')).toBeTruthy()
+    expect(screen.getByText('Faster correct answers score more points.')).toBeTruthy()
   })
 
   it('gives the server’s estimate of the game in whole minutes', () => {
@@ -785,7 +785,7 @@ describe('Lobby', () => {
 
     it('tells a player the rounds are still to come', () => {
       lobby([HOST, WOOX], NONE, WOOX)
-      expect(screen.getByText('The rounds show up here as the host picks them.')).toBeTruthy()
+      expect(screen.getByText('Rounds will appear here as the host picks them.')).toBeTruthy()
     })
 
     it('swaps between free for all and teams from the top of the table', async () => {
@@ -1064,7 +1064,7 @@ describe('Lobby', () => {
     it('lets an admin add a god the room lacks', async () => {
       lobby([HOST, WOOX], TEAMS_ROOM)
       await fireEvent.click(screen.getByRole('button', { name: 'Add a team…' }))
-      expect(dialog().textContent).toContain('Add which team?')
+      expect(dialog().textContent).toContain('Which team would you like to add?')
       expect(within(dialog()).queryByRole('button', { name: 'Zamorak' })).toBeNull()
       await fireEvent.click(within(dialog()).getByRole('button', { name: 'Bandos' }))
       expect(screen.queryByRole('dialog')).toBeNull()
@@ -1087,7 +1087,7 @@ describe('Lobby', () => {
       sent = []
       await fireEvent.click(screen.getByRole('button', { name: 'Remove Zamorak' }))
       expect(sent).toEqual([])
-      expect(dialog().textContent).toContain('Remove Zamorak? Its player goes back to no team')
+      expect(dialog().textContent).toContain('Remove Zamorak? Its player will be unassigned')
       await fireEvent.click(within(dialog()).getByRole('button', { name: 'Remove' }))
       expect(sent).toEqual([{ t: 'set_teams', teams: ['saradomin', 'guthix'] }])
     })
@@ -1126,7 +1126,7 @@ describe('Lobby', () => {
           { ...HOST, team: 'zamorak' as const },
           { ...WOOX, team: 'zamorak' as const },
         ],
-        'Players are needed in two teams or more.',
+        'Players need to be split across at least two teams.',
       ],
     ])('disables Start, saying why, while %s', (_, players, why) => {
       lobby(players, TEAMS_ROOM)

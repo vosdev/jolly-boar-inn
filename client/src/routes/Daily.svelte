@@ -52,7 +52,7 @@
         if (resumes(last, today.day)) await begin(today)
         else view = { name: 'intro', today }
       } catch {
-        view = { name: 'error', message: 'The daily is not available right now.' }
+        view = { name: 'error', message: "The daily challenge isn't available right now." }
       }
     })()
   })
@@ -125,7 +125,7 @@
 {:else}
   <section class="panel daily">
     {#if view.name === 'loading'}
-      <p class="note">Loading the daily…</p>
+      <p class="note">Loading daily challenge…</p>
     {:else if view.name === 'intro'}
       <h1>Daily #{view.today.number}</h1>
       <p>Ten questions, the same for everyone today. You only get one shot!</p>

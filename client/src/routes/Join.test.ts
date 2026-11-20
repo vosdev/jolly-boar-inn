@@ -192,7 +192,7 @@ describe('Join', () => {
   it('says so for a room that does not exist, and joins nothing', async () => {
     vi.mocked(api.getRoom).mockRejectedValue(new ApiFailure(404, 'not_found', 'no such room'))
     render(Join, { code: 'ABYSSAL', navigate })
-    expect(await screen.findByText('There is no room ABYSSAL.')).toBeTruthy()
+    expect(await screen.findByText("Room ABYSSAL doesn't exist.")).toBeTruthy()
     expect(api.joinRoom).not.toHaveBeenCalled()
   })
 
@@ -288,7 +288,7 @@ describe('Asking the host to let you in', () => {
 
   it.each([
     ['request_denied', 403, "The host didn't let you in."],
-    ['request_gone', 410, 'Nobody answered in time. You can ask again.'],
+    ['request_gone', 410, "The host didn't respond in time. You can ask again."],
   ])('says so on %s, and offers to ask again', async (code, status, text) => {
     vi.mocked(api.pollRequest).mockRejectedValueOnce(new ApiFailure(status, code, 'no'))
     await asked()
@@ -367,7 +367,7 @@ describe('Join for a room that is gone', () => {
   it('says there is no room, when it kept none', async () => {
     vi.mocked(api.getRoom).mockRejectedValue(new ApiFailure(404, 'not_found', 'no room'))
     render(Join, { code: 'ABYSSAL', navigate })
-    await screen.findByText('There is no room ABYSSAL.')
+    await screen.findByText("Room ABYSSAL doesn't exist.")
     expect(navigate).not.toHaveBeenCalled()
   })
 })
@@ -408,7 +408,7 @@ describe('What a join tells the counters', () => {
   it('reports a code nobody has, but not one it kept a past game for', async () => {
     vi.mocked(api.getRoom).mockRejectedValue(new ApiFailure(404, 'not_found', 'no room'))
     const first = render(Join, { code: 'ABYSSAL', navigate })
-    await screen.findByText('There is no room ABYSSAL.')
+    await screen.findByText("Room ABYSSAL doesn't exist.")
     expect(reported()).toEqual(['not_found'])
     first.unmount()
     savePastGame({

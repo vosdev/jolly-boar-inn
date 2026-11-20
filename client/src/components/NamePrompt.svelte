@@ -85,7 +85,7 @@
       id="{id}-name"
       bind:value={name}
       {avoid}
-      hint="The others see this. You can change it any time from the top bar."
+      hint="Other players will see this. You can change it anytime from the top bar."
     />
     <button class="primary" type="submit" disabled={!ok}>{action}</button>
   </form>

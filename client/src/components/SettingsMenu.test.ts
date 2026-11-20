@@ -46,7 +46,7 @@ const me: PlayerView = {
 let sent: ClientMessage[]
 
 const save = () => screen.getByRole('button', { name: 'Save' }) as HTMLButtonElement
-const waiting = () => screen.queryByText('Asking the room…')
+const waiting = () => screen.queryByText('Saving…')
 
 async function rename(to: string): Promise<void> {
   await fireEvent.click(screen.getByRole('button', { name: /^You are Zezima/ }))
@@ -139,7 +139,7 @@ describe('SettingsMenu', () => {
     applyServerMessage({ t: 'error', code: 'name_taken', message: 'that name is taken' })
     await tick()
     expect(document.querySelector('.error')?.textContent).toBe(
-      'Somebody in this room already has that name.',
+      'Someone in this room already has that name.',
     )
     expect(screen.getByRole('button', { name: /^You are Zezima/ })).toBeTruthy()
     expect(get(profile)?.name).toBe('Zezima')
@@ -172,7 +172,9 @@ describe('SettingsMenu in a room', () => {
     await vi.advanceTimersByTimeAsync(1)
     await tick()
     expect(waiting()).toBeNull()
-    expect(document.querySelector('.error')?.textContent).toBe("The room didn't answer. Try again.")
+    expect(document.querySelector('.error')?.textContent).toBe(
+      "Couldn't save your changes. Please try again.",
+    )
     expect(save().disabled).toBe(false)
     await fireEvent.submit(save().form!)
     expect(sent).toHaveLength(2)
@@ -321,7 +323,7 @@ describe('SettingsMenu, picking a name', () => {
     for (const name of ['Random', 'Change pet']) {
       expect(screen.getByRole('button', { name }).matches(':disabled')).toBe(true)
     }
-    expect(screen.getByText('Names are fixed once the game has started.')).toBeTruthy()
+    expect(screen.getByText("You can't change your name once the game has started.")).toBeTruthy()
     await fireEvent.submit(save().form!)
     expect(sent).toEqual([])
   })
@@ -626,7 +628,7 @@ describe('SettingsMenu, the wide sheet', () => {
     )
     expect(screen.getByRole('radio', { name: 'Baby Mole' }).matches(':disabled')).toBe(true)
     expect(screen.getByRole('button', { name: 'Random' }).matches(':disabled')).toBe(true)
-    expect(screen.getByText('Names are fixed once the game has started.')).toBeTruthy()
+    expect(screen.getByText("You can't change your name once the game has started.")).toBeTruthy()
   })
 
   it('gives the TV only theme and sound', async () => {

@@ -39,7 +39,7 @@ const ITEMS: Readonly<Record<string, ItemInfo>> = {
   super_restore: {
     name: 'Super restore',
     short: 'Restore',
-    line: 'Has 4 doses. When you get a speed question right, it scores as if you answered quicker.',
+    line: 'Has 4 doses. When you get a speed question right, it scores as if you answered faster.',
     icon: { 4: 3024, 3: 3026, 2: 3028, 1: 3030 },
   },
   ring_of_life: {
@@ -76,11 +76,11 @@ const ITEMS: Readonly<Record<string, ItemInfo>> = {
   [BOOK]: {
     name: 'Book of Knowledge',
     short: 'Book',
-    line: 'Answers a question for you automatically with full marks, timed to when you opened it.',
+    line: 'Automatically answers a question for you with full credit, timed to when you open it.',
     icon: 11640,
     use: {
       button: 'Open the book',
-      after: "The book answered for you. You'll see the result on the reveal.",
+      after: "The book answered for you. You'll see your score on the reveal.",
       beforeAnswer: true,
     },
   },
@@ -108,11 +108,11 @@ const ITEMS: Readonly<Record<string, ItemInfo>> = {
 /** The box itself, the wiki's Mystery box. */
 export const MYSTERY_BOX_ICON = itemIcon('item:6199')
 
-export const GONE_THIS_ROUND = 'Gone after this round'
+export const GONE_THIS_ROUND = 'Expires after this round'
 
 /** The line under an item held for `round`, the next round's name on the standings. */
 export function goneAfter(round: string | null): string {
-  return round === null ? GONE_THIS_ROUND : `Gone after ${round}`
+  return round === null ? GONE_THIS_ROUND : `Expires after ${round}`
 }
 
 /** An item's name, its charges left in brackets where it has them: "Super restore (3)". */

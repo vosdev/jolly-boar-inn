@@ -27,7 +27,7 @@ export const mode: Mode = {
       'First-class express! Faster than a teleport tab.',
       'Delivered in a flash! You know every face on my route.',
       'Stamped and sorted before the ink even dried!',
-      'Rapid! Evil Bob could use a courier as quick as you.',
+      'Express delivery! Evil Bob could use a courier as quick as you.',
     ],
     middling: [
       'Delivered on the afternoon round, steady and reliable.',
@@ -36,8 +36,8 @@ export const mode: Mode = {
     ],
     late: [
       'Caught the last post of the day just in time!',
-      'Slipped it under the door just in time before closing!',
-      'Just in time! The mail cart was already rolling out of town.',
+      'Slipped it under the door right before closing!',
+      'Close call! The mail cart was already rolling out of town.',
     ],
     early: [
       'Barely saw the outline of their hat and you knew them!',
@@ -47,7 +47,7 @@ export const mode: Mode = {
     later: [
       'Had to squint at the silhouette in the candlelight first?',
       'Checked the postcode twice before knocking. Sensible.',
-      'Took a long look at the shadow. Better than wrong delivery!',
+      'Took a long look at the shadow. Better than a wrong delivery!',
     ],
   },
   reveal: [
@@ -59,7 +59,7 @@ export const mode: Mode = {
   verdict: {
     right: [
       'Right letterbox, first try! Signed for and everything.',
-      'Spot on! You know more locals than I do.',
+      'You know more locals than I do!',
       'Delivered! Not a single parcel lost in the post.',
       'Bang on the address! Worthy of a tip.',
     ],

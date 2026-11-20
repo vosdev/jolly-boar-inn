@@ -568,7 +568,7 @@ describe('Room', () => {
     expect(heading.textContent).toBe('Final standings')
     expect(screen.getByText('Gz, Zezima! Here are the full hiscores.')).toBeTruthy()
     expect(document.querySelectorAll('.hiscores tbody tr')).toHaveLength(2)
-    expect(screen.queryByRole('button', { name: 'Skip to the hiscores' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Skip to hiscores' })).toBeNull()
   })
 
   it('presents the top five first to a client that watched the game end', async () => {
@@ -579,7 +579,7 @@ describe('Room', () => {
       players: [],
     })
     applyServerMessage({ t: 'game_finished', standings: STANDINGS, team_standings: null })
-    await screen.findByRole('button', { name: 'Skip to the hiscores' })
+    await screen.findByRole('button', { name: 'Skip to hiscores' })
     expect(document.querySelector('.hiscores')).toBeNull()
   })
 })
@@ -1033,7 +1033,7 @@ describe('a room that is gone', () => {
     const navigate = vi.fn()
     render(Room, { code: 'ABYSSAL', navigate })
     closeSocket('no_room', '')
-    await screen.findByText(/That room is gone/)
+    await screen.findByText(/This room is no longer available/)
     expect(navigate).not.toHaveBeenCalled()
   })
 })

@@ -106,7 +106,7 @@ describe('Report', () => {
     expect(screen.getByRole('option', { name: 'A <b>bold</b> examine.' })).toBeTruthy()
     expect(container.querySelector('[role="option"] b')).toBeNull()
 
-    await fireEvent.click(screen.getByRole('button', { name: /Every round/ }))
+    await fireEvent.click(screen.getByRole('button', { name: /All rounds/ }))
     await round('More or Less')
     expect(screen.getByLabelText('Which item?')).toBeTruthy()
     await search('whip', 'Abyssal whip')
@@ -124,7 +124,7 @@ describe('Report', () => {
     render(Report, { navigate })
     await round('Random events')
     await send()
-    expect(screen.getByText('Pick the question, or Something else.')).toBeTruthy()
+    expect(screen.getByText('Select the question, or choose "Something else".')).toBeTruthy()
     expect(screen.getByText('Required: what is wrong with it.')).toBeTruthy()
 
     await search('', 'Something else')
@@ -152,6 +152,6 @@ describe('Report', () => {
     await write('Something is off.')
     vi.mocked(api.getReportAllowance).mockResolvedValue({ left: 0, retry_at: null })
     await send()
-    await screen.findByText(/as many reports as we read/)
+    await screen.findByText(/hourly limit for reports/)
   })
 })

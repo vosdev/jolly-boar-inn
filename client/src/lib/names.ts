@@ -38,9 +38,9 @@ export function normalizeName(raw: string): string {
  */
 export function nameProblem(raw: string): string | null {
   const name = normalizeName(raw)
-  if (name === '') return 'Pick a name.'
-  if (length(name) > NAME_MAX) return `At most ${NAME_MAX} characters.`
-  if (!ALLOWED.test(name)) return 'Only letters, digits, spaces, _ and - in a name.'
+  if (name === '') return 'Please enter a name.'
+  if (length(name) > NAME_MAX) return `Names can be at most ${NAME_MAX} characters.`
+  if (!ALLOWED.test(name)) return 'Only letters, numbers, spaces, _ and - are allowed.'
   return null
 }
 

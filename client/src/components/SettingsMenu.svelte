@@ -119,7 +119,7 @@
     $profileError === null
       ? null
       : $profileError.code === 'name_taken'
-        ? 'Somebody in this room already has that name.'
+        ? 'Someone in this room already has that name.'
         : $profileError.message,
   )
   /** Everybody else's pet, so Random leans toward one nobody is wearing. */
@@ -275,11 +275,11 @@
         Save
       </button>
       {#if pending !== null}
-        <span class="note">Asking the room…</span>
+        <span class="note">Saving…</span>
       {:else if refusal !== null}
         <span class="error">{refusal}</span>
       {:else if unanswered}
-        <span class="error">The room didn't answer. Try again.</span>
+        <span class="error">Couldn't save your changes. Please try again.</span>
       {:else if saved !== null}
         <span class="note">{saved}</span>
       {/if}
@@ -338,7 +338,7 @@
               {@render nameForm()}
             </fieldset>
             {#if !canRename}
-              <p class="note">Names are fixed once the game has started.</p>
+              <p class="note">You can't change your name once the game has started.</p>
             {/if}
           </section>
           <ThemeChoices current={theme} onpick={pickTheme} named />
@@ -359,7 +359,7 @@
               {/if}
               {@render nameForm()}
               {#if !canRename}
-                <p class="note">Names are fixed once the game has started.</p>
+                <p class="note">You can't change your name once the game has started.</p>
               {/if}
             </fieldset>
           </section>

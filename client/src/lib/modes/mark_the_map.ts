@@ -7,7 +7,7 @@ export const mode: Mode = {
   host: { id: 'bill_teach', name: 'Bill Teach' },
   greeting: 'Ahoy, landlubber! Fetch me map and a pin.',
   blurb:
-    'I need places to plunder, and you know the land. Help me find the places and I will share the loot with ye.',
+    "I need places to plunder, and you know the land. Point me in the right direction and I'll share the loot with ye.",
   ask: [
     'Where be this spot on the chart, matey?',
     'Mark me the next place to plunder!',
@@ -35,8 +35,8 @@ export const mode: Mode = {
     ],
     late: [
       'Dropped anchor just in time! We were about to sail past it.',
-      'Got yer pin down just in time, like the last boat from Port Sarim!',
-      'Just in time, ye barnacle! I was already raising the gangplank.',
+      'Got yer pin down on the whistle, like the last boat from Port Sarim!',
+      'Close call, ye barnacle! I was already raising the gangplank.',
     ],
     early: [
       'Pinned before I even unrolled the whole chart!',
@@ -60,7 +60,7 @@ export const mode: Mode = {
       'Dead on the X! Break out the Braindeath rum, matey!',
       'Bullseye! Ye could steer The Adventurous through a fog bank.',
       'Right on the doubloon! Half the plunder is yours.',
-      'Spot on! Finest navigator from Port Phasmatys to Mos Le’Harmless!',
+      "Finest navigator from Port Phasmatys to Mos Le'Harmless!",
     ],
     partial: [
       'Close! Within cannon shot of the target, at least.',

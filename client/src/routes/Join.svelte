@@ -59,7 +59,7 @@
   /** Why a request to the host ended without letting the player in. */
   const REQUEST_TEXT: Record<string, string> = {
     request_denied: "The host didn't let you in.",
-    request_gone: 'Nobody answered in time. You can ask again.',
+    request_gone: "The host didn't respond in time. You can ask again.",
     requests_full: 'Too many people are waiting to be let in. Try again in a minute.',
     room_full: 'The room is full.',
     not_open: 'The game has already started.',
@@ -110,10 +110,10 @@
       if (error instanceof ApiFailure && error.code === 'not_found') reportFailure('not_found')
       lookupError =
         error instanceof ApiFailure && error.code === 'not_found'
-          ? `There is no room ${code}.`
+          ? `Room ${code} doesn't exist.`
           : error instanceof ApiFailure
             ? error.message
-            : 'could not reach the server'
+            : "Couldn't reach the server."
       return
     }
     if (snapshot.status === 'lobby') await enter()
@@ -186,14 +186,15 @@
       }
       inviteOnly = false
       displayName = joiningAs ?? name
-      failure = error instanceof ApiFailure ? error.message : 'could not join, try again'
+      failure =
+        error instanceof ApiFailure ? error.message : "Couldn't join the room. Please try again."
     } finally {
       joiningAs = null
     }
   }
 
   function requestText(error: unknown): string {
-    if (!(error instanceof ApiFailure)) return 'could not reach the server'
+    if (!(error instanceof ApiFailure)) return "Couldn't reach the server."
     return REQUEST_TEXT[error.code] ?? error.message
   }
 
@@ -270,7 +271,7 @@
   {:else if joinable && snapshot !== null}
     <p class="tagline">
       {snapshot.players}
-      {snapshot.players === 1 ? 'player' : 'players'} in so far.
+      {snapshot.players === 1 ? 'player' : 'players'} in the lobby.
     </p>
     {#if !naming && !inviteOnly && failure === null}
       <p class="tagline">Joining as {joiningAs ?? $profile?.name ?? '…'}…</p>

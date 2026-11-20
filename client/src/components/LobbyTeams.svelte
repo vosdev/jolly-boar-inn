@@ -55,7 +55,12 @@
       },
     }))
     if (first === undefined) return
-    ask({ message: 'Add which team?', label: first.label, act: first.act, also: rest })
+    ask({
+      message: 'Which team would you like to add?',
+      label: first.label,
+      act: first.act,
+      also: rest,
+    })
   }
 
   function removeTeam(id: TeamId, name: string, members: number): void {
@@ -63,9 +68,9 @@
       setTeams(id, false)
       return
     }
-    const who = members === 1 ? 'Its player goes' : `Its ${members} players go`
+    const who = members === 1 ? 'Its player' : `Its ${members} players`
     ask({
-      message: `Remove ${name}? ${who} back to no team and must ready up again.`,
+      message: `Remove ${name}? ${who} will be unassigned and will need to ready up again.`,
       label: 'Remove',
       act: () => setTeams(id, false),
     })
