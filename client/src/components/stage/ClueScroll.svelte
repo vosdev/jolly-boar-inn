@@ -110,6 +110,20 @@
   </svg>
 {/snippet}
 
+{#snippet facets()}
+  <svg class="facets" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true">
+    <path class="fl" d="M0 0L18 0L26 22L8 60L0 60Z" />
+    <path class="fd" d="M18 0L40 0L34 30L26 22Z" />
+    <path class="fl" d="M40 0L63 0L55 26L34 30Z" />
+    <path class="fd" d="M26 22L34 30L30 60L8 60Z" />
+    <path class="fl" d="M34 30L55 26L60 60L30 60Z" />
+    <path class="fd" d="M63 0L84 0L78 34L55 26Z" />
+    <path class="fd" d="M55 26L78 34L86 60L60 60Z" />
+    <path class="fl" d="M84 0L100 0L100 44L78 34Z" />
+    <path class="fd" d="M78 34L100 44L100 60L86 60Z" />
+  </svg>
+{/snippet}
+
 {#snippet finial(end: 'top' | 'bottom')}
   <svg class="finial {end}" viewBox="0 0 40 34">
     <rect class="p" x="1.5" y="25" width="37" height="9" />
@@ -138,18 +152,8 @@
   {#if sheet === 'scroll'}{@render roll('left')}{/if}
   <div class="reveal">
     <div class="paper">
-      {#if sheet === 'scroll' || sheet === 'slab' || sheet === 'gravestone' || sheet === 'sign'}
-        <svg class="facets" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true">
-          <path class="fl" d="M0 0L18 0L26 22L8 60L0 60Z" />
-          <path class="fd" d="M18 0L40 0L34 30L26 22Z" />
-          <path class="fl" d="M40 0L63 0L55 26L34 30Z" />
-          <path class="fd" d="M26 22L34 30L30 60L8 60Z" />
-          <path class="fl" d="M34 30L55 26L60 60L30 60Z" />
-          <path class="fd" d="M63 0L84 0L78 34L55 26Z" />
-          <path class="fd" d="M55 26L78 34L86 60L60 60Z" />
-          <path class="fl" d="M84 0L100 0L100 44L78 34Z" />
-          <path class="fd" d="M78 34L100 44L100 60L86 60Z" />
-        </svg>
+      {#if sheet === 'scroll' || sheet === 'slab' || sheet === 'gravestone'}
+        {@render facets()}
       {:else if sheet === 'poster'}
         <img class="skull" src={skullUrl} alt="" width="50" height="50" draggable="false" />
       {:else if sheet === 'gauntlet'}
@@ -162,17 +166,23 @@
         {/each}
       {/if}
       {#if sheet === 'sign'}
-        {#each ['top-left', 'top-right', 'bottom-left', 'bottom-right'] as corner (corner)}
-          <svg class="shard {corner}" viewBox="0 0 60 40" aria-hidden="true">
-            <path fill={ART.signShard} d="M2 6L20 1L42 3L24 8L10 19L7 34L1 27Z" />
-            <path fill={ART.signShardDark} d="M10 19L24 8L46 6L28 13L14 25Z" />
-          </svg>
-        {/each}
-        {#each ['left', 'right'] as side (side)}
-          <svg class="shard side {side}" viewBox="0 0 14 30" aria-hidden="true">
-            <path fill={ART.signShard} d="M1 0L12 9L9 23L1 30Z" />
-          </svg>
-        {/each}
+        <!-- The stone's ragged edge, and inside it the stone itself, which clips its crystal. -->
+        <div class="stone" aria-hidden="true">
+          <div class="face">
+            {@render facets()}
+            {#each ['top-left', 'top-right', 'bottom-left', 'bottom-right'] as corner (corner)}
+              <svg class="shard {corner}" viewBox="0 0 60 40">
+                <path fill={ART.signShard} d="M2 6L20 1L42 3L24 8L10 19L7 34L1 27Z" />
+                <path fill={ART.signShardDark} d="M10 19L24 8L46 6L28 13L14 25Z" />
+              </svg>
+            {/each}
+            {#each ['left', 'right'] as side (side)}
+              <svg class="shard side {side}" viewBox="0 0 14 30">
+                <path fill={ART.signShard} d="M1 0L12 9L9 23L1 30Z" />
+              </svg>
+            {/each}
+          </div>
+        </div>
         {#each ['left', 'right'] as side (side)}
           <img class="mushrooms {side}" src={mushroomsUrl} alt="" draggable="false" />
         {/each}
@@ -660,11 +670,45 @@
     stroke-width: 1.5;
   }
 
-  /* Zanaris's stone: teal, faceted, its corners rounded like the city's panels, pale crystal
-     at its corners and halfway down each side as on the Cosmic altar's sign, and a clump of
-     the city's mushrooms in each corner of its foot. */
+  /* Zanaris's stone: teal and faceted, ragged at its edge like the Cosmic altar's sign but
+     only ever inside the sheet's margins, pale crystal at its corners and halfway down each
+     side, and a clump of the city's mushrooms in each corner of its foot. The edge's notches
+     keep their depth in px and spread along it in %, so any width of stone keeps its frame. */
   :where(.scroll[data-sheet='sign']) .paper {
-    border-radius: calc(10px * var(--k));
+    --stone: polygon(
+      calc(8px * var(--k)) calc(14px * var(--k)),
+      13% calc(2px * var(--k)),
+      30% calc(7px * var(--k)),
+      50% 0,
+      72% calc(5px * var(--k)),
+      90% calc(1px * var(--k)),
+      calc(100% - 4px * var(--k)) calc(16px * var(--k)),
+      calc(100% - 7px * var(--k)) 40%,
+      100% 63%,
+      calc(100% - 6px * var(--k)) 87%,
+      calc(100% - 26px * var(--k)) 100%,
+      60% calc(100% - 6px * var(--k)),
+      40% 100%,
+      18% calc(100% - 4px * var(--k)),
+      calc(10px * var(--k)) calc(100% - 12px * var(--k)),
+      0 68%,
+      calc(7px * var(--k)) 44%,
+      0 26%
+    );
+    background: none;
+  }
+
+  .stone {
+    position: absolute;
+    inset: 0;
+    clip-path: var(--stone);
+    background: var(--scroll-edge);
+  }
+
+  .face {
+    position: absolute;
+    inset: calc(2px * var(--k));
+    clip-path: var(--stone);
     background:
       radial-gradient(
         ellipse 70% 60% at 50% 35%,
@@ -672,10 +716,6 @@
         transparent
       ),
       var(--scroll-paper);
-    box-shadow:
-      inset 0 0 0 2px var(--scroll-edge),
-      inset 0 0 0 6px var(--scroll-paper),
-      inset 0 0 0 7.5px color-mix(in srgb, var(--scroll-paper), white 45%);
   }
 
   .shard {

@@ -90,12 +90,12 @@ describe('the sheet', () => {
     expect(sheet.querySelector('.roll')).toBeNull()
   })
 
-  it('is teal stone in Zanaris, crystal at its corners and sides, mushrooms at its foot', () => {
+  it('is ragged teal stone in Zanaris, crystal at its corners and sides, mushrooms at its foot', () => {
     const { sheet } = stage('zanaris')
     expect(sheet.dataset.sheet).toBe('sign')
     expect(sheet.querySelector('.paper svg.altar')).toBeNull()
-    expect(sheet.querySelector('.paper .facets')).not.toBeNull()
-    expect(sheet.querySelectorAll('.paper svg.shard')).toHaveLength(6)
+    expect(sheet.querySelector('.paper .stone .face .facets')).not.toBeNull()
+    expect(sheet.querySelectorAll('.paper .stone .face svg.shard')).toHaveLength(6)
     expect(sheet.querySelectorAll('.paper img.mushrooms')).toHaveLength(2)
     expect(sheet.querySelector('.roll')).toBeNull()
   })
