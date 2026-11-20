@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.272.0',
+    date: '2026-11-20',
+    text: 'Even out the sheets: every theme frames the question alike. New Zanaris stone; the Wilderness skull hides behind the words.',
+  },
+  {
     version: '0.271.0',
     date: '2026-11-20',
     text: 'Play KGP Recon: pin where a recon photo was taken. Send your own screenshots for it on /suggest.',
