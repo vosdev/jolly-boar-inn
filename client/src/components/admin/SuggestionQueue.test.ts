@@ -256,7 +256,7 @@ describe('SuggestionQueue', () => {
       ).toBeTruthy()
     })
 
-    it('previews a Release Order, which waits for its round', async () => {
+    it('previews an order for a round this build no longer has, waiting for it', async () => {
       const content = {
         ...(ordering.content as object),
         mode: 'release_order',
@@ -269,8 +269,6 @@ describe('SuggestionQueue', () => {
       await fireEvent.click((await screen.findByText(/Sort the/)).closest('button')!)
       expect(screen.getByText('Waits for its round')).toBeTruthy()
       expect(screen.getByLabelText('As players will see it').textContent).toContain('Opal')
-      await fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
-      expect(screen.getByLabelText('First end')).toBeTruthy()
     })
 
     it('edits it in the same form, ties and picks as stored, and saves the ranks', async () => {

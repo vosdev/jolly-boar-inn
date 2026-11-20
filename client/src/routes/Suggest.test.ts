@@ -58,7 +58,7 @@ beforeEach(() => {
   vi.mocked(api.sendSuggestion).mockResolvedValue({ id: 'x' })
   vi.mocked(api.findSimilar).mockResolvedValue([])
   vi.mocked(api.getReportChoices).mockImplementation(async (mode) => {
-    if (mode === 'release_order') throw new ApiFailure(422, 'bad_mode', 'not here')
+    if (mode === 'prop_hunt') throw new ApiFailure(422, 'bad_mode', 'not here')
     if (mode === 'random_event') {
       return {
         by: 'question',
@@ -176,21 +176,21 @@ describe('Suggest', () => {
     played()
     render(Suggest, { navigate })
     const cards = CHOICES.filter((choice) => choice.kind === 'question' && choice.id !== 'no_round')
-    for (const card of cards.filter((c) => !['random_event', 'release_order'].includes(c.id))) {
+    for (const card of cards.filter((c) => !['random_event', 'prop_hunt'].includes(c.id))) {
       await fireEvent.click(await screen.findByRole('button', { name: new RegExp(card.label) }))
       await waitFor(() => expect(existingRows()).toEqual([`A ${card.id} question`]))
       expect(screen.getByLabelText('Search the questions already in the game')).toBeTruthy()
       await fireEvent.click(screen.getByRole('button', { name: /Everything you can suggest/ }))
     }
     expect(vi.mocked(api.getReportChoices).mock.calls.map(([mode]) => mode)).toEqual(
-      cards.map((c) => c.id).filter((id) => !['random_event', 'release_order'].includes(id)),
+      cards.map((c) => c.id).filter((id) => !['random_event', 'prop_hunt'].includes(id)),
     )
   })
 
-  it('says Release Order has no questions yet, in one line and no error', async () => {
+  it('says Prop Hunt has no questions yet, in one line and no error', async () => {
     played()
     render(Suggest, { navigate })
-    await fireEvent.click(await screen.findByRole('button', { name: /Release Order/ }))
+    await fireEvent.click(await screen.findByRole('button', { name: /Prop Hunt/ }))
     await within(existing()).findByText('The game has no questions here yet.')
     expect(document.querySelector('.banner')).toBeNull()
   })
@@ -484,57 +484,6 @@ describe('Suggest', () => {
         mode: 'sort_it_out',
         difficulty: 'medium',
         wiki: 'https://oldschool.runescape.wiki/w/Crafting',
-      },
-      credit: 'AFKFisher',
-      credit_shown: false,
-    })
-  })
-
-  it('writes a Release Order with a date on every entry, and sends it as an ordering', async () => {
-    played()
-    render(Suggest, { navigate })
-    const card = await screen.findByRole('button', { name: /Release Order/ })
-    expect(card.textContent).toContain('Something worth putting in release order.')
-    await fireEvent.click(card)
-    expect(screen.queryByRole('group', { name: 'How players answer' })).toBeNull()
-    expect(screen.queryByLabelText('Who asks it')).toBeNull()
-    expect(screen.getByLabelText('First end').getAttribute('placeholder')).toBe('Oldest')
-
-    await type('What are they put in order of?', 'Put these quests in the order they came out.')
-    await type('First end', 'Oldest')
-    await type('Last end', 'Newest')
-    await type('Entry 1', 'Cook’s Assistant')
-    await type('Detail of entry 1', '4 January 2001')
-    await type('Entry 2', 'Sheep Shearer')
-    await type('Detail of entry 2', '4 January 2001')
-    await type('Entry 3', 'Dragon Slayer')
-    await fireEvent.click(screen.getAllByLabelText('Tied with the one above')[0]!)
-    await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Update:Quests')
-    await fireEvent.click(screen.getByRole('radio', { name: 'Medium' }))
-    await type('Your name', 'AFKFisher')
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
-    expect(screen.getByText('Required: the date it came out.')).toBeTruthy()
-    expect(api.sendSuggestion).not.toHaveBeenCalled()
-
-    await type('Detail of entry 3', '4 January 2001')
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
-    expect(api.sendSuggestion).toHaveBeenCalledWith({
-      kind: 'question',
-      content: {
-        type: 'ordering',
-        payload: {
-          prompt: 'Put these quests in the order they came out.',
-          ends: ['Oldest', 'Newest'],
-          entries: [
-            { text: 'Cook’s Assistant', rank: 1, detail: '4 January 2001' },
-            { text: 'Sheep Shearer', rank: 1, detail: '4 January 2001' },
-            { text: 'Dragon Slayer', rank: 2, detail: '4 January 2001' },
-          ],
-          answer: [0, 1, 2],
-        },
-        mode: 'release_order',
-        difficulty: 'medium',
-        wiki: 'https://oldschool.runescape.wiki/w/Update:Quests',
       },
       credit: 'AFKFisher',
       credit_shown: false,

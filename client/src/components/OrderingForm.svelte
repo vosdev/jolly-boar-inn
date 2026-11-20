@@ -132,7 +132,7 @@
     /^(payload\.(prompt|ends\[\d\]|entries(\[\d+\](\.(text|detail))?)?|picks|explanation)|random_event)$/
   const form = new QuestionForm({
     asked: () => asked,
-    problems: () => problems(built, wording.detailRequired),
+    problems: () => problems(built),
     unnamed: () => asker === 'required' && npc === '',
     placed: (path) => PLACED.test(path) || (intro && path === 'payload.intro'),
     extras: new Set(['payload.intro', 'payload.explanation']),
@@ -256,7 +256,6 @@
     <p class="note">
       {ENTRIES_MIN} to {ENTRIES_MAX} entries, up to {TEXT_MAX} characters each and {DETAIL_MAX}
       for a detail. Tied entries take the same place, and players may put them either way round.
-      {#if wording.detailRequired}Entries that came out on one day are tied.{/if}
     </p>
     {@render errors('payload.entries')}
   </fieldset>

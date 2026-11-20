@@ -891,28 +891,6 @@
   ],
   "upcoming": [
     {
-      "id": "release_order",
-      "suggest": {
-        "types": [
-          "ordering"
-        ],
-        "quote": false,
-        "intro": false,
-        "explanation": true,
-        "difficulty": true,
-        "fixed_prompt": null,
-        "wiki_only": false,
-        "named": null,
-        "verse": false,
-        "render": false,
-        "picture_item": false,
-        "lined": false,
-        "clued": false,
-        "tags": [],
-        "right_first": false
-      }
-    },
-    {
       "id": "prop_hunt",
       "suggest": {
         "types": [

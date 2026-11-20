@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.269.3',
+    date: '2026-11-20',
+    text: 'Fold Release Order into Sort It Out. Stop suggestion previews jumping straight to the reveal.',
+  },
+  {
     version: '0.269.2',
     date: '2026-11-20',
     text: "Show Diary Dash, Entrana Customs, Hide and Seek and What's That Noise? as coming soon.",

@@ -36,8 +36,8 @@ describe('field placeholders', () => {
   })
 
   it('OrderingForm shows its round’s explanation example', () => {
-    render(OrderingForm, { ...props, mode: 'release_order' })
-    expect(placeholderOf(/^Explanation/)).toBe(fieldHints('release_order').explanation)
+    render(OrderingForm, { ...props, mode: 'sort_it_out' })
+    expect(placeholderOf(/^Explanation/)).toBe(fieldHints('sort_it_out').explanation)
   })
 
   it('MatchingForm shows its round’s examples', () => {

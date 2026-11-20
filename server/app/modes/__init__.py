@@ -211,7 +211,6 @@ MODES: dict[str, Mode] = {
 # Rounds this build does not play yet, which already take suggestions so their packs are
 # ready when they open.
 UPCOMING: dict[str, Suggest] = {
-    "release_order": Suggest(types=frozenset({"ordering"})),
     "prop_hunt": Suggest(types=frozenset({"picture_pin"}), explanation=False),
 }
 
