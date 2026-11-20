@@ -603,6 +603,926 @@
         ],
         "answer_index": 0
       }
+    },
+    {
+      "id": "q_28e860f5bb46b4ab",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Stale_baguette",
+      "payload": {
+        "prompt": "Baguette ready for pain.",
+        "options": [
+          "Stale baguette",
+          "Baguette",
+          "Ham joint",
+          "Rolling pin",
+          "Meat tenderiser",
+          "Kebab"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_d356d6a7643a3547",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Partyhat_%26_specs",
+      "payload": {
+        "prompt": "I have the sudden urge to rob the bank...",
+        "options": [
+          "Partyhat & specs",
+          "Blue partyhat",
+          "Wise Old Man",
+          "Highwayman mask",
+          "Sagacious spectacles",
+          "Half moon spectacles"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_35dde4ca4d4aef01",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Gilded_spade",
+      "payload": {
+        "prompt": "Oh, I'm a gold digger?",
+        "options": [
+          "Gilded spade",
+          "Spade",
+          "Gilded pickaxe",
+          "Gold bar",
+          "Ring of coins",
+          "Gilded axe"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_500a1895e393e7a6",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Dragon_pickaxe",
+      "payload": {
+        "prompt": "If rocks could feel fear, they'd fear this.",
+        "options": [
+          "Dragon pickaxe",
+          "Crystal pickaxe",
+          "Infernal pickaxe",
+          "Rune pickaxe",
+          "Dragon warhammer",
+          "Granite maul"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_19e9c3bf34506dff",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Purple_sweets",
+      "payload": {
+        "prompt": "Remember to brush after eating!",
+        "options": [
+          "Purple sweets",
+          "Mint cake",
+          "Chocolate bomb",
+          "Guthix rest",
+          "Sugar",
+          "Easter egg"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_6baeb1a238f33e41",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Half_full_wine_jug",
+      "payload": {
+        "prompt": "An optimist would say it's half full.",
+        "options": [
+          "Half full wine jug",
+          "Jug of wine",
+          "Bottle of wine",
+          "Half a meat pie",
+          "Half-made bowl",
+          "Unfermented wine"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_408445545ef4acf7",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Coal",
+      "payload": {
+        "prompt": "Hmm a non-renewable energy source!",
+        "options": [
+          "Coal",
+          "Volcanic ash",
+          "Charcoal",
+          "Bluerite ore",
+          "Saltpetre",
+          "Sulphur"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_25e608e0ca477c31",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Kraken_tentacle",
+      "payload": {
+        "prompt": "Ewwww... it's still sucky.",
+        "options": [
+          "Kraken tentacle",
+          "Abyssal whip",
+          "Abyssal tentacle",
+          "Swamp tar",
+          "Cooked karambwan",
+          "Giant frog legs"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_b42b8b4c44042c02",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Pirate%27s_hook",
+      "payload": {
+        "prompt": "You should see the shark...",
+        "options": [
+          "Pirate's hook",
+          "Pirate's hat",
+          "Harpoon",
+          "Eyepatch",
+          "Pegleg",
+          "Shark"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_dd66a376fede062b",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Red_chinchompa",
+      "payload": {
+        "prompt": "Even more volatile than its vegetarian counterpart.",
+        "options": [
+          "Red chinchompa",
+          "Black chinchompa",
+          "Chinchompa",
+          "Red salamander",
+          "Kebbit",
+          "Explosive potion"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_9716d1c07fe7579c",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Garden_pie",
+      "payload": {
+        "prompt": "What I wouldn't give for a good steak about now...",
+        "options": [
+          "Garden pie",
+          "Wild pie",
+          "Summer pie",
+          "Meat pie",
+          "Botanical pie",
+          "Vegetable batta"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_4107673208070707",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Half_moon_spectacles",
+      "payload": {
+        "prompt": "The two halfs would surely make a full moon?",
+        "options": [
+          "Half moon spectacles",
+          "Sagacious spectacles",
+          "Monocle",
+          "Gnome goggles",
+          "Lunar helm",
+          "Astral tiara"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_61a913fab7e3d0b7",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Dinh%27s_bulwark",
+      "payload": {
+        "prompt": "Is it... looking at me?",
+        "options": [
+          "Dinh's bulwark",
+          "Jar of Eyes",
+          "Dragonfire shield",
+          "Siren's tome",
+          "Spectral spirit shield",
+          "Abyssal lantern"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_228479de0ef16002",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Dagannoth_bones",
+      "payload": {
+        "prompt": "These would feed a dogfish for months!",
+        "options": [
+          "Dagannoth bones",
+          "Dragon bones",
+          "Wyvern bones",
+          "Ourg bones",
+          "Fayrg bones",
+          "Hydra bones"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_024118042dd5891d",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Granite_maul",
+      "payload": {
+        "prompt": "Simplicity is the best weapon.",
+        "options": [
+          "Granite maul",
+          "Elder maul",
+          "Obsidian maul",
+          "Barrelchest anchor",
+          "Hill giant club",
+          "Tzhaar-ket-om"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_2ff717f64a94401f",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Goblin_mask",
+      "payload": {
+        "prompt": "Let's start a flash mob!",
+        "options": [
+          "Goblin mask",
+          "Imp mask",
+          "Zombie mask",
+          "Clown mask",
+          "Beanie",
+          "Mime mask"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_78a9bc104f81c3e6",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/TzTok-Jad",
+      "payload": {
+        "prompt": "This is going to hurt...",
+        "options": [
+          "TzTok-Jad",
+          "TzKal-Zuk",
+          "Vorkath",
+          "Cerberus",
+          "General Graardor",
+          "Corporeal Beast"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_66b8b05d7a8a26c1",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Kalphite_Queen",
+      "payload": {
+        "prompt": "I don't think insect repellent will work...",
+        "options": [
+          "Kalphite Queen",
+          "Kalphite Guardian",
+          "Kalphite Soldier",
+          "Sarachnis",
+          "Kephri",
+          "Vespula"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_bc5b913ee8de53c1",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Giant_Mole",
+      "payload": {
+        "prompt": "Holy Mole-y!",
+        "options": [
+          "Giant Mole",
+          "Baby Mole",
+          "Mole slippers",
+          "Cave crawler",
+          "Wall beast",
+          "Rock crab"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_b611da1d9e00cb3b",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Cow",
+      "payload": {
+        "prompt": "Converts grass to beef.",
+        "options": [
+          "Cow",
+          "Cow calf",
+          "Bull",
+          "Unicorn",
+          "Sheep",
+          "Yak"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_ccb3dbccea8a7dad",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Vorkath",
+      "payload": {
+        "prompt": "This won't be fun.",
+        "options": [
+          "Vorkath",
+          "TzTok-Jad",
+          "Galvek",
+          "Elvarg",
+          "King Black Dragon",
+          "Zulrah"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_5987d652a2069712",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Gargoyle",
+      "payload": {
+        "prompt": "Flies like a rock.",
+        "options": [
+          "Gargoyle",
+          "Marble gargoyle",
+          "Dusk",
+          "Dawn",
+          "Rock golem",
+          "Skeletal Wyvern"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_2d134b7874b19e36",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Scurrius",
+      "payload": {
+        "prompt": "You're never more than six feet away from one.",
+        "options": [
+          "Scurrius",
+          "Giant rat",
+          "Brine rat",
+          "Blessed giant rat",
+          "Giant spider",
+          "Cockroach"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_1479d9a2f47c9ac9",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Dust_devil",
+      "payload": {
+        "prompt": "The vacuumed face of evil.",
+        "options": [
+          "Dust devil",
+          "Smoke devil",
+          "Banshee",
+          "Aberrant spectre",
+          "Nechryael",
+          "Dark beast"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_2914fda70c0ee0b2",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Thermonuclear_smoke_devil",
+      "payload": {
+        "prompt": "Woah.",
+        "options": [
+          "Thermonuclear smoke devil",
+          "Smoke devil",
+          "Dust devil",
+          "Chaos Elemental",
+          "Kraken",
+          "Abyssal Sire"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_a0dbf0b654b64077",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Vardorvis",
+      "payload": {
+        "prompt": "How does he suck blood now?",
+        "options": [
+          "Vardorvis",
+          "Duke Sucellus",
+          "Vyrewatch Sentinel",
+          "Vanstrom Klause",
+          "Count Draynor",
+          "Verzik Vitur"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_7ca77e5d1df135c8",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Baby_Mole",
+      "payload": {
+        "prompt": "Keep Molin', molin' molin' molin'!",
+        "options": [
+          "Baby Mole",
+          "Giant Mole",
+          "Hellpuppy",
+          "Herbi",
+          "Scurry",
+          "Beaver"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_0e0ea54c4a008f65",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Sraracha",
+      "payload": {
+        "prompt": "Good thing there's no such thing as Sarachnophobia.",
+        "options": [
+          "Sraracha",
+          "Venenatis spiderling",
+          "Nid",
+          "Sarachnis",
+          "Spindel",
+          "Araxxor"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_d497f723defe8695",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Rock_golem",
+      "payload": {
+        "prompt": "Found somewhere between a rock and a hard place.",
+        "options": [
+          "Rock golem",
+          "Pet rock",
+          "Smolcano",
+          "Gargoyle",
+          "Rift guardian",
+          "Scurry"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_3bca41ec30978cc8",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Vorki",
+      "payload": {
+        "prompt": "Three legs on my dragon...",
+        "options": [
+          "Vorki",
+          "Prince Black Dragon",
+          "Olmlet",
+          "Ikkle Hydra",
+          "Vorkath",
+          "Elvarg"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_58ed5e1592392d93",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Baby_chinchompa",
+      "payload": {
+        "prompt": "Fluffy and cute, keep away from fire!",
+        "options": [
+          "Baby chinchompa",
+          "Phoenix",
+          "Hellpuppy",
+          "Herbi",
+          "Giant Squirrel",
+          "Beaver"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_0ce59010c60058cb",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Tangleroot",
+      "payload": {
+        "prompt": "Don't be hasty.",
+        "options": [
+          "Tangleroot",
+          "Hespori",
+          "Spirit tree",
+          "Beaver",
+          "Herbi",
+          "Bryophyta"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_8f60fdba8282fea1",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Ikkle_Hydra",
+      "payload": {
+        "prompt": "How does it not fall over?",
+        "options": [
+          "Ikkle Hydra",
+          "Vorki",
+          "Olmlet",
+          "Smolcano",
+          "Snakeling",
+          "Baron"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_7beaa81287c62da1",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Baron",
+      "payload": {
+        "prompt": "Better keep an eye on this one.",
+        "options": [
+          "Baron",
+          "Wisp",
+          "Butch",
+          "Lil'viathan",
+          "Muphin",
+          "Sraracha"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_2fceb87be90856a9",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Brimstail",
+      "payload": {
+        "prompt": "Small but wise, he is.",
+        "options": [
+          "Brimstail",
+          "King Narnode Shareen",
+          "Gnome child",
+          "Wise Old Man",
+          "Aubury",
+          "Wizard Traiborn"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_cefe166915eb9682",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Romeo",
+      "payload": {
+        "prompt": "Rather dense and soppy looking.",
+        "options": [
+          "Romeo",
+          "Charlie the Tramp",
+          "Hans",
+          "Party Pete",
+          "Reldo",
+          "Father Lawrence"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_b34bd1dfea9d23af",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Nieve",
+      "payload": {
+        "prompt": "She looks rich and dangerous!",
+        "options": [
+          "Nieve",
+          "Konar quo Maten",
+          "Chaeldar",
+          "Krystilia",
+          "Steve",
+          "Duradel"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_fffacb62aa577141",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Konar_quo_Maten",
+      "payload": {
+        "prompt": "She looks dangerous, and slightly crazy!",
+        "options": [
+          "Konar quo Maten",
+          "Krystilia",
+          "Nieve",
+          "Chaeldar",
+          "Vannaka",
+          "Duradel"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_2767f663b1f48b04",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Hatius_Cosaintus",
+      "payload": {
+        "prompt": "Attracts a lot of attention.",
+        "options": [
+          "Hatius Cosaintus",
+          "Wise Old Man",
+          "King Roald",
+          "Duke Horacio",
+          "Sir Tiffy Cashien",
+          "Bob"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_11f9192a38527183",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Diango",
+      "payload": {
+        "prompt": "He smells funny.",
+        "options": [
+          "Diango",
+          "Charlie the Tramp",
+          "Drunken Dwarf",
+          "Oziach",
+          "Thurgo",
+          "Evil Dave"
+        ],
+        "answer_index": 0
+      },
+      "difficulty": "hard"
     }
   ]
 }
