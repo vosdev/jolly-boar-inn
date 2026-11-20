@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.273.0',
+    date: '2026-11-20',
+    text: 'Fit matching questions on screen: on a computer the answers to drag sit beside the slots, so nothing scrolls.',
+  },
+  {
     version: '0.272.0',
     date: '2026-11-20',
     text: 'Even out the sheets: every theme frames the question alike. New Zanaris stone; the Wilderness skull hides behind the words.',

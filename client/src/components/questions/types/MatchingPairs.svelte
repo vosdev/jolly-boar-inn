@@ -197,7 +197,9 @@
           </ol>
           <ul class="tray">
             {#each q.options as option, shown (shown)}
-              <li><GemButton tag="div" gem={gemAt(shown)} status="idle">{option.text}</GemButton></li>
+              <li>
+                <GemButton tag="div" gem={gemAt(shown)} status="idle">{option.text}</GemButton>
+              </li>
             {/each}
           </ul>
         </div>
@@ -264,11 +266,13 @@
     list-style: none;
   }
 
+  /* `margin` undoes the forms' global `.field` spacing, which would add 16px a row. */
   .field {
     display: grid;
     grid-template-columns: minmax(4.5rem, 35%) 1fr;
     align-items: center;
     gap: 0.5rem;
+    margin: 0;
   }
 
   .label {

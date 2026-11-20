@@ -184,6 +184,10 @@ describe('Matching', () => {
     expect(rule(wide, '.board')).toContain('grid-template-columns: minmax(0, 9fr) minmax(0, 11fr)')
     expect(rule(wide, '.board .tray')).toContain('margin-top: 0')
   })
+
+  it("keeps its fields 8px apart, without the forms' field margin", () => {
+    expect(rule(styles(matchingPairs).base, '.field')).toContain('margin: 0')
+  })
 })
 
 describe('ScapeRune', () => {
