@@ -163,7 +163,7 @@
     {/snippet}
     {#snippet list()}
       {#if canAnswer}
-        <div bind:this={area}>
+        <div class="board" bind:this={area}>
           <ol class="fields">
             {#each q.fields as field, index (index)}
               {@const shown = board[index] ?? null}
@@ -186,19 +186,21 @@
           </ul>
         </div>
       {:else}
-        <ol class="fields">
-          {#each q.fields as field, index (index)}
-            <li class="field">
-              {@render label(field, index)}
-              <div class="empty">empty</div>
-            </li>
-          {/each}
-        </ol>
-        <ul class="tray">
-          {#each q.options as option, shown (shown)}
-            <li><GemButton tag="div" gem={gemAt(shown)} status="idle">{option.text}</GemButton></li>
-          {/each}
-        </ul>
+        <div class="board">
+          <ol class="fields">
+            {#each q.fields as field, index (index)}
+              <li class="field">
+                {@render label(field, index)}
+                <div class="empty">empty</div>
+              </li>
+            {/each}
+          </ol>
+          <ul class="tray">
+            {#each q.options as option, shown (shown)}
+              <li><GemButton tag="div" gem={gemAt(shown)} status="idle">{option.text}</GemButton></li>
+            {/each}
+          </ul>
+        </div>
       {/if}
     {/snippet}
     {#snippet actions()}
@@ -292,6 +294,21 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     min-height: 56px;
     margin-top: 1rem;
+  }
+
+  /* On the desktop frame's wide stage the tray stands beside the fields, not under them, so
+     the question fits the stage's height instead of scrolling it. */
+  @container (min-width: 40rem) {
+    .board {
+      display: grid;
+      grid-template-columns: minmax(0, 9fr) minmax(0, 11fr);
+      align-items: start;
+      column-gap: 1rem;
+    }
+
+    .board .tray {
+      margin-top: 0;
+    }
   }
 
   .fields li.over .slot,
