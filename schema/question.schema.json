@@ -362,7 +362,18 @@
           "$comment": "Where the map opens while the question is open; the rest stays a pan away.",
           "$ref": "#/$defs/map_area"
         },
+        "screenshot": {
+          "$comment": "A photo of the place to find, shown while open; with width and height, for its shape.",
+          "$ref": "#/$defs/screenshot"
+        },
+        "width": { "type": "integer", "minimum": 1, "maximum": 8192 },
+        "height": { "type": "integer", "minimum": 1, "maximum": 8192 },
         "explanation": { "type": "string", "maxLength": 300 }
+      },
+      "dependentRequired": {
+        "screenshot": ["width", "height"],
+        "width": ["screenshot"],
+        "height": ["screenshot"]
       }
     },
 

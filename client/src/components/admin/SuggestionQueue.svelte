@@ -68,14 +68,14 @@
 
   const rows = $derived(queue?.suggestions ?? [])
 
-  /** Object URLs of the picture pins' own pictures, by suggestion, fetched as each opens. */
+  /** Object URLs of the suggesters' own pictures, by suggestion, fetched as each opens. */
   let pictures = $state<Record<string, string>>({})
   onDestroy(() => Object.values(pictures).forEach((url) => URL.revokeObjectURL(url)))
 
   $effect(() => {
     const row = rows.find((one) => one.id === opened)
     if (row === undefined || row.kind !== 'question') return
-    if ((row.content as QuestionContent).type !== 'picture_pin') return
+    if (!(row.content as QuestionContent).payload.screenshot) return
     const wanted = row.id
     if (untrack(() => pictures[wanted]) !== undefined) return
     getSuggestionPicture(token, wanted).then(
@@ -298,13 +298,15 @@
                 <div class="editing">
                   {#if row.kind === 'question'}
                     {@const type = (row.content as QuestionContent).type}
+                    {@const pictured =
+                      (row.content as QuestionContent).payload.screenshot !== undefined}
                     <div class="field round">
                       <label for="round-{row.id}">Round</label>
                       <select id="round-{row.id}" bind:value={round}>
                         {#if !hasRound(row.kind, row.content)}
                           <option value={NO_ROUND}>No round yet</option>
                         {/if}
-                        {#each roundsFor(type) as option (option.id)}
+                        {#each roundsFor(type, pictured) as option (option.id)}
                           <option value={option.id}>{option.label}</option>
                         {/each}
                       </select>

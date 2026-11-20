@@ -721,7 +721,11 @@
     }
   }
 
+  /* Its own stacking context, so the sheet it lifts over the map's panes stays under the
+     top bar and its menus; and a container, for a card on the map to place itself by. */
   .stage.map {
+    isolation: isolate;
+    container: map-stage / inline-size;
     max-width: var(--stage-wide, none);
     height: var(--stage-height, calc(100dvh - 9rem));
   }

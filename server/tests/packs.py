@@ -12,6 +12,7 @@ import tempfile
 from pathlib import Path
 
 from app.config import REPO_ROOT
+from app.questions.packs import load_packs
 
 sys.path.insert(0, str(REPO_ROOT / "server" / "scripts"))
 
@@ -50,3 +51,7 @@ def _build() -> Path:
 
 
 PACKS_DIR = _build()
+
+# The modes the shipped packs hold questions of. A round fed only by player suggestions, such as
+# KGP Recon, holds none until the first import, so a test of every round's questions skips it.
+SHIPPED_MODES = frozenset(q["mode"] for pack in load_packs(PACKS_DIR) for q in pack.questions)

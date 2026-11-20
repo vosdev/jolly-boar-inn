@@ -8,6 +8,9 @@ import { readable } from 'svelte/store'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { PlayerResult, PlayerView } from '../../lib/protocol'
+import { avatarArt } from '../../lib/pets'
+import { profile } from '../../lib/profile'
+import { PREVIEW_ID } from '../../lib/resultRows'
 import { players, you } from '../../lib/stores'
 import MapPin from './types/MapPin.svelte'
 
@@ -265,5 +268,34 @@ describe('MapPin', () => {
     await loaded(container)
     await waitFor(() => expect(screen.getByText('Rellekka')).toBeTruthy())
     expect(pins(container)).toHaveLength(0)
+  })
+})
+
+describe('MapPin on /suggest’s preview', () => {
+  beforeEach(() => {
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(800)
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(600)
+    profile.set({ name: 'TwintigApril', pet: 'baby_mole' })
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+    profile.set(null)
+  })
+
+  it('draws the tried pin as you, with your own pet, though nobody sits at a table', async () => {
+    const { container } = setup({
+      data: { prompt: 'Where?', pins: 1, targets: [SARIM], reach: 100 },
+      revealed: true,
+      yourValue: [{ x: 3100, y: 3220 }],
+      results: { [PREVIEW_ID]: result([{ x: 3100, y: 3220 }]) },
+    })
+    await loaded(container)
+    await waitFor(() => expect(pins(container)).toHaveLength(1))
+    expect(screen.getByText('You')).toBeTruthy()
+    expect(screen.queryByText('?')).toBeNull()
+    expect(pins(container)[0]!.querySelector('img')?.getAttribute('src')).toBe(
+      avatarArt('baby_mole').url,
+    )
   })
 })

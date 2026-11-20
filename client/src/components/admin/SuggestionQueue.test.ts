@@ -120,6 +120,52 @@ describe('SuggestionQueue', () => {
     })
   })
 
+  describe('a recon photo', () => {
+    const payload = {
+      prompt: 'Where was this photo taken?',
+      targets: [{ name: 'Varrock square', min_x: 3200, max_x: 3230, min_y: 3420, max_y: 3440 }],
+      screenshot: 'screenshot:suggested-0123456789abcdef',
+      width: 800,
+      height: 450,
+      explanation: 'The fountain gives it away.',
+    }
+    const photo = row({
+      content: { type: 'map_pin', mode: 'kgp_recon', difficulty: 'easy', payload },
+    })
+
+    beforeEach(() => {
+      vi.mocked(admin.getQueue).mockResolvedValue({ suggestions: [photo], counts: COUNTS })
+      vi.mocked(admin.editSuggestion).mockResolvedValue(photo)
+      vi.mocked(admin.getSuggestionPicture).mockResolvedValue('blob:stored')
+    })
+
+    it('edits the place on the stored picture, asks no ticks and never sends the picture', async () => {
+      render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+      await fireEvent.click((await screen.findByText(/Varrock square/)).closest('button')!)
+      await waitFor(() => expect(admin.getSuggestionPicture).toHaveBeenCalledWith('t', 'one'))
+      await fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+      expect(screen.queryByLabelText('Your screenshot', { selector: 'input' })).toBeNull()
+      expect(screen.queryByText(/::renderself/)).toBeNull()
+      expect(screen.getByRole('img', { name: 'Your screenshot' }).getAttribute('src')).toBe(
+        'blob:stored',
+      )
+      await fireEvent.input(screen.getByLabelText('The place, as the reveal names it'), {
+        target: { value: 'Varrock fountain' },
+      })
+      await fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+      const [, , body] = vi.mocked(admin.editSuggestion).mock.calls[0]!
+      expect((body.content as QuestionContent).payload).toEqual({
+        ...payload,
+        targets: [{ ...payload.targets[0], name: 'Varrock fountain' }],
+      })
+      expect('picture' in body).toBe(false)
+    })
+
+    it('moves only to a round drawn on a picture', () => {
+      expect(roundsFor('map_pin', true).map((choice) => choice.id)).toEqual(['kgp_recon'])
+    })
+  })
+
   describe('a place on the map', () => {
     const payload = {
       prompt: 'Where is Falador?',

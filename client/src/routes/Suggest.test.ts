@@ -1074,6 +1074,23 @@ describe('Suggest', () => {
       expect(api.sendSuggestion).not.toHaveBeenCalled()
     })
 
+    it('takes a recon photo with no link, and sends it only with the picture, both ticks and a spot', async () => {
+      played()
+      render(Suggest, { navigate })
+      await fireEvent.click(await screen.findByRole('button', { name: /KGP Recon/ }))
+      expect(screen.queryByLabelText(/Relevant Wiki page/)).toBeNull()
+      expect(screen.queryByLabelText(/What players are asked/)).toBeNull()
+      await type('The place, as the reveal names it', 'Varrock square')
+      await fireEvent.click(screen.getByLabelText(/I took this screenshot myself/))
+      await type('Your name', 'AFKFisher')
+      await fireEvent.click(screen.getByRole('radio', { name: 'Easy' }))
+      await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
+      expect(await screen.findByText('Add your screenshot.')).toBeTruthy()
+      expect(screen.getByText('Tick both, or the photo cannot be used.')).toBeTruthy()
+      expect(screen.getByText('Tap the map where you took it.')).toBeTruthy()
+      expect(api.sendSuggestion).not.toHaveBeenCalled()
+    })
+
     it('says what a reach is worth as it moves', async () => {
       played()
       render(Suggest, { navigate })

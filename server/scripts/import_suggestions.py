@@ -32,9 +32,10 @@ A Drop Table or Minigame Madness question's ``picture_item`` is found the same w
 its payload's ``image``, ``item:<id>``. ``data/assets.json`` gains the item's detail image and
 inventory icon when it lacks either, for ``make fetch-assets``.
 
-A picture pin carries the suggester's screenshot as ``picture``, base64 of the WebP the server
-stored, which is staged as ``.pictures/screenshot/<name>.webp`` for ``build_pictures.py``. It
-must be the ``width`` by ``height`` its question says. A staged file of that name is left as it is.
+A question on a picture carries the suggester's screenshot as ``picture``, base64 of the WebP
+the server stored, which is staged as ``.pictures/screenshot/<name>.webp`` for
+``build_pictures.py``. It must be the ``width`` by ``height`` its question says. A staged file
+of that name is left as it is.
 
 Each keeps its ``credit``, and ``credit_shown`` when it is true. A round's question keeps its
 ``difficulty``, or is ``medium`` without one, so every round-pack question has a tier.
@@ -532,8 +533,8 @@ def own_picture(entry: dict[str, Any], content: dict[str, Any], where: str, plan
     """Take an entry's own picture into ``plan``; whether it was good, refusing it if not."""
     encoded = entry.get("picture")
     payload = content["payload"]
-    if (content["type"] in suggestions.PICTURE_TYPES) != (encoded is not None):
-        plan.refused.append(f"{where}: a picture with a picture pin, and only with one")
+    if suggestions.wants_picture("question", content) != (encoded is not None):
+        plan.refused.append(f"{where}: a picture with a round drawn on one, and only with one")
         return False
     if encoded is None:
         return True

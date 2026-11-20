@@ -40,7 +40,7 @@ class Suggestion(BaseModel):
     # ``normalize_name`` holds it to 1-``NAME_MAX``; this only bounds what is read.
     credit: str = Field(max_length=200)
     credit_shown: bool = Field(strict=True)
-    # Base64, for the types in ``suggestions.PICTURE_TYPES`` and only them.
+    # Base64, for the rounds in ``suggestions.PICTURE_MODES`` and only them.
     picture: str | None = Field(default=None, max_length=suggestion_pictures.MAX_ENCODED)
 
 

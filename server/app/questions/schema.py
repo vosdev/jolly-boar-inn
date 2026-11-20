@@ -152,6 +152,12 @@ def mode_errors(question: dict[str, Any]) -> list[str]:
     if clues != mode.clues:
         wanted = f"exactly {mode.clues} clues" if mode.clues else "no clues"
         return [f"$.payload.clues: {mode.id!r} takes {wanted}"]
+    if (
+        mode.suggest is not None
+        and mode.suggest.picture
+        and "screenshot" not in question["payload"]
+    ):
+        return [f"$.payload.screenshot: every {mode.id!r} question is drawn on one"]
     if not mode.is_round and question["type"] in _ROUND_ONLY:
         return [
             f"$.type: {question['type']!r} is not accepted in {mode.id!r} yet:"

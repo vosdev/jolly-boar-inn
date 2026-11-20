@@ -120,6 +120,7 @@ describe('the choices', () => {
       ['forgetful_bard', ['pick_from_list']],
       ['mark_the_map', ['map_pin']],
       ['sort_it_out', ['ordering']],
+      ['kgp_recon', ['map_pin']],
       ['prop_hunt', ['picture_pin']],
       ['riddles_of_the_sphinx', ['pick_from_list']],
       ['no_round', trivia],
@@ -235,8 +236,25 @@ describe('a place on the map', () => {
 
   it('is offered only for a map round, never to a question with no round', () => {
     expect(roundsFor('map_pin').map((choice) => choice.id)).toEqual(['mark_the_map'])
+    expect(roundsFor('map_pin', true).map((choice) => choice.id)).toEqual(['kgp_recon'])
     expect(CHOICES.find((c) => c.id === NO_ROUND)?.types).not.toContain('map_pin')
     expect(CHOICES.find((c) => c.id === 'random_event')?.types).not.toContain('map_pin')
+  })
+
+  it('lists a recon photo by its place, since every one asks the same', () => {
+    const photo: QuestionContent = {
+      type: 'map_pin',
+      mode: 'kgp_recon',
+      payload: {
+        prompt: 'Where was this photo taken?',
+        targets: [{ name: 'Varrock square', min_x: 3200, max_x: 3230, min_y: 3420, max_y: 3440 }],
+        screenshot: 'screenshot:suggested-ab',
+        width: 800,
+        height: 450,
+      },
+    }
+    expect(summary({ kind: 'question', content: photo })).toBe('Varrock square')
+    expect(summary({ kind: 'question', content: place })).toBe('Where is Falador?')
   })
 
   it('reads in the queue as its name, box and reach', () => {

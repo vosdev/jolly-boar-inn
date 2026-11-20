@@ -46,7 +46,7 @@ from app.questions import schema, text, vocab
 from app.questions.normalize import normalize
 from app.questions.packs import Pack, mode_questions
 from app.questions.submission import Submission
-from app.questions.types import TYPES, scoring_of
+from app.questions.types import TYPES, map_pin, scoring_of
 from app.questions.types.scoring import Scoring
 from app.rooms import scoring
 
@@ -78,6 +78,7 @@ INTRO_MODES = _where(lambda r: r.intro)
 NO_EXPLANATION_MODES = _where(lambda r: not r.explanation)
 NO_DIFFICULTY_MODES = _where(lambda r: not r.difficulty)
 PICTURE_ITEM_MODES = _where(lambda r: r.picture_item)
+PICTURE_MODES = _where(lambda r: r.picture)
 FIXED_PROMPTS = {m: r.fixed_prompt for m, r in SUGGESTIBLE.items() if r.fixed_prompt is not None}
 
 NPC_NAME_MAX = 80
@@ -85,16 +86,16 @@ NPC_NAME_MAX = 80
 ITEM_NAME_MAX = 80
 
 # A suggested place is one box on the whole map, and a reach near the default: past these the
-# round's points stop meaning much from one question to the next.
-PLACE_KEYS = frozenset({"prompt", "targets", "reach"})
+# round's points stop meaning much from one question to the next. A round's own photo of it
+# and an explanation, where the round takes them, are held to its rules elsewhere.
+PLACE_KEYS = frozenset(
+    {"prompt", "targets", "reach", "explanation", "screenshot", "width", "height"}
+)
 PLACE_REACH = (50, 200)
 
 # What a question with no round may be: the types most rounds take. No NPC, intro, quote or
 # fixed prompt, which only a round gives.
 UNPLACED_TYPES = TRIVIA_TYPES
-
-# The types a suggester sends their own picture for, stored apart from the content.
-PICTURE_TYPES = frozenset({"picture_pin"})
 
 _QUESTION_KEYS = {"type", "payload"}
 _QUESTION_OPTIONAL = frozenset(
@@ -155,13 +156,12 @@ def _question_errors(content: dict[str, Any], sourced: bool) -> list[str]:
     found = _keys(content, _QUESTION_KEYS, _QUESTION_OPTIONAL)
     if found:
         return found
-    own_picture = content["type"] in PICTURE_TYPES
-    if sourced and not own_picture and not {"wiki", "source_url"} & content.keys():
-        return ["$.wiki: a wiki page, or $.source_url: another https link, to check it against"]
     mode = content.get("mode")
     if "mode" in content and not isinstance(mode, str):
         return ["$.mode: a round's name, or no mode at all for the operator to pick one"]
     held = rules(mode)
+    if sourced and not held.picture and not {"wiki", "source_url"} & content.keys():
+        return ["$.wiki: a wiki page, or $.source_url: another https link, to check it against"]
     if sourced and held.wiki_only and "wiki" not in content:
         return [f"$.wiki: required, since {mode!r} is checked against the wiki"]
     types = UNPLACED_TYPES if mode is None else QUESTION_MODES.get(mode)
@@ -556,7 +556,7 @@ Picture = tuple[bytes, int, int]
 
 def wants_picture(kind: str, content: dict[str, Any]) -> bool:
     """Whether a checked suggestion is drawn on a picture of the suggester's own."""
-    return kind == "question" and content["type"] in PICTURE_TYPES
+    return kind == "question" and rules(content.get("mode")).picture
 
 
 def picture_check(kind: str, content: dict[str, Any], sent: bool) -> None:
@@ -564,10 +564,10 @@ def picture_check(kind: str, content: dict[str, Any], sent: bool) -> None:
     with one that needs it."""
     wanted = wants_picture(kind, content)
     if wanted and not sent:
-        raise BadSuggestion(f"$.picture: required for a {content['type']} question")
+        raise BadSuggestion(f"$.picture: required for a {content['mode']} question")
     if sent and not wanted:
-        types = ", ".join(sorted(PICTURE_TYPES))
-        raise BadSuggestion(f"$.picture: only a {types} question takes a picture")
+        modes = ", ".join(sorted(PICTURE_MODES))
+        raise BadSuggestion(f"$.picture: only a {modes} question takes a picture")
 
 
 async def with_picture(
@@ -582,6 +582,9 @@ async def with_picture(
     if picture is None:
         return content, None
     stored = await suggestion_pictures.prepare(picture)
+    shape = map_pin.photo_problem(stored[1], stored[2]) if content["type"] == "map_pin" else None
+    if shape is not None:
+        raise suggestion_pictures.BadPicture(f"the picture is {shape.removeprefix('screenshot: ')}")
     name = suggestion_pictures.fresh_name()
     payload = suggestion_pictures.placed(content["payload"], name, stored[1], stored[2])
     return {**content, "payload": payload}, (name, stored)
@@ -671,7 +674,7 @@ async def edit(
         content = {**content, "payload": payload}
     content = check(kind, content, shown)
     if wants_picture(kind, content) != (stored is not None):
-        raise BadSuggestion("$.type: a picture pin keeps its picture, and only it has one")
+        raise BadSuggestion("$.mode: a question on a picture keeps it, and only it has one")
     if current["status"] == "approved" and not _placed(kind, content):
         raise NoRound("an approved question keeps a round")
     row = await pool.fetchrow(

@@ -21,6 +21,7 @@ import type {
 } from '../../lib/suggestions'
 import ItemForm from './ItemForm.svelte'
 import NamedForm from './NamedForm.svelte'
+import PhotoForm from './PhotoForm.svelte'
 import PictureForm from './PictureForm.svelte'
 import PlaceForm from './PlaceForm.svelte'
 
@@ -52,6 +53,8 @@ export interface SuggestionFormProps {
   /** Wraps the question's own fields in the first step's card. */
   stepQuestion: Snippet<[Snippet]>
   stepDifficulty: Snippet
+  /** Wraps the optional fields in the extras card, for a form whose round takes some. */
+  stepExtras?: Snippet<[Snippet]>
   /** The frame's steps under the question's, given whether Save was pressed. */
   fields: Snippet<[boolean]>
   nearSave: Snippet
@@ -78,5 +81,6 @@ export const SUGGESTION_FORMS: Record<
   riddle: { form: NamedForm, type: 'pick_from_list' },
   place: { form: PlaceForm, type: 'map_pin', stacks: true },
   picture: { form: PictureForm, type: 'picture_pin' },
+  photo: { form: PhotoForm, type: 'map_pin', stacks: true },
   item: { form: ItemForm },
 }
