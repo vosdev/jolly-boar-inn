@@ -3,6 +3,6 @@ import type { UpcomingMode } from '../modes'
 export const upcoming: UpcomingMode = {
   id: 'scrying_pool',
   label: 'Scrying Pool',
-  hint: 'Where did that teleport drop you?',
+  hint: 'Which teleport lands you here?',
   host: 'archmage_sedridor',
 }

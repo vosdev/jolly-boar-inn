@@ -361,7 +361,7 @@ describe('Create', () => {
 
   it('names the modes still coming by face and name, with nothing to pick', async () => {
     await loaded()
-    for (const name of ['Scrying Pool', 'Name that spell', 'Minimap Guesser']) {
+    for (const name of ['Scrying Pool', "What's That Noise?", 'Minimap Guesser']) {
       const soon = screen.getByText(name).closest('li')!
       expect(soon.classList.contains('upcoming')).toBe(true)
       expect(soon.querySelector('img')).toBeTruthy()
@@ -492,9 +492,9 @@ describe('Create', () => {
     for (const id of ['scrying_pool', 'minimap_guesser']) {
       expect((screen.getByRole('checkbox', { name: id }) as HTMLInputElement).checked).toBe(false)
     }
-    expect(screen.getByText('Name that spell').closest('li')?.classList.contains('upcoming')).toBe(
-      true,
-    )
+    expect(
+      screen.getByText("What's That Noise?").closest('li')?.classList.contains('upcoming'),
+    ).toBe(true)
   })
 
   it('sends the rounds picked and how often events come, and no order', async () => {

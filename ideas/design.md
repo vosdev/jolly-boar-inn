@@ -728,5 +728,10 @@ dependencies, on the [project board](https://github.com/users/vosdev/projects/3)
 | `who_said_that` | Cracked Jenny's Tea Cup, the parrot in Brimhaven
 | `odd_one_out` | Dunce
 | `minigame_madness` | Lanthus, who runs Castle Wars
-| `name_that_spell` | Aubury
+| `whats_that_noise` | The Town Crier
 | `minimap_guesser` | Captain Errdo |
+| `scrying_pool` | Archmage Sedridor
+| `lost_in_gielinor` | Hans
+| `diary_dash` | Twiggy O'Korn, who sells the Achievement Diary cape
+| `entrana_customs` | The Monk of Entrana, who searches every bag for weapons
+| `hide_and_seek` | The Cold War penguin spy
