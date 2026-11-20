@@ -936,10 +936,13 @@
     }
   ],
   "planned": [
-    "name_that_spell",
+    "whats_that_noise",
     "minimap_guesser",
     "scrying_pool",
-    "lost_in_gielinor"
+    "lost_in_gielinor",
+    "diary_dash",
+    "entrana_customs",
+    "hide_and_seek"
   ],
   "answer": {
     "more_less": {

@@ -218,10 +218,13 @@ UPCOMING: dict[str, Suggest] = {
 # Rounds still being planned, which take no suggestions yet: the create form shows each as a
 # card to come, after ``UPCOMING``'s, in this order. Their copy is the client's.
 PLANNED: tuple[str, ...] = (
-    "name_that_spell",
+    "whats_that_noise",
     "minimap_guesser",
     "scrying_pool",
     "lost_in_gielinor",
+    "diary_dash",
+    "entrana_customs",
+    "hide_and_seek",
 )
 
 # Every mode a player may write a question for, built or not.
