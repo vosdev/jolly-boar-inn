@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/svelte'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/svelte'
 import { writable } from 'svelte/store'
 import { afterEach, describe, expect, it } from 'vitest'
 
@@ -59,6 +59,50 @@ describe('the recon photo', () => {
   it('takes taps in its dialog, though the map’s sheet it is written in lets them through', () => {
     const rule = photoSource.match(/\n {2}\.whole \{([^}]*)\}/)?.[1] ?? ''
     expect(rule).toContain('pointer-events: auto;')
+  })
+
+  it('stays on the sheet with nothing to hide where there is no map stage', () => {
+    const { container } = draw({ prompt: 'Where?', pins: 1, width: 800, height: 450 })
+    expect(container.querySelector('.recon.card')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Hide' })).toBeNull()
+  })
+
+  describe('on a map stage', () => {
+    function onMap() {
+      const stage = document.body.appendChild(document.createElement('div'))
+      stage.className = 'stage map'
+      const sheet = stage.appendChild(document.createElement('div'))
+      sheet.className = 'stage-row'
+      render(PhotoStem, {
+        target: sheet,
+        props: {
+          data: { prompt: 'Where?', pins: 1, width: 800, height: 450 },
+          revealed: false,
+          timing,
+        },
+      })
+      return { stage, sheet }
+    }
+
+    afterEach(() => document.querySelector('.stage.map')?.remove())
+
+    it('stands on the map as a card of its own, off the sheet', () => {
+      const { stage, sheet } = onMap()
+      const card = stage.querySelector(':scope > .recon.card')
+      expect(card).toBeTruthy()
+      expect(sheet.querySelector('.recon')).toBeNull()
+      expect(within(sheet).getByText('Where?')).toBeTruthy()
+    })
+
+    it('hides, and Show photo on the sheet brings it back', async () => {
+      const { stage, sheet } = onMap()
+      const card = stage.querySelector(':scope > .recon')!
+      await fireEvent.click(screen.getByRole('button', { name: 'Hide' }))
+      expect(card.classList.contains('away')).toBe(true)
+      await fireEvent.click(within(sheet).getByRole('button', { name: 'Show photo' }))
+      expect(card.classList.contains('away')).toBe(false)
+      expect(within(sheet).queryByRole('button', { name: 'Show photo' })).toBeNull()
+    })
   })
 
   it('says so when this server lacks the photo', () => {

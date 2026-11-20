@@ -71,11 +71,11 @@
   /** What the sheet and the host's bubble cover, kept clear of the pins a reveal frames. */
   const INSET = { top: 110, right: 24, bottom: 70, left: 24 }
   /**
-   * The same with a photo on the sheet, which makes it tall: beside it where the sheet stands
-   * at the map's left, under it where the sheet spans the map (`StageView`'s stacked layout).
+   * The same with a photo's card on the map (`PhotoStem`), which stands beside the sheet on a
+   * wide map and under it where the sheet spans the map (`StageView`'s stacked layout).
    */
-  const PHOTO_BESIDE = { top: 24, right: 24, bottom: 70, left: 460 }
-  const PHOTO_ABOVE = { top: 330, right: 24, bottom: 70, left: 24 }
+  const PHOTO_BESIDE = { top: 300, right: 24, bottom: 70, left: 24 }
+  const PHOTO_ABOVE = { top: 360, right: 24, bottom: 70, left: 24 }
   const STACKED_BELOW = 1024
 
   let {

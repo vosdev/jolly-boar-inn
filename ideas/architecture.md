@@ -168,7 +168,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 | `uris_unravelling` | Uri's Unravelling | Bestiary's seven types, `extra_answer` 5 | hand-written | done: a clue is `multiple_choice`, its text the `quote`, never `free_text`; no map or coordinate clues |
 | `slayer_master` | Slayer Master | Bestiary's seven types | hand-written | done: how to fight a monster; what it is stays in Bestiary |
 | `mark_the_map` | Mark the Map | `map_pin`, one pin on the whole surface | hand-written, drafted once by `gen_locations.py` | done, hosted by Bill Teach; a place inside a town opens on both (`view`) with `reach` 50 |
-| `kgp_recon` | KGP Recon | `map_pin` on a suggester's own photo of the place, one pin, `extra_answer` 10 | player suggestions; the first import writes the pack | done, hosted by a KGP Agent; the `photo` stem puts the photo, under a camera overlay, on the sheet |
+| `kgp_recon` | KGP Recon | `map_pin` on a suggester's own photo of the place, one pin, `extra_answer` 10 | player suggestions; the first import writes the pack | done, hosted by a KGP Agent; the `photo` stem sets the photo, under a camera overlay, on a card of its own beside the sheet |
 | `prop_hunt` | Prop Hunt | `picture_pin` on the suggester's own screenshot | player suggestions | upcoming: takes suggestions (#438) |
 | `whats_that_noise`, `minimap_guesser`, `scrying_pool`, `lost_in_gielinor`, `diary_dash`, `entrana_customs` | planned | see each issue | | #260, #229, #330, #328, #927, #930 |
 
