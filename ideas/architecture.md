@@ -507,6 +507,8 @@ finished ─rematch─▶ lobby
   browser saves one too, though standings never list the TV. Home
   lists them under Past party games, five to a page, where each can be removed. `/r/:code` for a gone room (4004, 404, 410) opens the newest entry
   for that code, if any.
+- The final standings, live or saved, copy a share text built in the browser (`lib/shareStandings.ts`):
+  the top three or everyone, a team game's gods with or without players, and `location.origin`, never the code.
 
 - A room is born with its host; there is no state before `lobby`. Only `lobby` is joinable. `/create`
   is a lobby with its doors shut, held in the host's browser (`jbi:draft`) because a room's code is
