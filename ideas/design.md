@@ -241,11 +241,14 @@ who sends none is given one by the server, so every client draws the same pet fo
 Every round is presented by an NPC, the **host**, who stands above the theme's **sheet**
 (`lib/sheet.ts`) and speaks in the game's dialogue box. In `jolly` and `pollnivneach` it is a **clue scroll** drawn after the game's
 quest reward scroll: upright rolls with knobs, a sheet torn top and bottom. `wilderness` nails up a
-sooty bounty poster under the game's skull, `party_room` hangs a cream card in a checked border
-under bunting, `tzhaar` carves an obsidian slab glowing at its edge, since paper would burn,
+sooty bounty poster, the game's skull faint behind its words, `party_room` hangs a cream card in a
+checked border with bunting along its top, `tzhaar` carves an obsidian slab glowing at its edge, since paper would burn,
 `jungle` lashes bark cloth into a bamboo frame, both Gauntlets show its dark board in a glowing
-crystal or red rim, `morytania` raises a gravestone, which a long sheet makes a pillar, and `zanaris` the Cosmic
-altar's sign.
+crystal or red rim, `morytania` raises a low-arched gravestone, which a long sheet makes a pillar, and `zanaris` a teal
+stone with the Cosmic altar sign's crystal at its corners and mushrooms at its foot.
+Every sheet sets its words in by the scroll's rolls and margins, 34px top, 40px a side and 32px
+bottom at scale 1, and draws only inside its box but for the pin, so the same words make the
+same sheet in every theme.
 The sheet carries the round on the splash and then every question, and nothing else; the
 answers sit under it. Every sheet centres its text, in every theme; only the dialogue box's line
 reads from the left.

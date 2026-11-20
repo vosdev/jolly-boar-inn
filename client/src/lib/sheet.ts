@@ -4,7 +4,7 @@
  * The inn and the desert keep the quest reward scroll; the Wilderness nails up a bounty
  * poster, the Party Room hangs a card under bunting, and the TzHaar carve an obsidian slab,
  * since paper would burn. The jungle stretches bark cloth in a bamboo frame, the Gauntlet
- * keeps its board, Morytania a gravestone and Zanaris the Cosmic altar's sign.
+ * keeps its board, Morytania a gravestone and Zanaris a crystal-studded stone.
  */
 
 /**
@@ -27,11 +27,6 @@ export const ART = {
   lashingLight: '#6f8f3a',
   moss: '#6f9248',
   mossDark: '#3f5a2a',
-  earth: '#1f3324',
-  signEdge: '#3f8394',
-  signLight: '#7cbfd0',
-  sign: '#6bacbd',
-  signDark: '#5f9aaa',
   signShard: '#a6e2f0',
   signShardDark: '#7ccce0',
 }

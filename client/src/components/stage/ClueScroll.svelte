@@ -4,11 +4,15 @@
    *
    * The clue scroll is a sheet torn top and bottom between two upright rolls, after the
    * game's quest reward scroll. The others have no rolls, so the stage makes no room for
-   * them: the Wilderness's bounty poster, nailed up under the game's skull; the Party Room's
-   * card under a string of bunting, in a checked tablecloth border; the TzHaar's obsidian
-   * slab, chipped and glowing at the edge; the jungle's bark cloth in a frame of bamboo
-   * lashed at the corners; the Gauntlet's board, dark inside a glowing crystal rim;
-   * and Morytania's gravestone, moss at its foot.
+   * them: the Wilderness's bounty poster, the game's skull faint behind its words; the Party
+   * Room's card in a checked tablecloth border, bunting strung along its top; the TzHaar's
+   * obsidian slab, chipped and glowing at the edge; the jungle's bark cloth in a frame of
+   * bamboo lashed at the corners; the Gauntlet's board, dark inside a glowing crystal rim;
+   * Morytania's gravestone, moss at its foot; and Zanaris's teal stone, crystal in its
+   * corners and mushrooms at its foot.
+   *
+   * Every sheet sets its words in by the scroll's margins, `--frame-*`, and draws its
+   * decorations inside them, so the same words make the same size of sheet in every theme.
    *
    * It is inline SVG and CSS on layer 8's tokens rather than an image, because an `<img>`
    * cannot read the theme's custom properties (section 13). The knobs are fixed-size
@@ -106,6 +110,20 @@
   </svg>
 {/snippet}
 
+{#snippet facets()}
+  <svg class="facets" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true">
+    <path class="fl" d="M0 0L18 0L26 22L8 60L0 60Z" />
+    <path class="fd" d="M18 0L40 0L34 30L26 22Z" />
+    <path class="fl" d="M40 0L63 0L55 26L34 30Z" />
+    <path class="fd" d="M26 22L34 30L30 60L8 60Z" />
+    <path class="fl" d="M34 30L55 26L60 60L30 60Z" />
+    <path class="fd" d="M63 0L84 0L78 34L55 26Z" />
+    <path class="fd" d="M55 26L78 34L86 60L60 60Z" />
+    <path class="fl" d="M84 0L100 0L100 44L78 34Z" />
+    <path class="fd" d="M78 34L100 44L100 60L86 60Z" />
+  </svg>
+{/snippet}
+
 {#snippet finial(end: 'top' | 'bottom')}
   <svg class="finial {end}" viewBox="0 0 40 34">
     <rect class="p" x="1.5" y="25" width="37" height="9" />
@@ -133,53 +151,11 @@
 <div class="scroll" class:fill class:edge data-sheet={sheet}>
   {#if sheet === 'scroll'}{@render roll('left')}{/if}
   <div class="reveal">
-    {#if sheet === 'gravestone'}
-      <svg class="mound" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true">
-        <ellipse cx="50" cy="5" rx="50" ry="5" fill={ART.earth} />
-      </svg>
-    {/if}
     <div class="paper">
       {#if sheet === 'scroll' || sheet === 'slab' || sheet === 'gravestone'}
-        <svg class="facets" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true">
-          <path class="fl" d="M0 0L18 0L26 22L8 60L0 60Z" />
-          <path class="fd" d="M18 0L40 0L34 30L26 22Z" />
-          <path class="fl" d="M40 0L63 0L55 26L34 30Z" />
-          <path class="fd" d="M26 22L34 30L30 60L8 60Z" />
-          <path class="fl" d="M34 30L55 26L60 60L30 60Z" />
-          <path class="fd" d="M63 0L84 0L78 34L55 26Z" />
-          <path class="fd" d="M55 26L78 34L86 60L60 60Z" />
-          <path class="fl" d="M84 0L100 0L100 44L78 34Z" />
-          <path class="fd" d="M78 34L100 44L100 60L86 60Z" />
-        </svg>
+        {@render facets()}
       {:else if sheet === 'poster'}
         <img class="skull" src={skullUrl} alt="" width="50" height="50" draggable="false" />
-      {:else if sheet === 'sign'}
-        <svg class="altar" viewBox="0 0 500 300" preserveAspectRatio="none" aria-hidden="true">
-          <defs>
-            <linearGradient id="altar-stone" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color={ART.signLight} />
-              <stop offset="0.55" stop-color={ART.sign} />
-              <stop offset="1" stop-color={ART.signDark} />
-            </linearGradient>
-          </defs>
-          <path
-            fill={ART.signEdge}
-            d="M22 38L64 12L150 22L252 8L360 18L452 10L490 44L480 118L494 190L482 262L432 292L300 282L200 294L92 286L30 272L8 204L20 132L6 80Z"
-          />
-          <path
-            fill="url(#altar-stone)"
-            d="M28 42L66 18L150 28L252 14L360 24L450 16L484 46L474 118L488 190L476 258L430 286L300 276L200 288L94 280L34 266L14 202L26 132L12 82Z"
-          />
-          <path
-            fill={ART.signShard}
-            d="M30 46L64 22L110 26L74 34L46 62L40 104L28 92ZM480 48L448 20L392 24L430 32L456 60L462 102L476 90ZM18 200L32 262L92 276L60 262L40 236L36 196ZM484 192L472 254L428 282L452 256L462 228L466 188ZM14 120L26 132L22 160L12 150ZM486 140L476 118L480 104L490 128Z"
-          />
-          <path
-            fill={ART.signShardDark}
-            d="M46 62L74 34L120 30L86 46L58 74ZM456 60L430 32L384 30L414 46L444 74ZM40 236L60 262L110 272L74 254L52 226ZM462 228L452 256L398 272L432 252L450 222Z"
-          />
-        </svg>
-        <img class="mushrooms" src={mushroomsUrl} alt="" draggable="false" />
       {:else if sheet === 'gauntlet'}
         <!-- The rim along each cut corner, which the inset rings cannot follow. -->
         {#each ['top-left', 'top-right', 'bottom-left', 'bottom-right'] as corner (corner)}
@@ -187,6 +163,28 @@
             <path class="rim-outer" d="M0 13L13 0" />
             <path class="rim-inner" d="M0 20L20 0" />
           </svg>
+        {/each}
+      {/if}
+      {#if sheet === 'sign'}
+        <!-- The stone's ragged edge, and inside it the stone itself, which clips its crystal. -->
+        <div class="stone" aria-hidden="true">
+          <div class="face">
+            {@render facets()}
+            {#each ['top-left', 'top-right', 'bottom-left', 'bottom-right'] as corner (corner)}
+              <svg class="shard {corner}" viewBox="0 0 60 40">
+                <path fill={ART.signShard} d="M2 6L20 1L42 3L24 8L10 19L7 34L1 27Z" />
+                <path fill={ART.signShardDark} d="M10 19L24 8L46 6L28 13L14 25Z" />
+              </svg>
+            {/each}
+            {#each ['left', 'right'] as side (side)}
+              <svg class="shard side {side}" viewBox="0 0 14 30">
+                <path fill={ART.signShard} d="M1 0L12 9L9 23L1 30Z" />
+              </svg>
+            {/each}
+          </div>
+        </div>
+        {#each ['left', 'right'] as side (side)}
+          <img class="mushrooms {side}" src={mushroomsUrl} alt="" draggable="false" />
         {/each}
       {/if}
       {#if sheet === 'gravestone'}
@@ -284,6 +282,12 @@
     --roll-w: calc(26px * var(--k));
     --finial: calc(22px * var(--k));
     --tuck: calc(5px * var(--k));
+    /* How far every sheet sets its words in: the scroll's rolls and margins. */
+    --frame-top: calc(16.5px * var(--k) + 1.1rem * var(--k));
+    --frame-side: calc(26px * var(--k) + 0.9rem * var(--k));
+    --frame-bottom: calc(16.5px * var(--k) + 1rem * var(--k));
+    /* The border a sheet draws round its paper, which its paper's padding gives back. */
+    --rim: 0px;
     position: relative;
     padding: calc(var(--finial) * 0.75) calc(var(--roll-w) - var(--tuck));
     filter: drop-shadow(0 3px 0 rgb(0 0 0 / 0.22));
@@ -338,6 +342,7 @@
   .reveal {
     position: relative;
     box-sizing: border-box;
+    padding: var(--rim);
   }
 
   .paper {
@@ -363,7 +368,8 @@
 
   /* Each sheet's own rules sit in :where(), so an `edge` sheet's phone padding still wins. */
   :where(.scroll:not([data-sheet='scroll'])) .paper {
-    padding-inline: calc(1.3rem * var(--k));
+    padding: calc(var(--frame-top) - var(--rim)) calc(var(--frame-side) - var(--rim))
+      calc(var(--frame-bottom) - var(--rim));
   }
 
   :where(.scroll[data-sheet='scroll']) .paper {
@@ -403,9 +409,8 @@
   }
 
   /* The bounty poster: sooty paper inside a faded rule, a corner torn off, the game's skull
-     at its head and a nail through each top corner. */
+     faint behind the words and a nail through each top corner. */
   :where(.scroll[data-sheet='poster']) .paper {
-    padding-top: calc(1.6rem * var(--k) + 50px * var(--k));
     background:
       radial-gradient(ellipse 30% 20% at 80% 30%, rgb(0 0 0 / 0.18), transparent),
       radial-gradient(ellipse 35% 25% at 20% 85%, rgb(0 0 0 / 0.2), transparent),
@@ -417,19 +422,25 @@
     clip-path: polygon(0 0, calc(100% - 26px) 0, 100% 20px, 100% 100%, 0 100%);
   }
 
+  /* Darker than the paper, never lighter, so the ink keeps its contrast across it. */
   .skull {
     position: absolute;
     left: 50%;
-    top: calc(0.9rem * var(--k));
-    width: calc(50px * var(--k));
+    top: 50%;
+    width: calc(104px * var(--k));
     height: auto;
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%);
+    filter: brightness(0);
+    opacity: 0.25;
   }
 
-  /* The Party Room's card, in a border of the tablecloth's checks under a string of
-     bunting. */
+  /* The Party Room's card, in a border of the tablecloth's checks, bunting strung along its
+     top. */
+  .scroll[data-sheet='bunting'] {
+    --rim: calc(10px * var(--k));
+  }
+
   :where(.scroll[data-sheet='bunting']) .reveal {
-    padding: calc(10px * var(--k));
     border-radius: 4px;
     background: repeating-conic-gradient(
         var(--accent) 0 25%,
@@ -439,17 +450,17 @@
   }
 
   :where(.scroll[data-sheet='bunting']) .paper {
-    padding-top: calc(1.1rem * var(--k) + 26px * var(--k));
     border-radius: 2px;
   }
 
-  /* Fixed-size flags on swags whose count follows the width, knotted at every end. */
+  /* Fixed-size flags on swags whose count follows the width, knotted at every end on the
+     checks, the flags hanging into the paper's margin above the words. */
   .bunting {
     position: absolute;
     z-index: 1;
     left: calc(5px * var(--k));
     right: calc(5px * var(--k));
-    top: calc(4px * var(--k));
+    top: calc(2px * var(--k));
     height: calc(30px * var(--k));
   }
 
@@ -509,9 +520,9 @@
   }
 
   /* The jungle's bark cloth, woven fine, inside four lengths of bamboo lashed at the
-     corners. The poles overrun the frame a little, as cut cane does. */
-  :where(.scroll[data-sheet='bamboo']) .reveal {
-    padding: calc(11px * var(--k));
+     corners. */
+  .scroll[data-sheet='bamboo'] {
+    --rim: calc(11px * var(--k));
   }
 
   :where(.scroll[data-sheet='bamboo']) .paper {
@@ -528,13 +539,12 @@
     position: absolute;
     z-index: 1;
     --pole: calc(11px * var(--k));
-    --overrun: calc(6px * var(--k));
   }
 
   .pole.top,
   .pole.bottom {
-    left: calc(-1 * var(--overrun));
-    width: calc(100% + 2 * var(--overrun));
+    left: 0;
+    width: 100%;
     height: var(--pole);
   }
 
@@ -549,8 +559,8 @@
   /* An upright pole is the same length of bamboo turned on its side. */
   .pole.left,
   .pole.right {
-    top: calc(-1 * var(--overrun));
-    height: calc(100% + 2 * var(--overrun));
+    top: 0;
+    height: 100%;
     width: var(--pole);
   }
 
@@ -618,7 +628,6 @@
       0 calc(100% - 12px),
       0 12px
     );
-    padding-inline: calc(1.9rem * var(--k));
   }
 
   .cut {
@@ -661,41 +670,117 @@
     stroke-width: 1.5;
   }
 
-  /* Zanaris's sign at the Cosmic altar: teal stone with pale crystal shards at its corners,
-     stretched to any sheet, and a clump of the city's mushrooms at its foot. */
+  /* Zanaris's stone: teal and faceted, ragged at its edge like the Cosmic altar's sign but
+     only ever inside the sheet's margins, pale crystal at its corners and halfway down each
+     side, and a clump of the city's mushrooms in each corner of its foot. The edge's notches
+     keep their depth in px and spread along it in %, so any width of stone keeps its frame. */
   :where(.scroll[data-sheet='sign']) .paper {
-    padding: calc(1.8rem * var(--k)) calc(3rem * var(--k)) calc(1.8rem * var(--k));
+    --stone: polygon(
+      calc(8px * var(--k)) calc(14px * var(--k)),
+      13% calc(2px * var(--k)),
+      30% calc(7px * var(--k)),
+      50% 0,
+      72% calc(5px * var(--k)),
+      90% calc(1px * var(--k)),
+      calc(100% - 4px * var(--k)) calc(16px * var(--k)),
+      calc(100% - 7px * var(--k)) 40%,
+      100% 63%,
+      calc(100% - 6px * var(--k)) 87%,
+      calc(100% - 26px * var(--k)) 100%,
+      60% calc(100% - 6px * var(--k)),
+      40% 100%,
+      18% calc(100% - 4px * var(--k)),
+      calc(10px * var(--k)) calc(100% - 12px * var(--k)),
+      0 68%,
+      calc(7px * var(--k)) 44%,
+      0 26%
+    );
     background: none;
-    box-shadow: none;
   }
 
-  /* The stone's body spans x 12 to 488 of its 500, so it overhangs the sheet by that margin
-     and its edge lines up with the panels beside it. */
-  .altar {
+  .stone {
     position: absolute;
-    top: 0;
-    left: -2.52%;
-    width: 105.04%;
-    height: 100%;
+    inset: 0;
+    clip-path: var(--stone);
+    background: var(--scroll-edge);
+  }
+
+  .face {
+    position: absolute;
+    inset: calc(2px * var(--k));
+    clip-path: var(--stone);
+    background:
+      radial-gradient(
+        ellipse 70% 60% at 50% 35%,
+        color-mix(in srgb, var(--scroll-paper), white 14%),
+        transparent
+      ),
+      var(--scroll-paper);
+  }
+
+  .shard {
+    position: absolute;
+    width: calc(60px * var(--k));
+    height: calc(40px * var(--k));
+  }
+
+  .shard.top-left {
+    left: calc(6px * var(--k));
+    top: calc(6px * var(--k));
+  }
+
+  .shard.top-right {
+    right: calc(6px * var(--k));
+    top: calc(6px * var(--k));
+    transform: scaleX(-1);
+  }
+
+  .shard.bottom-left {
+    left: calc(6px * var(--k));
+    bottom: calc(6px * var(--k));
+    transform: scaleY(-1);
+  }
+
+  .shard.bottom-right {
+    right: calc(6px * var(--k));
+    bottom: calc(6px * var(--k));
+    transform: scale(-1);
+  }
+
+  .shard.side {
+    top: calc(50% - 15px * var(--k));
+    width: calc(14px * var(--k));
+    height: calc(30px * var(--k));
+  }
+
+  .shard.side.left {
+    left: calc(6px * var(--k));
+  }
+
+  .shard.side.right {
+    right: calc(6px * var(--k));
+    transform: scaleX(-1);
   }
 
   .mushrooms {
     position: absolute;
-    right: calc(-10px * var(--k));
-    bottom: calc(-16px * var(--k));
-    width: calc(64px * var(--k));
+    bottom: calc(4px * var(--k));
+    right: calc(4px * var(--k));
+    width: calc(51px * var(--k));
   }
 
-  /* Morytania's gravestone: an arched slab of grey stone with an engraved rule inside its
-     edge, a crack down one side, moss at its foot and the grave's earth under it. A long
-     sheet, the hiscores, stands up as a pillar. */
-  :where(.scroll[data-sheet='gravestone']) .reveal {
-    margin-bottom: calc(6px * var(--k));
+  .mushrooms.left {
+    right: auto;
+    left: calc(4px * var(--k));
+    width: calc(39px * var(--k));
+    transform: scaleX(-1);
   }
 
+  /* Morytania's gravestone: a slab of grey stone under a low arch, an engraved rule inside
+     its edge, a crack down one side and moss at its foot. A long sheet, the hiscores, stands
+     up as a pillar. */
   :where(.scroll[data-sheet='gravestone']) .paper {
-    padding-top: calc(2.6rem * var(--k));
-    border-radius: 50% 50% 4px 4px / calc(56px * var(--k)) calc(56px * var(--k)) 4px 4px;
+    border-radius: 50% 50% 4px 4px / calc(26px * var(--k)) calc(26px * var(--k)) 4px 4px;
     background:
       radial-gradient(ellipse 25% 20% at 75% 30%, rgb(0 0 0 / 0.06), transparent),
       radial-gradient(ellipse 30% 25% at 25% 55%, rgb(255 255 255 / 0.1), transparent),
@@ -707,9 +792,10 @@
     overflow: hidden;
   }
 
+  /* The crack runs down the margin, clear of the words. */
   .crack {
     position: absolute;
-    right: calc(24px * var(--k));
+    right: calc(4px * var(--k));
     top: calc(20px * var(--k));
     width: calc(60px * var(--k));
     height: calc(70px * var(--k));
@@ -731,14 +817,6 @@
 
   .moss.right {
     right: calc(4px * var(--k));
-  }
-
-  .mound {
-    position: absolute;
-    left: calc(-16px * var(--k));
-    bottom: calc(-10px * var(--k));
-    width: calc(100% + 32px * var(--k));
-    height: calc(14px * var(--k));
   }
 
   .fixing {

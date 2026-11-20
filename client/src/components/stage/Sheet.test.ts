@@ -34,7 +34,7 @@ describe('the sheet', () => {
     }
   })
 
-  it("is a bounty poster under the game's skull in the Wilderness, with no rolls", () => {
+  it("is a bounty poster in the Wilderness, the game's skull behind its words, with no rolls", () => {
     const { container, sheet } = stage('wilderness')
     expect(sheet.dataset.sheet).toBe('poster')
     expect(sheet.querySelector('.roll')).toBeNull()
@@ -81,20 +81,22 @@ describe('the sheet', () => {
     expect(sheet.querySelectorAll('.paper svg.cut')).toHaveLength(4)
   })
 
-  it('is a gravestone in Morytania, moss at its foot and earth under it', () => {
+  it('is a gravestone in Morytania, moss at its foot and nothing under it', () => {
     const { sheet } = stage('morytania')
     expect(sheet.dataset.sheet).toBe('gravestone')
     expect(sheet.querySelector('.paper svg.moss')).not.toBeNull()
     expect(sheet.querySelector('.paper svg.crack')).not.toBeNull()
-    expect(sheet.querySelector('svg.mound')).not.toBeNull()
+    expect(sheet.querySelector('svg.mound')).toBeNull()
     expect(sheet.querySelector('.roll')).toBeNull()
   })
 
-  it("is the Cosmic altar's sign in Zanaris, mushrooms at its foot", () => {
+  it('is ragged teal stone in Zanaris, crystal at its corners and sides, mushrooms at its foot', () => {
     const { sheet } = stage('zanaris')
     expect(sheet.dataset.sheet).toBe('sign')
-    expect(sheet.querySelector('.paper svg.altar')).not.toBeNull()
-    expect(sheet.querySelector('.paper img.mushrooms')).not.toBeNull()
+    expect(sheet.querySelector('.paper svg.altar')).toBeNull()
+    expect(sheet.querySelector('.paper .stone .face .facets')).not.toBeNull()
+    expect(sheet.querySelectorAll('.paper .stone .face svg.shard')).toHaveLength(6)
+    expect(sheet.querySelectorAll('.paper img.mushrooms')).toHaveLength(2)
     expect(sheet.querySelector('.roll')).toBeNull()
   })
 
