@@ -24,6 +24,11 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
+/** The control a modal focuses on opening, which the browser scrolls into view. */
+function firstControl(dialog: HTMLElement): Element | null {
+  return dialog.querySelector('a[href], button, input, select, textarea, [tabindex]')
+}
+
 describe('Footer', () => {
   it('says what is counted and that no cookies are used', () => {
     render(Footer)
@@ -82,6 +87,21 @@ describe('Footer', () => {
     await fireEvent.click(screen.getByRole('button', { name: '1,578 questions and counting' }))
     expect(screen.getByRole('dialog', { name: '1,578 questions' })).toBeTruthy()
     await fireEvent.click(screen.getByRole('button', { name: 'Got it' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it.each([
+    ['questions and counting', '1,578 questions'],
+    ['Credits', 'Credits'],
+    [`What's new in v${VERSION_LABEL}`, "What's new"],
+  ])('opens the %s sheet on a close X at its top', async (button, title) => {
+    questionCounts.counts = { modes: { bestiary: 1578 }, random_events: {} }
+    render(Footer)
+    await tick()
+    await fireEvent.click(screen.getByRole('button', { name: new RegExp(button) }))
+    const dialog = await screen.findByRole('dialog', { name: title })
+    expect(firstControl(dialog)).toBe(screen.getByRole('button', { name: 'Close' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Close' }))
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 })

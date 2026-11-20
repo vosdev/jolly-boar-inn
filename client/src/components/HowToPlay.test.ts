@@ -105,4 +105,14 @@ describe('HowToPlay', () => {
     await fireEvent.click(screen.getByRole('button', { name: 'Got it' }))
     expect(onclose).toHaveBeenCalledOnce()
   })
+
+  it('opens on a close X at its top, which closes it', async () => {
+    const onclose = vi.fn()
+    render(HowToPlay, { onclose })
+    const dialog = screen.getByRole('dialog', { name: 'How to play' })
+    const close = screen.getByRole('button', { name: 'Close' })
+    expect(dialog.querySelector('a[href], button, input, select, textarea, [tabindex]')).toBe(close)
+    await fireEvent.click(close)
+    expect(onclose).toHaveBeenCalledOnce()
+  })
 })

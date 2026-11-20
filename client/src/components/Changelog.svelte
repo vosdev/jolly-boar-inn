@@ -7,6 +7,7 @@
   import { asOfDate } from '../lib/dates'
   import { RELEASES_URL, versionLabel } from '../lib/links'
   import Sheet from './Sheet.svelte'
+  import SheetHead from './SheetHead.svelte'
 
   let { onclose }: { onclose: () => void } = $props()
 
@@ -20,7 +21,7 @@
 {/snippet}
 
 <Sheet labelledby="{id}-title" {onclose}>
-  <h2 id="{id}-title">What's new</h2>
+  <SheetHead id="{id}-title" {onclose}>What's new</SheetHead>
   <ol class="groups">
     {#each groups as group (group.key)}
       <li>
@@ -48,11 +49,6 @@
 </Sheet>
 
 <style>
-  h2 {
-    margin: 0 0 0.75rem;
-    font-size: 1.25rem;
-  }
-
   ol {
     margin: 0;
     padding: 0;

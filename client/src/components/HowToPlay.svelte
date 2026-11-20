@@ -22,6 +22,7 @@
   import type { RoomSettings } from '../lib/protocol'
   import AnswerRows from './AnswerRows.svelte'
   import Sheet from './Sheet.svelte'
+  import SheetHead from './SheetHead.svelte'
 
   let {
     room = null,
@@ -50,7 +51,7 @@
 </script>
 
 <Sheet labelledby="{id}-title" {onclose}>
-  <h2 id="{id}-title">How to play</h2>
+  <SheetHead id="{id}-title" {onclose}>How to play</SheetHead>
   {#if modes === null}
     <p class="note">Loading…</p>
   {:else}
@@ -69,11 +70,6 @@
 </Sheet>
 
 <style>
-  h2 {
-    margin: 0 0 0.75rem;
-    font-size: 1.25rem;
-  }
-
   .note {
     margin: 0;
   }

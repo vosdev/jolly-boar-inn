@@ -6,6 +6,7 @@
   import type { QuestionCounts } from '../lib/api'
   import { formatCount, modeRows, npcRows, totalQuestions } from '../lib/questionCounts.svelte'
   import Sheet from './Sheet.svelte'
+  import SheetHead from './SheetHead.svelte'
 
   let { counts, onclose }: { counts: QuestionCounts; onclose: () => void } = $props()
 
@@ -18,7 +19,7 @@
 </script>
 
 <Sheet labelledby="{id}-title" {onclose}>
-  <h2 id="{id}-title">{formatCount(totalQuestions(counts))} questions</h2>
+  <SheetHead id="{id}-title" {onclose}>{formatCount(totalQuestions(counts))} questions</SheetHead>
   {#each tables as table (table.title)}
     {#if table.rows.length > 0}
       <h3>{table.title}</h3>
@@ -48,17 +49,12 @@
 </Sheet>
 
 <style>
-  h2 {
-    margin: 0 0 0.75rem;
-    font-size: 1.25rem;
-  }
-
   h3 {
     margin: 1rem 0 0.5rem;
     font-size: 1rem;
   }
 
-  h2 + h3 {
+  :global(.sheet-head) + h3 {
     margin-top: 0;
   }
 
