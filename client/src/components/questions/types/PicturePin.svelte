@@ -19,7 +19,7 @@
    */
   import { fromStore } from 'svelte/store'
 
-  import { avatarArt, petOf } from '../../../lib/pets'
+  import { avatarArt } from '../../../lib/pets'
   import {
     answerFor,
     cellBox,
@@ -34,6 +34,8 @@
   } from '../../../lib/picturePins'
   import type { WireBounds } from '../../../lib/pins'
   import { pictureUrl } from '../../../lib/pictures'
+  import { profile } from '../../../lib/profile'
+  import { petAt, yourId } from '../../../lib/resultRows'
   import { players, you } from '../../../lib/stores'
   import { sendBeforeEnd } from '../drag.svelte'
   import type { TypeViewProps } from '../props'
@@ -56,9 +58,12 @@
   const room = fromStore(players)
   const tv = $derived(me.current?.role === 'tv')
 
-  function art(id: string | undefined): string {
-    const player = room.current.find((one) => one.id === id)
-    return avatarArt(player === undefined ? '' : petOf(player)).url
+  const saved = fromStore(profile)
+  /** Your row's id: your seat, or the preview's on `/suggest`, where nobody sits. */
+  const myId = $derived(yourId(me.current))
+
+  function art(id: string): string {
+    return avatarArt(petAt(id, room.current, me.current, saved.current)).url
   }
 
   const nameOf = (id: string): string =>
@@ -131,7 +136,6 @@
   }
 
   const markers: Marker[] = $derived.by(() => {
-    const myId = me.current?.id ?? ''
     if (!revealed || results == null) {
       return mine === null ? [] : [marker(myId, mine, true)]
     }

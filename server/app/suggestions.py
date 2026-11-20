@@ -46,7 +46,7 @@ from app.questions import schema, text, vocab
 from app.questions.normalize import normalize
 from app.questions.packs import Pack, mode_questions
 from app.questions.submission import Submission
-from app.questions.types import TYPES, scoring_of
+from app.questions.types import TYPES, map_pin, scoring_of
 from app.questions.types.scoring import Scoring
 from app.rooms import scoring
 
@@ -582,6 +582,9 @@ async def with_picture(
     if picture is None:
         return content, None
     stored = await suggestion_pictures.prepare(picture)
+    shape = map_pin.photo_problem(stored[1], stored[2]) if content["type"] == "map_pin" else None
+    if shape is not None:
+        raise suggestion_pictures.BadPicture(f"the picture is {shape.removeprefix('screenshot: ')}")
     name = suggestion_pictures.fresh_name()
     payload = suggestion_pictures.placed(content["payload"], name, stored[1], stored[2])
     return {**content, "payload": payload}, (name, stored)

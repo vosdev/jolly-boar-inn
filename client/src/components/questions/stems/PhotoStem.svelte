@@ -20,7 +20,6 @@
    * it back, which frees the map on a phone. Anywhere else, the TV's stage among them, the
    * photo stays on the sheet. A tap on the photo opens it whole in a dialog over the room.
    */
-  import overlayUrl from '../../../assets/stage/kgp-recon.svg'
   import { pictureUrl } from '../../../lib/pictures'
   import Typed from '../../stage/Typed.svelte'
   import type { StemProps } from '../props'
@@ -65,7 +64,16 @@
     {:else}
       <span class="missing">This photo is missing on this server.</span>
     {/if}
-    <img class="overlay" src={overlayUrl} alt="" aria-hidden="true" />
+    <span class="camera" aria-hidden="true">
+      <span class="corner top left"></span>
+      <span class="corner top right"></span>
+      <span class="corner bottom left"></span>
+      <span class="corner bottom right"></span>
+      <span class="cross"></span>
+      <span class="label rec">REC</span>
+      <span class="label cam">KGP-CAM 03</span>
+      <span class="label watch">SURVEILLANCE</span>
+    </span>
   </span>
 {/snippet}
 
@@ -91,7 +99,7 @@
   </button>
   {#if onStage}
     <figcaption>
-      <span>Recon · Top secret</span>
+      <span>Operation Recon · Top secret</span>
       <button type="button" class="hide" onclick={() => (hidden = true)}>Hide</button>
     </figcaption>
   {/if}
@@ -217,11 +225,12 @@
   }
 
   /* As wide as the space, unless that makes it taller than `--most`: then narrower, so the
-     overlay's marks stay on the photo. */
+     camera's marks stay on the photo. A container, so they scale with it. */
   .frame {
     --most: 40dvh;
     position: relative;
     display: block;
+    container-type: inline-size;
     width: min(100%, calc(var(--most) * var(--ratio)));
     margin-inline: auto;
     overflow: hidden;
@@ -230,7 +239,7 @@
   }
 
   .shot,
-  .overlay {
+  .camera {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -241,8 +250,91 @@
     object-fit: contain;
   }
 
-  .overlay {
+  /* An old surveillance camera, drawn in the frame's own units so its marks keep to the corners
+     at any size: a green cast, scanlines, a vignette, corner brackets, a crosshair and labels. */
+  .camera {
+    --cam-ink: rgb(235 240 225 / 0.9);
+    --edge: 4cqw;
+    --arm: 7cqw;
     pointer-events: none;
+    background:
+      radial-gradient(ellipse at center, transparent 55%, rgb(0 0 0 / 0.6) 100%),
+      repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.2) 0 1px, transparent 1px 3px),
+      rgb(70 110 90 / 0.2);
+  }
+
+  .corner {
+    position: absolute;
+    width: var(--arm);
+    height: var(--arm);
+    border: 0 solid var(--cam-ink);
+  }
+
+  .corner.top {
+    top: var(--edge);
+    border-top-width: max(2px, 0.4cqw);
+  }
+
+  .corner.bottom {
+    bottom: var(--edge);
+    border-bottom-width: max(2px, 0.4cqw);
+  }
+
+  .corner.left {
+    left: var(--edge);
+    border-left-width: max(2px, 0.4cqw);
+  }
+
+  .corner.right {
+    right: var(--edge);
+    border-right-width: max(2px, 0.4cqw);
+  }
+
+  .cross {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 4cqw;
+    height: 4cqw;
+    transform: translate(-50%, -50%);
+    background:
+      linear-gradient(var(--cam-ink), var(--cam-ink)) center / 100% max(1px, 0.25cqw) no-repeat,
+      linear-gradient(var(--cam-ink), var(--cam-ink)) center / max(1px, 0.25cqw) 100% no-repeat;
+  }
+
+  .label {
+    position: absolute;
+    color: var(--cam-ink);
+    font:
+      700 max(0.5rem, 2.8cqw) / 1 'Courier New',
+      monospace;
+    letter-spacing: 0.04em;
+  }
+
+  .rec {
+    top: calc(var(--edge) + 2.2cqw);
+    left: calc(var(--edge) + 2.2cqw);
+    display: flex;
+    align-items: center;
+    gap: 1.2cqw;
+  }
+
+  .rec::before {
+    content: '';
+    width: 2.2cqw;
+    height: 2.2cqw;
+    border-radius: 50%;
+    background: rgb(220 40 30);
+  }
+
+  .cam {
+    top: calc(var(--edge) + 2.2cqw);
+    right: calc(var(--edge) + 2.2cqw);
+  }
+
+  .watch {
+    bottom: calc(var(--edge) + 2.2cqw);
+    left: calc(var(--edge) + 2.2cqw);
   }
 
   .missing {

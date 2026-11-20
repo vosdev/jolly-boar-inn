@@ -49,7 +49,8 @@ export function shapeProblem(width: number, height: number): string | null {
   return null
 }
 
-function base64Of(file: Blob): Promise<string> {
+/** `file` as base64, without the data URL's prefix. */
+export function base64Of(file: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = () => resolve(String(reader.result).replace(/^data:[^,]*,/, ''))

@@ -36,7 +36,13 @@ describe('the recon photo', () => {
     const frame = container.querySelector<HTMLElement>('.recon .frame')!
     expect(frame.style.aspectRatio).toBe('1600 / 900')
     expect(frame.querySelector('img.shot')?.getAttribute('src')).toBe('/pictures/a1b2.webp')
-    expect(frame.querySelector('img.overlay')).toBeTruthy()
+    const camera = frame.querySelector('.camera')!
+    expect(camera.querySelectorAll('.corner')).toHaveLength(4)
+    expect([...camera.querySelectorAll('.label')].map((label) => label.textContent)).toEqual([
+      'REC',
+      'KGP-CAM 03',
+      'SURVEILLANCE',
+    ])
   })
 
   it('opens whole in a dialog on a tap', async () => {

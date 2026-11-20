@@ -98,6 +98,14 @@ def test_a_round_question_needs_its_photo_whole() -> None:
         assert schema.schema_errors(round_question(part)), missing
 
 
+def test_a_photo_is_16_by_9() -> None:
+    assert not map_pin.check(PHOTO)
+    assert not map_pin.check({**PHOTO, "width": 1366, "height": 768})
+    for width, height in ((1600, 1200), (1080, 1920), (1600, 902)):
+        found = map_pin.check({**PHOTO, "width": width, "height": height})
+        assert any("16:9" in problem for problem in found), (width, height)
+
+
 def test_a_photo_this_instance_lacks_is_not_drawn() -> None:
     question = {"type": "map_pin", "mode": "kgp_recon", "payload": PHOTO}
     assert drawable(question, {TILES: "clean", SHOT: "a1b2.webp"})
@@ -160,6 +168,13 @@ def test_a_photo_needs_its_picture_and_a_place_takes_none(client: TestClient) ->
         "credit_shown": False,
     }
     assert "$.picture" in refused(client, place | {"picture": picture()})["message"]
+
+
+def test_a_picture_that_is_not_16_by_9_is_refused_whatever_the_payload_says(
+    client: TestClient,
+) -> None:
+    body = suggested() | {"picture": picture((800, 600))}
+    assert "16:9" in refused(client, body)["message"]
 
 
 def test_a_photo_asks_the_rounds_prompt(client: TestClient) -> None:

@@ -28,7 +28,8 @@ asked to find inside one they already know, and the whole map stays a pan away.
 
 A ``screenshot`` is a photo of the place, for a round that asks where it was taken: its
 ``width`` and ``height`` go out open, for its shape, and the picture by its random name
-(``pictured``), as ``picture_pin``'s does.
+(``pictured``), as ``picture_pin``'s does. Every photo is 16:9, so every card draws them alike;
+``/suggest`` cuts a screenshot to it before it goes up.
 """
 
 import math
@@ -53,6 +54,10 @@ WORLD_REACH = 100
 REGION_REACH_SHARE = 5
 # A box any smaller is a spot no pin could be expected to hit.
 LEAST_TARGET = 10
+# A photo's shape, and how far off it a picture may be in pixels of height, for one shrunk to
+# fit ``MAX_SIDE`` and rounded.
+PHOTO_SHAPE = (16, 9)
+PHOTO_SLACK = 1
 # What ``make gen-map`` renders; the schema holds a stored tile to the same rectangle.
 SURFACE = {"min_x": 768, "max_x": 4096, "min_y": 1792, "max_y": 4352}
 
@@ -149,9 +154,22 @@ def pin_credit(pin: Mapping[str, float], target: dict[str, Any], reach: float) -
     return max(0.0, 1.0 - off / reach)
 
 
+def photo_problem(width: int, height: int) -> str | None:
+    """Why a ``width`` by ``height`` photo is not 16:9, or ``None`` when it is."""
+    across, down = PHOTO_SHAPE
+    if abs(width * down / across - height) <= PHOTO_SLACK:
+        return None
+    return f"screenshot: {width} by {height} is not {across}:{down}"
+
+
 def check(payload: dict[str, Any]) -> list[str]:
-    """Consistency: every target is a place of its own, on the map the question shows."""
+    """Consistency: every target is a place of its own, on the map the question shows, and
+    any photo of it is 16:9."""
     problems = []
+    if "screenshot" in payload:
+        shape = photo_problem(payload["width"], payload["height"])
+        if shape is not None:
+            problems.append(shape)
     bounds = payload.get("bounds")
     for key in ("bounds", "view"):
         area = payload.get(key)

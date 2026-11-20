@@ -253,7 +253,7 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   `min`, `max` or `answer` off the three-figure grid, and an `answer` on an end or on the middle
   where the slider starts (half rounded up).
 - `map_pin` is `targets` (a `name` and a box of tiles, at least 10 across; six at most, one pin
-  each), optional `bounds`, a rectangle the map stops at, optional `view`, where it opens with the rest a pan away, optional `reach`, and an optional `screenshot` of the place with its `width` and `height`, all three or none. The open view has `pins`, the count, any photo's shape and, by `pictured`, the photo, and never a
+  each), optional `bounds`, a rectangle the map stops at, optional `view`, where it opens with the rest a pan away, optional `reach`, and an optional `screenshot` of the place with its `width` and `height`, all three or none, 16:9 within a pixel (`photo_problem`; `/suggest` cuts a screenshot to it, and the upload is held to it by its stored size). The open view has `pins`, the count, any photo's shape and, by `pictured`, the photo, and never a
   target. It plays in rounds only: `drawable` needs the tiles (`TILES` among `pictures`, from
   `CLIENT_MAP` or the client) and any screenshot, so a pool with no tiles is empty, and an event has no pool to empty.
   Above five pinned players a several-pin map shows only your own, and the TV only the targets.

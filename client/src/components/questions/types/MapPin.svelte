@@ -31,7 +31,7 @@
     within,
     type WorldPoint,
   } from '../../../lib/map'
-  import { avatarArt, petOf } from '../../../lib/pets'
+  import { avatarArt } from '../../../lib/pets'
   import {
     boundsOf,
     CROWD,
@@ -44,6 +44,8 @@
     type PinTarget,
     type WireBounds,
   } from '../../../lib/pins'
+  import { profile } from '../../../lib/profile'
+  import { petAt, yourId } from '../../../lib/resultRows'
   import { players, you } from '../../../lib/stores'
   import { Until } from '../../../lib/typing.svelte'
   import MapView, { type MapArea, type MapLine, type MapMarker } from '../../map/MapView.svelte'
@@ -107,9 +109,12 @@
   const room = fromStore(players)
   const tv = $derived(me.current?.role === 'tv')
 
-  function art(id: string | undefined): string {
-    const player = room.current.find((one) => one.id === id)
-    return avatarArt(player === undefined ? '' : petOf(player)).url
+  const saved = fromStore(profile)
+  /** Your row's id: your seat, or the preview's on `/suggest`, where nobody sits. */
+  const myId = $derived(yourId(me.current))
+
+  function art(id: string): string {
+    return avatarArt(petAt(id, room.current, me.current, saved.current)).url
   }
 
   const nameOf = (id: string): string =>
@@ -168,7 +173,7 @@
   const crowded = $derived(count > 1 && rows.length > CROWD)
   const shownRows: PinRow[] = $derived.by(() => {
     if (!crowded) return rows
-    return rows.filter((row) => row.id === me.current?.id)
+    return rows.filter((row) => row.id === myId)
   })
   /** Furthest first, so far pins get first go at a label and near ones draw over them. */
   const farFirst = $derived([...shownRows].reverse())
@@ -184,17 +189,15 @@
       return myPins.map((pin, index) => ({
         id: pinId(index),
         at: pin.at,
-        art: art(me.current?.id),
+        art: art(myId),
         title: 'You',
         detail: tiles(pin.off),
         tone: 'you' as const,
       }))
     }
-    const youFirst = [...farFirst].sort(
-      (a, b) => Number(b.id === me.current?.id) - Number(a.id === me.current?.id),
-    )
+    const youFirst = [...farFirst].sort((a, b) => Number(b.id === myId) - Number(a.id === myId))
     return youFirst.flatMap((row) => {
-      const yours = row.id === me.current?.id
+      const yours = row.id === myId
       const worst = Math.max(...row.pins.map((pin) => pin.off))
       return row.pins.map((pin, index) => ({
         id: `${row.id}-${index}`,
@@ -225,7 +228,7 @@
       : mine.map((at, index) => ({
           id: pinId(index),
           at,
-          art: art(me.current?.id),
+          art: art(myId),
           tone: 'you' as const,
           movable,
           action: movable && full && index === last ? 'Lock in' : undefined,

@@ -4,11 +4,24 @@
    * name for the reveal, its box and reach on the map, and what gives it away. The round asks
    * one thing of every photo, so there is no prompt to write.
    *
-   * The picture is read here and goes up once, with Save, as a picture pin's does. Before it
-   * goes the player says it is theirs and that they hid their own character: the operator,
-   * editing, says neither and moves the box, never the picture.
+   * The picture is read here and goes up once, with Save, as a picture pin's does, cut to 16:9
+   * first (`lib/photoCrop.ts`): the player sets how much of it to keep and drags or taps the
+   * part they want. Before it goes they say it is theirs and that they hid their own character.
+   * The operator, editing, says neither and moves the box, never the picture.
    */
   import { onDestroy } from 'svelte'
+
+  import { fractionAt } from '../../lib/picturePins'
+  import {
+    ACROSS,
+    centreOf,
+    croppable,
+    cropAt,
+    cut,
+    DOWN,
+    LEAST_SCALE,
+    type Crop,
+  } from '../../lib/photoCrop'
 
   import type { MapBounds } from '../../lib/map'
   import { DEFAULT_REACH } from '../../lib/mapBox'
@@ -62,12 +75,64 @@
   let reach = $state((start?.reach as number | undefined) ?? DEFAULT_REACH)
   let explanation = $state((start?.explanation as string | undefined) ?? '')
   let attempted = $state(false)
+  /** The screenshot as the player picked it, which the photo is cut from. */
+  let source = $state<{ url: string; width: number; height: number } | null>(null)
+  let scale = $state(1)
+  let centre = $state({ x: 0.5, y: 0.5 })
+  let dragging = $state(false)
+  let cropper = $state<HTMLElement | null>(null)
+  const crop: Crop | null = $derived(
+    source === null ? null : cropAt(source.width, source.height, scale, centre),
+  )
 
-  // Only a picture read here is this form's to let go; the queue owns the one it passes in.
-  let owned: string | null = null
-  onDestroy(() => {
-    if (owned !== null) URL.revokeObjectURL(owned)
-  })
+  // Only pictures read or cut here are this form's to let go; the queue owns the one it passes in.
+  let owned: string[] = []
+  const release = (keep: string[] = []) => {
+    owned.filter((one) => !keep.includes(one)).forEach((one) => URL.revokeObjectURL(one))
+    owned = owned.filter((one) => keep.includes(one))
+  }
+  onDestroy(() => release())
+
+  let cuts = 0
+  async function recut(): Promise<void> {
+    if (source === null || crop === null) return
+    const mine = ++cuts
+    const made = await cut(source.url, crop)
+    if (mine !== cuts) {
+      URL.revokeObjectURL(made.url)
+      return
+    }
+    release([source.url])
+    owned = [source.url, made.url]
+    url = made.url
+    encoded = made.encoded
+    width = made.width
+    height = made.height
+  }
+
+  const fractionOf = (event: PointerEvent) =>
+    fractionAt(event.clientX, event.clientY, (cropper as HTMLElement).getBoundingClientRect())
+
+  function down(event: PointerEvent): void {
+    if (cropper === null) return
+    cropper.setPointerCapture(event.pointerId)
+    dragging = true
+    centre = fractionOf(event)
+  }
+
+  function drag(event: PointerEvent): void {
+    if (dragging) centre = fractionOf(event)
+  }
+
+  function up(): void {
+    if (!dragging || source === null || crop === null) return
+    dragging = false
+    // Where the cut actually stands, so the next zoom starts from it.
+    centre = centreOf(crop, source.width, source.height)
+    void recut()
+  }
+
+  const percent = (part: number, whole: number): string => `${(part / whole) * 100}%`
 
   async function pick(event: Event & { currentTarget: HTMLInputElement }): Promise<void> {
     const file = event.currentTarget.files?.[0]
@@ -79,13 +144,18 @@
       pictureError = read
       return
     }
-    if (owned !== null) URL.revokeObjectURL(owned)
-    owned = read.url
-    url = read.url
-    encoded = read.encoded
-    width = read.width
-    height = read.height
+    if (!croppable(read.width, read.height)) {
+      URL.revokeObjectURL(read.url)
+      pictureError = 'That picture is too small for a 16:9 photo.'
+      return
+    }
+    release()
+    owned = [read.url]
+    source = { url: read.url, width: read.width, height: read.height }
+    scale = 1
+    centre = { x: 0.5, y: 0.5 }
     pictureError = null
+    await recut()
   }
 
   const pictureMissing = $derived(url === null ? (pictureError ?? 'Add your screenshot.') : null)
@@ -119,8 +189,8 @@
       ...(reach === DEFAULT_REACH ? {} : { reach }),
       // Overwritten by the server with the stored picture's name and shape.
       screenshot: (start?.screenshot as string | undefined) ?? UPLOAD_NAME,
-      width: Math.max(1, width),
-      height: Math.max(1, height),
+      width: width || ACROSS * 100,
+      height: height || DOWN * 100,
       ...(explained === '' ? {} : { explanation: explained }),
     },
   })
@@ -148,6 +218,19 @@
 {/snippet}
 
 {#snippet body()}
+  {#if fresh}
+    <fieldset class="ticks">
+      <legend>Before you upload</legend>
+      <label
+        ><input type="checkbox" bind:checked={own} /> I took this screenshot myself in Old School RuneScape</label
+      >
+      <label>
+        <input type="checkbox" bind:checked={hidden} /> I hid my own character with
+        <code>::renderself</code> in RuneLite
+      </label>
+      {@render problem(tickError, attempted)}
+    </fieldset>
+  {/if}
   {#if encoded !== null || picture === null}
     <div class="field">
       <label for="{id}-picture">Your screenshot</label>
@@ -165,23 +248,47 @@
       {@render problem(pictureMissing, attempted || pictureError !== null)}
     </div>
   {/if}
+  {#if source !== null && crop !== null}
+    <p class="note hint">
+      Every photo is 16:9. Drag or tap the part to keep, and set how much of the screenshot it
+      takes.
+    </p>
+    <div
+      class="cropper"
+      style:aspect-ratio="{source.width} / {source.height}"
+      bind:this={cropper}
+      role="presentation"
+      onpointerdown={down}
+      onpointermove={drag}
+      onpointerup={up}
+      onpointercancel={up}
+    >
+      <img src={source.url} alt="Your screenshot, whole" draggable="false" />
+      <span
+        class="window"
+        style:left={percent(crop.x, source.width)}
+        style:top={percent(crop.y, source.height)}
+        style:width={percent(crop.width, source.width)}
+        style:height={percent(crop.height, source.height)}
+      ></span>
+    </div>
+    <label class="zoom">
+      How much to keep
+      <input
+        type="range"
+        min={LEAST_SCALE}
+        max="1"
+        step="0.05"
+        bind:value={scale}
+        onchange={() => void recut()}
+      />
+    </label>
+  {/if}
   {#if url !== null}
-    <div class="picture" style:aspect-ratio="{Math.max(1, width)} / {Math.max(1, height)}">
+    <p class="note">The photo players see</p>
+    <div class="picture" style:aspect-ratio="{ACROSS} / {DOWN}">
       <img src={url} alt="Your screenshot" />
     </div>
-  {/if}
-  {#if fresh}
-    <fieldset class="ticks">
-      <legend>Before you send it</legend>
-      <label
-        ><input type="checkbox" bind:checked={own} /> I took this screenshot myself in Old School RuneScape</label
-      >
-      <label>
-        <input type="checkbox" bind:checked={hidden} /> I hid my own character with
-        <code>::renderself</code> in RuneLite
-      </label>
-      {@render problem(tickError, attempted)}
-    </fieldset>
   {/if}
   <div class="field">
     <label for="{id}-place">The place, as the reveal names it</label>
@@ -251,6 +358,44 @@
     width: 100%;
     height: 100%;
     object-fit: contain;
+  }
+
+  .cropper {
+    position: relative;
+    width: 100%;
+    margin: 0.5rem 0;
+    overflow: hidden;
+    border: var(--border-width) solid var(--line);
+    border-radius: min(var(--radius), 6px);
+    cursor: move;
+    touch-action: none;
+    user-select: none;
+  }
+
+  .cropper img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  /* The kept part stays bright; the rest dims under the window's wide shadow. */
+  .window {
+    position: absolute;
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 0 100vmax rgb(0 0 0 / 0.55);
+    pointer-events: none;
+  }
+
+  .zoom {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .zoom input {
+    flex: 1;
   }
 
   .ticks {

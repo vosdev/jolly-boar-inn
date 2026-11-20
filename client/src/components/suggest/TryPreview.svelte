@@ -15,6 +15,7 @@
   import { ApiFailure, tryQuestion } from '../../lib/api'
   import type { OpenQuestion, PlayerResult } from '../../lib/protocol'
   import type { QuestionContent, Trial } from '../../lib/suggestions'
+  import { PREVIEW_ID } from '../../lib/resultRows'
   import QuestionStage from '../QuestionStage.svelte'
   import Segmented from '../Segmented.svelte'
 
@@ -107,7 +108,7 @@
         reveal={revealed}
         yourValue={given?.value ?? null}
         result={given?.result ?? null}
-        results={given === null ? {} : { you: given.result }}
+        results={given === null ? {} : { [PREVIEW_ID]: given.result }}
         onAnswer={() => {}}
         {hero}
       />
