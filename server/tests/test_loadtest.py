@@ -257,8 +257,16 @@ def test_the_report_holds_what_a_later_run_compares_against() -> None:
     assert loadtest.validity(report)[0]
 
 
+def _room_of(seconds: list[float], **args: Any) -> dict[str, Any]:
+    acks = [[s, i % 2] for i, s in enumerate(seconds)]
+    base = {"scenario": "steady", "questions": 2, "p99_ms": 200.0, **args}
+    report = loadtest.build_report(base, [_worker(acks)], {"RoomA": len(acks)}, None, None, None)
+    report["checks"] = loadtest.evaluate(report)
+    return report
+
+
 def test_a_room_short_of_rows_or_over_budget_fails() -> None:
-    report = _report(0.3)
+    report = _room_of([0.3] * loadtest.ROOM_CHECK_MIN_ACKS, smoke=True)
     failed = {c["name"] for c in report["checks"] if not c["passed"]}
     assert failed == {"ack p95", "worst room ack p95"}
     short = loadtest.build_report(
@@ -284,20 +292,26 @@ def test_a_lagging_harness_makes_the_run_invalid() -> None:
 
 
 def _acks_with_one_slow(**args: Any) -> dict[str, Any]:
-    acks = [[0.3 if i == 0 else 0.01, i % 2] for i in range(90)]
-    base = {"scenario": "steady", "questions": 2, "p99_ms": 200.0, **args}
-    report = loadtest.build_report(base, [_worker(acks)], {"RoomA": 90}, None, None, None)
-    report["checks"] = loadtest.evaluate(report)
-    return report
+    return _room_of([0.3] + [0.01] * 89, **args)
 
 
 def test_a_smoke_run_holds_ack_p95_to_the_bound_and_a_full_run_p99() -> None:
-    smoke = {c["name"]: c["passed"] for c in _acks_with_one_slow(smoke=True)["checks"]}
+    slow = [0.3, 0.3] + [0.01] * (loadtest.ROOM_CHECK_MIN_ACKS - 2)
+    smoke = {c["name"]: c["passed"] for c in _room_of(slow, smoke=True)["checks"]}
     assert smoke["ack p95"] and smoke["worst room ack p95"]
     assert "ack p99" not in smoke
-    full = {c["name"]: c["passed"] for c in _acks_with_one_slow(smoke=False)["checks"]}
+    full = {c["name"]: c["passed"] for c in _room_of(slow, smoke=False)["checks"]}
     assert not full["ack p99"] and not full["worst room ack p99"]
     assert "ack p95" not in full
+
+
+@pytest.mark.parametrize("smoke", [True, False])
+def test_a_room_with_too_few_acks_for_its_percentile_is_not_held_to_it(smoke: bool) -> None:
+    acks = [0.3, 0.3] + [0.01] * 28
+    names = {c["name"]: c["passed"] for c in _room_of(acks, smoke=smoke)["checks"]}
+    pct = "p95" if smoke else "p99"
+    assert f"worst room ack {pct}" not in names
+    assert f"ack {pct}" in names
 
 
 @pytest.mark.parametrize(
