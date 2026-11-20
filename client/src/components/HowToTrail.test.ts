@@ -3,6 +3,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { roomHours } from '../lib/config'
 import { NIGHT_STOPS, loadModes } from '../lib/howToPlay'
 import HowToTrail from './HowToTrail.svelte'
 
@@ -10,6 +11,7 @@ vi.mock('../lib/howToPlay', async (importOriginal) => {
   const real = await importOriginal<typeof import('../lib/howToPlay')>()
   return { ...real, loadModes: vi.fn() }
 })
+vi.mock('../lib/config', () => ({ roomHours: vi.fn() }))
 
 const noop = (): void => {}
 const opened = (): string | undefined =>
@@ -19,7 +21,10 @@ function draw(props: Partial<{ createDisabled: boolean; oncreate: () => void }> 
   render(HowToTrail, { ontry: noop, oncreate: noop, ...props })
 }
 
-beforeEach(() => vi.mocked(loadModes).mockResolvedValue([]))
+beforeEach(() => {
+  vi.mocked(loadModes).mockResolvedValue([])
+  vi.mocked(roomHours).mockResolvedValue(null)
+})
 afterEach(cleanup)
 
 describe('HowToTrail', () => {
@@ -78,5 +83,19 @@ describe('HowToTrail', () => {
     for (const stop of NIGHT_STOPS.filter((entry) => entry.id !== 'answer')) {
       expect(stop.drawing, stop.id).not.toBe('')
     }
+  })
+
+  it('says how long a room stays open, as the server has it', async () => {
+    vi.mocked(roomHours).mockResolvedValue(48)
+    draw()
+    await fireEvent.click(screen.getByRole('button', { name: /Create a room$/ }))
+    expect(await screen.findByText(/stays open for up to 48 hours\./)).toBeTruthy()
+  })
+
+  it('leaves the hours out where the server could not say', async () => {
+    draw()
+    await fireEvent.click(screen.getByRole('button', { name: /Create a room$/ }))
+    expect(screen.getByText(/you control the game\.$/)).toBeTruthy()
+    expect(document.body.textContent).not.toContain('stays open')
   })
 })

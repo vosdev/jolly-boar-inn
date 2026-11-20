@@ -4,7 +4,10 @@
    * surprise, and Open the doors. All of it is settled by opening, since rounds already
    * shown cannot be hidden again, so the panel goes with the doors.
    */
+  import { onMount } from 'svelte'
+
   import type { RoomAccess } from '../lib/api'
+  import { roomHours } from '../lib/config'
   import Segmented from './Segmented.svelte'
   import Switch from './Switch.svelte'
 
@@ -40,6 +43,11 @@
   } = $props()
 
   const id = $props.id()
+  let hours = $state<number | null>(null)
+
+  onMount(() => {
+    void roomHours().then((loaded) => (hours = loaded))
+  })
 </script>
 
 <section class="panel doors" aria-labelledby="{id}-title">
@@ -58,8 +66,8 @@
     <p class="banner bad">{failure}</p>
   {/if}
   <p class="note">
-    These settings and the room code are locked once you open the doors. Rooms stay open for 72
-    hours.
+    These settings and the room code are locked once you open the doors.
+    {#if hours !== null}Rooms stay open for {hours} hours.{/if}
   </p>
 </section>
 

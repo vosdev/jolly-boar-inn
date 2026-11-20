@@ -11,6 +11,7 @@
   import { onMount, tick } from 'svelte'
 
   import type { ModePacing } from '../lib/api'
+  import { roomHours } from '../lib/config'
   import {
     NIGHT_STOPS,
     ITEMS_LINE,
@@ -18,6 +19,7 @@
     allTypes,
     loadModes,
     rowsFor,
+    stopText,
     type NightStop,
   } from '../lib/howToPlay'
   import { itemIcon } from '../lib/items'
@@ -40,12 +42,14 @@
 
   let index = $state(0)
   let modes = $state<ModePacing[] | null>(null)
+  let hours = $state<number | null>(null)
   let heading = $state<HTMLElement | null>(null)
 
   const stop = $derived(NIGHT_STOPS[index] as NightStop)
   const last = $derived(index === NIGHT_STOPS.length - 1)
 
   onMount(() => {
+    void roomHours().then((loaded) => (hours = loaded))
     loadModes().then(
       (loaded) => (modes = loaded),
       () => (modes = []),
@@ -106,7 +110,7 @@
   {#if stop.id === 'answer'}
     <div class="wide">
       <h3 tabindex="-1" bind:this={heading}>{stop.title}</h3>
-      <p>{stop.text}</p>
+      <p>{stopText(stop, hours)}</p>
       {#if modes === null}
         <p class="note">Loading…</p>
       {:else}
@@ -127,7 +131,7 @@
       <HowToStep stop={stop.id} label={stop.drawing} />
       <div class="words">
         <h3 tabindex="-1" bind:this={heading}>{stop.title}</h3>
-        <p>{stop.text}</p>
+        <p>{stopText(stop, hours)}</p>
         <p class="moves">
           {#if index > 0}
             <button type="button" class="move" onclick={() => step(-1)}>Back</button>
