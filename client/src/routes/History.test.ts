@@ -42,6 +42,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup()
   delete (root as { clientWidth?: number }).clientWidth
+  vi.unstubAllGlobals()
 })
 
 describe('History', () => {
@@ -150,6 +151,26 @@ describe('History', () => {
     render(History, { code: 'Abyssal', stamp: historyStamp(FINISHED), navigate: vi.fn() })
     expect(screen.queryByText('Someone else')).toBeNull()
     expect(document.querySelector('.speech')!.textContent).toContain('Gz, Zezima!')
+  })
+
+  it('copies the saved game’s share text, with no room code in it', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } })
+    savePastGame({ code: 'FireCape', finishedAt: FINISHED, standings: STANDINGS, youId: 'Woox' })
+    render(History, { code: 'FireCape', stamp: historyStamp(FINISHED), navigate: vi.fn() })
+    await fireEvent.click(screen.getByRole('button', { name: 'Copy the result' }))
+    const text: string = writeText.mock.lastCall?.[0]
+    expect(text).toBe(
+      [
+        'Quiz night at The Jolly Boar Inn: 3 players.',
+        '🥇 Zezima 900',
+        '🥈 Woox 400',
+        '🥉 Lynx 100',
+        'Think you can beat us?',
+        location.origin,
+      ].join('\n'),
+    )
+    expect(text).not.toMatch(/firecape/i)
   })
 
   it('says it has no record of a game this browser never kept, and offers the way home', async () => {

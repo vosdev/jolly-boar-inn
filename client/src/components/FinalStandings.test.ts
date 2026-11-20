@@ -10,7 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { CEREMONY, ceremonyTimes, FINAL_INTRO } from '../lib/hiscores'
 import { trophyLine } from '../lib/modes'
-import type { Standing, TeamStanding } from '../lib/protocol'
+import type { PlayerView, Standing, TeamStanding } from '../lib/protocol'
 import { players } from '../lib/stores'
 import type { TeamId } from '../lib/teams'
 import { trophyArt } from '../lib/trophies'
@@ -48,6 +48,7 @@ beforeEach(() => {
 afterEach(() => {
   restore()
   vi.useRealTimers()
+  vi.unstubAllGlobals()
 })
 
 const placed = () => document.querySelector('.placed .names')?.textContent
@@ -214,6 +215,87 @@ describe('FinalStandings', () => {
       expect(document.querySelectorAll('.team')).toHaveLength(2)
       expect(document.querySelector('.bubble .speech')?.textContent).toContain('Zamorak wins!')
     })
+  })
+})
+
+describe('FinalStandings share text', () => {
+  const FOUR = [
+    standing('Zezima', 900, 1),
+    standing('Woox', 400, 2),
+    standing('Lynx', 100, 3),
+    standing('Mod Ash', 0, 4),
+  ]
+  const PLAYER: PlayerView = {
+    id: '',
+    display_name: '',
+    role: 'player',
+    connected: true,
+    avatar: null,
+    ready: false,
+    editing: false,
+    team: null,
+    item: null,
+  }
+
+  function clipboard(write: () => Promise<void>) {
+    const writeText = vi.fn<(text: string) => Promise<void>>(write)
+    vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } })
+    return writeText
+  }
+
+  it('copies the top three, with the room’s current names', async () => {
+    players.set([{ ...PLAYER, id: 'Zezima', display_name: 'Zezima the Great' }])
+    const writeText = clipboard(() => Promise.resolve())
+    render(FinalStandings, { standings: FOUR, youId: 'Mod Ash', past: true, children })
+    await fireEvent.click(screen.getByRole('button', { name: 'Copy the result' }))
+    expect(writeText).toHaveBeenCalledWith(
+      [
+        'Quiz night at The Jolly Boar Inn: 4 players.',
+        '🥇 Zezima the Great 900',
+        '🥈 Woox 400',
+        '🥉 Lynx 100',
+        'I came 4th with 0. Think you can beat us?',
+        location.origin,
+      ].join('\n'),
+    )
+    await screen.findByRole('button', { name: 'Copied' })
+  })
+
+  it('copies everyone when asked', async () => {
+    const writeText = clipboard(() => Promise.resolve())
+    render(FinalStandings, { standings: FOUR, youId: 'Mod Ash', past: true, children })
+    await fireEvent.click(screen.getByRole('radio', { name: 'Everyone' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Copy the result' }))
+    expect(writeText.mock.lastCall?.[0]).toContain('🥉 Lynx 100\n4. Mod Ash 0\nThink you can')
+  })
+
+  it('offers the gods alone or with their players in a team game', async () => {
+    const writeText = clipboard(() => Promise.resolve())
+    render(FinalStandings, {
+      standings: TWO,
+      teamStandings: [
+        { team: 'zamorak', points: 450, rank: 1, points_gained: 0, previous_rank: null },
+        { team: 'saradomin', points: 400, rank: 2, points_gained: 0, previous_rank: null },
+      ],
+      teamOf: { Zezima: 'zamorak', Lynx: 'zamorak', Woox: 'saradomin' },
+      youId: 'Woox',
+      past: true,
+      children,
+    })
+    await fireEvent.click(screen.getByRole('radio', { name: 'With players' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Copy the result' }))
+    expect(writeText.mock.lastCall?.[0]).toContain(
+      '🥇 Zamorak 450 avg\n   Zezima 900 · Lynx 0\n🥈 Saradomin 400 avg\n   Woox 400',
+    )
+    expect(screen.getByRole('radio', { name: 'Gods' })).toBeTruthy()
+  })
+
+  it('shows the text to copy by hand when the clipboard refuses', async () => {
+    clipboard(() => Promise.reject(new Error('denied')))
+    render(FinalStandings, { standings: TWO, youId: null, past: true, children })
+    await fireEvent.click(screen.getByRole('button', { name: 'Copy the result' }))
+    const field = await screen.findByRole<HTMLTextAreaElement>('textbox', { name: 'The result' })
+    expect(field.value).toContain('🥇 Zezima 900')
   })
 })
 

@@ -51,6 +51,7 @@
   import Hiscores from './Hiscores.svelte'
   import HiscoresHead from './HiscoresHead.svelte'
   import Pet from './Pet.svelte'
+  import ShareStandings from './ShareStandings.svelte'
   import Confetti from './stage/Confetti.svelte'
   import Said from './stage/Said.svelte'
   import Stage from './stage/Stage.svelte'
@@ -158,6 +159,13 @@
     const player = $players.find((p) => p.id === standing.player_id)
     return petOf(player ?? { id: standing.player_id, avatar: standing.avatar })
   }
+
+  const shared = $derived({
+    standings: standings.map((standing) => ({ ...standing, display_name: nameOf(standing) })),
+    teamStandings,
+    teamOf,
+    youId,
+  })
 
   const winners = $derived(
     teamStandings !== null
@@ -321,6 +329,7 @@
         Level scores share a place. Between them, more correct answers comes first, and after that
         the earliest to join.
       </p>
+      <ShareStandings game={shared} />
       {@render children()}
     </div>
   {:else}
