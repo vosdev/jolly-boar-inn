@@ -32,7 +32,8 @@ class Suggest:
     the player's own, about an item that may be listed already. ``render`` names an NPC as a
     ``multiple_choice`` right option, for the import script to picture. ``picture_item``
     takes an item's name to picture, ``lined`` a prompt of several lines, ``clued`` the
-    mode's clues, vaguest first. ``tags`` are the
+    mode's clues, vaguest first. ``picture`` takes the suggester's own screenshot, which is
+    then the proof in place of a link, and every question of the round carries one. ``tags`` are the
     pack's tags a question of each type gets, as ``(type, tag)`` pairs. ``right_first`` is a
     pack that lists the right option first and asks each prompt once.
     """
@@ -50,6 +51,7 @@ class Suggest:
     picture_item: bool = False
     lined: bool = False
     clued: bool = False
+    picture: bool = False
     tags: tuple[tuple[str, str], ...] = ()
     right_first: bool = False
 

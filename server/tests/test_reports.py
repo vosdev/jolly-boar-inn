@@ -18,7 +18,7 @@ from app.main import create_app
 from app.modes import TILES
 from app.questions.packs import load_packs, mode_questions
 from tests.conftest import BASE
-from tests.packs import PACKS_DIR
+from tests.packs import PACKS_DIR, SHIPPED_MODES
 
 TOKEN = "0123456789abcdef0123456789abcdef"
 BEARER = {"Authorization": f"Bearer {TOKEN}"}
@@ -87,12 +87,15 @@ def queue(client: TestClient, status: str = "open") -> dict[str, Any]:
 
 def test_the_form_lists_every_pack_mode_but_none_switched_off(offline: TestClient) -> None:
     modes = offline.get("/api/questions/modes").json()
-    assert modes == [m for m in reports.pack_modes() if m != "random_events_only"]
+    shipped = [m for m in reports.pack_modes() if m in SHIPPED_MODES]
+    assert modes == [m for m in shipped if m != "random_events_only"]
     assert "random_event" in modes and "custom" not in modes
     assert offline.get("/api/questions?mode=random_events_only").status_code == 422
 
 
-@pytest.mark.parametrize("mode", reports.pack_modes())
+@pytest.mark.parametrize(
+    "mode", [m for m in reports.pack_modes() if m in SHIPPED_MODES or m == "random_events_only"]
+)
 def test_the_question_list_never_carries_an_answer(offline: TestClient, mode: str) -> None:
     response = offline.get(f"/api/questions?mode={mode}")
     if mode == "random_events_only":
@@ -154,7 +157,7 @@ READ_AS = {
         q["payload"]["subject"]["name"] if q.get("random_event") == "certer" else _prompt(q)
     ),
 }
-LABELLED = [m for m in reports.pack_modes() if m not in reports.ITEM_MODES]
+LABELLED = [m for m in reports.pack_modes() if m not in reports.ITEM_MODES and m in SHIPPED_MODES]
 
 
 def test_every_pack_mode_states_what_players_read() -> None:

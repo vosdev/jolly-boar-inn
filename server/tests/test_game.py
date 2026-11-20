@@ -79,6 +79,7 @@ from tests.game_api import (
     tap,
     updated,
 )
+from tests.packs import SHIPPED_MODES
 from tests.rooms_api import StalledSocket, call, closed_with, create_fast, join
 
 
@@ -2283,8 +2284,11 @@ def play_right_and_wrong(game: Game, index: int) -> dict[str, Any]:
     return closed
 
 
-# A mode that borrows another's pool has its own test, in ``test_random_events_only.py``.
-@pytest.mark.parametrize("mode", [mode.id for mode in round_modes() if mode.pool is None])
+# A mode that borrows another's pool has its own test, in ``test_random_events_only.py``; one
+# whose questions come only from suggestions has none to play until the first import.
+@pytest.mark.parametrize(
+    "mode", [mode.id for mode in round_modes() if mode.pool is None and mode.id in SHIPPED_MODES]
+)
 def test_a_round_of_every_mode_takes_a_right_and_a_wrong_answer_and_closes(
     table, db, pictures, mode: str
 ) -> None:

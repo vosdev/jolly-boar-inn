@@ -168,8 +168,9 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 | `uris_unravelling` | Uri's Unravelling | Bestiary's seven types, `extra_answer` 5 | hand-written | done: a clue is `multiple_choice`, its text the `quote`, never `free_text`; no map or coordinate clues |
 | `slayer_master` | Slayer Master | Bestiary's seven types | hand-written | done: how to fight a monster; what it is stays in Bestiary |
 | `mark_the_map` | Mark the Map | `map_pin`, one pin on the whole surface | hand-written, drafted once by `gen_locations.py` | done, hosted by Bill Teach; a place inside a town opens on both (`view`) with `reach` 50 |
+| `kgp_recon` | KGP Recon | `map_pin` on a suggester's own photo of the place, one pin, `extra_answer` 10 | player suggestions; the first import writes the pack | done, hosted by a KGP Agent; the `photo` stem puts the photo, under a camera overlay, on the sheet |
 | `prop_hunt` | Prop Hunt | `picture_pin` on the suggester's own screenshot | player suggestions | upcoming: takes suggestions (#438) |
-| `whats_that_noise`, `minimap_guesser`, `scrying_pool`, `lost_in_gielinor`, `diary_dash`, `entrana_customs`, `kgp_recon` | planned | see each issue | | #260, #229, #330, #328, #927, #930, #262 |
+| `whats_that_noise`, `minimap_guesser`, `scrying_pool`, `lost_in_gielinor`, `diary_dash`, `entrana_customs` | planned | see each issue | | #260, #229, #330, #328, #927, #930 |
 
 Create lists the unbuilt ones from their files in `lib/modes/`, in `UPCOMING` then `PLANNED` order.
 
@@ -252,9 +253,9 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   `min`, `max` or `answer` off the three-figure grid, and an `answer` on an end or on the middle
   where the slider starts (half rounded up).
 - `map_pin` is `targets` (a `name` and a box of tiles, at least 10 across; six at most, one pin
-  each), optional `bounds`, a rectangle the map stops at, optional `view`, where it opens with the rest a pan away, and optional `reach`. The open view has `pins`, the count, and never a
+  each), optional `bounds`, a rectangle the map stops at, optional `view`, where it opens with the rest a pan away, optional `reach`, and an optional `screenshot` of the place with its `width` and `height`, all three or none. The open view has `pins`, the count, any photo's shape and, by `pictured`, the photo, and never a
   target. It plays in rounds only: `drawable` needs the tiles (`TILES` among `pictures`, from
-  `CLIENT_MAP` or the client), so a pool with no tiles is empty, and an event has no pool to empty.
+  `CLIENT_MAP` or the client) and any screenshot, so a pool with no tiles is empty, and an event has no pool to empty.
   Above five pinned players a several-pin map shows only your own, and the TV only the targets.
 - `picture_pin` is a `screenshot`, its `width` and `height` in pixels for its shape, and either a
   `target` box in fractions with `reach`, or a `grid` of 1 to 16 `cols` and `rows` with target
@@ -934,13 +935,13 @@ key into them, so cleanup leaves it.
   or timer task, and no game but one rehydrated and awaiting a player; the next lookup reloads them.
 - `suggestions` holds what players send to `POST /api/suggestions` (`app/suggestions.py`): a
   `question` in Create's shape plus a `wiki` or `source_url`, or both, and a `mode`, held to its
-  `Suggest` (`quote`, `intro`, `picture_item`, `explanation`, `wiki_only`, `fixed_prompt`), or
+  `Suggest` (`quote`, `intro`, `picture_item`, `explanation`, `wiki_only`, `fixed_prompt`, `picture`), or
   none, held to its type alone (`TRIVIA_TYPES`) until the operator picks its round;
   or an `item` (a name not on the roster).
   A Who's That NPC? shadow's payload is its fixed prompt and `subject.name`, an NPC not on its
   list (`named`); a render's right option names its NPC, and it has no `image` (`render`).
-  A Forgetful Bard payload is a verse and `subject.name`, a plain item on the list or not, which the verse may not name (`verse`). A riddle is `subject.name`, listed or not, and five `clues` (`clued`). A place for Mark the Map is `prompt`, one target and a `reach`, nothing else (`_place_errors`), with a `wiki`.
-  A `picture_pin` (`PICTURE_TYPES`) needs no link: its `picture`, base64 in the same body (6.9 MiB
+  A Forgetful Bard payload is a verse and `subject.name`, a plain item on the list or not, which the verse may not name (`verse`). A riddle is `subject.name`, listed or not, and five `clues` (`clued`). A place is `prompt`, one target and a `reach` of 50 to 200 (`_place_errors`): for Mark the Map with a `wiki`; for KGP Recon with its photo and an explanation, the round's fixed prompt and no link.
+  A round with `picture` (`PICTURE_MODES`: Prop Hunt, KGP Recon; every question of one carries a `screenshot`) needs no link: its `picture`, base64 in the same body (6.9 MiB
   allowed on that route alone), is its proof. Past the limiter, `suggestion_pictures.py` takes a
   PNG, JPEG or WebP of at most 5 MB, 200 px a side and 4096² pixels, shrinks it to 1920 px on its
   longer side, turns it upright by its EXIF and writes it again as WebP, which drops all metadata,

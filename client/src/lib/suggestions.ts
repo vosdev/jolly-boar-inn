@@ -104,7 +104,8 @@ export function difficultyName(difficulty: QuestionDifficulty): string {
 
 /**
  * The question as players will see it open, drawn by `QuestionStage` or `RandomEvent`. A
- * picture pin draws `picture`, a URL of the suggester's own picture, which no server names.
+ * picture pin or a photo draws `picture`, a URL of the suggester's own picture, which no
+ * server names.
  */
 export function questionPreview(content: QuestionContent, picture?: string | null): OpenQuestion {
   const mode = stageMode(content.mode ?? NO_ROUND)
@@ -122,7 +123,9 @@ export function questionPreview(content: QuestionContent, picture?: string | nul
   }
   if (content.type === 'map_pin') {
     const open = previewOf({ type: 'multiple_choice', payload: {} }, mode)
-    return { ...open, type: 'map_pin', view: { prompt: content.payload.prompt, pins: 1 } }
+    const { prompt, width, height } = content.payload
+    const photo = width === undefined ? {} : { width, height, ...(picture ? { picture } : {}) }
+    return { ...open, type: 'map_pin', view: { prompt, pins: 1, ...photo } }
   }
   if (content.type === 'picture_pin') {
     const open = previewOf({ type: 'multiple_choice', payload: {} }, mode)
@@ -186,11 +189,12 @@ export interface QueueMatch {
 /**
  * A form of its own: `shadow`, an NPC's name (`named` on the server); `verse`, a verse and
  * the item it describes (`verse`); `place`, a place on the world map, so this server needs
- * its tiles; `picture`, a spot on a screenshot the suggester sends with it; `item`, an item;
+ * its tiles; `photo`, the same with a screenshot of it the suggester sends (`picture`);
+ * `picture`, a spot on a screenshot the suggester sends with it; `item`, an item;
  * `riddle`, five clues and the subject they describe (`clued`).
  * `components/suggest/forms.ts` maps each to its component.
  */
-export type EditorKind = 'shadow' | 'verse' | 'riddle' | 'place' | 'picture' | 'item'
+export type EditorKind = 'shadow' | 'verse' | 'riddle' | 'place' | 'photo' | 'picture' | 'item'
 
 /** One thing the form offers to write. */
 export interface Choice {
@@ -273,7 +277,7 @@ function formOf(id: string, rules: SuggestRules): Exclude<EditorKind, 'item'> | 
   if (rules.verse) return 'verse'
   if (rules.clued) return 'riddle'
   if (rules.named !== null) return 'shadow'
-  if (only === 'map_pin') return 'place'
+  if (only === 'map_pin') return rules.picture ? 'photo' : 'place'
   if (only === 'picture_pin') return 'picture'
   if (!(rulesOf(id)?.is_round ?? true) || only === 'ordering') return 'plain'
   return 'choice'
@@ -322,6 +326,8 @@ function roundChoice(id: string, rules: SuggestRules): Choice | undefined {
       return { ...base, prompt, explanation, editor: 'riddle' }
     case 'place':
       return { ...base, explanation, wikiOnly: rules.wiki_only, editor: 'place' }
+    case 'photo':
+      return { ...base, prompt, explanation, editor: 'photo' }
     case 'picture':
       return { ...base, prompt, explanation, editor: 'picture' }
   }
@@ -380,11 +386,23 @@ export function hasRound(kind: SuggestionKind, content: SuggestionContent): bool
   return kind !== 'question' || (content as QuestionContent).mode !== undefined
 }
 
-/** The rounds the operator may move a question of `type` to: those whose editor offers it. */
-export function roundsFor(type: SuggestedType): Choice[] {
+/**
+ * The rounds the operator may move a question of `type` to: those whose editor offers it, and
+ * that take the suggester's own picture if it has one, and not if it has none.
+ */
+export function roundsFor(type: SuggestedType, pictured = false): Choice[] {
   return CHOICES.filter(
-    (choice) => choice.kind === 'question' && choice.id !== NO_ROUND && choice.types.includes(type),
+    (choice) =>
+      choice.kind === 'question' &&
+      choice.id !== NO_ROUND &&
+      choice.types.includes(type) &&
+      takesPicture(choice) === pictured,
   )
+}
+
+/** Whether a round's questions are drawn on a picture the suggester sends. */
+function takesPicture(choice: Choice): boolean {
+  return choice.editor === 'picture' || choice.editor === 'photo'
 }
 
 /**
@@ -596,7 +614,7 @@ export interface SuggestStep {
 
 /** Whether a choice asks where it was checked: an item is held to the roster, a picture is its own proof. */
 export function needsSource(choice: Choice): boolean {
-  return choice.kind !== 'item' && choice.editor !== 'picture'
+  return choice.kind !== 'item' && choice.editor !== 'picture' && choice.editor !== 'photo'
 }
 
 /** Whether a question choice offers the optional extras card (intro, picture item, or explanation). */
@@ -674,7 +692,11 @@ export const STATUS_LABELS: Record<SuggestionStatus, string> = {
 export function summary(suggestion: Pick<SuggestionBody, 'kind' | 'content'>): string {
   if (suggestion.kind === 'item') return (suggestion.content as ItemContent).name
   const content = suggestion.content as QuestionContent
-  if (rulesOf(content.mode ?? NO_ROUND)?.report === 'npc') return answerOf(suggestion)
+  const rules = rulesOf(content.mode ?? NO_ROUND)
+  if (rules?.report === 'npc') return answerOf(suggestion)
+  if (content.type === 'map_pin' && rules?.suggest?.fixed_prompt != null) {
+    return (content.payload.targets as PinTarget[] | undefined)?.[0]?.name ?? ''
+  }
   return matchLine(content)
 }
 

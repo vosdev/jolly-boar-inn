@@ -489,6 +489,10 @@ one placed or moved. Stacked, the sheet crosses the top and the bubble the foot.
 then pulls back to fit every pin, so the worst lands last: far pins are named first, the furthest
 in `--bad`, and the table ranks them all. The TV shows no map until the reveal. One map stays up into
 the reveal and the next map question: the old pins fade with the words as it glides on.
+KGP Recon's sheet carries its photo under the prompt, in its own shape and under a surveillance
+camera overlay (`kgp-recon.svg`: scanlines, vignette, corner marks, REC); a tap opens it whole. The
+reveal keeps pins clear of it, beside the sheet on a wide stage and under it stacked. The TV shows the
+sheet, photo and all, without a map.
 
 **The picture.** `picture_pin`'s answers are its picture, whole and full width, at most 55% of the
 screen's height, Lock in under it; no zoom. Your pet is your pin, its exact spot a dot; on a grid the

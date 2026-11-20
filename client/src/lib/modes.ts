@@ -221,7 +221,7 @@ export interface Mode extends HostLines {
  * `components/questions/stems/`, and a new one lands with the first mode that needs it.
  */
 export type StemId =
-  'text' | 'asset' | 'examine' | 'quote' | 'more_less' | 'price' | 'board' | 'clues'
+  'text' | 'asset' | 'examine' | 'quote' | 'more_less' | 'price' | 'board' | 'clues' | 'photo'
 
 // In its own module, so the mode files it presents import it without a cycle.
 export { HOUSE }

@@ -26,6 +26,7 @@ export interface SuggestRules {
   picture_item: boolean
   lined: boolean
   clued: boolean
+  picture: boolean
   tags: [string, string][]
   right_first: boolean
 }

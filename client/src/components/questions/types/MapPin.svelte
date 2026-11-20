@@ -52,6 +52,8 @@
 
   interface Data {
     pins: number
+    /** The photo of the place on the sheet, for a round that asks where it was taken. */
+    width?: number
     bounds?: WireBounds
     view?: WireBounds
     /** Reveal only. */
@@ -68,6 +70,13 @@
   const WIDE_MARGIN = 40
   /** What the sheet and the host's bubble cover, kept clear of the pins a reveal frames. */
   const INSET = { top: 110, right: 24, bottom: 70, left: 24 }
+  /**
+   * The same with a photo on the sheet, which makes it tall: beside it where the sheet stands
+   * at the map's left, under it where the sheet spans the map (`StageView`'s stacked layout).
+   */
+  const PHOTO_BESIDE = { top: 24, right: 24, bottom: 70, left: 460 }
+  const PHOTO_ABOVE = { top: 330, right: 24, bottom: 70, left: 24 }
+  const STACKED_BELOW = 1024
 
   let {
     data,
@@ -88,6 +97,10 @@
     q.view === undefined ? undefined : boundsOf(q.view),
   )
   const reach = $derived(q.reach ?? 1)
+  let windowWidth = $state(STACKED_BELOW)
+  const inset = $derived(
+    q.width === undefined ? INSET : windowWidth < STACKED_BELOW ? PHOTO_ABOVE : PHOTO_BESIDE,
+  )
   const targets = $derived(q.targets ?? [])
 
   const me = fromStore(you)
@@ -261,6 +274,8 @@
   })
 </script>
 
+<svelte:window bind:innerWidth={windowWidth} />
+
 <div class="pin-map" role="group" aria-label="World map">
   <MapView
     {bounds}
@@ -271,7 +286,7 @@
     {lines}
     {areas}
     {frame}
-    inset={INSET}
+    {inset}
     onpick={movable ? pick : undefined}
     onmove={move}
     ontap={tap}

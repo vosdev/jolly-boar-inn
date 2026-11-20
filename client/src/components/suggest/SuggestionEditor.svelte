@@ -451,6 +451,7 @@
         {saveLabel}
         stepQuestion={stepQuestionCard}
         stepDifficulty={stepDifficultyCard}
+        stepExtras={stepExtrasCard}
         fields={questionFields}
         nearSave={similar}
         preview={tryPreview}

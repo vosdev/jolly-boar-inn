@@ -54,6 +54,9 @@ TRIVIA_TYPES = frozenset(
     }
 )
 
+# The types that may be drawn on an own screenshot: ``picture_pin`` always is.
+PICTURED_TYPES = frozenset({"map_pin", "picture_pin"})
+
 # In the order the create form lists them.
 MODES: dict[str, Mode] = {
     "more_less": Mode(
@@ -188,6 +191,14 @@ MODES: dict[str, Mode] = {
         types=frozenset({"map_pin"}),
         suggest=Suggest(explanation=False, wiki_only=True),
     ),
+    # A player's own photo of a place to pin, which takes longer to read than a name.
+    "kgp_recon": Mode(
+        id="kgp_recon",
+        types=frozenset({"map_pin"}),
+        extra_answer=10,
+        stem="photo",
+        suggest=Suggest(fixed_prompt="Where was this photo taken?", picture=True),
+    ),
     # The NPCs' questions as a round, to test them in a row. Off unless the instance says so.
     "random_events_only": Mode(
         id="random_events_only",
@@ -211,7 +222,7 @@ MODES: dict[str, Mode] = {
 # Rounds this build does not play yet, which already take suggestions so their packs are
 # ready when they open.
 UPCOMING: dict[str, Suggest] = {
-    "prop_hunt": Suggest(types=frozenset({"picture_pin"}), explanation=False),
+    "prop_hunt": Suggest(types=frozenset({"picture_pin"}), explanation=False, picture=True),
 }
 
 # Rounds still being planned, which take no suggestions yet: the create form shows each as a
@@ -223,7 +234,6 @@ PLANNED: tuple[str, ...] = (
     "lost_in_gielinor",
     "diary_dash",
     "entrana_customs",
-    "kgp_recon",
 )
 
 # Every mode a player may write a question for, built or not.
@@ -248,7 +258,8 @@ def drawable(question: dict[str, Any], pictures: Collection[str]) -> bool:
     on the map only with the tiles, and on a screenshot only with that."""
     if question.get("type") == "map_pin" and TILES not in pictures:
         return False
-    if question.get("type") == "picture_pin" and question["payload"]["screenshot"] not in pictures:
+    screenshot = question["payload"].get("screenshot")
+    if screenshot is not None and screenshot not in pictures:
         return False
     return not needs_picture(question) or question["payload"].get("image") in pictures
 
@@ -335,6 +346,10 @@ def suggest_problems(mode: str, rules: Suggest) -> list[str]:
         found.append(f"{mode}: a named answer asks either its fixed prompt or a verse")
     if rules.clued and "pick_from_list" not in types:
         found.append(f"{mode}: clues are a pick_from_list field, which it does not suggest")
+    if rules.picture and not types <= PICTURED_TYPES:
+        found.append(f"{mode}: a picture is a {' or '.join(sorted(PICTURED_TYPES))} field")
+    if "picture_pin" in types and not rules.picture:
+        found.append(f"{mode}: a picture_pin is drawn on the suggester's picture, so it takes one")
     if rules.render and "multiple_choice" not in types:
         found.append(f"{mode}: a render is a multiple_choice option, which it does not suggest")
     found += [

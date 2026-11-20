@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <pattern id="scan" width="4" height="4" patternUnits="userSpaceOnUse">
+      <rect width="4" height="2" fill="rgb(0,0,0)" fill-opacity="0.22"/>
+    </pattern>
+    <radialGradient id="vignette" cx="50%" cy="50%" r="75%">
+      <stop offset="55%" stop-color="rgb(0,0,0)" stop-opacity="0"/>
+      <stop offset="100%" stop-color="rgb(0,0,0)" stop-opacity="0.7"/>
+    </radialGradient>
+  </defs>
+  <rect x="-2000" y="-2000" width="5600" height="4900" fill="rgb(70,110,90)" fill-opacity="0.22"/>
+  <rect x="-2000" y="-2000" width="5600" height="4900" fill="url(#scan)"/>
+  <rect x="-2000" y="-2000" width="5600" height="4900" fill="url(#vignette)"/>
+  <g fill="none" stroke="rgb(235,240,225)" stroke-opacity="0.85" stroke-width="6">
+    <path d="M60 170V60H170"/>
+    <path d="M1430 60H1540V170"/>
+    <path d="M60 730V840H170"/>
+    <path d="M1430 840H1540V730"/>
+    <path d="M770 450H830M800 420V480" stroke-width="4"/>
+  </g>
+  <g font-family="'Courier New', monospace" font-weight="700" font-size="44" fill="rgb(235,240,225)" fill-opacity="0.9">
+    <circle cx="112" cy="122" r="14" fill="rgb(220,40,30)"/>
+    <text x="140" y="137">REC</text>
+    <text x="1540" y="137" text-anchor="end">KGP-CAM 03</text>
+    <text x="112" y="812">SURVEILLANCE</text>
+  </g>
+</svg>

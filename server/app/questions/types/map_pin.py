@@ -4,7 +4,8 @@ Payload shape (schema ``$defs/map_pin``)::
 
     {"intro"?: str, "prompt": str, "image"?: asset, "explanation"?: str, "reach"?: int,
      "targets": [{"name": str, "min_x": int, "max_x": int, "min_y": int, "max_y": int}, ...],
-     "bounds"?: {"min_x": int, "max_x": int, "min_y": int, "max_y": int}, "view"?: <the same>}
+     "bounds"?: {"min_x": int, "max_x": int, "min_y": int, "max_y": int}, "view"?: <the same>,
+     "screenshot"?: "screenshot:<name>", "width"?: int, "height"?: int}
 
 A question asks for one pin per target, so the usual question has one target and nothing here
 treats it as a special case. The value is a list of ``{x, y}`` either way.
@@ -24,6 +25,10 @@ is open, so an order that follows the targets would say where they are.
 
 ``bounds`` is where the map stops; ``view`` is only where it opens, for a place a player is
 asked to find inside one they already know, and the whole map stays a pan away.
+
+A ``screenshot`` is a photo of the place, for a round that asks where it was taken: its
+``width`` and ``height`` go out open, for its shape, and the picture by its random name
+(``pictured``), as ``picture_pin``'s does.
 """
 
 import math
@@ -51,7 +56,7 @@ LEAST_TARGET = 10
 # What ``make gen-map`` renders; the schema holds a stored tile to the same rectangle.
 SURFACE = {"min_x": 768, "max_x": 4096, "min_y": 1792, "max_y": 4352}
 
-_OPEN_KEYS = ("intro", "prompt", "bounds", "view")
+_OPEN_KEYS = ("intro", "prompt", "bounds", "view", "width", "height")
 _PIN_KEYS = {"x", "y"}
 
 
@@ -60,6 +65,15 @@ def client_view(payload: dict[str, Any]) -> dict[str, Any]:
     how many pins."""
     view = {key: payload[key] for key in _OPEN_KEYS if key in payload}
     return {**view, "pins": len(payload["targets"])}
+
+
+def pictured(
+    view: dict[str, Any], payload: dict[str, Any], pictures: Mapping[str, str]
+) -> dict[str, Any]:
+    """``view`` with the photo of the place, if it has one, by its random name in the client."""
+    screenshot = payload.get("screenshot")
+    picture = None if screenshot is None else pictures.get(screenshot)
+    return view if picture is None else {**view, "picture": picture}
 
 
 def reveal(payload: dict[str, Any]) -> dict[str, Any]:
