@@ -159,7 +159,9 @@ describe('Create', () => {
   it('is a lobby with its doors shut, and nothing reaches the server until they open', async () => {
     await loaded(...BOTH)
     expect(document.querySelector('.scroll')?.textContent).toContain('Room code')
-    expect(screen.getByRole('region', { name: 'Your room' }).textContent).toContain('72 hours')
+    expect(
+      screen.getByRole('region', { name: 'Your room' }).textContent?.replace(/\s+/g, ' '),
+    ).toContain('72 hours')
     expect(api.createRoom).not.toHaveBeenCalled()
   })
 
