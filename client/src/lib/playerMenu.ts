@@ -68,11 +68,11 @@ export function playerMenu(
   const move = teamGame ? [moveTo(player, teams)] : []
   if (player.role === 'tv') {
     return {
-      hint: 'kick or not the TV',
-      message: `Kick ${name}, or turn off TV mode for them?`,
+      hint: 'kick or turn off TV mode',
+      message: `Kick ${name}, or switch them back to a player?`,
       choices: [
         { label: 'Kick', send: { t: 'kick', player_id: id } },
-        { label: 'Not the TV', send: { t: 'set_tv', player_id: id, on: false } },
+        { label: 'Turn off TV mode', send: { t: 'set_tv', player_id: id, on: false } },
       ],
     }
   }

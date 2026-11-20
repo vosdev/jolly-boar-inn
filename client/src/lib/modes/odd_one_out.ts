@@ -9,7 +9,7 @@ export const mode: Mode = {
   host: { id: 'dunce', name: 'Dunce' },
   greeting: "I'm in the corner for getting it wrong. Let's see if you do better.",
   blurb:
-    'Most of these belong together. One does not. Find it before Mr. Mordaut punishes me again!',
+    "Most of these belong together, but one doesn't. Find it before Mr. Mordaut punishes me again!",
   ask: [
     "One of these is like me: it doesn't fit.",
     "Find the one that doesn't belong here.",
@@ -37,8 +37,8 @@ export const mode: Mode = {
     ],
     late: [
       "Just in time! That's usually when I panic and guess C.",
-      'Phew, got it in just in time! My palms were sweating for you.',
-      'Just in time! Right before the chalk hit the blackboard.',
+      'Phew, barely made it! My palms were sweating for you.',
+      'Right before the chalk hit the blackboard!',
     ],
     early: [
       "So early! I hadn't even finished reading the options.",
@@ -60,9 +60,9 @@ export const mode: Mode = {
   verdict: {
     right: [
       'You got it! Can I copy off your slate next round?',
-      "Spot on! You'll never have to wear the pointy hat.",
+      "You'll never have to wear the pointy hat!",
       'Correct! I wish I knew half of what you know.',
-      'Nailed it! Don’t tell the teacher I helped.',
+      "Nice one! Don't tell the teacher I helped.",
     ],
     partial: [
       "Half right! Honestly, I'd frame that and hang it on the wall.",

@@ -5,11 +5,11 @@ import type { Sample } from '../samples'
 export const mode: Mode = {
   id: 'guess_examine',
   label: 'Guess the Examine',
-  hint: 'Name the thing from the line you get when you examine it.',
+  hint: 'Identify the item, NPC, or object from its examine text.',
   host: { id: 'examiner', name: 'The Examiner' },
   greeting: 'Welcome to the Digsite exam hall. Have your trowel and specimen brush ready.',
   blurb:
-    'Every true adventurer right-clicks and examines everything in sight. I will read you an examine text; you tell me what it belongs to.',
+    "Every true adventurer right-clicks and examines everything in sight. I'll read you an examine text — you tell me what it belongs to.",
   ask: [
     'What is this the examine of?',
     'Next specimen: what is this the examine of?',
@@ -39,9 +39,9 @@ export const mode: Mode = {
     ],
     late: [
       'Handed your slate in just in time! The ink is still wet.',
-      'Just in time! I was already reaching for the red pen.',
-      'Finished just in time, before the dig site closed for the day!',
-      'Scraped through just in time! Do not cut it so close next question.',
+      'Barely made it! I was already reaching for the red pen.',
+      'Finished right before the dig site closed for the day!',
+      "Scraped through at the bell! Don't cut it so close next question.",
     ],
     early: [
       'Barely dusted the soil off and you already named it!',
@@ -55,15 +55,15 @@ export const mode: Mode = {
     ],
   },
   reveal: [
-    'Let us check the field guide.',
+    "Let's check the field guide.",
     'What was the specimen?',
-    'Here is what you examined.',
-    'Let us mark the slates.',
+    "Here's what you examined.",
+    "Let's mark the slates.",
   ],
   verdict: {
     right: [
       'Full marks! Worthy of a Digsite pendant.',
-      'Spot on! You clearly examine every rock and barrel you pass.',
+      'Exactly right! You clearly examine every rock and barrel you pass.',
       'Correct! I shall stamp your Earth Sciences certificate myself.',
       'Flawless identification. Curator Haig Halen will be delighted.',
     ],

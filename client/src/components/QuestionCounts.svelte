@@ -42,10 +42,10 @@
     {/if}
   {/each}
   <p class="suggest">
-    And counting.
+    Got an idea for a new question?
     <a class="link" href="/suggest" target="_blank" rel="noopener">Suggest one →</a>
   </p>
-  <button type="button" class="primary done" onclick={onclose}>Got it</button>
+  <button type="button" class="primary done" onclick={onclose}>Close</button>
 </Sheet>
 
 <style>

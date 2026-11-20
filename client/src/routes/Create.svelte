@@ -120,7 +120,7 @@
 
   const picked = $derived((tonight.modes?.length ?? 0) > 0 || (tonight.surprise_modes ?? 0) > 0)
   const blocked = $derived(
-    teamGame && gods.length < MIN_TEAMS ? 'Tick at least two gods for a team game.' : openBlock,
+    teamGame && gods.length < MIN_TEAMS ? 'Pick at least two gods for a team game.' : openBlock,
   )
   /** The host at their own table, as the room will seat them once it exists. */
   const host = $derived<PlayerView>({
@@ -142,7 +142,7 @@
   })
 
   $effect(() => {
-    const here = { lead: 'Your room, not open yet', mode: null }
+    const here = { lead: 'Setting up room', mode: null }
     barWhere.set(here)
     // This screen fades out after the lobby has said where the night is.
     return () => barWhere.update((now) => (now === here ? null : now))
@@ -229,7 +229,7 @@
           ? 'That code was just taken - roll a new one.'
           : error instanceof ApiFailure
             ? error.message
-            : 'Could not create the room. Try again.'
+            : "Couldn't create the room. Please try again."
     } finally {
       busy = false
     }
@@ -238,16 +238,16 @@
 
 {#snippet line()}
   <p>
-    The doors are shut while you set up. Pick your rounds now, or open the doors first and let your
-    friends watch.
+    Your room isn't open yet. Pick your rounds now, or open the doors first so friends can join
+    while you set up.
   </p>
 {/snippet}
 
 {#snippet doors()}
   {#if full === true}
     <p class="banner">
-      You already have five rooms. Remove one on the <a href="/" onclick={goHome}>homepage</a>
-      to make another.
+      You already have 5 rooms open. Remove one on the <a href="/" onclick={goHome}>homepage</a>
+      to create another.
     </p>
   {:else}
     <RoomDoors bind:access bind:hideRounds {busy} {blocked} {failure} onopen={pressed} />
@@ -261,7 +261,7 @@
         <Said name={speakerFor(heroArt)} {line} />
       {/snippet}
       {#snippet paper()}
-        <JoinCode code={code ?? '…'} lead="Your room's code">
+        <JoinCode code={code ?? '…'} lead="Room code">
           <button type="button" onclick={reroll} disabled={busy || rerollHeld}>
             <Icon name="refresh" />
             Reroll

@@ -73,7 +73,7 @@ describe('PetPicker', () => {
       target: { value: 'zzzzz' },
     })
     expect(within(grid()).queryAllByRole('radio')).toHaveLength(0)
-    expect(document.querySelector('.note')?.textContent).toBe('No pet has that name.')
+    expect(document.querySelector('.note')?.textContent).toBe('No matching pets.')
   })
 
   it('does not submit the form it sits in when Enter is pressed in the search box', async () => {

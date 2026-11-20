@@ -33,7 +33,9 @@ describe('Footer', () => {
   it('says what is counted and that no cookies are used', () => {
     render(Footer)
     expect(
-      screen.getByText('We count games and rounds per day. No cookies, no personal data.'),
+      screen.getByText(
+        'We only count games and rounds played per day. No cookies, no personal data.',
+      ),
     ).toBeTruthy()
   })
 
@@ -55,7 +57,7 @@ describe('Footer', () => {
     render(Footer)
     await fireEvent.click(screen.getByRole('button', { name: 'Credits' }))
     expect(screen.getByRole('dialog', { name: 'Credits' })).toBeTruthy()
-    await fireEvent.click(screen.getByRole('button', { name: 'Got it' }))
+    await fireEvent.click(screen.getAllByRole('button', { name: 'Close' }).at(-1)!)
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
@@ -86,7 +88,7 @@ describe('Footer', () => {
     await tick()
     await fireEvent.click(screen.getByRole('button', { name: '1,578 questions and counting' }))
     expect(screen.getByRole('dialog', { name: '1,578 questions' })).toBeTruthy()
-    await fireEvent.click(screen.getByRole('button', { name: 'Got it' }))
+    await fireEvent.click(screen.getAllByRole('button', { name: 'Close' }).at(-1)!)
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
@@ -100,8 +102,9 @@ describe('Footer', () => {
     await tick()
     await fireEvent.click(screen.getByRole('button', { name: new RegExp(button) }))
     const dialog = await screen.findByRole('dialog', { name: title })
-    expect(firstControl(dialog)).toBe(screen.getByRole('button', { name: 'Close' }))
-    await fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+    const closeX = screen.getAllByRole('button', { name: 'Close' })[0]!
+    expect(firstControl(dialog)).toBe(closeX)
+    await fireEvent.click(closeX)
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 })

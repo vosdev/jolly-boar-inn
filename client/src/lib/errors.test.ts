@@ -11,7 +11,9 @@ function refusal(code: ErrorCode, message = 'from the server'): string {
 
 describe('errorText', () => {
   it('says an answer that missed the close was too late', () => {
-    expect(refusal('not_open', 'no question is open')).toBe('Too late, that question had closed.')
+    expect(refusal('not_open', 'no question is open')).toBe(
+      'Too late — that question already closed.',
+    )
   })
 
   it.each<[ErrorCode, string]>([

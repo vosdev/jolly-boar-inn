@@ -177,9 +177,9 @@
   /** What must be settled before this game leaves the browser, in words. */
   const problem = $derived(
     !surprise && totalCount > MAX_QUESTIONS
-      ? `${totalCount} questions, over the ${MAX_QUESTIONS} cap.`
+      ? `${totalCount} questions is over the ${MAX_QUESTIONS}-question limit.`
       : editingQuestion
-        ? 'Add or cancel the question you are writing first.'
+        ? "Finish or cancel the question you're writing first."
         : null,
   )
   const roundsWord = $derived(
@@ -270,7 +270,7 @@
       (modes) => (pacing = modes),
       (error: unknown) =>
         (pacingFailure =
-          error instanceof ApiFailure ? error.message : 'could not reach the server'),
+          error instanceof ApiFailure ? error.message : "Couldn't reach the server."),
     )
   })
 
@@ -336,10 +336,10 @@
       {#if pacingFailure !== null}
         <p class="error">{pacingFailure}</p>
       {:else if pacing === null}
-        <p class="note">Loading the game modes…</p>
+        <p class="note">Loading game modes…</p>
       {:else if surprise}
         <p class="count">{roundsWord}, drawn when the game starts</p>
-        <p class="note">Nobody sees them, you included, until each round starts.</p>
+        <p class="note">Nobody sees the rounds — not even you — until each one starts.</p>
         <button type="button" onclick={() => (surprise = false)}>Choose the rounds instead</button>
       {:else}
         <ul class="cards">

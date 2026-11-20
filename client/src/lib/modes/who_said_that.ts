@@ -38,8 +38,8 @@ export const mode: Mode = {
     ],
     late: [
       'Squawk! Flew in just in time before the cage door shut!',
-      'Chose your perch just in time - Polly nearly dozed off!',
-      'Just in time! One more second and you’d have missed the boat!',
+      'Picked your perch right before Polly dozed off!',
+      "Close call! One more second and you'd have missed the boat!",
     ],
     early: [
       'Squawk! Barely chirped the first word and you knew it!',
@@ -60,10 +60,10 @@ export const mode: Mode = {
   ],
   verdict: {
     right: [
-      'Squawk! Spot on! Have a cracker, matey!',
+      'Squawk! Right on the beak! Have a cracker, matey!',
       'Clever bird! You know every voice in Gielinor!',
       'Right you are! Polly tips her teacup to you!',
-      'Dead right! You’ve been reading the dialogue boxes!',
+      "Good ears! You've actually been reading the dialogue boxes!",
     ],
     partial: [
       'Half a cracker for you! Close, very close!',
@@ -73,7 +73,7 @@ export const mode: Mode = {
     wrong: [
       'Squawk! Wrong! Have you been holding spacebar through quests?',
       'No cracker for you! They never said a word of that!',
-      'Squawk! Dead wrong - even a drunken pirate knows better!',
+      'Squawk! Way off — even a drunken pirate knows better!',
       'Bawk! Did you play with your chatbox minimized?',
     ],
     missed: [

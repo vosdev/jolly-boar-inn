@@ -8,8 +8,7 @@ export const mode: Mode = {
   hint: 'Ironmen should know this.',
   host: { id: 'nieve', name: 'Nieve' },
   greeting: 'Got a task for you. Not a task to kill, but a question to solve.',
-  blurb:
-    'Your task: know the loot. Who drops it, what they drop, and at what rate they drop it. Show me what you know.',
+  blurb: 'Your task is simple: know the loot. Who drops it, what they drop, and how rare it is.',
   ask: [
     'Next on your task: how well do you know this drop?',
     'Every ironman has wiki-searched this one at 2 a.m.',
@@ -38,10 +37,10 @@ export const mode: Mode = {
       'Answer’s in. Let’s see if the RNG gods are smiling on you.',
     ],
     late: [
-      'Got that in just in time - nearly ran out of prayer at 1 HP!',
+      'Nearly ran out of prayer at 1 HP there!',
       'Clicked your emergency teleport tab just in time!',
-      'Just in time! One tick later and you’d be waking up in Lumbridge.',
-      'Ate an anglerfish just in time to survive the hit!',
+      "Close call! One tick later and you'd be waking up in Lumbridge.",
+      'Combo-ate an anglerfish right before the hit landed!',
     ],
     early: [
       'Called the drop before the monster even hit the floor!',
@@ -64,7 +63,7 @@ export const mode: Mode = {
     right: [
       'Collection log slot: completed! Nice work.',
       'Pink loot beam! You know your drop tables inside out.',
-      'Spot on! Thirty slayer points and a pat on the back.',
+      'Thirty slayer points and a pat on the back!',
       'Clean kill, clean answer. Steve couldn’t have done it better.',
     ],
     partial: [
@@ -73,7 +72,7 @@ export const mode: Mode = {
       'Not quite the unique, but decent alchables at least.',
     ],
     wrong: [
-      'Oof, nothing but ashes and a troll roll of 32 pure essence.',
+      'Nothing but ashes and a troll roll of 32 pure essence.',
       'Wrong! Go see Turael and reset your streak.',
       'Missed! Did you forget to wear your slayer helmet?',
       'Zero points. Enjoy your task of 180 bronze dragons.',

@@ -232,7 +232,8 @@
 
   function rotateKey(): void {
     asking = {
-      message: 'Make a new link? The current one stops working. Players already here stay.',
+      message:
+        'Generate a new invite link? The old one will stop working, but players already in the room will stay.',
       label: 'New link',
       act: () => socket.send({ t: 'rotate_key' }),
     }
@@ -326,7 +327,7 @@
         <Said name={speakerFor(heroArt)} line={greeting} />
       {/snippet}
       {#snippet paper()}
-        <JoinCode {code} lead="Your friends join with this code">
+        <JoinCode {code} lead="Share this code to invite friends">
           <button type="button" onclick={copy}>
             <Icon name="copy" />
             {copyResult === 'copied'
@@ -349,7 +350,7 @@
             <p class="aside">{length}</p>
           </div>
           {#if rounds === 0}
-            <p class="empty">The rounds show up here as the host picks them.</p>
+            <p class="empty">Rounds will appear here as the host picks them.</p>
           {/if}
           <RoundCards modes={settings.modes} {secret} {rounds} />
           {#if secret}
@@ -357,7 +358,7 @@
               Tonight's rounds are a surprise. Each one is revealed when it starts.
             </p>
           {:else if rounds > 1}
-            <p class="aside">Listed A–Z, not in the order they play.</p>
+            <p class="aside">Listed A–Z, not in play order.</p>
           {/if}
           <div class="board-line">
             <button
@@ -368,7 +369,7 @@
             >
               How to play
             </button>
-            <p class="aside">Quicker and correct answers score more.</p>
+            <p class="aside">Faster correct answers score more points.</p>
           </div>
         </section>
       {/if}
@@ -401,8 +402,7 @@
                         <button type="button" class="primary" onclick={() => decide(request, true)}
                           >Let in</button
                         >
-                        <button type="button" onclick={() => decide(request, false)}
-                          >Turn away</button
+                        <button type="button" onclick={() => decide(request, false)}>Decline</button
                         >
                       </span>
                     </li>

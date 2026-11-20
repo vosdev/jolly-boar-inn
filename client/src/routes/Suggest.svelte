@@ -95,7 +95,10 @@
         view = 'limited'
         return
       }
-      failure = error instanceof ApiFailure ? error.message : 'the suggestion was not sent'
+      failure =
+        error instanceof ApiFailure
+          ? error.message
+          : "Couldn't send your suggestion. Please try again."
       view = 'write'
     }
   }
@@ -110,7 +113,7 @@
 {#if !allowed}
   <section class="panel">
     <h1>Suggest a question</h1>
-    <p>Play a game first. Once you have, come back here with your questions.</p>
+    <p>Play a game first, then come back here to suggest questions.</p>
     <button type="button" onclick={() => navigate('/')}>Home</button>
   </section>
 {:else if view === 'checking'}
@@ -122,7 +125,7 @@
   <section class="panel">
     <h1>Suggest a question</h1>
     <p>
-      That's as many as Reldo reads from one connection in an hour. Try again
+      Reldo can only read so many suggestions per hour! Try again
       {retryIn(retryAt, Date.now())}.
     </p>
     <button type="button" onclick={() => navigate('/')}>Home</button>
@@ -131,8 +134,8 @@
   <section class="panel">
     <h1>Thanks, it's on Reldo's desk</h1>
     <p>
-      Reldo reads every suggestion. An approved one joins the game in a later update. There's no
-      account, so you won't hear back: watch for it in a game.
+      Every suggestion is reviewed, and approved ones are added in a future update. Since there are
+      no accounts, you won't get a reply — keep an eye out for yours in-game!
     </p>
     <div class="row">
       <button type="button" class="primary" onclick={() => void another()}>Suggest another</button>
@@ -143,7 +146,7 @@
   <section class="panel">
     <h1>Suggest a question</h1>
     <p class="note">
-      Everything here is written by players and read by Reldo before anyone plays it.
+      Player-submitted questions are reviewed by Reldo before being added to the game.
     </p>
   </section>
   {#if failure !== null}
@@ -176,7 +179,7 @@
         <section class="panel">
           <p class="back">
             <button type="button" class="link" onclick={() => (choice = null)}>
-              ← Everything you can suggest
+              ← All suggestion types
             </button>
           </p>
           {#key round}

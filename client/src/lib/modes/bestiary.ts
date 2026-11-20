@@ -5,7 +5,7 @@ import type { Sample } from '../samples'
 export const mode: Mode = {
   id: 'bestiary',
   label: 'Bestiary',
-  hint: 'Combat levels, looks and haunts of the monsters.',
+  hint: "Combat levels, appearances, and where Gielinor's monsters lurk.",
   host: { id: 'zoo_keeper', name: 'Zoo keeper' },
   greeting: 'Welcome to Ardougne Zoo! Keep your fingers outside the bars, some of these bite.',
   blurb:
@@ -29,7 +29,7 @@ export const mode: Mode = {
       'Faster than a startled chinchompa! You know your monsters.',
       'Quick as a pit-trap! You’ve fought plenty of those, haven’t you?',
       'Straight in! You didn’t even need the Monster Examine spell.',
-      'Rapid! You could wrangle escaped penguins for a living.',
+      'Lightning fast! You could wrangle escaped penguins for a living.',
     ],
     middling: [
       'A steady pace, faster than a gnome tortoise at least.',
@@ -39,9 +39,9 @@ export const mode: Mode = {
     ],
     late: [
       'Slipped through the zoo gates just in time!',
-      'Got that in just in time before feeding time started!',
-      'Just in time! The scorpion nearly had your fingers.',
-      'Right at closing bell, just in time!',
+      'Got that in right before feeding time started!',
+      'Close call! The scorpion nearly had your fingers.',
+      'Made it right at the closing bell!',
     ],
     early: [
       'Called it from a single footprint! Impressive.',
@@ -62,10 +62,10 @@ export const mode: Mode = {
   ],
   verdict: {
     right: [
-      'Spot on! You know Gielinor’s wildlife better than Parroty Pete.',
-      'Dead right! Toss a fish to the penguins on your way out.',
+      "You know Gielinor's wildlife better than Parroty Pete!",
+      'Right you are! Toss a fish to the penguins on your way out.',
       'Correct! Even the cyclops is nodding at you.',
-      'Nailed it! You’ve clearly spent some hours in the field.',
+      "Well done! You've clearly spent some hours in the field.",
     ],
     partial: [
       'Close! You’d survive the encounter, maybe with a scratch or two.',
@@ -73,7 +73,7 @@ export const mode: Mode = {
       'Half marks! You’ve seen one before, even if you forgot the details.',
     ],
     wrong: [
-      'Oof, no! Walk into its lair thinking that and you’re dragon food.',
+      "No, no! Walk into its lair thinking that and you're dragon food.",
       'Wrong beast entirely! Did a monkey write your notes?',
       'Not even close! Stay on the visitor path where it’s safe.',
       'Wrong! Even the sheep by the north fence knew that one.',

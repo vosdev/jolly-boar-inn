@@ -480,7 +480,7 @@ describe('CustomQuestions', () => {
     await click(panel, 'Write a question')
     const create = screen.getByRole('button', { name: 'Open the doors' }) as HTMLButtonElement
     expect(create.disabled).toBe(true)
-    expect(document.body.textContent).toContain('Add or cancel the question you are writing')
+    expect(document.body.textContent).toContain("Finish or cancel the question you're writing")
     await click(editor(), 'Cancel')
     expect(create.disabled).toBe(false)
   })
@@ -489,8 +489,10 @@ describe('CustomQuestions', () => {
     const panel = await loaded()
     await writeChoice(panel, 'One')
     await writeChoice(panel, 'Two')
-    expect(panel.textContent).toContain('Every random event is already one of yours.')
-    expect(panel.textContent).toContain('pick More frequency')
+    expect(panel.textContent).toContain(
+      'All random event slots are already filled by your questions.',
+    )
+    expect(panel.textContent).toContain('increase random event frequency')
     await writeChoice(panel, 'Three')
     expect(listed(panel)).toEqual(['One', 'Two', 'Three'])
     expect(ticks(panel)).toEqual([true, true, false])
@@ -552,7 +554,7 @@ describe('CustomQuestions', () => {
     await waitFor(() => expect(listed(panel)).toEqual(['Old', 'New']))
     expect(ticks(panel)).toEqual([true, false])
     expect(panel.textContent).toContain('Type the answer · Evil Bob')
-    expect(panel.textContent).toContain('Added 1 question, unticked; 1 was already in your list.')
+    expect(panel.textContent).toContain('Added 1 question (unchecked); 1 already in your list.')
     await chooseFile(panel, exportText(file))
     await within(panel).findByText('Every question in this file is already in your list.')
     expect(listed(panel)).toEqual(['Old', 'New'])
@@ -585,7 +587,7 @@ describe('CustomQuestions', () => {
     await chooseFile(panel, JSON.stringify(three))
     await within(panel).findByText(/Nothing was imported/)
     expect(panel.querySelector('.banner')!.textContent).toContain(
-      `This file has 3 new questions, and your list has room for 2 more of the ${BANK_MAX} it keeps.`,
+      `This file has 3 new questions, but you only have room for 2 more (limit ${BANK_MAX}).`,
     )
     expect(listed(panel)).toHaveLength(BANK_MAX - 2)
   })
@@ -595,9 +597,7 @@ describe('CustomQuestions', () => {
     const panel = await loaded()
     const write = within(panel).getByRole('button', { name: 'Write a question' })
     expect((write as HTMLButtonElement).disabled).toBe(true)
-    expect(panel.textContent).toContain(
-      `Saved in this browser for your next room, ${BANK_MAX} at most.`,
-    )
+    expect(panel.textContent).toContain('Saved in this browser for future rooms (limit reached).')
   })
 
   it('sends only the ticked questions, in bank order', async () => {
@@ -613,10 +613,10 @@ describe('CustomQuestions', () => {
     const panel = await loaded()
     await writeChoice(panel, 'A')
     await writeChoice(panel, 'B')
-    await click(panel, 'Untick all')
+    await click(panel, 'Uncheck all')
     expect(ticks(panel)).toEqual([false, false])
     expect(listed(panel)).toEqual(['A', 'B'])
-    expect(within(panel).queryByRole('button', { name: 'Untick all' })).toBeNull()
+    expect(within(panel).queryByRole('button', { name: 'Uncheck all' })).toBeNull()
     expect(await submitted()).toEqual([])
   })
 
@@ -625,7 +625,7 @@ describe('CustomQuestions', () => {
     await writeChoice(panel, 'First', 'Genie')
     await writeChoice(panel, 'Second')
     await fireEvent.click(tick(panel, 2))
-    expect(panel.textContent).toContain('Saved in this browser for your next room.')
+    expect(panel.textContent).toContain('Saved in this browser for future rooms.')
     await submitted()
     cleanup()
     panel = await loaded()

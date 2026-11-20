@@ -13,12 +13,12 @@
     {
       value: 'link',
       label: 'Invite link',
-      note: "The room code alone won't let anyone in; they need the link, or be manually approved by you.",
+      note: "The room code alone won't let anyone in — they'll need the invite link or your approval.",
     },
     {
       value: 'public',
       label: 'Public',
-      note: "Listed on this site's homepage, where anyone can join it.",
+      note: 'Listed on the homepage so anyone can join.',
     },
   ]
 
@@ -47,7 +47,7 @@
   <Segmented legend="Who can join" hideLegend options={ACCESS} bind:value={access} />
   <p class="note">{ACCESS.find((option) => option.value === access)?.note}</p>
   <Switch label="Surprise rounds" checked={hideRounds} onclick={() => (hideRounds = !hideRounds)} />
-  <p class="note">Hide the game modes in the lobby from the players.</p>
+  <p class="note">Hide the chosen game modes from players in the lobby.</p>
   {#if blocked !== null}
     <p class="note">{blocked}</p>
   {/if}
@@ -58,8 +58,8 @@
     <p class="banner bad">{failure}</p>
   {/if}
   <p class="note">
-    These settings and the room's code are fixed once you open the doors. Rooms last 72 hours after
-    opening.
+    These settings and the room code are locked once you open the doors. Rooms stay open for 72
+    hours.
   </p>
 </section>
 

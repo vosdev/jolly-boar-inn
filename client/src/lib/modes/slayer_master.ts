@@ -37,8 +37,8 @@ export const mode: Mode = {
     ],
     late: [
       'Struck the finishing blow just in time!',
-      'Activated Protect from Melee just in time, adventurer!',
-      'Got your answer in just in time before the dragonfire landed!',
+      'Flicked Protect from Melee at the last tick, adventurer!',
+      'Got your answer in right before the dragonfire landed!',
     ],
     early: [
       'You knew the task before I even named the dungeon!',
@@ -62,7 +62,7 @@ export const mode: Mode = {
       'Well struck, adventurer. Take a Brimstone key for your trouble.',
       'Flawless knowledge. Even Duradel would respect that answer.',
       'Correct! Your task is complete, and your streak grows stronger.',
-      'Spot on. You know every weakness in the Slayer codex.',
+      'Well done. You know every weakness in the Slayer codex.',
     ],
     partial: [
       'You survived the task, though you brought the wrong combat style.',

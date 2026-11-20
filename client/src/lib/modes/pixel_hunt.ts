@@ -6,11 +6,11 @@ export const mode: Mode = {
   label: 'Pixel Hunt',
   hint: 'How fast can you recognize the item?',
   host: { id: 'sherlock', name: 'Sherlock' },
-  greeting: 'Step up to the flax field. Let us see how sharp your eyes really are.',
+  greeting: "Step up to the flax field. Let's see how sharp your eyes really are.",
   blurb:
-    'I will reveal an item a few pixels at a time. Name it from the list before the full icon shows - the fewer pixels you need, the more points you earn.',
+    "I'll reveal an item a few pixels at a time. Pick it from the list as soon as you recognize it — the fewer pixels you need, the more points you score.",
   // Answering early means naming it from less of the picture, so steps still pay in a team game.
-  teams: 'Speed is off for teams, but not here: the earlier you name it, the more it pays.',
+  teams: 'Unlike most rounds in a team game, guessing earlier still scores more points here.',
   ask: [
     'A new master challenge. What item is this?',
     'Squint at the pixels. Which item do you see?',
@@ -21,25 +21,25 @@ export const mode: Mode = {
   waiting: [
     'Waiting on the others. Some folk still sort their bank by colour.',
     'Hold on, the rest of the room is still squinting at the pixels.',
-    'I have stood by the Seers’ flax field for years; I can wait a bit.',
-    'Still puzzling it out, the others. No Bloodhound pet for slow eyes.',
+    "I've stood by the Seers' flax field for years; I can wait a bit.",
+    'The others are still puzzling it out. No Bloodhound for slow eyes.',
   ],
   pace: {
     quick: [
       'Spot-checked in a second! You know every sprite in your bank.',
-      'Fast! You did not even need a magnifying glass.',
+      "Fast! You didn't even need a magnifying glass.",
       'Completed the challenge before the second pixel pass!',
       'Razor-sharp! Worthy of a master clue casket.',
     ],
     middling: [
       'Named once the silhouette came together. Sensible.',
       'Challenge completed at a steady pace. Hand me your scroll.',
-      'A clean identification. Let us wait on the rest of the room.',
+      "A clean identification. Let's wait on the rest of the room.",
     ],
     late: [
       'Named it just in time, with the full icon staring right at you!',
-      'Completed the challenge just in time before your clue scroll tore!',
-      'Got it in just in time! The last pixel was already in place.',
+      'Completed the challenge right before your clue scroll tore!',
+      'Got it in at the last second! The final pixel was already in place.',
     ],
     early: [
       'From four giant squares of colour?! You stare at your bank too much.',
@@ -54,16 +54,16 @@ export const mode: Mode = {
   },
   reveal: [
     'Every pixel in place.',
-    'Here is the full icon.',
+    "Here's the full icon.",
     'Challenge complete:',
     'The item revealed:',
   ],
   verdict: {
     right: [
-      'Spot on! Here is your challenge scroll back, marked complete.',
+      "Here's your challenge scroll back, marked complete!",
       'Flawless eye! One step closer to the Bloodhound.',
       'Correct! You know your inventory sprites inside out.',
-      'Solved! Even Watson could not fault that eye.',
+      "Solved! Even Watson couldn't fault that eye.",
     ],
     partial: [
       'Right item family, wrong tier. Partial credit.',

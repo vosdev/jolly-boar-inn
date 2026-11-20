@@ -158,7 +158,7 @@ function ticked(): string[] {
 describe('Create', () => {
   it('is a lobby with its doors shut, and nothing reaches the server until they open', async () => {
     await loaded(...BOTH)
-    expect(screen.getByText("Your room's code")).toBeTruthy()
+    expect(document.querySelector('.scroll')?.textContent).toContain('Room code')
     expect(screen.getByRole('region', { name: 'Your room' }).textContent).toContain('72 hours')
     expect(api.createRoom).not.toHaveBeenCalled()
   })
@@ -542,7 +542,7 @@ describe('Create', () => {
     await tab('Random events')
     const events = screen.getByRole('region', { name: 'Random events' })
     expect(events.textContent).toContain('2 in this game')
-    expect(events.textContent).toContain('Each one a surprise.')
+    expect(events.textContent).toContain('All of them will be a surprise.')
     const own = screen.getByRole('region', { name: 'Write your own' })
     await press(own, 'Write a question')
     const form = screen.getByRole('group', { name: 'New question' })
@@ -645,7 +645,7 @@ describe('Create', () => {
     await teamGame()
     await pick('Zamorak')
     expect(document.querySelector('.doors')?.textContent).toContain(
-      'Tick at least two gods for a team game.',
+      'Pick at least two gods for a team game.',
     )
     expect(createButton().disabled).toBe(true)
     await pick('Bandos')
@@ -672,12 +672,12 @@ describe('Create', () => {
     )
     await fireEvent.click(radio('Invite link'))
     expect(choice.nextElementSibling?.textContent).toBe(
-      "The room code alone won't let anyone in; they need the link, or be manually approved by you.",
+      "The room code alone won't let anyone in — they'll need the invite link or your approval.",
     )
     await fireEvent.click(radio('Public'))
     expect(radio('Invite link').checked).toBe(false)
     expect(choice.nextElementSibling?.textContent).toBe(
-      "Listed on this site's homepage, where anyone can join it.",
+      'Listed on the homepage so anyone can join.',
     )
     await submitted()
     expect(vi.mocked(api.createRoom).mock.calls[0]![4]).toBe('public')
@@ -772,7 +772,7 @@ describe('Create', () => {
     for (const name of ['Walk', 'Run', 'Teleport'])
       expect(screen.getByRole('radio', { name })).toBeTruthy()
     await fireEvent.click(screen.getByRole('radio', { name: 'Teleport' }))
-    expect(screen.getByText('For a room that knows its stuff.')).toBeTruthy()
+    expect(screen.getByText('Faster timers for players who know their stuff.')).toBeTruthy()
     expect((await submitted()).pace).toBe('teleport')
   })
 
@@ -949,9 +949,9 @@ describe('Create with five rooms already', () => {
   it('refuses a sixth and links the homepage, where each room has Remove', async () => {
     const navigate = vi.fn()
     render(Create, { navigate })
-    const banner = await screen.findByText(/You already have five rooms/)
+    const banner = await screen.findByText(/You already have 5 rooms open/)
     expect(banner.textContent?.replace(/\s+/g, ' ').trim()).toBe(
-      'You already have five rooms. Remove one on the homepage to make another.',
+      'You already have 5 rooms open. Remove one on the homepage to create another.',
     )
     expect(screen.queryByRole('button', { name: 'Open the doors' })).toBeNull()
     await fireEvent.click(within(banner).getByRole('link', { name: 'homepage' }))
@@ -988,7 +988,7 @@ describe('Create with five rooms already', () => {
   it('counts a room it could not check, since nothing says it is gone', async () => {
     vi.mocked(api.getRoom).mockRejectedValue(new api.ApiFailure(429, 'rate_limited', 'slow down'))
     render(Create, { navigate: () => {} })
-    expect(await screen.findByText(/You already have five rooms/)).toBeTruthy()
+    expect(await screen.findByText(/You already have 5 rooms open/)).toBeTruthy()
     expect(createdRooms()).toHaveLength(5)
   })
 
@@ -1000,7 +1000,7 @@ describe('Create with five rooms already', () => {
     await waitFor(() => expect(createButton().disabled).toBe(false))
     rememberCreated(last!, '2099-01-01T00:00:00Z')
     await fireEvent.click(createButton())
-    expect(await screen.findByText(/You already have five rooms/)).toBeTruthy()
+    expect(await screen.findByText(/You already have 5 rooms open/)).toBeTruthy()
     expect(api.createRoom).not.toHaveBeenCalled()
   })
 })

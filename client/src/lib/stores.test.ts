@@ -236,7 +236,7 @@ describe('applyServerMessage', () => {
       picture: null,
     })
     applyServerMessage({ t: 'error', code: 'not_open', message: 'no question is open' })
-    expect(errorText(get(lastError)!)).toBe('Too late, that question had closed.')
+    expect(errorText(get(lastError)!)).toBe('Too late — that question already closed.')
   })
 
   it('hands the reveal the picture a round held back while its question was open', () => {

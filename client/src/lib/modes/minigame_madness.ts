@@ -10,7 +10,7 @@ export const mode: Mode = {
   greeting:
     "Are you team Castle Wars, Barbarian Assault or Pest Control? It doesn't matter tonight. Everyone's on the quiz team!",
   blurb:
-    "I've watched every lobby in Gielinor fill up. Prizes, points, places: tell me what you know.",
+    "I've watched every minigame lobby in Gielinor fill up. Rewards, points, and strategies — let's see what you know.",
   ask: [
     "Next game's starting! Step through the portal.",
     'The lobby is full. Let’s see what you know!',
@@ -23,7 +23,7 @@ export const mode: Mode = {
     'Someone still hasn’t called their role on the horn.',
     'Hold the stairs! Waiting on the rest of the lobby.',
     'Grab a bandage from the table while the others finish up.',
-    'Please do not leave on Wave 9 while we wait.',
+    "Please don't leave on Wave 9 while we wait.",
   ],
   pace: {
     quick: [
@@ -38,9 +38,9 @@ export const mode: Mode = {
       'Locked in with time to spare. Nobody’s kicking you from the boat.',
     ],
     late: [
-      'Slipped through the portal just in time before the game started!',
-      'Got the flag home just in time, right on the whistle!',
-      'Repaired the barricade just in time! Close call.',
+      'Slipped through the portal right before the game started!',
+      'Got the flag home right on the whistle!',
+      'Repaired the barricade with a tick to spare! Close call.',
       'Made the Pest Control boat just in time!',
     ],
     early: [
@@ -64,7 +64,7 @@ export const mode: Mode = {
     right: [
       'Victory! Two Castle Wars tickets and bragging rights.',
       'Your team takes the flag! Gold decorative armour material.',
-      'Spot on! The Void Knight lived with full hitpoints.',
+      'Clean win! The Void Knight lived with full hitpoints.',
       'Wave 10 cleared! The Penance Queen didn’t stand a chance.',
     ],
     partial: [

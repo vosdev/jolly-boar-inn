@@ -58,7 +58,7 @@
       <input type="checkbox" bind:checked={secret} />
       Keep them a surprise
     </label>
-    <p class="note">Nobody sees them, you included, until each round starts.</p>
+    <p class="note">Nobody sees the rounds — not even you — until each one starts.</p>
   {/if}
   <div class="row">
     <button type="button" class="primary" onclick={() => onPick(howMany, canHide && secret)}

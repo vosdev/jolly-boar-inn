@@ -142,7 +142,7 @@ describe('Splash stage', () => {
     const hunt = { ...SEGMENT, mode: 'pixel_hunt' }
     const line = MODES.pixel_hunt!.teams!
     expect(line).toBe(
-      'Speed is off for teams, but not here: the earlier you name it, the more it pays.',
+      'Unlike most rounds in a team game, guessing earlier still scores more points here.',
     )
     const shown = (settings: RoomSettings) => {
       render(Splash, {

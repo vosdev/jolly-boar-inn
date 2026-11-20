@@ -152,11 +152,11 @@
   })
 
   const FAREWELL: Record<ClosureReason, string> = {
-    replaced: 'You opened this room on another device. Only the newest one stays connected.',
-    bad_session: 'This device is no longer a player in the room. Join again to come back.',
-    kicked: 'An admin removed you from the room.',
-    no_room: 'That room is gone — it either never existed or it has expired.',
-    protocol: 'The connection ended on a protocol error. Reloading usually fixes it.',
+    replaced: 'You opened this room on another device, so this one was disconnected.',
+    bad_session: "You're no longer connected to this room. Join again to come back.",
+    kicked: 'The host removed you from the room.',
+    no_room: 'This room is no longer available — it may have expired or been removed.',
+    protocol: 'Lost connection due to a technical error. Reloading usually fixes it.',
     stopped: 'Disconnected.',
   }
 

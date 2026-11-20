@@ -23,7 +23,7 @@
   const EVENTS: Slide = {
     id: 'events',
     label: 'Random events',
-    hint: 'Now and then a stranger interrupts a round with a question of their own.',
+    hint: 'Every now and then, an NPC drops in mid-round with a surprise question.',
     host: { id: STRANGER, name: 'Mysterious Old Man' },
   }
 

@@ -1439,7 +1439,7 @@ describe('a Book of Knowledge answer', () => {
       onAnswer,
     })
     expect(
-      screen.getByText("The book answered for you. You'll see the result on the reveal."),
+      screen.getByText("The book answered for you. You'll see your score on the reveal."),
     ).toBeTruthy()
     const answered = screen.getByRole('button', { name: 'Answered' }) as HTMLButtonElement
     expect(answered.disabled).toBe(true)

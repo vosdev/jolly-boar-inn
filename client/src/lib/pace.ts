@@ -4,7 +4,7 @@ import type { Pace } from './protocol'
 export const PACES: { value: Pace; label: string; note: string }[] = [
   { value: 'walk', label: 'Walk', note: 'Extra time for each question and the reveal.' },
   { value: 'run', label: 'Run', note: 'The standard pace the game is built around.' },
-  { value: 'teleport', label: 'Teleport', note: 'For a room that knows its stuff.' },
+  { value: 'teleport', label: 'Teleport', note: 'Faster timers for players who know their stuff.' },
 ]
 
 export function paceLabel(pace: Pace): string {

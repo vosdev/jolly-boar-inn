@@ -5,11 +5,11 @@ import type { Sample } from '../samples'
 export const mode: Mode = {
   id: 'riddles_of_the_sphinx',
   label: 'Riddles of the Sphinx',
-  hint: 'Five clues, vaguest first. How few do you need?',
+  hint: 'Five clues, starting vague. How fast can you guess it?',
   host: { id: 'sphinx', name: 'Sphinx' },
   greeting: 'Welcome to Sophanem, traveller. Answer my riddles, if you can.',
   blurb:
-    'I describe someone or something of Gielinor in five clues. Pick the answer from the list; the sooner you answer, the more points you earn.',
+    "I'll describe someone or something from Gielinor in five clues. Pick the answer from the list — the fewer clues you need, the more points you score.",
   ask: [
     'Hear my riddle, traveller. What do I describe?',
     'Who or what am I? Listen closely.',
@@ -37,8 +37,8 @@ export const mode: Mode = {
     ],
     late: [
       'Just in time! You waited for every clue.',
-      'The punchline gave it away just in time.',
-      'Just in time, before the sands ran out.',
+      'The final clue gave it away at the last second.',
+      'Made it before the sands ran out.',
     ],
     early: [
       'So soon? Bold, traveller.',
@@ -109,5 +109,5 @@ export const sample: Sample = {
 
 export const card: SuggestCard = {
   place: 19,
-  hint: 'Five clues, vaguest first, for the Sphinx to ask.',
+  hint: 'Five clues, starting vague, for the Sphinx to ask.',
 }

@@ -28,7 +28,7 @@
     </p>
   {/if}
   {#if waiting.length > 0}
-    <p class="head">Still to answer</p>
+    <p class="head">Waiting on</p>
     <ul class="waiting">
       {#each waiting as player (player.id)}
         <li>

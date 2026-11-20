@@ -97,11 +97,11 @@ describe('playerMenu', () => {
   it('kicks the TV or makes it a player again, with or without teams', () => {
     for (const teams of [FREE_FOR_ALL, TEAMS]) {
       expect(playerMenu(player('b', 'tv'), HOST, teams, 1)).toEqual({
-        hint: 'kick or not the TV',
-        message: 'Kick Woox, or turn off TV mode for them?',
+        hint: 'kick or turn off TV mode',
+        message: 'Kick Woox, or switch them back to a player?',
         choices: [
           { label: 'Kick', send: { t: 'kick', player_id: 'b' } },
-          { label: 'Not the TV', send: { t: 'set_tv', player_id: 'b', on: false } },
+          { label: 'Turn off TV mode', send: { t: 'set_tv', player_id: 'b', on: false } },
         ],
       })
     }

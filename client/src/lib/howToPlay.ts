@@ -76,7 +76,7 @@ export const HOW_TO_ROWS: HowToRow[] = [
   },
 ]
 
-export const SCORING_LINE = 'Quicker and correct answers score more.'
+export const SCORING_LINE = 'Faster correct answers score more points.'
 
 /** Mystery Boxes, before the scoring line wherever a game deals them. */
 export const ITEMS_LINE =
@@ -89,7 +89,7 @@ export function showsItems(settings: RoomSettings | null): boolean {
 
 /** A team game scores otherwise, so a room with teams shows this in place of the line above. */
 export const TEAMS_PARAGRAPH =
-  "In a team game, everyone joins a god's team in the lobby. Speed doesn't count - your team scores the average of its members' points. Pixel Hunt is the exception: the earlier you name it, the more it pays."
+  "In a team game, everyone joins a god's team in the lobby. Speed is less important than in free-for-all games, and your team scores the average of its members' points."
 
 export type WayId = 'free' | 'teams' | 'sofa'
 
@@ -99,13 +99,13 @@ export const WAYS_TO_PLAY: readonly { id: WayId; title: string; text: string; dr
     {
       id: 'free',
       title: 'Free for all',
-      text: 'Everyone plays on their own computer or phone and scores points for themselves. Quicker, right answers score more. Up to 50 players.',
+      text: 'Everyone plays on their own computer or phone and scores points for themselves. Faster correct answers score more. Up to 50 players.',
       drawing: 'A laptop showing a question, with a pet in front of it scoring 820 points.',
     },
     {
       id: 'teams',
       title: 'Team against team',
-      text: "Join a god's team in the lobby. Speed doesn't count - your team scores the average of its members' points. Up to 6 teams and 50 players in total.",
+      text: "Join a god's team in the lobby. Speed is less important than in free-for-all games, and your team scores the average of its members' points. Up to 6 teams and 50 players in total.",
       drawing: 'Saradomin and Zamorak side by side, three pets on each, with their team scores.',
     },
     {
@@ -138,7 +138,7 @@ export const NIGHT_STOPS: readonly NightStop[] = [
     id: 'create',
     label: 'Create a room',
     title: 'Create a room',
-    text: 'Click Create a room on the home page. As the host, you run the table, and your room stays open for up to 48 hours.',
+    text: 'Click Create a room on the home page. As the host, you control the game, and your room stays open for up to 48 hours.',
     drawing: 'The front page, with Create a room picked out.',
     stamp: { kind: 'item', id: 2347 },
   },
@@ -162,7 +162,7 @@ export const NIGHT_STOPS: readonly NightStop[] = [
     id: 'ready',
     label: 'Ready up',
     title: 'Ready up to start',
-    text: 'Everyone flips their Ready switch in the lobby, and the host hits Start when the room is set.',
+    text: "Everyone toggles Ready in the lobby, and the host hits Start when everyone's set.",
     drawing: 'The Ready and Not ready yet lists, with the Ready switch on and the Start button.',
     stamp: { kind: 'item', id: 1917 },
   },

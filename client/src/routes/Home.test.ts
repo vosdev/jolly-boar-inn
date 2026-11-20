@@ -130,7 +130,7 @@ describe('How to play on Home', () => {
     expect(within(night).getAllByRole('listitem')).toHaveLength(NIGHT_STOPS.length)
     await fireEvent.click(within(night).getByRole('button', { name: /Answer$/ }))
     await within(night).findByRole('heading', { name: 'One answer' })
-    expect(within(night).getByText('Quicker and correct answers score more.')).toBeTruthy()
+    expect(within(night).getByText('Faster correct answers score more points.')).toBeTruthy()
   })
 
   it('goes to Create from the last stop, as Home does', async () => {
@@ -150,7 +150,7 @@ describe('How to play on Home', () => {
       'Team against team',
       'On the sofa',
     ])
-    expect(shown[1]?.textContent).toContain("Speed doesn't count")
+    expect(shown[1]?.textContent).toContain('Speed is less important')
     expect(shown[1]?.textContent).toContain('average')
     expect(shown[2]?.textContent).toContain("room's TV")
     expect(within(ways as HTMLElement).getAllByRole('img')).toHaveLength(3)
@@ -218,8 +218,8 @@ describe('Home', () => {
   it("challenges the visitor in the site's name, and one tap goes to Create", async () => {
     render(Home, { navigate })
     expect(document.querySelector('.bubble .speech')?.textContent?.replace(/\s+/g, ' ')).toContain(
-      'Think you know Gielinor? Prove it at The Jolly Boar Inn! Join a room with its code, or ' +
-        'create your own and host it for your friends, your clan or your stream.',
+      'Think you know Gielinor? Prove it at The Jolly Boar Inn! Enter a room code to join a game, ' +
+        'or host your own for your friends, clan, or stream.',
     )
     await fireEvent.click(screen.getByRole('button', { name: 'Create a room' }))
     expect(navigate).toHaveBeenCalledWith('/create')
@@ -280,12 +280,12 @@ describe('Home', () => {
   it('says so when what was typed is not a code, and stays put', async () => {
     render(Home, { navigate })
     await typeCode('- -')
-    expect(screen.getByText('That is not a room code.')).toBeTruthy()
+    expect(screen.getByText("That doesn't look like a room code.")).toBeTruthy()
     expect(navigate).not.toHaveBeenCalled()
     await fireEvent.input(screen.getByLabelText('Join an existing room'), {
       target: { value: 'dragon' },
     })
-    expect(screen.queryByText('That is not a room code.')).toBeNull()
+    expect(screen.queryByText("That doesn't look like a room code.")).toBeNull()
   })
 
   it('lists only the rooms created here that have not expired', () => {
@@ -388,7 +388,7 @@ describe('Home', () => {
       expect(api.deleteRoom).not.toHaveBeenCalled()
       const dialog = screen.getByRole('dialog')
       expect(dialog.textContent).toContain(
-        'Remove room RUNE? Anybody still in it is dropped, and this cannot be undone.',
+        "Remove room RUNE? Anyone still inside will be disconnected. This can't be undone.",
       )
       await fireEvent.click(within(dialog).getByRole('button', { name: 'Remove' }))
       expect(api.deleteRoom).toHaveBeenCalledWith('RUNE', 'host-session')
@@ -425,7 +425,7 @@ describe('Room limit', () => {
   it('disables Create with a reason once five rooms are hosted here', async () => {
     host(HOSTED)
     render(Home, { navigate })
-    const banner = await screen.findByText(/You already have five rooms/)
+    const banner = await screen.findByText(/You already have 5 rooms open/)
     expect(create().disabled).toBe(true)
     expect(create().getAttribute('aria-describedby')).toBe(banner.id)
   })
@@ -435,7 +435,7 @@ describe('Room limit', () => {
     render(Home, { navigate })
     await waitFor(() => expect(api.getPublicRooms).toHaveBeenCalled())
     expect(create().disabled).toBe(false)
-    expect(screen.queryByText(/You already have five rooms/)).toBeNull()
+    expect(screen.queryByText(/You already have 5 rooms open/)).toBeNull()
     expect(api.getRoom).not.toHaveBeenCalled()
   })
 
@@ -453,14 +453,14 @@ describe('Room limit', () => {
   it('frees Create the moment a room is removed', async () => {
     host(HOSTED)
     render(Home, { navigate })
-    await screen.findByText(/You already have five rooms/)
+    await screen.findByText(/You already have 5 rooms open/)
     const rune = screen.getByText('RUNE').closest('li')!
     await fireEvent.click(within(rune).getByRole('button', { name: 'Remove room RUNE' }))
     await fireEvent.click(
       within(screen.getByRole('dialog')).getByRole('button', { name: 'Remove' }),
     )
     await waitFor(() => expect(create().disabled).toBe(false))
-    expect(screen.queryByText(/You already have five rooms/)).toBeNull()
+    expect(screen.queryByText(/You already have 5 rooms open/)).toBeNull()
   })
 })
 
@@ -491,12 +491,7 @@ describe('Layout', () => {
     render(Home, { navigate })
     await screen.findByRole('heading', { name: 'Public rooms' })
     const order = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)
-    expect(order).toEqual([
-      'Public rooms',
-      'Rooms you created here',
-      'Past party games',
-      'Talk to Reldo',
-    ])
+    expect(order).toEqual(['Public rooms', 'Your rooms', 'Past party games', 'Talk to Reldo'])
     const field = screen.getByLabelText('Join an existing room')
     const first = screen.getByRole('heading', { name: 'Public rooms' })
     expect(field.compareDocumentPosition(first) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
@@ -507,21 +502,21 @@ describe('Layout', () => {
     render(Home, { navigate })
     const pair = (heading: string) =>
       screen.getByRole('heading', { name: heading }).closest('section')!.parentElement
-    expect(pair('Rooms you created here')?.classList.contains('yours')).toBe(true)
-    expect(pair('Past party games')).toBe(pair('Rooms you created here'))
+    expect(pair('Your rooms')?.classList.contains('yours')).toBe(true)
+    expect(pair('Past party games')).toBe(pair('Your rooms'))
   })
 
   it('has neither list, nor anything in their place, on a first visit', () => {
     render(Home, { navigate })
-    expect(screen.queryByRole('heading', { name: 'Rooms you created here' })).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Your rooms' })).toBeNull()
     expect(screen.queryByRole('heading', { name: 'Past party games' })).toBeNull()
     expect(document.querySelector('.yours')).toBeNull()
   })
 
-  it('shows Rooms you created here without past games, and past games without rooms', () => {
+  it('shows Your rooms without past games, and past games without rooms', () => {
     rememberCreated('MINE', '2099-01-01T00:00:00Z')
     render(Home, { navigate })
-    expect(screen.getByRole('heading', { name: 'Rooms you created here' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Your rooms' })).toBeTruthy()
     expect(screen.queryByRole('heading', { name: 'Past party games' })).toBeNull()
     cleanup()
     localStorage.clear()
@@ -530,7 +525,7 @@ describe('Layout', () => {
     localStorage.removeItem('jbi:created')
     render(Home, { navigate })
     expect(screen.getByRole('heading', { name: 'Past party games' })).toBeTruthy()
-    expect(screen.queryByRole('heading', { name: 'Rooms you created here' })).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Your rooms' })).toBeNull()
   })
 
   it('has no Open source panel: the footer carries the link to the code', () => {
@@ -554,7 +549,7 @@ describe('the daily', () => {
     render(Home, { navigate })
     await fireEvent.click(await screen.findByRole('button', { name: 'Play Daily #12' }))
     expect(navigate).toHaveBeenCalledWith('/daily')
-    expect(screen.queryByRole('heading', { name: 'Your dailies' })).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Past dailies' })).toBeNull()
   })
 
   it("shows today's score once played, and it leads to the result", async () => {
@@ -563,7 +558,7 @@ describe('the daily', () => {
     render(Home, { navigate })
     expect(await screen.findByText('Daily #12: 7,420 points')).toBeTruthy()
     expect(screen.queryByRole('button', { name: /Play Daily/ })).toBeNull()
-    await fireEvent.click(screen.getByRole('button', { name: 'Your result' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'View result' }))
     expect(navigate).toHaveBeenCalledWith('/daily')
   })
 
@@ -580,7 +575,7 @@ describe('the daily', () => {
     render(Home, { navigate })
     await screen.findByRole('heading', { name: 'Daily challenge' })
     const order = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)
-    expect(order).toEqual(['Rooms you created here', 'Daily challenge', 'Talk to Reldo'])
+    expect(order).toEqual(['Your rooms', 'Daily challenge', 'Talk to Reldo'])
   })
 
   it('sits under the shorter of your rooms and your past games', async () => {
@@ -623,7 +618,7 @@ describe('the daily', () => {
   it('keeps the scores when the server does not answer', async () => {
     saveScore(RESULT)
     render(Home, { navigate })
-    expect(await screen.findByRole('heading', { name: 'Your dailies' })).toBeTruthy()
+    expect(await screen.findByRole('heading', { name: 'Past dailies' })).toBeTruthy()
     expect(screen.queryByRole('button', { name: /Daily #/ })).toBeNull()
   })
 
@@ -886,7 +881,7 @@ describe('Suggest or report a question', () => {
     expect(within(section).getByText('Reldo')).toBeTruthy()
     expect(box.querySelector('img')?.getAttribute('src')).toBe(npcArt('reldo').url)
     expect(section.textContent).toContain(
-      "Know a question we don't ask yet, or spotted a wrong answer or an outdated fact?",
+      'Have a question idea of your own, or spotted a mistake or outdated fact?',
     )
   })
 

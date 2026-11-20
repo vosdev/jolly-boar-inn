@@ -31,7 +31,7 @@
     try {
       authors = (await getCredits()).authors
     } catch (error) {
-      failure = error instanceof ApiFailure ? error.message : 'Could not load the question authors.'
+      failure = error instanceof ApiFailure ? error.message : "Couldn't load the question authors."
     }
   })
 </script>
@@ -42,7 +42,7 @@
   {#if failure !== null}
     <div class="banner bad">{failure}</div>
   {:else if authors === null}
-    <p class="note">Loading the authors…</p>
+    <p class="note">Loading authors…</p>
   {:else if authors.length === 0}
     <p class="note">No player-written questions yet.</p>
   {:else}
@@ -71,7 +71,7 @@
   {/if}
   <p class="suggest">
     Want your name here?
-    <a class="link" href="/suggest" target="_blank" rel="noopener">Suggest one →</a>
+    <a class="link" href="/suggest" target="_blank" rel="noopener">Suggest a question →</a>
   </p>
   <p class="map-credit">
     The world map is rendered from the OSRS game cache using RuneLite's cache library and the
@@ -91,7 +91,7 @@
       href="https://prices.runescape.wiki/"
       target="_blank"
       rel="noopener">real-time prices API</a
-    >. Each time the game is built, the prices are obtained through a single <code>/mapping</code>
+    >. Each time the game is built, prices are fetched with a single <code>/mapping</code>
     and <code>/latest</code> request.
   </p>
   <p>
@@ -101,7 +101,7 @@
   <p class="note">
     <a class="link" href={WIKI_URL} target="_blank" rel="noopener">oldschool.runescape.wiki</a> · CC BY-NC-SA
   </p>
-  <button type="button" class="primary done" onclick={onclose}>Got it</button>
+  <button type="button" class="primary done" onclick={onclose}>Close</button>
 </Sheet>
 
 <style>

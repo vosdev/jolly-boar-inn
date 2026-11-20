@@ -51,7 +51,7 @@
   {/if}
   <div class="row">
     <button type="button" class="primary" onclick={copy}>
-      {copied ? 'Copied' : 'Copy your result'}
+      {copied ? 'Copied' : 'Copy result'}
     </button>
     <button type="button" onclick={onHome}>Home</button>
   </div>

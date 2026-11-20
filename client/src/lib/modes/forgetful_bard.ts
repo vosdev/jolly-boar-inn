@@ -7,7 +7,7 @@ export const mode: Mode = {
   label: 'The Forgetful Bard',
   hint: "He's forgotten what this verse was about. Can you help him out?",
   host: { id: 'falo', name: 'Falo the Bard' },
-  greeting: 'Ah, a crowd! I know the song, but not what item it is about.',
+  greeting: "Ah, a crowd! I remember the song, just not which item it's about.",
   blurb:
     "I'll sing you a verse about an iconic item, if only I could remember which one. Find it on the list to jog my memory.",
   ask: [
@@ -36,9 +36,9 @@ export const mode: Mode = {
       'A pleasant tempo! Let the rest of the crowd finish listening.',
     ],
     late: [
-      'Got it in just in time, on the very last strum of the lyre!',
+      'Got it in on the very last strum of the lyre!',
       'Just in time! The ballad was fading into the final note.',
-      'Remembered it just in time before the encore ended!',
+      'Remembered it right before the encore ended!',
     ],
     early: [
       'You named it before I even reached the rhyming line!',
@@ -61,7 +61,7 @@ export const mode: Mode = {
     right: [
       'Yes, that’s the one! Seeing it brings the whole song back to me!',
       'Bravo! You know my repertoire better than I do!',
-      'Spot on! Take your clue scroll before I forget the next verse too.',
+      'Take your clue scroll before I forget the next verse too!',
       'That is the very item! My lyre sings for you, friend!',
     ],
     partial: [
@@ -72,8 +72,8 @@ export const mode: Mode = {
     wrong: [
       'No, no! That doesn’t fit the rhyme or the legend at all!',
       'Wrong item! Singing about that would clear the whole tavern.',
-      'Alas, a sour note! That is not what the verse was about.',
-      'Not even close, friend. Now you have got me even more confused!',
+      "Alas, a sour note! That's not what the verse was about.",
+      "Not even close, friend. Now you've got me even more confused!",
     ],
     missed: [
       'Dead silence from the crowd? A bard’s worst nightmare!',

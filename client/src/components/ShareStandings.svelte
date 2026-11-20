@@ -47,7 +47,7 @@
 
 <div class="share">
   <Segmented legend="What to share" hideLegend {options} bind:value={scope} />
-  <button type="button" onclick={copy}>{copied ? 'Copied' : 'Copy the result'}</button>
+  <button type="button" onclick={copy}>{copied ? 'Copied' : 'Copy result'}</button>
 </div>
 {#if shown}
   <textarea readonly rows="6" bind:this={field} value={text} aria-label="The result"></textarea>

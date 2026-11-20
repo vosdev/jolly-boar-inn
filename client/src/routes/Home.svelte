@@ -253,7 +253,7 @@
   function join(event: SubmitEvent): void {
     event.preventDefault()
     if (isRoomCode(target)) navigate(`/r/${target}`, { via: 'code' })
-    else codeProblem = 'That is not a room code.'
+    else codeProblem = "That doesn't look like a room code."
   }
 
   /** Forget the room here. The list is re-read rather than spliced, so it cannot drift. */
@@ -282,7 +282,7 @@
       // most that can be done is to stop listing it.
       forget(room)
       notice = {
-        text: `Removed ${room} from this list. Since its host session isn't saved in this browser, the room itself will close when it expires.`,
+        text: `Removed ${room} from your list. Since this browser isn't the host, the room will stay open until it expires.`,
         bad: false,
       }
       return
@@ -297,7 +297,10 @@
       if (failure instanceof ApiFailure && (failure.status === 404 || failure.status === 410)) {
         forget(room)
       } else {
-        const message = failure instanceof ApiFailure ? failure.message : 'the room was not removed'
+        const message =
+          failure instanceof ApiFailure
+            ? failure.message
+            : "Couldn't remove the room. Please try again."
         notice = { text: message, bad: true }
       }
     } finally {
@@ -308,16 +311,13 @@
 
 {#snippet welcome()}
   <p>
-    Think you know Gielinor? Prove it at {siteName}! Join a room with its code, or create your own
-    and host it for your friends, your clan or your stream.
+    Think you know Gielinor? Prove it at {siteName}! Enter a room code to join a game, or host your
+    own for your friends, clan, or stream.
   </p>
 {/snippet}
 
 {#snippet newHere()}
-  <p>
-    Ah, a new face! Pick how you want to play, then follow the trail from creating a room to
-    answering your first question.
-  </p>
+  <p>Ah, a new face! Pick how you'd like to play, then follow the steps below to get started.</p>
 {/snippet}
 
 {#snippet visitors()}
@@ -410,7 +410,7 @@
       <p class="or">or</p>
       {#if full === true}
         <p id="room-limit" class="banner">
-          You already have five rooms. Remove one under "Rooms you created here" to make another.
+          You already have 5 rooms open. Remove one under "Your rooms" to create another.
         </p>
       {/if}
       <button
@@ -463,7 +463,7 @@
     >
       {#if hosted.length > 0}
         <section class="panel created">
-          <h2>Rooms you created here</h2>
+          <h2>Your rooms</h2>
           {#if notice !== null}
             <div class="banner" class:bad={notice.bad}>
               {notice.text}
@@ -568,7 +568,7 @@
         TV and your phones.
       </p>
       {#if suggesting || adminToken !== null}
-        <p>Know a question we don't ask yet, or spotted a wrong answer or an outdated fact?</p>
+        <p>Have a question idea of your own, or spotted a mistake or outdated fact?</p>
       {/if}
       <p>Got feedback or ideas? Come tell us on Discord!</p>
       <div class="row">
@@ -593,7 +593,7 @@
 {#if confirming !== null}
   {@const room = confirming}
   <ConfirmDialog
-    message={`Remove room ${room}? Anybody still in it is dropped, and this cannot be undone.`}
+    message={`Remove room ${room}? Anyone still inside will be disconnected. This can't be undone.`}
     confirmLabel="Remove"
     onConfirm={() => remove(room)}
     onCancel={() => (confirming = null)}
@@ -603,7 +603,7 @@
 {#if confirmingPast !== null}
   {@const game = confirmingPast}
   <ConfirmDialog
-    message={`Remove ${game.code} from your past party games? Its hiscores are only saved in this browser, and this cannot be undone.`}
+    message={`Remove ${game.code} from your past party games? Its hiscores are only saved in this browser, so you won't be able to get them back.`}
     confirmLabel="Remove"
     onConfirm={() => removePast(game)}
     onCancel={() => (confirmingPast = null)}
