@@ -223,7 +223,7 @@ PLANNED: tuple[str, ...] = (
     "lost_in_gielinor",
     "diary_dash",
     "entrana_customs",
-    "hide_and_seek",
+    "kgp_recon",
 )
 
 # Every mode a player may write a question for, built or not.

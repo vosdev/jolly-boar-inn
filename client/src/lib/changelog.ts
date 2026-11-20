@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.270.0',
+    date: '2026-11-20',
+    text: 'Rename the coming Hide and Seek round to KGP Recon, hosted by a KGP Agent. Keep the room readable in short windows: it scrolls instead of shrinking.',
+  },
+  {
     version: '0.269.3',
     date: '2026-11-20',
     text: 'Fold Release Order into Sort It Out. Stop suggestion previews jumping straight to the reveal.',

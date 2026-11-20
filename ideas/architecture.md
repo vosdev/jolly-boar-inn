@@ -169,7 +169,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 | `slayer_master` | Slayer Master | Bestiary's seven types | hand-written | done: how to fight a monster; what it is stays in Bestiary |
 | `mark_the_map` | Mark the Map | `map_pin`, one pin on the whole surface | hand-written, drafted once by `gen_locations.py` | done, hosted by Bill Teach; a place inside a town opens on both (`view`) with `reach` 50 |
 | `prop_hunt` | Prop Hunt | `picture_pin` on the suggester's own screenshot | player suggestions | upcoming: takes suggestions (#438) |
-| `whats_that_noise`, `minimap_guesser`, `scrying_pool`, `lost_in_gielinor`, `diary_dash`, `entrana_customs`, `hide_and_seek` | planned | see each issue | | #260, #229, #330, #328, #927, #930, #262 |
+| `whats_that_noise`, `minimap_guesser`, `scrying_pool`, `lost_in_gielinor`, `diary_dash`, `entrana_customs`, `kgp_recon` | planned | see each issue | | #260, #229, #330, #328, #927, #930, #262 |
 
 Create lists the unbuilt ones from their files in `lib/modes/`, in `UPCOMING` then `PLANNED` order.
 

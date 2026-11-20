@@ -16,8 +16,8 @@ export const ROOM_HEIGHT = 920
 export const ROOM_LEAST_WIDTH = 1280
 /** The layout height every mode's tallest screen fits on the compact stage. */
 export const FIT_HEIGHT = 760
-export const STEPS = [1, 7 / 8, 3 / 4, 5 / 8]
-const LEAST_STEP = 5 / 8
+export const STEPS = [1, 7 / 8, 3 / 4]
+const LEAST_STEP = 3 / 4
 export const STACK_BELOW = 1024
 
 /** The gap between stage and table, the table's width (the column is `tableReveal` wide always, so the stage never changes width), and the widest a stage grows. */
