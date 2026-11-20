@@ -580,6 +580,1091 @@
           5
         ]
       }
+    },
+    {
+      "id": "q_caccd8b63041c942",
+      "type": "multiple_choice",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Rockslug",
+      "payload": {
+        "prompt": "Which item must you use to finish off a rockslug?",
+        "options": [
+          "Bag of salt",
+          "Ice cooler",
+          "Rock hammer",
+          "Fungicide spray"
+        ],
+        "answer_index": 0,
+        "explanation": "A bag of salt finishes off a rockslug once it drops to 4 Hitpoints or fewer."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_2291fe5e92744748",
+      "type": "multiple_choice",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Konar_quo_Maten",
+      "payload": {
+        "prompt": "Which Slayer master assigns tasks that must be killed in a specific location?",
+        "options": [
+          "Vannaka",
+          "Nieve",
+          "Konar quo Maten",
+          "Chaeldar"
+        ],
+        "answer_index": 2,
+        "explanation": "Konar quo Maten on Mount Karuulm locks each task to a named area, in return for higher points and brimstone key drops."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_bc737de2f0b0459f",
+      "type": "multiple_choice",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Superior_slayer_monster",
+      "payload": {
+        "prompt": "Which Slayer reward unlocks superior Slayer monsters?",
+        "options": [
+          "Bigger and Badder",
+          "Like a Boss",
+          "Malevolent Masquerade",
+          "Seeing Red"
+        ],
+        "answer_index": 0,
+        "explanation": "Bigger and Badder gives eligible task monsters a 1 in 200 base chance to spawn a stronger superior variant on death."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_fa64129173f0b860",
+      "type": "multiple_choice",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Expeditious_bracelet",
+      "payload": {
+        "prompt": "Which bracelet has a 25% chance to make a Slayer kill count as two kills toward your task?",
+        "options": [
+          "Bracelet of slaughter",
+          "Expeditious bracelet",
+          "Combat bracelet",
+          "Regen bracelet"
+        ],
+        "answer_index": 1,
+        "explanation": "The expeditious bracelet speeds up tasks without granting extra Slayer XP; the bracelet of slaughter does the opposite."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_9f80d2b33ab27f00",
+      "type": "multiple_choice",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Harpie_Bug_Swarm",
+      "payload": {
+        "prompt": "Which item must be lit and equipped in order to damage harpie bug swarms?",
+        "options": [
+          "Bullseye lantern",
+          "Lit bug lantern",
+          "Oil lantern",
+          "Bruma torch"
+        ],
+        "answer_index": 1,
+        "explanation": "You need a lit bug lantern (requiring 33 Firemaking) equipped in your shield slot to harm harpie bug swarms."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_9fc3b29b0519ceda",
+      "type": "multiple_choice",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Molanisk",
+      "payload": {
+        "prompt": "Which item lures a molanisk down from the cave wall so you can fight it?",
+        "options": [
+          "Witchwood icon",
+          "Slayer bell",
+          "Spiny helmet",
+          "Bag of salt"
+        ],
+        "answer_index": 1,
+        "explanation": "Ringing a Slayer bell brings molanisks down from the walls of the Dorgesh-Kaan South Dungeon."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_7648737eac0e394a",
+      "type": "multiple_choice",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Abyssal_Sire",
+      "payload": {
+        "prompt": "Which spellbook spell family disorients the Abyssal Sire so you can attack its respiratory systems?",
+        "options": [
+          "Smoke spells",
+          "Shadow spells",
+          "Blood spells",
+          "Ice spells"
+        ],
+        "answer_index": 1,
+        "explanation": "Casting a Shadow spell on the Ancient spellbook disorients the Abyssal Sire and temporarily disables its tentacles."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_23720b6edd15034e",
+      "type": "multiple_choice",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "bosses",
+        "combat"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Summoned_Soul",
+      "payload": {
+        "prompt": "During Cerberus's fight, which prayer blocks the green Summoned Soul?",
+        "options": [
+          "Protect from Magic",
+          "Protect from Missiles",
+          "Protect from Melee",
+          "Smite"
+        ],
+        "answer_index": 1,
+        "explanation": "Green carries a bow (Ranged), blue carries a staff (Magic) and red carries a spear (Melee)."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_07af87e17d43b1e6",
+      "type": "multiple_choice",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer",
+        "bosses"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Alchemical_Hydra",
+      "payload": {
+        "prompt": "When the Alchemical Hydra is in its green poison phase, which chemical vent removes its 75% damage reduction?",
+        "options": [
+          "Green vent",
+          "Blue vent",
+          "Red vent",
+          "Any vent"
+        ],
+        "answer_index": 2,
+        "explanation": "The vents follow the combat triangle: red weakens green, green weakens blue and blue weakens red."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_1c2be69fbc8920d8",
+      "type": "multiple_choice",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "bosses",
+        "combat"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Phantom_Muspah",
+      "payload": {
+        "prompt": "Which enchanted bolts are specifically effective at draining the Phantom Muspah's prayer shield?",
+        "options": [
+          "Ruby bolts (e)",
+          "Diamond bolts (e)",
+          "Sapphire bolts (e)",
+          "Emerald bolts (e)"
+        ],
+        "answer_index": 2,
+        "explanation": "Enchanted sapphire bolts proc Clear Mind, draining Prayer and shredding the Phantom Muspah's prayer shield alongside Smite."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_5718c1ee327c3d57",
+      "type": "multiple_choice",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Slayer",
+      "payload": {
+        "prompt": "What happens to your regular Slayer task streak if you ask Turael or Aya to replace a task you do not want?",
+        "options": [
+          "It drops by 10 tasks",
+          "It freezes until the next task",
+          "It resets to 0",
+          "Nothing, it stays intact"
+        ],
+        "answer_index": 2,
+        "explanation": "Turael/Aya skipping replaces an unwanted non-Wilderness assignment for free, but resets your regular task streak to 0."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_a86e2da6f2173948",
+      "type": "multiple_choice",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Duradel",
+      "payload": {
+        "prompt": "What minimum Combat and Slayer levels do you need to receive a task from Duradel or Kuradal (without 99 Slayer)?",
+        "options": [
+          "85 Combat and 50 Slayer",
+          "100 Combat and 50 Slayer",
+          "100 Combat and 70 Slayer",
+          "90 Combat and 60 Slayer"
+        ],
+        "answer_index": 1,
+        "explanation": "Duradel (and Kuradal after While Guthix Sleeps) requires 100 Combat and 50 Slayer, unless you already have 99 Slayer."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_b39c2bdba34c6f0a",
+      "type": "multiple_choice",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "combat"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Lightbearer",
+      "payload": {
+        "prompt": "Wearing a Lightbearer halves the time it takes to regenerate 10% special attack energy. How often does 10% regenerate with it equipped?",
+        "options": [
+          "Every 10 seconds",
+          "Every 15 seconds",
+          "Every 20 seconds",
+          "Every 25 seconds"
+        ],
+        "answer_index": 1,
+        "explanation": "Special attack energy normally regenerates 10% every 30 seconds; the Lightbearer doubles this to every 15 seconds."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_d7f0edd389a3a13c",
+      "type": "multiple_choice",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "bosses",
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Araxxor",
+      "payload": {
+        "prompt": "Which Araxyte spawned during the Araxxor fight reduces damage dealt to Araxxor and reflects part of it back at you?",
+        "options": [
+          "Ruptura Araxyte",
+          "Acidic Araxyte",
+          "Mirrorback Araxyte",
+          "Dreadborn Araxyte"
+        ],
+        "answer_index": 2,
+        "explanation": "The Mirrorback Araxyte cuts Araxxor's damage taken by 20% and reflects half of that absorbed damage back to the player."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_7644279daf266919",
+      "type": "free_text",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Larran%27s_key",
+      "payload": {
+        "prompt": "Which key can drop from monsters killed on a Wilderness Slayer task from Krystilia?",
+        "accepted": [
+          "Larran's key",
+          "Larrans key",
+          "Larran key"
+        ],
+        "explanation": "Larran's keys drop on Krystilia's Wilderness tasks and unlock Larran's small and big chests in the Wilderness."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_f671bdfafe517271",
+      "type": "free_text",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Mutated_Zygomite",
+      "payload": {
+        "prompt": "Which item do you use to finish off a mutated zygomite?",
+        "accepted": [
+          "Fungicide spray",
+          "Fungicide"
+        ],
+        "explanation": "A loaded fungicide spray must be used once a mutated zygomite drops to low Hitpoints."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_9b6ea25cae9d3b80",
+      "type": "free_text",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer",
+        "bosses"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Grotesque_Guardians",
+      "payload": {
+        "prompt": "Which key dropped by gargoyles on a Slayer task permanently unlocks the rooftop fight against the Grotesque Guardians?",
+        "accepted": [
+          "Brittle key",
+          "Brittle"
+        ],
+        "explanation": "The brittle key unlocks the Slayer Tower rooftop gate once and for all, letting you fight Dawn and Dusk on gargoyle tasks."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_e675de8ecd6cd308",
+      "type": "free_text",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Killerwatt",
+      "payload": {
+        "prompt": "Which piece of footwear protects you from a killerwatt's electric attacks?",
+        "accepted": [
+          "Insulated boots"
+        ],
+        "explanation": "Insulated boots can be bought from any Slayer master and stop killerwatts from hitting through with heavy electrical damage."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_16673d29be8e07ff",
+      "type": "free_text",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Bracelet_of_slaughter",
+      "payload": {
+        "prompt": "Which bracelet gives a 25% chance for a monster kill to not count toward your Slayer task while still awarding full Slayer XP?",
+        "accepted": [
+          "Bracelet of slaughter",
+          "Slaughter bracelet",
+          "Slaughter"
+        ],
+        "explanation": "The bracelet of slaughter effectively extends favourite Slayer tasks by a third on average."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_a161404e2ae8be12",
+      "type": "free_text",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "bosses",
+        "combat"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Cerberus",
+      "payload": {
+        "prompt": "Which shield cuts the Prayer drain from Cerberus's Summoned Souls in half, from 30 down to 15?",
+        "accepted": [
+          "Spectral spirit shield",
+          "Spectral",
+          "Spectral shield"
+        ],
+        "explanation": "Equipping the spectral spirit shield halves Cerberus's ghost prayer drain from 30 to 15 per hit."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_2b91aeb25d40dd4d",
+      "type": "pick_all_that_apply",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Boots_of_stone",
+      "payload": {
+        "prompt": "Which of these boots protect you from the burning floor inside the Karuulm Slayer Dungeon?",
+        "options": [
+          "Boots of stone",
+          "Boots of brimstone",
+          "Granite boots",
+          "Dragon boots",
+          "Insulated boots"
+        ],
+        "answer_indices": [
+          0,
+          1,
+          2
+        ],
+        "explanation": "Boots of stone, boots of brimstone and granite boots all shield you from Karuulm's scorching floor (as does the elite Kourend & Kebos diary)."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_c4b21a8846c665d2",
+      "type": "pick_all_that_apply",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Slayer_Tower",
+      "payload": {
+        "prompt": "Which of these monsters can be found inside the Slayer Tower in Morytania?",
+        "options": [
+          "Crawling hands",
+          "Bloodvelds",
+          "Abyssal demons",
+          "Dust devils",
+          "Dark beasts",
+          "Gargoyles"
+        ],
+        "answer_indices": [
+          0,
+          1,
+          2,
+          5
+        ],
+        "explanation": "The Slayer Tower holds crawling hands, banshees, infernal mages, bloodvelds, aberrant spectres, gargoyles, nechryaels and abyssal demons. Dust devils and dark beasts live elsewhere."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_1015eb6f38b8c51a",
+      "type": "pick_all_that_apply",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer",
+        "weakness"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Mirror_shield",
+      "payload": {
+        "prompt": "Which of these monsters require a mirror shield (or V's shield) to avoid having your stats drained?",
+        "options": [
+          "Cockatrice",
+          "Basilisk",
+          "Basilisk Knight",
+          "Aberrant spectre",
+          "Cave horror"
+        ],
+        "answer_indices": [
+          0,
+          1,
+          2
+        ],
+        "explanation": "Cockatrices, basilisks and basilisk knights use a draining gaze blocked by a mirror shield or V's shield."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_743cbc34675aead2",
+      "type": "pick_all_that_apply",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer",
+        "bosses"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Skotizo",
+      "payload": {
+        "prompt": "Which Slayer tasks allow you to kill Skotizo for Slayer experience and task credit?",
+        "options": [
+          "Greater demons",
+          "Black demons",
+          "Lesser demons",
+          "Abyssal demons",
+          "Hellhounds"
+        ],
+        "answer_indices": [
+          0,
+          1
+        ],
+        "explanation": "Skotizo counts for both greater demon and black demon Slayer tasks (as well as a Skotizo boss task), per his wiki page."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_a9942160cdf6f157",
+      "type": "pick_all_that_apply",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "weakness",
+        "combat"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Draconic_(attribute)",
+      "payload": {
+        "prompt": "Despite being draconic in lore, which of these monsters are NOT affected by dragonbane weapons like the dragon hunter lance?",
+        "options": [
+          "Elvarg",
+          "Revenant dragon",
+          "Zulrah",
+          "Great Olm",
+          "Alchemical Hydra"
+        ],
+        "answer_indices": [
+          0,
+          1,
+          2
+        ],
+        "explanation": "Elvarg, revenant dragons and Zulrah are explicitly excluded from the draconic attribute, whereas Great Olm and the Alchemical Hydra are vulnerable to dragonbane weapons."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_60a92185cc090e4c",
+      "type": "pick_all_that_apply",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer",
+        "combat"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Slayer_Rewards",
+      "payload": {
+        "prompt": "Which of these Slayer unlocks automatically finish off a monster for you when you carry its finishing item?",
+        "options": [
+          "Gargoyle Smasher",
+          "Slug Salter",
+          "Reptile Freezer",
+          "'Shroom Sprayer",
+          "Bigger and Badder",
+          "Ring Bling"
+        ],
+        "answer_indices": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Gargoyle Smasher, Slug Salter, Reptile Freezer and 'Shroom Sprayer automate finishing blows for gargoyles, rockslugs, desert lizards and mutated zygomites."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_c166c84c4a1e9036",
+      "type": "number_slider",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Cerberus",
+      "payload": {
+        "prompt": "What Slayer level do you need to fight Cerberus?",
+        "answer": 91,
+        "min": 1,
+        "max": 99,
+        "scale": "linear",
+        "explanation": "Level 91 Slayer is required to fight Cerberus in Taverley Dungeon."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_55505a70954ca63e",
+      "type": "number_slider",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Kraken",
+      "payload": {
+        "prompt": "What Slayer level do you need to fight the Kraken?",
+        "answer": 87,
+        "min": 1,
+        "max": 99,
+        "scale": "linear",
+        "explanation": "Cave krakens and the Kraken boss both require level 87 Slayer."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_71041e58d17d5727",
+      "type": "number_slider",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Araxxor",
+      "payload": {
+        "prompt": "What Slayer level do you need to fight Araxxor?",
+        "answer": 92,
+        "min": 1,
+        "max": 99,
+        "scale": "linear",
+        "explanation": "Level 92 Slayer is required to kill Araxxor (and regular araxytes) in the Araxyte Lair."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_4ab3e5733b8505d1",
+      "type": "number_slider",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "combat",
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Emberlight",
+      "payload": {
+        "prompt": "By what percentage do Arclight and Emberlight boost your Melee accuracy and damage against demons?",
+        "answer": 70,
+        "min": 10,
+        "max": 100,
+        "scale": "linear",
+        "unit": "%",
+        "explanation": "Both Arclight and Emberlight grant a 70% accuracy and damage boost against monsters with the demon attribute."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_9acb14d143b18c90",
+      "type": "number_slider",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "combat"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Protection_prayers",
+      "payload": {
+        "prompt": "By what percentage do protection prayers reduce incoming damage from other players in PvP?",
+        "answer": 40,
+        "min": 0,
+        "max": 100,
+        "scale": "linear",
+        "unit": "%",
+        "explanation": "While protection prayers normally block 100% of standard NPC damage, they reduce player damage in PvP by 40%."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_7aad4e8a2b30baaa",
+      "type": "closest_number",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer",
+        "combat"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Slayer_helmet_(i)",
+      "payload": {
+        "prompt": "By what percentage does an imbued Slayer helmet boost your Ranged and Magic accuracy and damage on a Slayer task?",
+        "answer": 15,
+        "unit": "%",
+        "explanation": "An imbued Slayer helmet adds a 15% accuracy and damage bonus for both Ranged and Magic (alongside its 16.67% Melee bonus)."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_172787559a1f05d4",
+      "type": "closest_number",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Superior_slayer_monster",
+      "payload": {
+        "prompt": "With Bigger and Badder unlocked, a superior Slayer monster has a base chance of 1 in how many kills to spawn?",
+        "answer": 200,
+        "unit": "kills",
+        "explanation": "The base chance is 1 in 200 upon killing an eligible task monster (improved to 1 in 150 after Elite Combat Achievements)."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_1ed0d549cff0608d",
+      "type": "closest_number",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Slayer",
+      "payload": {
+        "prompt": "Completing your 100th Slayer task in a row multiplies your Slayer master's base points by what factor?",
+        "answer": 25,
+        "explanation": "Milestone multipliers are 5x on the 10th task, 15x on the 50th, 25x on the 100th, 35x on the 250th and 50x on the 1,000th."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_c5f82a5fe3cc3211",
+      "type": "ordering",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Slayer_boss",
+      "payload": {
+        "prompt": "Sort these Slayer bosses by required Slayer level, lowest to highest.",
+        "ends": [
+          "Lowest",
+          "Highest"
+        ],
+        "entries": [
+          {
+            "text": "Grotesque Guardians",
+            "rank": 1,
+            "detail": "75 Slayer"
+          },
+          {
+            "text": "Abyssal Sire",
+            "rank": 2,
+            "detail": "85 Slayer"
+          },
+          {
+            "text": "Kraken",
+            "rank": 3,
+            "detail": "87 Slayer"
+          },
+          {
+            "text": "Cerberus",
+            "rank": 4,
+            "detail": "91 Slayer"
+          },
+          {
+            "text": "Thermonuclear smoke devil",
+            "rank": 5,
+            "detail": "93 Slayer"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Grotesque Guardians need 75 Slayer, Abyssal Sire 85, Kraken 87, Cerberus 91 and Thermonuclear smoke devil 93."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_f9cb8f076269ffcb",
+      "type": "ordering",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "bosses",
+        "combat"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Nex",
+      "payload": {
+        "prompt": "Put Nex's five combat phases in the order they occur during the fight.",
+        "ends": [
+          "First",
+          "Last"
+        ],
+        "entries": [
+          {
+            "text": "Smoke phase",
+            "rank": 1,
+            "detail": "Fumus"
+          },
+          {
+            "text": "Shadow phase",
+            "rank": 2,
+            "detail": "Umbra"
+          },
+          {
+            "text": "Blood phase",
+            "rank": 3,
+            "detail": "Cruor"
+          },
+          {
+            "text": "Ice phase",
+            "rank": 4,
+            "detail": "Glacies"
+          },
+          {
+            "text": "Zaros phase",
+            "rank": 5,
+            "detail": "Final form"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Nex cycles through Smoke, Shadow, Blood and Ice as you defeat her four mages, before entering her empowered Zaros phase."
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_0e77d95baa4479f0",
+      "type": "ordering",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Slayer",
+      "payload": {
+        "prompt": "Sort these Slayer masters by the base Slayer points they award per normal task, lowest to highest (without diary bonuses).",
+        "ends": [
+          "Fewest",
+          "Most"
+        ],
+        "entries": [
+          {
+            "text": "Mazchna",
+            "rank": 1,
+            "detail": "6 points"
+          },
+          {
+            "text": "Vannaka",
+            "rank": 2,
+            "detail": "8 points"
+          },
+          {
+            "text": "Chaeldar",
+            "rank": 3,
+            "detail": "10 points"
+          },
+          {
+            "text": "Nieve / Steve",
+            "rank": 4,
+            "detail": "12 points"
+          },
+          {
+            "text": "Duradel / Kuradal",
+            "rank": 5,
+            "detail": "15 points"
+          },
+          {
+            "text": "Konar quo Maten",
+            "rank": 6,
+            "detail": "18 points"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "Base points rise from Mazchna (6) through Vannaka (8), Chaeldar (10), Nieve/Steve (12) and Duradel/Kuradal (15) to Konar (18)."
+      },
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_58a1bca59c608534",
+      "type": "matching",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "bosses",
+        "weakness"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Moons_of_Peril",
+      "payload": {
+        "prompt": "Match each Moon of Peril boss to the Melee attack style it is weakest to.",
+        "fields": [
+          {
+            "text": "Eclipse Moon"
+          },
+          {
+            "text": "Blood Moon"
+          },
+          {
+            "text": "Blue Moon"
+          }
+        ],
+        "options": [
+          {
+            "text": "Stab",
+            "detail": "+6 flat armour"
+          },
+          {
+            "text": "Slash",
+            "detail": "-2 flat armour"
+          },
+          {
+            "text": "Crush",
+            "detail": "-5 flat armour"
+          },
+          {
+            "text": "Magic"
+          },
+          {
+            "text": "Ranged"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2
+        ],
+        "explanation": "Eclipse Moon is weak to Stab, Blood Moon to Slash and Blue Moon to Crush."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_a9d7b68e4580b292",
+      "type": "matching",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Slayer_master",
+      "payload": {
+        "prompt": "Match each Slayer master to where you find them.",
+        "fields": [
+          {
+            "text": "Duradel / Kuradal"
+          },
+          {
+            "text": "Konar quo Maten"
+          },
+          {
+            "text": "Chaeldar"
+          },
+          {
+            "text": "Krystilia"
+          }
+        ],
+        "options": [
+          {
+            "text": "Shilo Village",
+            "detail": "Fishing shop roof"
+          },
+          {
+            "text": "Mount Karuulm",
+            "detail": "Karuulm summit"
+          },
+          {
+            "text": "Zanaris",
+            "detail": "Throne room"
+          },
+          {
+            "text": "Edgeville",
+            "detail": "Jailhouse"
+          },
+          {
+            "text": "Burthorpe"
+          },
+          {
+            "text": "Canifis"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Turael/Aya live in Burthorpe and Mazchna/Achtryn wait outside Canifis."
+      },
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_63055989979f8ac4",
+      "type": "matching",
+      "mode": "slayer_master",
+      "source": "pack",
+      "tags": [
+        "slayer",
+        "bosses"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Nex",
+      "payload": {
+        "prompt": "Match each Nex phase to the Ancient mage who empowers her during it.",
+        "fields": [
+          {
+            "text": "Smoke phase"
+          },
+          {
+            "text": "Shadow phase"
+          },
+          {
+            "text": "Blood phase"
+          },
+          {
+            "text": "Ice phase"
+          }
+        ],
+        "options": [
+          {
+            "text": "Fumus",
+            "detail": "2,720 HP"
+          },
+          {
+            "text": "Umbra",
+            "detail": "2,040 HP"
+          },
+          {
+            "text": "Cruor",
+            "detail": "1,360 HP"
+          },
+          {
+            "text": "Glacies",
+            "detail": "680 HP"
+          },
+          {
+            "text": "Zaros"
+          },
+          {
+            "text": "Azzanadra"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Each mage's Latin name mirrors its element: Fumus (smoke), Umbra (shadow), Cruor (blood) and Glacies (ice)."
+      },
+      "difficulty": "medium"
     }
   ]
 }
