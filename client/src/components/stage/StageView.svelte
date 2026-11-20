@@ -721,7 +721,10 @@
     }
   }
 
+  /* Its own stacking context, so the sheet it lifts over the map's panes stays under the
+     top bar and its menus. */
   .stage.map {
+    isolation: isolate;
     max-width: var(--stage-wide, none);
     height: var(--stage-height, calc(100dvh - 9rem));
   }

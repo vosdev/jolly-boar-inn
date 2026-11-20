@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { viewFor } from './index'
 import type { StemTiming } from './props'
 import PhotoStem from './stems/PhotoStem.svelte'
+import photoSource from './stems/PhotoStem.svelte?raw'
 
 const timing: StemTiming = {
   answerableAt: '2026-11-20T20:00:00Z',
@@ -53,6 +54,11 @@ describe('the recon photo', () => {
     }
     await fireEvent.click(screen.getByRole('button', { name: 'Show the photo full size' }))
     expect(opened).toBe(true)
+  })
+
+  it('takes taps in its dialog, though the map’s sheet it is written in lets them through', () => {
+    const rule = photoSource.match(/\n {2}\.whole \{([^}]*)\}/)?.[1] ?? ''
+    expect(rule).toContain('pointer-events: auto;')
   })
 
   it('says so when this server lacks the photo', () => {

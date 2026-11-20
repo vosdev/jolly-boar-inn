@@ -140,7 +140,9 @@
     font-size: 0.9rem;
   }
 
+  /* The map's sheet lets taps through, and a dialog inherits that from where it is written. */
   .whole {
+    pointer-events: auto;
     width: min(96vw, 1600px);
     padding: 0.5rem;
     border: 2px solid var(--line);

@@ -100,3 +100,10 @@ describe('the sheet inside the stage', () => {
     expect(reached.filter((name) => inside.has(name))).toEqual([])
   })
 })
+
+describe('a map stage', () => {
+  it('keeps the sheet it lifts over the map under the top bar and its menus', () => {
+    const rule = source.match(/\n {2}\.stage\.map \{([^}]*)\}/)?.[1] ?? ''
+    expect(rule).toContain('isolation: isolate;')
+  })
+})
