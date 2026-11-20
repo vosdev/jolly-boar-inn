@@ -114,6 +114,9 @@ SCENARIOS = ("steady", "buzzer", "reconnect-storm", "slow-readers", "join-burst"
 DEFAULT_ROOMS = 1
 DEFAULT_BOTS = 30
 DEFAULT_QUESTIONS = 30
+# Below this a room's nearest-rank p95 is its second-slowest answer, one scheduler hiccup
+# on a shared runner rather than a slow room.
+ROOM_CHECK_MIN_ACKS = 100
 # The quickest a host may ask for. A load test has nothing to read on the reveal screen.
 DEFAULT_PACE = "teleport"
 DEFAULT_P99_MS = 200.0
@@ -1586,9 +1589,11 @@ def evaluate(report: dict[str, Any]) -> list[dict[str, Any]]:
     key = f"{pct}_ms"
     if acks["count"]:
         check(f"ack {pct}", acks[key] < limit, f"{acks[key]:.1f} ms against {limit:.0f} ms")
-        worst = max(rooms, key=lambda r: r["acks"].get(key, math.inf))
-        slowest = worst["acks"].get(key, math.inf)
-        check(f"worst room ack {pct}", slowest < limit, f"{slowest:.1f} ms in {worst['code']}")
+        held = [r for r in rooms if r["acks"]["count"] >= ROOM_CHECK_MIN_ACKS]
+        if held:
+            worst = max(held, key=lambda r: r["acks"][key])
+            slowest = worst["acks"][key]
+            check(f"worst room ack {pct}", slowest < limit, f"{slowest:.1f} ms in {worst['code']}")
     else:
         check(f"ack {pct}", False, "no answers were acknowledged")
     off = [r for r in rooms if not r["rows"] == r["acked"] == r["sent"]]
