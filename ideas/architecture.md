@@ -169,7 +169,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 | `slayer_master` | Slayer Master | Bestiary's seven types | hand-written | done: how to fight a monster; what it is stays in Bestiary |
 | `mark_the_map` | Mark the Map | `map_pin`, one pin on the whole surface | hand-written, drafted once by `gen_locations.py` | done, hosted by Bill Teach; a place inside a town opens on both (`view`) with `reach` 50 |
 | `prop_hunt` | Prop Hunt | `picture_pin` on the suggester's own screenshot | player suggestions | upcoming: takes suggestions (#438) |
-| `whats_that_noise`, `minimap_guesser`, `scrying_pool`, `lost_in_gielinor`, `diary_dash`, `entrana_customs`, `hide_and_seek` | planned | see each issue | | #260, #229, #330, #328, #927, #930, #262 |
+| `whats_that_noise`, `minimap_guesser`, `scrying_pool`, `lost_in_gielinor`, `diary_dash`, `entrana_customs`, `kgp_recon` | planned | see each issue | | #260, #229, #330, #328, #927, #930, #262 |
 
 Create lists the unbuilt ones from their files in `lib/modes/`, in `UPCOMING` then `PLANNED` order.
 
@@ -208,6 +208,7 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 - An optional `multiple_choice.quote` is shown as a quotation under `prompt`.
 - `credit` names the player who suggested a pack question; with `credit_shown` the reveal says it,
   and `GET /api/credits` counts it: `{authors: [{name, questions}]}`, most first, for the credits.
+- `GET /api/config` is `{room_ttl_hours}`, `ROOM_TTL_DAYS` in hours, for the copy that quotes it; without it the copy leaves the count out.
 - `GET /api/question-counts` is `{modes, random_events}`, drawable questions by round and by NPC, the daily set's pool less Certer's repeats, for the footer.
 
 | Type | `value` | Credit |

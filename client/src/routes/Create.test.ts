@@ -14,6 +14,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '../lib/api'
 import { clearModesCache } from '../lib/howToPlay'
+import { clearConfigCache } from '../lib/config'
 import { PLACEHOLDER_PET } from '../lib/pets'
 import { profile } from '../lib/profile'
 import type { ModeSettings } from '../lib/protocol'
@@ -45,6 +46,7 @@ vi.mock('../lib/api', async (importOriginal) => {
   return {
     ...real,
     getModes: vi.fn(),
+    getConfig: vi.fn(),
     getFreeCode: vi.fn(),
     createRoom: vi.fn(),
     getRoom: vi.fn(),
@@ -55,11 +57,13 @@ vi.mock('../lib/api', async (importOriginal) => {
 beforeEach(() => {
   vi.clearAllMocks()
   clearModesCache()
+  clearConfigCache()
   localStorage.clear()
   vi.mocked(api.getRoom).mockResolvedValue({ status: 'lobby', players: 1 })
   vi.mocked(api.deleteRoom).mockResolvedValue(undefined)
   vi.mocked(api.getModes).mockResolvedValue(structuredClone(PACING))
   vi.mocked(api.getFreeCode).mockResolvedValue('AbyssalWhip')
+  vi.mocked(api.getConfig).mockResolvedValue({ room_ttl_hours: 48 })
   vi.mocked(api.createRoom).mockResolvedValue({
     code: 'ABYSSAL',
     session: 's',
@@ -161,8 +165,16 @@ describe('Create', () => {
     expect(document.querySelector('.scroll')?.textContent).toContain('Room code')
     expect(
       screen.getByRole('region', { name: 'Your room' }).textContent?.replace(/\s+/g, ' '),
-    ).toContain('72 hours')
+    ).toContain('Rooms stay open for 48 hours.')
     expect(api.createRoom).not.toHaveBeenCalled()
+  })
+
+  it('leaves out how long the room stays open when the server cannot say', async () => {
+    vi.mocked(api.getConfig).mockRejectedValue(new api.ApiFailure(503, 'unavailable', 'down'))
+    await loaded(...BOTH)
+    const panel = screen.getByRole('region', { name: 'Your room' }).textContent ?? ''
+    expect(panel).toContain('locked once you open the doors')
+    expect(panel).not.toContain('Rooms stay open')
   })
 
   it('seats a host with no profile yet as a cat, not the boar', async () => {

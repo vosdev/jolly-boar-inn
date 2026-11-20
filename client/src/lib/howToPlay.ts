@@ -130,6 +130,13 @@ export interface NightStop {
   /** The stop's drawing, in words for a screen reader. */
   drawing: string
   stamp: Stamp
+  /** `text` for when the server says how long a room stays open. */
+  withHours?: (hours: number) => string
+}
+
+/** A stop's words, with how long a room stays open where the server said. */
+export function stopText(stop: NightStop, hours: number | null): string {
+  return hours !== null && stop.withHours !== undefined ? stop.withHours(hours) : stop.text
 }
 
 /** How to play's walk through a night, from the first room to the first answer. */
@@ -138,7 +145,9 @@ export const NIGHT_STOPS: readonly NightStop[] = [
     id: 'create',
     label: 'Create a room',
     title: 'Create a room',
-    text: 'Click Create a room on the home page. As the host, you control the game, and your room stays open for up to 48 hours.',
+    text: 'Click Create a room on the home page. As the host, you control the game.',
+    withHours: (hours) =>
+      `Click Create a room on the home page. As the host, you control the game, and your room stays open for up to ${hours} hours.`,
     drawing: 'The front page, with Create a room picked out.',
     stamp: { kind: 'item', id: 2347 },
   },

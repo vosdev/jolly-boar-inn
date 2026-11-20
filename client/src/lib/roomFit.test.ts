@@ -12,7 +12,6 @@ describe('roomFit', () => {
       [1512, 774, 7 / 8],
       [1366, 768, 7 / 8],
       [1280, 700, 3 / 4],
-      [1280, 600, 5 / 8],
     ]
     for (const [width, height, scale] of cases) {
       const fit = roomFit({ width, height }, BAR)
@@ -23,12 +22,13 @@ describe('roomFit', () => {
 
   it('keeps the last step below it, laid out at the fit height so the page scrolls', () => {
     for (const view of [
+      { width: 1280, height: 600 },
       { width: 1280, height: 450 },
       { width: 1100, height: 450 },
       { width: 1132, height: 340 },
     ]) {
       const fit = roomFit(view, BAR)
-      expect(fit?.scale, `${view.width}×${view.height}`).toBe(5 / 8)
+      expect(fit?.scale, `${view.width}×${view.height}`).toBe(3 / 4)
       expect(fit?.height).toBe(FIT_HEIGHT)
     }
   })
@@ -87,6 +87,16 @@ describe('roomFit', () => {
     expect(fit.width).toBe(2 * PADDING.full.side + PLAY.stageWide + PLAY.gap + PLAY.tableReveal)
     expect(stageEdges(fit).width).toBeCloseTo(PLAY.stageWide * fit.scale)
     expect(fit.left).toBeCloseTo((1920 - fit.width * fit.scale) / 2)
+  })
+
+  it('fits a 1024px wide window at 3/4 with no sideways scroll, however short', () => {
+    for (const height of [1400, 800, 600, 400]) {
+      const fit = roomFit({ width: 1024, height }, BAR)
+      if (fit === null) throw new Error('not fitted')
+      expect(fit.scale, `1024×${height}`).toBeGreaterThanOrEqual(3 / 4)
+      expect(fit.left).toBeGreaterThanOrEqual(0)
+      expect(fit.width * fit.scale).toBeLessThanOrEqual(1024)
+    }
   })
 
   it('stacks under 1024px wide, whatever the shape', () => {

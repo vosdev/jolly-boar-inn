@@ -180,6 +180,16 @@ export function getCredits(): Promise<{ authors: Author[] }> {
   return request<{ authors: Author[] }>('/api/credits')
 }
 
+/** `GET /api/config`: the instance settings the copy quotes. */
+export interface InstanceConfig {
+  room_ttl_hours: number
+}
+
+/** The instance settings the copy quotes; `lib/config.ts` caches it. */
+export function getConfig(): Promise<InstanceConfig> {
+  return request<InstanceConfig>('/api/config')
+}
+
 /** How many questions this instance can draw, by round mode and by NPC id. */
 export interface QuestionCounts {
   modes: Record<string, number>
