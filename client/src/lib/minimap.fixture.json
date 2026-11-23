@@ -1,0 +1,122 @@
+{
+  "side": 152,
+  "turnable": 216,
+  "cases": [
+    {
+      "spot": {
+        "x": 3212,
+        "y": 3428
+      },
+      "tiles": [
+        {
+          "column": 49,
+          "row": 53,
+          "left": -198,
+          "top": -2
+        },
+        {
+          "column": 50,
+          "row": 53,
+          "left": 58,
+          "top": -2
+        }
+      ]
+    },
+    {
+      "spot": {
+        "x": 3200,
+        "y": 3456
+      },
+      "tiles": [
+        {
+          "column": 49,
+          "row": 53,
+          "left": -150,
+          "top": 110
+        },
+        {
+          "column": 49,
+          "row": 54,
+          "left": -150,
+          "top": -146
+        },
+        {
+          "column": 50,
+          "row": 53,
+          "left": 106,
+          "top": 110
+        },
+        {
+          "column": 50,
+          "row": 54,
+          "left": 106,
+          "top": -146
+        }
+      ]
+    },
+    {
+      "spot": {
+        "x": 3222,
+        "y": 3218
+      },
+      "tiles": [
+        {
+          "column": 49,
+          "row": 49,
+          "left": -238,
+          "top": 182
+        },
+        {
+          "column": 49,
+          "row": 50,
+          "left": -238,
+          "top": -74
+        },
+        {
+          "column": 50,
+          "row": 49,
+          "left": 18,
+          "top": 182
+        },
+        {
+          "column": 50,
+          "row": 50,
+          "left": 18,
+          "top": -74
+        }
+      ]
+    },
+    {
+      "spot": {
+        "x": 2509,
+        "y": 3635
+      },
+      "tiles": [
+        {
+          "column": 38,
+          "row": 56,
+          "left": -202,
+          "top": 58
+        },
+        {
+          "column": 38,
+          "row": 57,
+          "left": -202,
+          "top": -198
+        },
+        {
+          "column": 39,
+          "row": 56,
+          "left": 54,
+          "top": 58
+        },
+        {
+          "column": 39,
+          "row": 57,
+          "left": 54,
+          "top": -198
+        }
+      ]
+    }
+  ]
+}

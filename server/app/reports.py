@@ -30,6 +30,7 @@ from app.errors import ApiError
 from app.modes import MODES, entry, offered
 from app.questions import text, vocab
 from app.questions.packs import EVENT_MODE, Pack, mode_questions
+from app.questions.types import map_pin
 
 Status = Literal["open", "closed"]
 
@@ -87,9 +88,12 @@ def label(question: dict[str, Any]) -> str:
 
 
 def picture(question: dict[str, Any], pictures: Mapping[str, str]) -> str | None:
-    """The file a question's screenshot is served as, or None without one this build has."""
-    screenshot = question["payload"].get("screenshot")
-    return None if screenshot is None else pictures.get(screenshot)
+    """The file a question's screenshot or minimap is served as, or None without one this
+    build has."""
+    payload = question["payload"]
+    shot = map_pin.picture_asset(payload) if question["type"] == "map_pin" else None
+    shot = shot or payload.get("screenshot")
+    return None if shot is None else pictures.get(shot)
 
 
 def choices(packs: list[Pack], mode: str, pictures: Mapping[str, str]) -> dict[str, Any]:

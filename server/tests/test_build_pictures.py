@@ -251,15 +251,18 @@ def test_a_file_nobody_mapped_is_removed_from_the_client(install: Install) -> No
     assert install.files() == set()
 
 
-def test_the_assets_come_from_every_pack_questions_image_and_field_icons() -> None:
+def test_the_assets_come_from_every_pack_questions_image_field_icons_and_minimaps() -> None:
     vocab.load_all()
     packs = load_packs(PACKS_DIR)
     payloads = [q["payload"] for pack in packs for q in pack.questions]
     images = {p["image"] for p in payloads if "image" in p}
     icons = {f["icon"] for p in payloads for f in p.get("fields", []) if "icon" in f}
+    minimaps = {
+        f"minimap:{m['x']}_{m['y']}_{m['angle']}" for p in payloads if (m := p.get("minimap"))
+    }
     assets = build_pictures.used_assets(packs)
-    assert assets == sorted(images | icons)
-    assert images and icons
+    assert assets == sorted(images | icons | minimaps)
+    assert images and icons and minimaps
 
 
 def test_every_pack_questions_image_has_a_picture_in_the_manifest() -> None:
@@ -271,7 +274,8 @@ def test_every_pack_questions_image_has_a_picture_in_the_manifest() -> None:
         if (match := fetch_assets.PICTURE.match(target))
     }
     assets = build_pictures.used_assets(load_packs(PACKS_DIR))
-    assert [asset for asset in assets if asset not in pictures] == []
+    fetched = [asset for asset in assets if not asset.startswith(build_pictures.MINIMAP)]
+    assert [asset for asset in fetched if asset not in pictures] == []
 
 
 def test_what_it_writes_is_git_ignored() -> None:

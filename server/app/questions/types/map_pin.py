@@ -5,7 +5,8 @@ Payload shape (schema ``$defs/map_pin``)::
     {"intro"?: str, "prompt": str, "image"?: asset, "explanation"?: str, "reach"?: int,
      "targets": [{"name": str, "min_x": int, "max_x": int, "min_y": int, "max_y": int}, ...],
      "bounds"?: {"min_x": int, "max_x": int, "min_y": int, "max_y": int}, "view"?: <the same>,
-     "screenshot"?: "screenshot:<name>", "width"?: int, "height"?: int}
+     "screenshot"?: "screenshot:<name>", "width"?: int, "height"?: int,
+     "minimap"?: {"x": int, "y": int, "angle": int}}
 
 A question asks for one pin per target, so the usual question has one target and nothing here
 treats it as a special case. The value is a list of ``{x, y}`` either way.
@@ -30,6 +31,12 @@ A ``screenshot`` is a photo of the place, for a round that asks where it was tak
 ``width`` and ``height`` go out open, for its shape, and the picture by its random name
 (``pictured``), as ``picture_pin``'s does. Every photo is 16:9, so every card draws them alike;
 ``/suggest`` cuts a screenshot to it before it goes up.
+
+A ``minimap`` is the game's minimap round a spot, for a round that asks where it is: a circle
+``MINIMAP_RADIUS`` tiles round ``x`` and ``y``, turned ``angle`` degrees clockwise, as the game
+turns it with the camera. ``build_pictures.py`` bakes it from the tiles, so the open view
+carries only its random name and never the spot. Its one target is the spot's own small box:
+the picture shows where the player stands, so the exact spot is the answer.
 """
 
 import math
@@ -61,6 +68,11 @@ PHOTO_SLACK = 1
 # What ``make gen-map`` renders; the schema holds a stored tile to the same rectangle.
 SURFACE = {"min_x": 768, "max_x": 4096, "min_y": 1792, "max_y": 4352}
 
+# The wiki's minimap radius, in tiles; the picture is twice it across at 4 px a tile.
+MINIMAP_RADIUS = 19
+# Tiles from the spot to its target box's edge: the least box ``LEAST_TARGET`` allows.
+MINIMAP_REACH = LEAST_TARGET // 2
+
 _OPEN_KEYS = ("intro", "prompt", "bounds", "view", "width", "height")
 _PIN_KEYS = {"x", "y"}
 
@@ -75,10 +87,35 @@ def client_view(payload: dict[str, Any]) -> dict[str, Any]:
 def pictured(
     view: dict[str, Any], payload: dict[str, Any], pictures: Mapping[str, str]
 ) -> dict[str, Any]:
-    """``view`` with the photo of the place, if it has one, by its random name in the client."""
-    screenshot = payload.get("screenshot")
-    picture = None if screenshot is None else pictures.get(screenshot)
+    """``view`` with the photo or minimap of the place, if it has one, by its random name in
+    the client."""
+    asset = picture_asset(payload)
+    picture = None if asset is None else pictures.get(asset)
     return view if picture is None else {**view, "picture": picture}
+
+
+def picture_asset(payload: dict[str, Any]) -> str | None:
+    """The asset id of the picture a question is pinned from: its photo or its minimap."""
+    minimap = payload.get("minimap")
+    if minimap is not None:
+        return minimap_asset(minimap)
+    return payload.get("screenshot")
+
+
+def minimap_asset(minimap: Mapping[str, int]) -> str:
+    """The asset id ``build_pictures.py`` bakes a minimap under, never sent to a player."""
+    return f"minimap:{minimap['x']}_{minimap['y']}_{minimap['angle']}"
+
+
+def minimap_target(x: int, y: int, name: str) -> dict[str, Any]:
+    """The target box of the spot a minimap is centred on."""
+    return {
+        "name": name,
+        "min_x": x - MINIMAP_REACH,
+        "max_x": x + MINIMAP_REACH,
+        "min_y": y - MINIMAP_REACH,
+        "max_y": y + MINIMAP_REACH,
+    }
 
 
 def reveal(payload: dict[str, Any]) -> dict[str, Any]:
@@ -163,9 +200,9 @@ def photo_problem(width: int, height: int) -> str | None:
 
 
 def check(payload: dict[str, Any]) -> list[str]:
-    """Consistency: every target is a place of its own, on the map the question shows, and
-    any photo of it is 16:9."""
-    problems = []
+    """Consistency: every target is a place of its own, on the map the question shows, any
+    photo of it is 16:9, and a minimap's one target is its spot."""
+    problems = _minimap_problems(payload)
     if "screenshot" in payload:
         shape = photo_problem(payload["width"], payload["height"])
         if shape is not None:
@@ -189,6 +226,21 @@ def check(payload: dict[str, Any]) -> list[str]:
         if overlap(first, second):
             problems.append(f"targets: {first['name']!r} overlaps {second['name']!r}")
     return problems
+
+
+def _minimap_problems(payload: dict[str, Any]) -> list[str]:
+    minimap = payload.get("minimap")
+    if minimap is None:
+        return []
+    if "screenshot" in payload or "bounds" in payload:
+        return ["minimap: a minimap is the whole picture, on the whole map"]
+    targets = payload["targets"]
+    if len(targets) != 1:
+        return ["minimap: one spot, so one target"]
+    x, y = minimap["x"], minimap["y"]
+    if minimap_target(x, y, targets[0]["name"]) != targets[0]:
+        return [f"minimap: its target is the box {MINIMAP_REACH} tiles round {x}, {y}"]
+    return []
 
 
 def _target_problems(target: dict[str, Any], bounds: dict[str, int] | None) -> list[str]:

@@ -28,7 +28,7 @@ from collections.abc import Callable, Collection, Iterable
 from typing import TYPE_CHECKING, Any
 
 from app.modes.mode import Mode, Suggest
-from app.questions.types import TYPES
+from app.questions.types import TYPES, map_pin
 from app.questions.types.bounds import Bounds
 from app.questions.types.scoring import Steps
 from app.random_events import BUILT_UP
@@ -199,6 +199,13 @@ MODES: dict[str, Mode] = {
         stem="photo",
         suggest=Suggest(fixed_prompt="Where was this photo taken?", picture=True),
     ),
+    # The minimap round a spot, turned as the suggester saw it, to pin on the whole surface.
+    "minimap_guesser": Mode(
+        id="minimap_guesser",
+        types=frozenset({"map_pin"}),
+        stem="minimap",
+        suggest=Suggest(fixed_prompt="Where is this?", wiki_only=True, minimap=True),
+    ),
     # The NPCs' questions as a round, to test them in a row. Off unless the instance says so.
     "random_events_only": Mode(
         id="random_events_only",
@@ -229,7 +236,6 @@ UPCOMING: dict[str, Suggest] = {
 # card to come, after ``UPCOMING``'s, in this order. Their copy is the client's.
 PLANNED: tuple[str, ...] = (
     "whats_that_noise",
-    "minimap_guesser",
     "scrying_pool",
     "lost_in_gielinor",
     "diary_dash",
@@ -258,8 +264,12 @@ def drawable(question: dict[str, Any], pictures: Collection[str]) -> bool:
     on the map only with the tiles, and on a screenshot only with that."""
     if question.get("type") == "map_pin" and TILES not in pictures:
         return False
-    screenshot = question["payload"].get("screenshot")
-    if screenshot is not None and screenshot not in pictures:
+    payload = question["payload"]
+    if question.get("type") == "map_pin":
+        asset = map_pin.picture_asset(payload)
+    else:
+        asset = payload.get("screenshot")
+    if asset is not None and asset not in pictures:
         return False
     return not needs_picture(question) or question["payload"].get("image") in pictures
 

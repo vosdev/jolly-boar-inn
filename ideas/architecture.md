@@ -170,7 +170,8 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 | `mark_the_map` | Mark the Map | `map_pin`, one pin on the whole surface | hand-written, drafted once by `gen_locations.py` | done, hosted by Bill Teach; a place inside a town opens on both (`view`) with `reach` 50 |
 | `kgp_recon` | KGP Recon | `map_pin` on a suggester's own photo of the place, one pin, `extra_answer` 10 | player suggestions; the first import writes the pack | done, hosted by a KGP Agent; the `photo` stem sets the photo, under a camera overlay, on a card of its own beside the sheet |
 | `prop_hunt` | Prop Hunt | `picture_pin` on the suggester's own screenshot | player suggestions | upcoming: takes suggestions (#438) |
-| `whats_that_noise`, `minimap_guesser`, `scrying_pool`, `lost_in_gielinor`, `diary_dash`, `entrana_customs` | planned | see each issue | | #260, #229, #330, #328, #927, #930 |
+| `minimap_guesser` | Minimap Guesser | `map_pin` on a minimap round a spot, one pin on the spot's 10-tile box | hand-written, then suggestions | done, hosted by Captain Errdo; the `minimap` stem sets it on a card of its own, as KGP Recon's photo |
+| `whats_that_noise`, `scrying_pool`, `lost_in_gielinor`, `diary_dash`, `entrana_customs` | planned | see each issue | | #260, #330, #328, #927, #930 |
 
 Create lists the unbuilt ones from their files in `lib/modes/`, in `UPCOMING` then `PLANNED` order.
 
@@ -253,7 +254,7 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   `min`, `max` or `answer` off the three-figure grid, and an `answer` on an end or on the middle
   where the slider starts (half rounded up).
 - `map_pin` is `targets` (a `name` and a box of tiles, at least 10 across; six at most, one pin
-  each), optional `bounds`, a rectangle the map stops at, optional `view`, where it opens with the rest a pan away, optional `reach`, and an optional `screenshot` of the place with its `width` and `height`, all three or none, 16:9 within a pixel (`photo_problem`; `/suggest` cuts a screenshot to it, and the upload is held to it by its stored size). The open view has `pins`, the count, any photo's shape and, by `pictured`, the photo, and never a
+  each), optional `bounds`, a rectangle the map stops at, optional `view`, where it opens with the rest a pan away, optional `reach`, an optional `minimap` `{x, y, angle}` (one target, the spot's box; its picture `minimap:<x>_<y>_<angle>`, never sent), and an optional `screenshot` of the place with its `width` and `height`, all three or none, 16:9 within a pixel (`photo_problem`; `/suggest` cuts a screenshot to it, and the upload is held to it by its stored size). The open view has `pins`, the count, any photo's shape and, by `pictured`, the photo, and never a
   target. It plays in rounds only: `drawable` needs the tiles (`TILES` among `pictures`, from
   `CLIENT_MAP` or the client) and any screenshot, so a pool with no tiles is empty, and an event has no pool to empty.
   Above five pinned players a several-pin map shows only your own, and the TV only the targets.
@@ -292,7 +293,7 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   the NPCs and a question with no round; a suggestion's fields are names only, and `/admin` adds icons.
 - Every round on Create takes suggestions, the price rounds and Pixel Hunt as items and Random Events Only as the
   NPCs' questions; a test fails on a new round that does neither. Not-yet-built image modes are not on Create.
-- `/suggest` offers `map_pin` for Mark the Map only, with its card shown once a tile loads: a place's name, one box and a `reach` of 50 to 200 on `MapView`, whose `grips` keep their markers through a drag. The prompt is `Where is <name>?`; the queue may reword it.
+- `/suggest` offers `map_pin` for Mark the Map, KGP Recon and Minimap Guesser, with their cards shown once a tile loads: a place's name, one box and a `reach` of 50 to 200 on `MapView`, whose `grips` keep their markers through a drag. The prompt is `Where is <name>?`; the queue may reword it. Minimap Guesser takes a spot instead, nudged a tile at a time and turned (North resets), previewed by `lib/minimap.ts` from the tiles as `scripts/minimap.py` bakes it (`minimap.fixture.json` holds both).
 
 `select(packs, custom, settings, rng, pictures, played)` fixes a room's questions at `start_game`.
 Until then a lobby's `total`, `events`, `rounds` and `estimated_seconds` come from a dry `select`
@@ -955,7 +956,7 @@ key into them, so cleanup leaves it.
 - `app/similar.py` scores a question against another, 0–100: 0.7 × the trigram Dice of the
   normalised prompts (with quote) + 0.3 × the answers' (1 when equal; any accepted free-text
   spelling); prompts alone across types; Odd One Out by option-set overlap; Who's That NPC? 100
-  for the same NPC, shadow or render, else 0; The Forgetful Bard 100 for the same item, else as usual; a `map_pin` in the same round 100 for the same name or an overlapping box, else as usual. `POST /api/suggestions/similar` takes a question as `POST
+  for the same NPC, shadow or render, else 0; The Forgetful Bard 100 for the same item, else as usual; a `map_pin` in the same round 100 for the same name or an overlapping box, else as usual; two minimaps 100 within 19 tiles, else 0. `POST /api/suggestions/similar` takes a question as `POST
   /api/suggestions` does, minus the link, and returns up to 3 pack questions (every pack mode but
   the price ones) at 60 or more as `{mode, label, score}`, never a suggestion; 120 an hour per
   address (`SIMILAR_PER_HOUR`). `/suggest` asks 800 ms after the prompt or answer changes.
@@ -1032,7 +1033,7 @@ Right until it does (More/Less keeps `sample.json`'s five, which `live_packs` dr
   into place, skipping files that exist. Images are never committed: every target must be
   git-ignored. A question's picture, `pictures/<item|npc>/<id>.<ext>`, is staged in `.pictures/`,
   a screenshot by hand as `screenshot/<name>.<ext>`, kept as it is and refused off its questions' size;
-  `build_pictures.py` then copies each one a pack uses to `client/public/pictures/<random>.<ext>`,
+  `build_pictures.py` then copies each one a pack uses to `client/public/pictures/<random>.<ext>`, baking a minimap from the tiles (so `make all` runs `gen-map` first),
   out of the bundle, which would merge it with an identical item icon; an item's is cropped to its
   opaque box, padded square and shrunk to at most 512 px, as a deterministic PNG. `data/pictures.json`
   maps asset to file; a file keeps its name until its written bytes change, and an unused one is removed.

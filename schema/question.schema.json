@@ -368,6 +368,17 @@
         },
         "width": { "type": "integer", "minimum": 1, "maximum": 8192 },
         "height": { "type": "integer", "minimum": 1, "maximum": 8192 },
+        "minimap": {
+          "$comment": "The minimap round a spot, turned clockwise by angle; baked from the tiles, never sent to players.",
+          "type": "object",
+          "required": ["x", "y", "angle"],
+          "additionalProperties": false,
+          "properties": {
+            "x": { "$ref": "#/$defs/map_tile_x" },
+            "y": { "$ref": "#/$defs/map_tile_y" },
+            "angle": { "type": "integer", "minimum": 0, "maximum": 359 }
+          }
+        },
         "explanation": { "type": "string", "maxLength": 300 }
       },
       "dependentRequired": {

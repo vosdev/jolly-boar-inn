@@ -56,6 +56,10 @@
     pins: number
     /** The photo of the place on the sheet, for a round that asks where it was taken. */
     width?: number
+    /** A photo's or a minimap's file, which stands on a card over the map. */
+    picture?: string
+    /** A minimap's spot, in `/suggest`'s preview only. */
+    minimap?: unknown
     bounds?: WireBounds
     view?: WireBounds
     /** Reveal only. */
@@ -73,7 +77,7 @@
   /** What the sheet and the host's bubble cover, kept clear of the pins a reveal frames. */
   const INSET = { top: 110, right: 24, bottom: 70, left: 24 }
   /**
-   * The same with a photo's card on the map (`PhotoStem`), which stands beside the sheet on a
+   * The same with a picture's card on the map (`PhotoStem`, `MinimapStem`), which stands beside the sheet on a
    * wide map and under it where the sheet spans the map (`StageView`'s stacked layout).
    */
   const PHOTO_BESIDE = { top: 300, right: 24, bottom: 70, left: 24 }
@@ -101,7 +105,11 @@
   const reach = $derived(q.reach ?? 1)
   let windowWidth = $state(STACKED_BELOW)
   const inset = $derived(
-    q.width === undefined ? INSET : windowWidth < STACKED_BELOW ? PHOTO_ABOVE : PHOTO_BESIDE,
+    q.width === undefined && q.picture === undefined && q.minimap === undefined
+      ? INSET
+      : windowWidth < STACKED_BELOW
+        ? PHOTO_ABOVE
+        : PHOTO_BESIDE,
   )
   const targets = $derived(q.targets ?? [])
 

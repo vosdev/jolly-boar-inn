@@ -17,6 +17,7 @@ from app.http.ratelimit import REPORTS_PER_HOUR, RateLimiter
 from app.main import create_app
 from app.modes import TILES
 from app.questions.packs import Pack, load_packs, mode_questions
+from app.questions.types import map_pin
 from tests.conftest import BASE
 from tests.packs import PACKS_DIR, SHIPPED_MODES
 
@@ -85,7 +86,11 @@ def offline(settings: Settings, dist: Path) -> Iterator[TestClient]:
             for mode in ("pixel_hunt", "whos_that_npc")
             for q in mode_questions(PACKS, mode)
         }
-        client.app.state.rooms.pictures = {asset: "0000000000000000.png" for asset in images}
+        minimaps = {
+            map_pin.picture_asset(q["payload"]) for q in mode_questions(PACKS, "minimap_guesser")
+        }
+        named = sorted(images | minimaps)
+        client.app.state.rooms.pictures = {asset: f"{n:016x}.png" for n, asset in enumerate(named)}
         client.app.state.rooms.pictures[TILES] = "clean"
         yield client
 
@@ -123,7 +128,11 @@ def test_the_question_list_never_carries_an_answer(offline: TestClient, mode: st
         return
     body = response.json()
     assert body["choices"], mode
-    extra = {"whos_that_npc": {"npc"}, "random_event": {"random_event"}}.get(mode, set())
+    extra = {
+        "whos_that_npc": {"npc"},
+        "random_event": {"random_event"},
+        "minimap_guesser": {"picture"},
+    }.get(mode, set())
     for choice in body["choices"]:
         assert choice.keys() in ({"id", "label"} | extra, {"id", "label"}), mode
     if body["by"] == "question":
@@ -135,7 +144,7 @@ def test_the_question_list_never_carries_an_answer(offline: TestClient, mode: st
                 if isinstance(found, str) and len(found) > 3:
                     assert found not in choice["label"], (mode, field)
     flat = json.dumps(body)
-    for field in ("answer", "accepted", "explanation", "payload", "wiki"):
+    for field in ("answer", "accepted", "explanation", "payload", "wiki", "minimap", "targets"):
         assert f'"{field}' not in flat
 
 
@@ -172,6 +181,8 @@ READ_AS = {
     "uris_unravelling": _prompt,
     "slayer_master": _prompt,
     "mark_the_map": _prompt,
+    # Every prompt is the same, and the choice carries the minimap to tell them apart.
+    "minimap_guesser": _prompt,
     # Certer's are pictures, named as Pixel Hunt's are.
     "random_event": lambda q: (
         q["payload"]["subject"]["name"] if q.get("random_event") == "certer" else _prompt(q)

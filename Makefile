@@ -19,11 +19,12 @@ MAP := HOST_UID=$$(id -u) HOST_GID=$$(id -g) docker compose -f docker-compose.da
 DATABASE_URL_TEST ?= postgresql://jbi:jbi@localhost:5432/jbi
 
 # Everything a production checkout needs after `git pull`, ending in the compose image; then
-# `docker compose up -d` swaps it in. One step at a time, since the data steps share an image.
+# `docker compose up -d` swaps it in. One step at a time, since the data steps share an image,
+# and the map first, since fetch-assets bakes the minimaps from it.
 # The owner's logo is redrawn only when .env uses it.
 all:
-	$(MAKE) fetch-assets
 	$(MAKE) gen-map
+	$(MAKE) fetch-assets
 	$(MAKE) gen-price-questions
 	@if grep -q '^PUBLIC_SITE_LOGO=branding/boar/' .env 2>/dev/null; then $(MAKE) logo; fi
 	docker compose build --build-arg VERSION=$(VERSION)

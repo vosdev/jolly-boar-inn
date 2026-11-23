@@ -5,7 +5,9 @@ A pack question's ``image``, and a ``matching`` field's ``icon``, is an asset id
 ``fetch_assets.py`` stages the files under those ids in ``.pictures/<kind>/<id>.<ext>``,
 outside the client. A ``picture_pin``'s ``screenshot``, ``screenshot:<name>``, is an own
 screenshot staged by hand as ``.pictures/screenshot/<name>.<ext>``, copied as it is, and must
-be the ``width`` by ``height`` its question says: the question grades on that shape.
+be the ``width`` by ``height`` its question says: the question grades on that shape. A
+``map_pin``'s ``minimap`` is baked from the world map's tiles (``minimap.py``), so ``make gen-map``
+comes first; without the tiles it is missing like an unstaged file.
 This copies every one a pack uses
 to ``client/public/pictures/<random>.<ext>`` and records ``asset -> file`` in
 ``data/pictures.json``, which the server loads to name a question's picture. Both are
@@ -39,6 +41,7 @@ from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import minimap
 from fetch_assets import (
     EXTENSIONS,
     PICTURES,
@@ -49,13 +52,16 @@ from fetch_assets import (
 )
 from PIL import Image
 
+from app.map import LAYER, MANIFEST, PIN
 from app.questions import vocab
 from app.questions.packs import Pack, PackError, load_packs
+from app.questions.types.map_pin import picture_asset
 
 PACKS = REPO_ROOT / "data" / "packs"
 OUT = REPO_ROOT / "client" / "public" / "pictures"
 MAPPING = REPO_ROOT / "data" / "pictures.json"
 MAX_SIDE = 512
+MINIMAP = "minimap:"
 
 
 @dataclass
@@ -68,8 +74,8 @@ class Report:
 
 
 def used_assets(packs: Iterable[Pack]) -> list[str]:
-    """Every asset a pack question shows, as its ``image``, a field's ``icon`` or its
-    ``screenshot``, sorted."""
+    """Every asset a pack question shows, as its ``image``, a field's ``icon``, its
+    ``screenshot`` or its ``minimap``, sorted."""
     used: set[str] = set()
     for pack in packs:
         for q in pack.questions:
@@ -77,6 +83,9 @@ def used_assets(packs: Iterable[Pack]) -> list[str]:
             for key in ("image", "screenshot"):
                 if key in payload:
                     used.add(payload[key])
+            pinned = picture_asset(payload) if q["type"] == "map_pin" else None
+            if pinned is not None:
+                used.add(pinned)
             used.update(field["icon"] for field in payload.get("fields", []) if "icon" in field)
     return sorted(used)
 
@@ -131,6 +140,22 @@ def squared(body: bytes) -> bytes:
     return out.getvalue()
 
 
+CLIENT_MAP = REPO_ROOT / "client" / "public" / "map"
+
+
+def tiles_dir(pin: Path = PIN, client: Path = CLIENT_MAP) -> Path | None:
+    """The pinned tileset's zoom 2 tiles, or ``None`` while it is not whole."""
+    cache_id = json.loads(pin.read_text(encoding="utf-8"))["cache_id"]
+    layer = client / str(cache_id) / LAYER
+    return layer / str(minimap.NATIVE_ZOOM) if (layer / MANIFEST).is_file() else None
+
+
+def baked(asset: str, tiles: Path) -> bytes:
+    """The picture of a ``minimap:<x>_<y>_<angle>`` asset."""
+    x, y, angle = (int(part) for part in asset.removeprefix(MINIMAP).split("_"))
+    return minimap.bake(tiles, x, y, angle)
+
+
 def load_mapping(path: Path) -> dict[str, dict[str, str]]:
     """The mapping a previous run wrote, or an empty one."""
     if not path.is_file():
@@ -145,6 +170,7 @@ def build(
     mapping_path: Path,
     *,
     sizes: Mapping[str, set[tuple[int, int]]] | None = None,
+    tiles: Path | None = None,
     fresh: Callable[[], str] = lambda: secrets.token_hex(8),
 ) -> Report:
     """Bring ``out`` and ``mapping_path`` in line with ``assets`` and what ``staging`` holds.
@@ -164,11 +190,16 @@ def build(
     mapping: dict[str, dict[str, str]] = {}
     files: set[str] = set()
     for asset in assets:
-        source = staged(staging, asset)
-        if source is None:
+        if asset.startswith(MINIMAP):
+            if tiles is None:
+                report.missing.append(asset)
+                continue
+            body, suffix = baked(asset, tiles), ".png"
+        elif (source := staged(staging, asset)) is None:
             report.missing.append(asset)
             continue
-        body, suffix = source.read_bytes(), source.suffix
+        else:
+            body, suffix = source.read_bytes(), source.suffix
         if asset.startswith("item:") and suffix != ".svg":
             body, suffix = squared(body), ".png"
         digest = hashlib.sha256(body).hexdigest()
@@ -211,7 +242,9 @@ def main(argv: list[str], out: Callable[[str], None] = print) -> int:
                 "git would commit these, and they are game assets; ignore them in .gitignore:\n"
                 + "\n".join(f"  {path.relative_to(REPO_ROOT)}" for path in tracked)
             )
-        report = build(assets, PICTURES, OUT, MAPPING, sizes=screenshot_sizes(packs))
+        report = build(
+            assets, PICTURES, OUT, MAPPING, sizes=screenshot_sizes(packs), tiles=tiles_dir()
+        )
     except PackError as exc:
         for line in exc.errors:
             print(line, file=sys.stderr)
