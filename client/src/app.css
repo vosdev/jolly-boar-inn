@@ -62,6 +62,8 @@
   --map-void: #000;
   /* The player's dot on a minimap, as the game draws it. */
   --minimap-dot: #fff;
+  /* The outline of the game's compass and ring. */
+  --minimap-edge: #322b19;
 
   /* 1. Surface. --bg is the floor, --panel the plaster. */
   --bg: #3b321d;

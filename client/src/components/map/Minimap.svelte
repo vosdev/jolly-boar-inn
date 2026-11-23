@@ -87,18 +87,21 @@
   </span>
   <img class="ring" src={ring} alt="" width={RING_SIDE} height={RING_SIDE} />
   {#if pointing !== null}
-    <img
+    <span
       class="compass"
-      src={compass}
-      alt=""
-      width={COMPASS.side}
-      height={COMPASS.side}
       style:left={share(COMPASS.left)}
       style:top={share(COMPASS.top)}
       style:width={share(COMPASS.side)}
       style:height={share(COMPASS.side)}
-      style:transform="rotate({pointing}deg)"
-    />
+    >
+      <img
+        src={compass}
+        alt=""
+        width={COMPASS.side}
+        height={COMPASS.side}
+        style:transform="rotate({pointing}deg)"
+      />
+    </span>
   {/if}
 </span>
 
@@ -117,8 +120,24 @@
   .ring,
   .compass {
     position: absolute;
-    image-rendering: pixelated;
     pointer-events: none;
+  }
+
+  /* The sprite's round edge is a staircase of its outline pixels: the dial is cut just inside
+     them, and a smooth outline in their colour drawn over the cut. */
+  .compass img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    clip-path: circle(46%);
+  }
+
+  .compass::after {
+    content: '';
+    position: absolute;
+    inset: 4%;
+    border: calc(100% * 1.2 / 43) solid var(--minimap-edge);
+    border-radius: 50%;
   }
 
   .ring {

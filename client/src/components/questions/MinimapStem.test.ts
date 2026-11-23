@@ -35,13 +35,13 @@ describe('the minimap', () => {
 
   it('turns the game’s compass so its N points where north is on the picture', () => {
     const { container } = draw({ prompt: 'Where is this?', pins: 1, picture: 'a.png', north: 135 })
-    const compass = container.querySelector<HTMLImageElement>('img.compass')!
+    const compass = container.querySelector<HTMLImageElement>('.compass img')!
     expect(compass.style.transform).toBe('rotate(135deg)')
   })
 
   it('shows no compass for a picture with no north', () => {
     const { container } = draw({ prompt: 'Where is this?', pins: 1, picture: 'a.png' })
-    expect(container.querySelector('img.compass')).toBeNull()
+    expect(container.querySelector('.compass')).toBeNull()
   })
 
   it('draws a preview’s spot from the tiles, turned', () => {
