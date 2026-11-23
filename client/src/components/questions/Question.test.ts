@@ -836,7 +836,7 @@ describe('Riddles of the Sphinx’s picture', () => {
     clues: ['First.', 'Second.', 'Third.', 'Fourth.', 'Fifth.'],
   }
 
-  it('follows the clues on the reveal, its name over it', () => {
+  it('follows the clues on the reveal, its name under it', () => {
     render(QuestionStage, {
       question: {
         ...open('pick_from_list', 'riddles_of_the_sphinx', VIEW_CLUES),
@@ -851,8 +851,8 @@ describe('Riddles of the Sphinx’s picture', () => {
     const name = paper.querySelector('.caption')!
     const img = paper.querySelector('.picture.large img')!
     expect(name.textContent).toBe('Tutorial Island')
-    expect(last.compareDocumentPosition(name) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    expect(name.compareDocumentPosition(img) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(last.compareDocumentPosition(img) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(img.compareDocumentPosition(name) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expect(paper.querySelector('.beside')).toBeNull()
   })
 })

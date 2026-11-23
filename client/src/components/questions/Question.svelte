@@ -133,7 +133,6 @@
     now: serverNow,
     steps: rulesOf(question.mode)?.steps ?? null,
   })
-  const clued = $derived(MODES[question.mode]?.stem === 'clues')
 </script>
 
 {#snippet stem()}
@@ -165,7 +164,6 @@
       lifted={revealed}
       late={picture === 'reveal'}
       caption={pictured && revealed ? subjectName : null}
-      captionAbove={clued}
     />
   {/if}
 {/snippet}
