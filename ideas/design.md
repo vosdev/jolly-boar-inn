@@ -117,7 +117,8 @@ learns the position, which is worth more than variety.
   top of the rest. The reveal lists the right order, ties sharing a number, with each `detail`; a
   misplaced entry fades and says where you had it. With `picks` it lists only the top ones.
 - `matching` drags an option onto each field, labelled by name or picture ("Picture N" to a screen
-  reader), from a tray of gems in two columns; decoys stay in the tray. The drag and keyboard are
+  reader), from a tray of gems two abreast, beside the fields on the desktop stage so five pairs
+  fit its height, under them on a phone; decoys stay in the tray. The drag and keyboard are
   ordering's, with no tap-to-place. A drop on a filled field swaps, a placed option's × sends it
   back, and an unsent answer fills empty fields from the top of the tray. The reveal sets the right
   option on each field with its `detail`, fades a wrong one with "you: …" under it, and lists the
