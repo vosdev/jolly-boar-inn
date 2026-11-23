@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/svelte'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/svelte'
 import { writable } from 'svelte/store'
 import { afterEach, describe, expect, it } from 'vitest'
 
@@ -30,7 +30,18 @@ describe('the minimap', () => {
     expect(minimap.querySelector('img.baked')?.getAttribute('src')).toBe('/pictures/a1b2.png')
     expect(minimap.querySelector('canvas')).toBeNull()
     expect(minimap.querySelector('.dot')).toBeTruthy()
-    expect(minimap.querySelector('.ring')).toBeTruthy()
+    expect(container.querySelector('img.ring')).toBeTruthy()
+  })
+
+  it('turns the game’s compass so its N points where north is on the picture', () => {
+    const { container } = draw({ prompt: 'Where is this?', pins: 1, picture: 'a.png', north: 135 })
+    const compass = container.querySelector<HTMLImageElement>('img.compass')!
+    expect(compass.style.transform).toBe('rotate(135deg)')
+  })
+
+  it('shows no compass for a picture with no north', () => {
+    const { container } = draw({ prompt: 'Where is this?', pins: 1, picture: 'a.png' })
+    expect(container.querySelector('img.compass')).toBeNull()
   })
 
   it('draws a preview’s spot from the tiles, turned', () => {
@@ -49,9 +60,9 @@ describe('the minimap', () => {
   })
 
   describe('on a map stage', () => {
-    function onMap() {
+    function onMap(className = 'stage map') {
       const stage = document.body.appendChild(document.createElement('div'))
-      stage.className = 'stage map'
+      stage.className = className
       const sheet = stage.appendChild(document.createElement('div'))
       sheet.className = 'stage-row'
       render(MinimapStem, {
@@ -65,7 +76,31 @@ describe('the minimap', () => {
       return { stage, sheet }
     }
 
-    afterEach(() => document.querySelector('.stage.map')?.remove())
+    afterEach(() => document.querySelector('.stage')?.remove())
+
+    it('moves onto the stage once it turns into a map, as a round’s first question does', async () => {
+      const { stage, sheet } = onMap('stage')
+      expect(sheet.querySelector('.chart')).toBeTruthy()
+      stage.classList.add('map')
+      await waitFor(() => expect(stage.querySelector(':scope > .chart.card')).toBeTruthy())
+      expect(sheet.querySelector('.chart')).toBeNull()
+      expect(screen.getByRole('button', { name: 'Hide' })).toBeTruthy()
+    })
+
+    it('moves onto the map once the scroll carries it onto the stage', async () => {
+      const elsewhere = document.body.appendChild(document.createElement('div'))
+      render(MinimapStem, {
+        target: elsewhere,
+        props: { data: { prompt: 'Where?', pins: 1, picture: 'a.png' }, revealed: false, timing },
+      })
+      const stage = document.body.appendChild(document.createElement('div'))
+      stage.className = 'stage map'
+      const sheet = stage.appendChild(document.createElement('div'))
+      sheet.className = 'stage-row'
+      sheet.append(...elsewhere.childNodes)
+      elsewhere.remove()
+      await waitFor(() => expect(stage.querySelector(':scope > .chart.card')).toBeTruthy())
+    })
 
     it('stands on the map as a card of its own, off the sheet', () => {
       const { stage, sheet } = onMap()

@@ -37,13 +37,14 @@ describe('the minimap preview', () => {
     expect(onSurface({ x: 3212, y: 4352 })).toBe(false)
   })
 
-  it('aims at the spot’s own box', () => {
+  it('aims at the circle the minimap covers', () => {
     expect(minimapTarget({ x: 3212, y: 3428 }, 'Varrock Square')).toEqual({
       name: 'Varrock Square',
-      min_x: 3207,
-      max_x: 3217,
-      min_y: 3423,
-      max_y: 3433,
+      min_x: 3193,
+      max_x: 3231,
+      min_y: 3409,
+      max_y: 3447,
+      round: true,
     })
   })
 })

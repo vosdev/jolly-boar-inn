@@ -84,7 +84,9 @@
     },
   })
   const areas = $derived<MapArea[]>(
-    target === null ? [] : [{ box: boundsOf(target), name: name.trim() || 'This spot' }],
+    target === null
+      ? []
+      : [{ box: boundsOf(target), name: name.trim() || 'This spot', round: true }],
   )
   const grips = $derived<MapGrip[]>(
     spot === null ? [] : [{ id: SPOT, at: spot, middle: true, title: 'Drag to move' }],

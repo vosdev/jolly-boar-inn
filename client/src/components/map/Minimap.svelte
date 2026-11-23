@@ -1,23 +1,38 @@
 <script lang="ts">
   /**
-   * A minimap in its ring, with the player's dot in the middle: a question's baked picture by
-   * its file, or for `/suggest` the same circle drawn from the tiles round a spot and turned in
-   * the browser, so the preview is what players will see. It scales to its container's width
-   * and keeps the map's pixels sharp.
+   * A minimap in the game's ring, with the player's dot in the middle and the
+   * game's compass, turned so its N points where north is on the picture: a question's baked
+   * picture by its file, or for `/suggest` the same circle drawn from the tiles round a spot and
+   * turned in the browser, so the preview is what players will see. It scales to its container's
+   * width and keeps the map's pixels sharp. Nothing over the picture is baked, so restyling the
+   * frame bakes nothing again.
    */
+  import compass from '../../assets/sprites/compass.svg'
+  import ring from '../../assets/sprites/minimap-ring.svg'
   import { MINIMAP_SIDE, minimapTiles, type MinimapSpot, TURNABLE } from '../../lib/minimap'
 
   let {
     src = null,
     spot = null,
     label = 'A minimap',
+    north = null,
   }: {
     /** The baked picture's URL. */
     src?: string | null
     /** A spot to draw from the tiles, when there is no picture. */
     spot?: MinimapSpot | null
     label?: string
+    /** Degrees clockwise from the top that north points, for the compass; none without one. */
+    north?: number | null
   } = $props()
+
+  const pointing = $derived(north ?? spot?.angle ?? null)
+
+  // Where the game draws them, in its pixels: the ring is 6 px round the 152 px map, and the
+  // compass's 43 px stand 17 px left of the ring and 1 px above it.
+  const RING_SIDE = MINIMAP_SIDE + 12
+  const COMPASS = { side: 43, left: -17, top: -1 }
+  const share = (px: number) => `${(100 * px) / RING_SIDE}%`
 
   const loaded = new Map<string, HTMLImageElement | null>()
 
@@ -52,36 +67,74 @@
   }
 </script>
 
-<span class="minimap" role="img" aria-label={label} style:--wide={TURNABLE / MINIMAP_SIDE}>
-  {#if src !== null}
-    <img class="baked" {src} alt="" width={MINIMAP_SIDE} height={MINIMAP_SIDE} />
-  {:else if spot !== null}
-    {@const { x, y } = spot}
-    <canvas
-      class="drawn"
-      width={TURNABLE}
-      height={TURNABLE}
-      style:transform="rotate({spot.angle}deg)"
-      {@attach (canvas) => paint(canvas, x, y)}
-    ></canvas>
-  {:else}
-    <span class="missing">This minimap is missing on this server.</span>
+<span class="framed">
+  <span class="minimap" role="img" aria-label={label} style:--wide={TURNABLE / MINIMAP_SIDE}>
+    {#if src !== null}
+      <img class="baked" {src} alt="" width={MINIMAP_SIDE} height={MINIMAP_SIDE} />
+    {:else if spot !== null}
+      {@const { x, y } = spot}
+      <canvas
+        class="drawn"
+        width={TURNABLE}
+        height={TURNABLE}
+        style:transform="rotate({spot.angle}deg)"
+        {@attach (canvas) => paint(canvas, x, y)}
+      ></canvas>
+    {:else}
+      <span class="missing">This minimap is missing on this server.</span>
+    {/if}
+    <span class="dot" aria-hidden="true"></span>
+  </span>
+  <img class="ring" src={ring} alt="" width={RING_SIDE} height={RING_SIDE} />
+  {#if pointing !== null}
+    <img
+      class="compass"
+      src={compass}
+      alt=""
+      width={COMPASS.side}
+      height={COMPASS.side}
+      style:left={share(COMPASS.left)}
+      style:top={share(COMPASS.top)}
+      style:width={share(COMPASS.side)}
+      style:height={share(COMPASS.side)}
+      style:transform="rotate({pointing}deg)"
+    />
   {/if}
-  <span class="dot" aria-hidden="true"></span>
-  <span class="ring" aria-hidden="true"></span>
 </span>
 
 <style>
+  /* The game's ring round the map, and its compass on the ring at the top left. */
+  /* The compass reaches 17 px left of the ring, so the ring leaves it that room in its box.
+     Padding counts in the box's width, the ring's 164 px and the overhang's 17. */
+  .framed {
+    position: relative;
+    display: block;
+    width: calc(100% * 164 / 181);
+    margin-left: calc(100% * 17 / 181);
+    padding: calc(100% * 6 / 181);
+  }
+
+  .ring,
+  .compass {
+    position: absolute;
+    image-rendering: pixelated;
+    pointer-events: none;
+  }
+
+  .ring {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
   .minimap {
     position: relative;
     display: block;
-    container-type: inline-size;
     width: 100%;
     aspect-ratio: 1;
     overflow: hidden;
     border-radius: 50%;
     background: var(--map-void);
-    box-shadow: 0 2px 8px rgb(0 0 0 / 0.45);
   }
 
   .baked,
@@ -114,18 +167,6 @@
     transform: translate(-50%, -50%);
     background: var(--minimap-dot);
     box-shadow: 0 0 0 1px rgb(0 0 0 / 0.6);
-  }
-
-  /* Drawn over the picture, so restyling it bakes nothing again. */
-  .ring {
-    --ring: max(3px, 4cqw);
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    box-shadow:
-      inset 0 0 0 var(--ring) var(--frame),
-      inset 0 0 0 calc(var(--ring) + 1px) var(--frame-dark);
-    pointer-events: none;
   }
 
   .missing {

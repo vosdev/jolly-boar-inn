@@ -2,7 +2,7 @@
   "pack": "minimap_guesser",
   "questions": [
     {
-      "id": "q_8a24dee250e2bc1b",
+      "id": "q_9fe457f5003cc25f",
       "type": "map_pin",
       "mode": "minimap_guesser",
       "source": "pack",
@@ -12,10 +12,11 @@
         "targets": [
           {
             "name": "Lumbridge Castle",
-            "min_x": 3217,
-            "max_x": 3227,
-            "min_y": 3213,
-            "max_y": 3223
+            "min_x": 3203,
+            "max_x": 3241,
+            "min_y": 3199,
+            "max_y": 3237,
+            "round": true
           }
         ],
         "minimap": {
@@ -29,7 +30,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_76c26dac9d90c3ef",
+      "id": "q_d5edacc2f1e0e96b",
       "type": "map_pin",
       "mode": "minimap_guesser",
       "source": "pack",
@@ -39,10 +40,11 @@
         "targets": [
           {
             "name": "Varrock Square",
-            "min_x": 3207,
-            "max_x": 3217,
-            "min_y": 3423,
-            "max_y": 3433
+            "min_x": 3193,
+            "max_x": 3231,
+            "min_y": 3409,
+            "max_y": 3447,
+            "round": true
           }
         ],
         "minimap": {
@@ -56,7 +58,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_5a37a895f25f106c",
+      "id": "q_048097d2b2ab3417",
       "type": "map_pin",
       "mode": "minimap_guesser",
       "source": "pack",
@@ -66,10 +68,11 @@
         "targets": [
           {
             "name": "Grand Exchange",
-            "min_x": 3160,
-            "max_x": 3170,
-            "min_y": 3482,
-            "max_y": 3492
+            "min_x": 3146,
+            "max_x": 3184,
+            "min_y": 3468,
+            "max_y": 3506,
+            "round": true
           }
         ],
         "minimap": {
@@ -83,7 +86,7 @@
       "difficulty": "easy"
     },
     {
-      "id": "q_3dfab97dab0cd52a",
+      "id": "q_f2e103a49ac78225",
       "type": "map_pin",
       "mode": "minimap_guesser",
       "source": "pack",
@@ -93,10 +96,11 @@
         "targets": [
           {
             "name": "Draynor Village",
-            "min_x": 3088,
-            "max_x": 3098,
-            "min_y": 3240,
-            "max_y": 3250
+            "min_x": 3074,
+            "max_x": 3112,
+            "min_y": 3226,
+            "max_y": 3264,
+            "round": true
           }
         ],
         "minimap": {
@@ -110,7 +114,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_9fbf00f584436ada",
+      "id": "q_383e8b6640e16197",
       "type": "map_pin",
       "mode": "minimap_guesser",
       "source": "pack",
@@ -120,10 +124,11 @@
         "targets": [
           {
             "name": "Catherby",
-            "min_x": 2804,
-            "max_x": 2814,
-            "min_y": 3431,
-            "max_y": 3441
+            "min_x": 2790,
+            "max_x": 2828,
+            "min_y": 3417,
+            "max_y": 3455,
+            "round": true
           }
         ],
         "minimap": {
@@ -137,7 +142,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_bfd507b56c431e30",
+      "id": "q_e749c2db78d20a7c",
       "type": "map_pin",
       "mode": "minimap_guesser",
       "source": "pack",
@@ -147,10 +152,11 @@
         "targets": [
           {
             "name": "Seers' Village",
-            "min_x": 2720,
-            "max_x": 2730,
-            "min_y": 3480,
-            "max_y": 3490
+            "min_x": 2706,
+            "max_x": 2744,
+            "min_y": 3466,
+            "max_y": 3504,
+            "round": true
           }
         ],
         "minimap": {
@@ -164,7 +170,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_7de6d2ee4329354c",
+      "id": "q_a582499772d1c09e",
       "type": "map_pin",
       "mode": "minimap_guesser",
       "source": "pack",
@@ -174,10 +180,11 @@
         "targets": [
           {
             "name": "Port Sarim",
-            "min_x": 3018,
-            "max_x": 3028,
-            "min_y": 3203,
-            "max_y": 3213
+            "min_x": 3004,
+            "max_x": 3042,
+            "min_y": 3189,
+            "max_y": 3227,
+            "round": true
           }
         ],
         "minimap": {
@@ -191,7 +198,7 @@
       "difficulty": "medium"
     },
     {
-      "id": "q_bf9e138fb432b2b1",
+      "id": "q_2339f1be4f59802e",
       "type": "map_pin",
       "mode": "minimap_guesser",
       "source": "pack",
@@ -201,10 +208,11 @@
         "targets": [
           {
             "name": "Shilo Village",
-            "min_x": 2847,
-            "max_x": 2857,
-            "min_y": 2950,
-            "max_y": 2960
+            "min_x": 2833,
+            "max_x": 2871,
+            "min_y": 2936,
+            "max_y": 2974,
+            "round": true
           }
         ],
         "minimap": {
@@ -218,7 +226,7 @@
       "difficulty": "hard"
     },
     {
-      "id": "q_4eb11f84faf6a1c1",
+      "id": "q_0a9acbfb3831eeec",
       "type": "map_pin",
       "mode": "minimap_guesser",
       "source": "pack",
@@ -228,10 +236,11 @@
         "targets": [
           {
             "name": "Burgh de Rott",
-            "min_x": 3491,
-            "max_x": 3501,
-            "min_y": 3206,
-            "max_y": 3216
+            "min_x": 3477,
+            "max_x": 3515,
+            "min_y": 3192,
+            "max_y": 3230,
+            "round": true
           }
         ],
         "minimap": {
@@ -245,7 +254,7 @@
       "difficulty": "hard"
     },
     {
-      "id": "q_b508fb85c5649e31",
+      "id": "q_e4525da1b60f8a14",
       "type": "map_pin",
       "mode": "minimap_guesser",
       "source": "pack",
@@ -255,10 +264,11 @@
         "targets": [
           {
             "name": "Lighthouse",
-            "min_x": 2504,
-            "max_x": 2514,
-            "min_y": 3630,
-            "max_y": 3640
+            "min_x": 2490,
+            "max_x": 2528,
+            "min_y": 3616,
+            "max_y": 3654,
+            "round": true
           }
         ],
         "minimap": {

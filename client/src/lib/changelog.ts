@@ -46,7 +46,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.276.0',
     date: '2026-11-23',
-    text: 'Play Minimap Guesser: pin where a minimap was drawn. Suggest your own spots, turned the way you like.',
+    text: 'Play Minimap Guesser: pin where a minimap was drawn, and suggest your own spots. KGP Recon’s photo gets its own card on the map again.',
   },
   {
     version: '0.275.0',

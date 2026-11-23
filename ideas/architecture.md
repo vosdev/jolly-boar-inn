@@ -170,7 +170,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 | `mark_the_map` | Mark the Map | `map_pin`, one pin on the whole surface | hand-written, drafted once by `gen_locations.py` | done, hosted by Bill Teach; a place inside a town opens on both (`view`) with `reach` 50 |
 | `kgp_recon` | KGP Recon | `map_pin` on a suggester's own photo of the place, one pin, `extra_answer` 10 | player suggestions; the first import writes the pack | done, hosted by a KGP Agent; the `photo` stem sets the photo, under a camera overlay, on a card of its own beside the sheet |
 | `prop_hunt` | Prop Hunt | `picture_pin` on the suggester's own screenshot | player suggestions | upcoming: takes suggestions (#438) |
-| `minimap_guesser` | Minimap Guesser | `map_pin` on a minimap round a spot, one pin on the spot's 10-tile box | hand-written, then suggestions | done, hosted by Captain Errdo; the `minimap` stem sets it on a card of its own, as KGP Recon's photo |
+| `minimap_guesser` | Minimap Guesser | `map_pin` on a minimap round a spot, one pin anywhere on it for full points | hand-written, then suggestions | done, hosted by Captain Errdo; the `minimap` stem sets it on a card of its own, as KGP Recon's photo, in the game's minimap ring with its compass turned to the angle |
 | `whats_that_noise`, `scrying_pool`, `lost_in_gielinor`, `diary_dash`, `entrana_customs` | planned | see each issue | | #260, #330, #328, #927, #930 |
 
 Create lists the unbuilt ones from their files in `lib/modes/`, in `UPCOMING` then `PLANNED` order.
@@ -253,8 +253,8 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 - `number_slider` stores integers. `check()` rejects `min` ≥ `max`, a log `min` below 1, a log
   `min`, `max` or `answer` off the three-figure grid, and an `answer` on an end or on the middle
   where the slider starts (half rounded up).
-- `map_pin` is `targets` (a `name` and a box of tiles, at least 10 across; six at most, one pin
-  each), optional `bounds`, a rectangle the map stops at, optional `view`, where it opens with the rest a pan away, optional `reach`, an optional `minimap` `{x, y, angle}` (one target, the spot's box; its picture `minimap:<x>_<y>_<angle>`, never sent), and an optional `screenshot` of the place with its `width` and `height`, all three or none, 16:9 within a pixel (`photo_problem`; `/suggest` cuts a screenshot to it, and the upload is held to it by its stored size). The open view has `pins`, the count, any photo's shape and, by `pictured`, the photo, and never a
+- `map_pin` is `targets` (a `name` and a box of tiles, at least 10 across, or with `round` the circle in a square one; six at most, one pin
+  each), optional `bounds`, a rectangle the map stops at, optional `view`, where it opens with the rest a pan away, optional `reach`, an optional `minimap` `{x, y, angle}` (one `round` target, the 19-tile circle; its picture `minimap:<x>_<y>_<angle>`, the spot never sent, the angle as `north`), and an optional `screenshot` of the place with its `width` and `height`, all three or none, 16:9 within a pixel (`photo_problem`; `/suggest` cuts a screenshot to it, and the upload is held to it by its stored size). The open view has `pins`, the count, any photo's shape and, by `pictured`, the photo, and never a
   target. It plays in rounds only: `drawable` needs the tiles (`TILES` among `pictures`, from
   `CLIENT_MAP` or the client) and any screenshot, so a pool with no tiles is empty, and an event has no pool to empty.
   Above five pinned players a several-pin map shows only your own, and the TV only the targets.
@@ -653,7 +653,7 @@ Closest number: each guess against the answer alone, speed not counting. Exact i
 `within` (the answer's unit, shown while open) 0.75 falling linearly to 0.25; else 0. No `within`
 is exact only. Editors offer 0/5/10/25% of the answer, whole and at least 1 for a whole answer.
 
-Map pin: 1.0 inside the target's box, then a straight line from its edge to 0 at `reach` tiles: the
+Map pin: 1.0 inside the target's box (a `round` one's circle), then a straight line from its edge to 0 at `reach` tiles: the
 question's own, else 100, or with `bounds` a fifth of their longer side up to 100. The client repeats
 the pairing (`lib/pins.ts`) to draw each pin's line: the server cannot send it in `value`, which is
 echoed while the question is open. `mapPins.fixture.json` holds both to the same answers.

@@ -145,16 +145,29 @@ def test_every_pack_question_is_one_spot_with_its_minimap() -> None:
 
 def test_the_open_view_carries_the_picture_but_no_spot_or_target() -> None:
     view = pictured("map_pin", map_pin.client_view(PAYLOAD), PAYLOAD, {ASSET: "a1b2.png"})
-    assert view == {"prompt": PROMPT, "pins": 1, "picture": "a1b2.png"}
+    assert view == {"prompt": PROMPT, "pins": 1, "north": 0, "picture": "a1b2.png"}
+    turned = {**PAYLOAD, "minimap": {**SPOT, "angle": 135}}
+    assert map_pin.client_view(turned)["north"] == 135
     revealed = map_pin.reveal(PAYLOAD)
     assert "minimap" not in revealed
     assert revealed["targets"] == PAYLOAD["targets"]
 
 
-def test_a_pin_scores_as_any_map_pin() -> None:
+def test_anywhere_the_minimap_shows_is_full_points() -> None:
     assert points(PAYLOAD, [{"x": 3212, "y": 3428}]) == 1000
-    assert points(PAYLOAD, [{"x": 3217, "y": 3428}]) == 1000
-    assert points(PAYLOAD, [{"x": 3267, "y": 3428}]) == 500
+    assert points(PAYLOAD, [{"x": 3212 + 19, "y": 3428}]) == 1000
+    assert points(PAYLOAD, [{"x": 3212 + 13, "y": 3428 + 13}]) == 1000
+
+
+def test_points_fall_from_the_circles_edge_not_the_boxs() -> None:
+    # The box's corner is past the circle: 19 x (sqrt 2 - 1) tiles off it.
+    assert points(PAYLOAD, [{"x": 3212 + 19, "y": 3428 + 19}]) == 921
+    assert points(PAYLOAD, [{"x": 3212 + 69, "y": 3428}]) == 500
+
+
+def test_a_round_target_has_a_square_box() -> None:
+    oval = {**PAYLOAD["targets"][0], "max_x": PAYLOAD["targets"][0]["max_x"] + 4}
+    assert any("square" in found for found in map_pin.check({"prompt": "?", "targets": [oval]}))
 
 
 def test_the_validator_holds_a_minimap_to_one_target_on_its_spot() -> None:

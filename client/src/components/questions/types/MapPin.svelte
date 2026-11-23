@@ -256,7 +256,11 @@
   }
 
   const areas: MapArea[] = $derived(
-    targets.map((target) => ({ box: boundsOf(target), name: target.name })),
+    targets.map((target) => ({
+      box: boundsOf(target),
+      name: target.name,
+      round: target.round === true,
+    })),
   )
 
   const corners = $derived(

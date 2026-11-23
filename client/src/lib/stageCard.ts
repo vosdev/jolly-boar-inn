@@ -4,22 +4,47 @@
  */
 
 /**
- * Moves `card` from the sheet onto the map stage it stands on, if it stands on one, and keeps
- * `--below`, where the sheet ends, for a stage too narrow to set the card beside it. Tells
- * `onstage` once it has moved; the returned function takes it off again.
+ * Moves `card` from the sheet onto the map stage it stands on, and keeps `--below`, where the
+ * sheet ends, for a stage too narrow to set the card beside it. A stem is drawn before its stage
+ * turns into a map, and sometimes before it is on the stage at all, so both are waited for. Tells `onstage` once it has moved; the returned function takes it off.
  */
 export function toStage(card: HTMLElement, onstage: () => void): () => void {
-  const stage = card.closest('.stage.map')
-  const sheet = stage?.querySelector<HTMLElement>('.stage-row')
-  if (!stage || !sheet) return () => {}
-  stage.append(card)
-  onstage()
-  const place = () => card.style.setProperty('--below', `${sheet.offsetTop + sheet.offsetHeight}px`)
-  place()
-  const watch = new ResizeObserver(place)
-  watch.observe(sheet)
+  let undo = () => {}
+  const move = (stage: Element): boolean => {
+    const sheet = stage.querySelector<HTMLElement>('.stage-row')
+    if (!stage.classList.contains('map') || sheet === null) return false
+    stage.append(card)
+    onstage()
+    const place = () =>
+      card.style.setProperty('--below', `${sheet.offsetTop + sheet.offsetHeight}px`)
+    place()
+    const watch = new ResizeObserver(place)
+    watch.observe(sheet)
+    undo = () => {
+      watch.disconnect()
+      card.remove()
+    }
+    return true
+  }
+  let frame = 0
+  let wait: MutationObserver | null = null
+  // The scroll may draw a stem elsewhere and carry it onto the stage a frame later.
+  const find = () => {
+    const stage = card.closest('.stage')
+    if (stage === null) {
+      frame = requestAnimationFrame(find)
+      return
+    }
+    if (move(stage)) return
+    wait = new MutationObserver(() => {
+      if (move(stage)) wait?.disconnect()
+    })
+    wait.observe(stage, { attributes: true, attributeFilter: ['class'] })
+  }
+  find()
   return () => {
-    watch.disconnect()
-    card.remove()
+    cancelAnimationFrame(frame)
+    wait?.disconnect()
+    undo()
   }
 }

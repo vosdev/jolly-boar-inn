@@ -13,9 +13,6 @@ export const PIXELS_PER_TILE = 4
 export const MINIMAP_SIDE = 2 * MINIMAP_RADIUS * PIXELS_PER_TILE
 /** The square drawn before it turns, in pixels; even, as the circle's middle is between pixels. */
 export const TURNABLE = 2 * Math.ceil(MINIMAP_SIDE / Math.SQRT2)
-/** Tiles from the spot to its target box's edge, as `map_pin.py` sets it. */
-export const MINIMAP_REACH = 5
-
 export interface MinimapSpot extends WorldPoint {
   /** Degrees clockwise, 0 to 359. */
   angle: number
@@ -66,13 +63,14 @@ export function onSurface(spot: WorldPoint): boolean {
   )
 }
 
-/** The spot's target box, named, as a `map_pin` target. */
+/** The round target the minimap covers, named, as `map_pin.py` sets it. */
 export function minimapTarget(spot: WorldPoint, name: string) {
   return {
     name,
-    min_x: spot.x - MINIMAP_REACH,
-    max_x: spot.x + MINIMAP_REACH,
-    min_y: spot.y - MINIMAP_REACH,
-    max_y: spot.y + MINIMAP_REACH,
+    min_x: spot.x - MINIMAP_RADIUS,
+    max_x: spot.x + MINIMAP_RADIUS,
+    min_y: spot.y - MINIMAP_RADIUS,
+    max_y: spot.y + MINIMAP_RADIUS,
+    round: true,
   }
 }

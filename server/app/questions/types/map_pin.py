@@ -3,7 +3,8 @@
 Payload shape (schema ``$defs/map_pin``)::
 
     {"intro"?: str, "prompt": str, "image"?: asset, "explanation"?: str, "reach"?: int,
-     "targets": [{"name": str, "min_x": int, "max_x": int, "min_y": int, "max_y": int}, ...],
+     "targets": [{"name": str, "min_x": int, "max_x": int, "min_y": int, "max_y": int,
+                  "round"?: true}, ...],
      "bounds"?: {"min_x": int, "max_x": int, "min_y": int, "max_y": int}, "view"?: <the same>,
      "screenshot"?: "screenshot:<name>", "width"?: int, "height"?: int,
      "minimap"?: {"x": int, "y": int, "angle": int}}
@@ -14,9 +15,11 @@ treats it as a special case. The value is a list of ``{x, y}`` either way.
 A target is a box of tiles, both edges inside it, because places are not round: all of a tall
 town counts and none of the land beside it does. A pin in the box earns 1.0. Outside it, credit
 falls in a straight line from its edge to 0 at ``reach`` tiles, so a pin in the wrong country
-scores nothing. Speed does not count (``SCORING = ACCURACY``): the time goes on finding the
-place. Without a ``reach`` of its own a question takes ``WORLD_REACH``, or a fifth of its
-``bounds``: a small map has fewer places to be wrong in, and each tile off is a bigger miss.
+scores nothing. A ``round`` target is the circle inside its square box instead, for a place
+that is round, as a minimap is. Speed does not count (``SCORING = ACCURACY``): the time goes on
+finding the place. Without a ``reach`` of its own a question takes ``WORLD_REACH``, or a fifth
+of its ``bounds``: a small map has fewer places to be wrong in, and each tile off is a bigger
+miss.
 
 Pins carry no label, so they pair with targets by the assignment that scores best: a player
 who found all three places is not marked down for tapping them in another order. The client
@@ -35,8 +38,8 @@ A ``screenshot`` is a photo of the place, for a round that asks where it was tak
 A ``minimap`` is the game's minimap round a spot, for a round that asks where it is: a circle
 ``MINIMAP_RADIUS`` tiles round ``x`` and ``y``, turned ``angle`` degrees clockwise, as the game
 turns it with the camera. ``build_pictures.py`` bakes it from the tiles, so the open view
-carries only its random name and never the spot. Its one target is the spot's own small box:
-the picture shows where the player stands, so the exact spot is the answer.
+carries its random name and never the spot, and its angle as ``north`` for the compass.
+Anywhere it shows is where the player could stand, so its one target is the circle it covers.
 """
 
 import math
@@ -70,17 +73,18 @@ SURFACE = {"min_x": 768, "max_x": 4096, "min_y": 1792, "max_y": 4352}
 
 # The wiki's minimap radius, in tiles; the picture is twice it across at 4 px a tile.
 MINIMAP_RADIUS = 19
-# Tiles from the spot to its target box's edge: the least box ``LEAST_TARGET`` allows.
-MINIMAP_REACH = LEAST_TARGET // 2
 
 _OPEN_KEYS = ("intro", "prompt", "bounds", "view", "width", "height")
 _PIN_KEYS = {"x", "y"}
 
 
 def client_view(payload: dict[str, Any]) -> dict[str, Any]:
-    """What everyone sees while it is open: the question, the map's region and opening, and
-    how many pins."""
+    """What everyone sees while it is open: the question, the map's region and opening, how
+    many pins, and which way a minimap's north points."""
     view = {key: payload[key] for key in _OPEN_KEYS if key in payload}
+    minimap = payload.get("minimap")
+    if minimap is not None:
+        view["north"] = minimap["angle"]
     return {**view, "pins": len(payload["targets"])}
 
 
@@ -108,13 +112,14 @@ def minimap_asset(minimap: Mapping[str, int]) -> str:
 
 
 def minimap_target(x: int, y: int, name: str) -> dict[str, Any]:
-    """The target box of the spot a minimap is centred on."""
+    """The round target a minimap centred on ``x``, ``y`` covers."""
     return {
         "name": name,
-        "min_x": x - MINIMAP_REACH,
-        "max_x": x + MINIMAP_REACH,
-        "min_y": y - MINIMAP_REACH,
-        "max_y": y + MINIMAP_REACH,
+        "min_x": x - MINIMAP_RADIUS,
+        "max_x": x + MINIMAP_RADIUS,
+        "min_y": y - MINIMAP_RADIUS,
+        "max_y": y + MINIMAP_RADIUS,
+        "round": True,
     }
 
 
@@ -181,10 +186,17 @@ def _credit(pins: list[dict[str, int]], targets: list[dict[str, Any]], reach: fl
 
 
 def pin_credit(pin: Mapping[str, float], target: dict[str, Any], reach: float) -> float:
-    """1.0 in ``target``'s box, falling in a straight line from its edge to 0 at ``reach``."""
-    across = max(target["min_x"] - pin["x"], pin["x"] - target["max_x"], 0)
-    up = max(target["min_y"] - pin["y"], pin["y"] - target["max_y"], 0)
-    off = math.hypot(across, up)
+    """1.0 in ``target``'s box, or its circle, falling in a straight line from its edge to 0
+    at ``reach``."""
+    if target.get("round"):
+        middle_x = (target["min_x"] + target["max_x"]) / 2
+        middle_y = (target["min_y"] + target["max_y"]) / 2
+        radius = (target["max_x"] - target["min_x"]) / 2
+        off = max(0.0, math.hypot(pin["x"] - middle_x, pin["y"] - middle_y) - radius)
+    else:
+        across = max(target["min_x"] - pin["x"], pin["x"] - target["max_x"], 0)
+        up = max(target["min_y"] - pin["y"], pin["y"] - target["max_y"], 0)
+        off = math.hypot(across, up)
     # A reach of 0 is all or nothing: ``picture_pin`` allows it, where a near miss is wrong.
     if reach <= 0:
         return 1.0 if off == 0 else 0.0
@@ -239,7 +251,7 @@ def _minimap_problems(payload: dict[str, Any]) -> list[str]:
         return ["minimap: one spot, so one target"]
     x, y = minimap["x"], minimap["y"]
     if minimap_target(x, y, targets[0]["name"]) != targets[0]:
-        return [f"minimap: its target is the box {MINIMAP_REACH} tiles round {x}, {y}"]
+        return [f"minimap: its target is the circle {MINIMAP_RADIUS} tiles round {x}, {y}"]
     return []
 
 
@@ -249,6 +261,8 @@ def _target_problems(target: dict[str, Any], bounds: dict[str, int] | None) -> l
     tall = target["max_y"] - target["min_y"]
     if min(wide, tall) < LEAST_TARGET:
         return [f"targets: {name!r} is under {LEAST_TARGET} tiles across"]
+    if target.get("round") and wide != tall:
+        return [f"targets: {name!r} is round, so its box is square"]
     if bounds is None:
         return []
     if _within(target, bounds):

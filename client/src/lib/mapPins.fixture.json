@@ -248,5 +248,71 @@
     "pairing": [1, 0],
     "credit": 0.0,
     "scored_reach": 100
+  },
+  {
+    "about": "inside a round target's circle",
+    "targets": [
+      {
+        "name": "A",
+        "min_x": 3193,
+        "max_x": 3231,
+        "min_y": 3409,
+        "max_y": 3447,
+        "round": true
+      }
+    ],
+    "pins": [
+      {
+        "x": 3225,
+        "y": 3440
+      }
+    ],
+    "pairing": [0],
+    "credit": 1.0,
+    "scored_reach": 100
+  },
+  {
+    "about": "in a round target's box but outside its circle",
+    "targets": [
+      {
+        "name": "A",
+        "min_x": 3193,
+        "max_x": 3231,
+        "min_y": 3409,
+        "max_y": 3447,
+        "round": true
+      }
+    ],
+    "pins": [
+      {
+        "x": 3231,
+        "y": 3447
+      }
+    ],
+    "pairing": [0],
+    "credit": 0.921299423149112,
+    "scored_reach": 100
+  },
+  {
+    "about": "fifty tiles past a round target's edge",
+    "targets": [
+      {
+        "name": "A",
+        "min_x": 3193,
+        "max_x": 3231,
+        "min_y": 3409,
+        "max_y": 3447,
+        "round": true
+      }
+    ],
+    "pins": [
+      {
+        "x": 3281,
+        "y": 3428
+      }
+    ],
+    "pairing": [0],
+    "credit": 0.5,
+    "scored_reach": 100
   }
 ]

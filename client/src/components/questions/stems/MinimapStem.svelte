@@ -30,6 +30,8 @@
   const src = $derived(pictureUrl(typeof data.picture === 'string' ? data.picture : null))
   const spot = $derived(src === null ? ((data.minimap as MinimapSpot | undefined) ?? null) : null)
 
+  const north = $derived(typeof data.north === 'number' ? data.north : null)
+
   let onStage = $state(false)
   let hidden = $state(false)
 </script>
@@ -52,7 +54,7 @@
   {@attach (card) => toStage(card, () => (onStage = true))}
 >
   <span class="frame">
-    <Minimap {src} {spot} label="The minimap to find on the map" />
+    <Minimap {src} {spot} {north} label="The minimap to find on the map" />
   </span>
   {#if onStage}
     <figcaption>

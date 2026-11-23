@@ -109,7 +109,7 @@ describe('MinimapForm', () => {
     const sent = await send()
     const { minimap, targets, prompt } = sent.payload as {
       minimap: { x: number; y: number; angle: number }
-      targets: { name: string; min_x: number; max_x: number; min_y: number; max_y: number }[]
+      targets: Record<string, unknown>[]
       prompt: string
     }
     expect(prompt).toBe('Where is this?')
@@ -117,10 +117,11 @@ describe('MinimapForm', () => {
     expect(targets).toEqual([
       {
         name: 'Varrock Square',
-        min_x: minimap.x - 5,
-        max_x: minimap.x + 5,
-        min_y: minimap.y - 5,
-        max_y: minimap.y + 5,
+        min_x: minimap.x - 19,
+        max_x: minimap.x + 19,
+        min_y: minimap.y - 19,
+        max_y: minimap.y + 19,
+        round: true,
       },
     ])
   })
