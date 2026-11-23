@@ -256,6 +256,11 @@ export async function getPackQuestions(token: string, mode: string): Promise<Pac
   return (await adminGet<{ questions: PackQuestion[] }>(path, token)).questions
 }
 
+/** Each screenshot this build has, to its file under `/pictures/`. */
+export function getScreenshots(token: string): Promise<Record<string, string>> {
+  return adminGet('/api/admin/questions/pictures', token)
+}
+
 /** Every editable pack question, with how players score on it. */
 export async function getQuestionStats(token: string): Promise<QuestionStats[]> {
   const path = '/api/admin/questions/stats'

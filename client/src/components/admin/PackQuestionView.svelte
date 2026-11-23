@@ -5,7 +5,9 @@
    */
   import { isHttpsLink } from '../../lib/links'
   import { packAnswer, type PackQuestion } from '../../lib/reports'
+  import { screenshotFile } from '../../lib/screenshots.svelte'
   import { difficultyName } from '../../lib/suggestions'
+  import ScreenshotAnswer from './ScreenshotAnswer.svelte'
 
   let { question }: { question: PackQuestion } = $props()
 
@@ -16,7 +18,10 @@
   const p = $derived(question.payload as Record<string, unknown>)
   const intro = $derived(typeof p.intro === 'string' ? p.intro : null)
   const prompt = $derived(typeof p.prompt === 'string' ? p.prompt : null)
-  const image = $derived(typeof p.image === 'string' ? p.image : null)
+  const image = $derived(
+    typeof p.image === 'string' ? p.image : typeof p.screenshot === 'string' ? p.screenshot : null,
+  )
+  const shot = $derived(screenshotFile(p))
   const quote = $derived(typeof p.quote === 'string' ? p.quote : null)
   const explanation = $derived(typeof p.explanation === 'string' ? p.explanation : null)
   const right = $derived(
@@ -43,6 +48,7 @@
   {#if intro !== null}<p class="intro">{intro}</p>{/if}
   {#if prompt !== null}<p class="prompt">{prompt}</p>{/if}
   {#if quote !== null}<blockquote>{quote}</blockquote>{/if}
+  {#if shot !== null}<ScreenshotAnswer file={shot} payload={p} />{/if}
   {#if question.type === 'price_is_right'}
     <p class="prompt">{(p.subject as Subject).name}</p>
     <p class="note">between {p.min} and {p.max} gp, as of {p.as_of}</p>

@@ -30,15 +30,28 @@ const EXAMINES = [
   { id: 'q_2', label: 'A <b>bold</b> examine.' },
 ]
 
+const PHOTOS = Array.from({ length: 30 }, (_, index) => ({
+  id: `p_${index}`,
+  label: 'Where was this photo taken?',
+  picture: `${index.toString(16).padStart(16, '0')}.webp`,
+}))
+
 beforeEach(() => {
   vi.clearAllMocks()
   localStorage.clear()
   vi.mocked(api.getReportAllowance).mockResolvedValue({ left: 3, retry_at: null })
-  vi.mocked(api.getReportModes).mockResolvedValue(['more_less', 'guess_examine', 'random_event'])
+  vi.mocked(api.getReportModes).mockResolvedValue([
+    'more_less',
+    'guess_examine',
+    'kgp_recon',
+    'random_event',
+  ])
   vi.mocked(api.getReportChoices).mockImplementation(async (mode) =>
     mode === 'more_less'
       ? { by: 'item', choices: [{ id: 4151, label: 'Abyssal whip' }] }
-      : { by: 'question', choices: EXAMINES },
+      : mode === 'kgp_recon'
+        ? { by: 'question', choices: PHOTOS }
+        : { by: 'question', choices: EXAMINES },
   )
   vi.mocked(api.sendReport).mockResolvedValue({ id: 'x' })
 })
@@ -96,6 +109,31 @@ describe('Report', () => {
       text: 'It is the cat, not the dog.',
     })
     await screen.findByText(/we'll look into it/)
+  })
+
+  it('tells two photo questions apart by their photos, a page at a time', async () => {
+    played()
+    render(Report, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: 'KGP Recon' }))
+    await screen.findByRole('group', { name: 'Which photo?' })
+    expect(screen.queryByRole('combobox')).toBeNull()
+    const photos = (): HTMLImageElement[] => screen.getAllByRole('img', { name: /^Photo \d+$/ })
+    expect(photos()).toHaveLength(24)
+    expect(photos()[1]!.getAttribute('src')).toBe('/pictures/0000000000000001.webp')
+    await fireEvent.click(screen.getByRole('button', { name: 'Show more (6 left)' }))
+    expect(photos()).toHaveLength(30)
+
+    await write('The pin is on the wrong side of the river.')
+    await send()
+    expect(screen.getByText('Select the photo, or choose "Something else".')).toBeTruthy()
+    expect(api.sendReport).not.toHaveBeenCalled()
+    await fireEvent.click(screen.getByRole('radio', { name: 'Photo 2' }))
+    await send()
+    expect(api.sendReport).toHaveBeenCalledWith({
+      mode: 'kgp_recon',
+      question: 'p_1',
+      text: 'The pin is on the wrong side of the river.',
+    })
   })
 
   it('draws a question as text and reports a price round by item', async () => {

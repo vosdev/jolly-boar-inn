@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as admin from '../../lib/admin'
 import type { PackQuestion, QueuedReport } from '../../lib/reports'
+import { screenshots } from '../../lib/screenshots.svelte'
 import ReportQueue from './ReportQueue.svelte'
 
 vi.mock('../../lib/admin', async (importOriginal) => {
@@ -42,6 +43,20 @@ const SWORDFISH: PackQuestion = {
   },
 }
 
+const PROP: PackQuestion = {
+  id: 'q_prop',
+  type: 'picture_pin',
+  mode: 'prop_hunt',
+  payload: {
+    prompt: 'Where is the barrel?',
+    screenshot: 'screenshot:barrel',
+    width: 1600,
+    height: 900,
+    target: { min_x: 0.1, max_x: 0.3, min_y: 0.5, max_y: 0.75 },
+    reach: 0.1,
+  },
+}
+
 function report(over: Partial<QueuedReport> = {}): QueuedReport {
   return {
     id: 'one',
@@ -74,6 +89,30 @@ async function openFirst(name: RegExp | string): Promise<void> {
 }
 
 describe('ReportQueue', () => {
+  it('shows a screenshot question by its photo, and the target on it once opened', async () => {
+    screenshots.files = { 'screenshot:barrel': 'a1b2c3d4e5f60718.webp' }
+    vi.mocked(admin.getReports).mockResolvedValue({
+      reports: [report({ mode: 'prop_hunt', question_id: PROP.id, snapshot: PROP })],
+      counts: { open: 1, closed: 0 },
+    })
+    vi.mocked(admin.getPackQuestions).mockResolvedValue([PROP])
+    const { container } = render(ReportQueue, { token: 't', onrefused: vi.fn() })
+    await screen.findByText('Where is the barrel?')
+    const thumb = container.querySelector<HTMLImageElement>('.summary img.shot')
+    expect(thumb?.getAttribute('src')).toBe('/pictures/a1b2c3d4e5f60718.webp')
+    await openFirst('Where is the barrel?')
+    const photo = screen.getByRole('img', { name: "The question's screenshot" })
+    expect(photo.getAttribute('src')).toBe('/pictures/a1b2c3d4e5f60718.webp')
+    const mark = container.querySelector<HTMLElement>('.shot .mark')!
+    expect([mark.style.left, mark.style.top, mark.style.width, mark.style.height]).toEqual([
+      '10%',
+      '50%',
+      '20%',
+      '25%',
+    ])
+    screenshots.files = {}
+  })
+
   it('draws what a player typed as text, beside the question with its answer and wiki', async () => {
     const { container } = render(ReportQueue, { token: 't', onrefused: vi.fn() })
     await openFirst("Crafting Guild, Heroes' Guild, Mining Guild")

@@ -50,6 +50,7 @@
   import { ApiFailure } from '../lib/api'
   import { TYPE_LABELS } from '../lib/customQuestions'
   import { MODES } from '../lib/modes'
+  import { loadScreenshots } from '../lib/screenshots.svelte'
 
   let {
     tab = 'overview',
@@ -312,6 +313,7 @@
     untrack(() => {
       void refresh()
       void countWaiting()
+      if (token !== null) void loadScreenshots(token)
     })
   })
 </script>

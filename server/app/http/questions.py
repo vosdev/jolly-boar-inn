@@ -38,7 +38,7 @@ def choices(mode: str, request: Request) -> dict[str, Any]:
     state = request.app.state
     if mode not in reports.report_modes(state.settings, state.packs, state.rooms.pictures):
         raise reports.BadMode(f"{mode!r} is not a mode with pack questions here")
-    return reports.choices(request.app.state.packs, mode)
+    return reports.choices(state.packs, mode, state.rooms.pictures)
 
 
 @admin_router.get("")
@@ -46,6 +46,13 @@ def questions(mode: str, request: Request) -> dict[str, Any]:
     if mode not in reports.pack_modes():
         raise reports.BadMode(f"{mode!r} is not a mode with pack questions")
     return {"questions": mode_questions(request.app.state.packs, mode)}
+
+
+@admin_router.get("/pictures")
+def screenshots(request: Request) -> dict[str, str]:
+    """Each screenshot this build has, to its file, for drawing a pack question whole."""
+    pictures = request.app.state.rooms.pictures
+    return {asset: file for asset, file in pictures.items() if asset.startswith("screenshot:")}
 
 
 @admin_router.get("/modes")

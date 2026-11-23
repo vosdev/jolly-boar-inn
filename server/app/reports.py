@@ -16,9 +16,11 @@ while a question is open. Odd One Out's questions all ask the same thing, so the
 is the options in pack order, which says which question it is but not which option is
 the odd one. Who's That NPC? and Pixel Hunt ask the same too, and the picture is the
 question, so a list pick's label is the name it answers to: the one answer a label gives.
+A round on a screenshot asks the same of every photo, so its choice also names the picture,
+by the random file name an open question carries: what players saw, never where it is.
 """
 
-from collections.abc import Collection
+from collections.abc import Collection, Mapping
 from typing import Any, Literal
 from uuid import UUID
 
@@ -84,19 +86,29 @@ def label(question: dict[str, Any]) -> str:
     return payload["prompt"] if quote is None else f"{payload['prompt']} “{quote}”"
 
 
-def choices(packs: list[Pack], mode: str) -> dict[str, Any]:
+def picture(question: dict[str, Any], pictures: Mapping[str, str]) -> str | None:
+    """The file a question's screenshot is served as, or None without one this build has."""
+    screenshot = question["payload"].get("screenshot")
+    return None if screenshot is None else pictures.get(screenshot)
+
+
+def choices(packs: list[Pack], mode: str, pictures: Mapping[str, str]) -> dict[str, Any]:
     """What the form offers for ``mode``: the roster's items, or the pack's questions."""
     if entry(mode).report == "item":
         roster = vocab.get(ITEM_VOCAB)
         entries = roster.entries if roster else ()
         return {"by": "item", "choices": [{"id": e.id, "label": e.name} for e in entries]}
-    return {"by": "question", "choices": [_choice(q) for q in mode_questions(packs, mode)]}
+    listed = [_choice(q, pictures) for q in mode_questions(packs, mode)]
+    return {"by": "question", "choices": listed}
 
 
-def _choice(question: dict[str, Any]) -> dict[str, Any]:
+def _choice(question: dict[str, Any], pictures: Mapping[str, str]) -> dict[str, Any]:
     # A shadow's NPC id lets /suggest refuse one the list already has; a render's NPC is
     # on no list. A random event's asker is no secret: players see who asks it first.
     choice = {"id": question["id"], "label": label(question)}
+    shot = picture(question, pictures)
+    if shot is not None:
+        choice["picture"] = shot
     if entry(question["mode"]).report == "npc" and question["type"] == "pick_from_list":
         choice["npc"] = question["payload"]["answer_id"]
     if question["mode"] == EVENT_MODE:
