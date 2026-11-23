@@ -5,15 +5,17 @@
    *
    * Each row is what players read while the question is open (`reports.label` on the
    * server), never its answer. A random event's row shows who asks it, the NPC the player
-   * picked first. Pending and approved suggestions are not in the packs, so never here.
+   * picked first. A round on screenshots asks the same of every photo, so it shows the photos.
+   * Pending and approved suggestions are not in the packs, so never here.
    * A mode with nothing to list, whether it is not built, not offered here or the fetch
    * failed, gets one line: the list is help, never worth an error.
    */
   import { onMount } from 'svelte'
 
   import { getReportChoices } from '../../lib/api'
+  import { pictureUrl } from '../../lib/pictures'
   import { randomEventFor } from '../../lib/randomEvents'
-  import type { ReportChoice } from '../../lib/reports'
+  import { allPictured, type ReportChoice } from '../../lib/reports'
   import { inGameOrder } from '../../lib/suggestions'
   import { matches, SHOWN_MAX, words } from '../../lib/vocab'
   import NpcFace from '../NpcFace.svelte'
@@ -33,7 +35,9 @@
     onloaded?: (rows: readonly ReportChoice[]) => void
   } = $props()
 
+  const PAGE = 24
   const uid = $props.id()
+  let photos = $state(PAGE)
   let rows = $state<readonly ReportChoice[] | 'loading' | 'none'>('loading')
   let query = $state('')
 
@@ -72,6 +76,17 @@
     <p class="note">Fetching the list…</p>
   {:else if rows === 'none'}
     <p class="note">The game has no questions here yet.</p>
+  {:else if allPictured(rows)}
+    <ul class="photos" aria-labelledby="{uid}-title">
+      {#each rows.slice(0, photos) as row, index (row.id)}
+        <li><img src={pictureUrl(row.picture)} alt="Photo {index + 1}" loading="lazy" /></li>
+      {/each}
+    </ul>
+    {#if rows.length > photos}
+      <button type="button" class="more" onclick={() => (photos += PAGE)}>
+        Show more ({rows.length - photos} left)
+      </button>
+    {/if}
   {:else}
     <input
       type="search"
@@ -166,5 +181,30 @@
 
   .note {
     margin: 0.5rem 0 0;
+  }
+
+  ul.photos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+
+  ul.photos li {
+    padding: 0;
+    border: none;
+  }
+
+  ul.photos img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: min(var(--radius), 6px);
+    background: var(--surface-muted);
+  }
+
+  .more {
+    margin-top: 0.5rem;
   }
 </style>

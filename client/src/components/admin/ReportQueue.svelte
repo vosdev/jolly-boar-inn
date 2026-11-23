@@ -15,6 +15,8 @@
   import { getPackQuestions, getReports, setReportStatus, type ReportQueue } from '../../lib/admin'
   import { ApiFailure } from '../../lib/api'
   import { npcArt } from '../../lib/npcs'
+  import { pictureUrl } from '../../lib/pictures'
+  import { screenshotFile } from '../../lib/screenshots.svelte'
   import {
     asksAbout,
     isItem,
@@ -150,6 +152,10 @@
           >
             <img src={npcArt(reportHost(row.mode)).url} alt="" />
             <span class="chip">{reportModeName(row.mode)}</span>
+            {#if row.snapshot !== null && !isItem(row.snapshot)}
+              {@const shot = screenshotFile(row.snapshot.payload)}
+              {#if shot !== null}<img class="shot" src={pictureUrl(shot)} alt="" />{/if}
+            {/if}
             <span class="text">{reportSummary(row)}</span>
             {#if kept === false}<span class="chip warn">No longer in the pack</span>{/if}
             <span class="when">{sent(row.created_at)}</span>
@@ -285,6 +291,14 @@
     height: 32px;
     object-fit: contain;
     image-rendering: pixelated;
+  }
+
+  .summary img.shot {
+    width: 64px;
+    height: 36px;
+    object-fit: cover;
+    image-rendering: auto;
+    border-radius: 4px;
   }
 
   .text {

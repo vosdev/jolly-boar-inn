@@ -16,7 +16,7 @@ from app.config import Settings
 from app.http.ratelimit import REPORTS_PER_HOUR, RateLimiter
 from app.main import create_app
 from app.modes import TILES
-from app.questions.packs import load_packs, mode_questions
+from app.questions.packs import Pack, load_packs, mode_questions
 from tests.conftest import BASE
 from tests.packs import PACKS_DIR, SHIPPED_MODES
 
@@ -26,6 +26,25 @@ PACKS = load_packs(PACKS_DIR)
 EXAMINE = mode_questions(PACKS, "guess_examine")[0]
 ODD = mode_questions(PACKS, "odd_one_out")[0]
 WHIP = 4151
+BOX = {"min_x": 3200, "max_x": 3210, "min_y": 3200, "max_y": 3210}
+SHOTS = ("screenshot:varrock-square", "screenshot:lumbridge-castle")
+FILES = ("a1b2c3d4e5f60718.webp", "0f1e2d3c4b5a6978.webp")
+PHOTOS = tuple(
+    {
+        "id": f"kgp{index}",
+        "type": "map_pin",
+        "mode": "kgp_recon",
+        "difficulty": "easy",
+        "payload": {
+            "prompt": "Where was this photo taken?",
+            "targets": [{"name": place, **BOX}],
+            "screenshot": shot,
+            "width": 1600,
+            "height": 900,
+        },
+    }
+    for index, (shot, place) in enumerate(zip(SHOTS, ("Varrock", "Lumbridge"), strict=True))
+)
 
 REPORT = {"mode": "guess_examine", "question": EXAMINE["id"], "text": "That's not its examine."}
 
@@ -33,6 +52,7 @@ ADMIN_ROUTES = (
     ("GET", "/api/admin/reports"),
     ("POST", "/api/admin/reports/00000000-0000-0000-0000-000000000000/status"),
     ("GET", "/api/admin/questions?mode=guess_examine"),
+    ("GET", "/api/admin/questions/pictures"),
 )
 
 
@@ -212,6 +232,28 @@ def test_a_quote_is_named_after_its_prompt(offline: TestClient) -> None:
     assert body["choices"][0]["label"] == f"{payload['prompt']} “{payload['quote']}”"
 
 
+def test_a_screenshot_choice_carries_its_picture_and_never_its_place(
+    offline: TestClient,
+) -> None:
+    state = offline.app.state
+    state.packs = [*PACKS, Pack(name="kgp", generated_at=None, questions=PHOTOS, path=Path("k"))]
+    state.rooms.pictures.update(dict(zip(SHOTS, FILES, strict=True)))
+    body = offline.get("/api/questions?mode=kgp_recon").json()
+    assert body["choices"] == [
+        {"id": f"kgp{index}", "label": "Where was this photo taken?", "picture": file}
+        for index, file in enumerate(FILES)
+    ]
+    flat = json.dumps(body)
+    for secret in ("Varrock", "Lumbridge", "screenshot:", "targets", "min_x"):
+        assert secret not in flat
+
+
+def test_a_choice_whose_screenshot_this_build_lacks_has_no_picture() -> None:
+    packs = [Pack(name="kgp", generated_at=None, questions=PHOTOS, path=Path("k"))]
+    listed = reports.choices(packs, "kgp_recon", {SHOTS[0]: "a1b2c3d4e5f60718.webp"})["choices"]
+    assert [choice.get("picture") for choice in listed] == ["a1b2c3d4e5f60718.webp", None]
+
+
 def test_an_unknown_mode_lists_nothing(offline: TestClient) -> None:
     assert offline.get("/api/questions?mode=zoom_quiz").status_code == 422
     assert offline.get("/api/questions?mode=custom").status_code == 422
@@ -331,6 +373,12 @@ def test_the_admin_list_holds_whole_questions(offline: TestClient) -> None:
     assert events["questions"] and all(q["random_event"] for q in events["questions"])
     unknown = offline.get("/api/admin/questions?mode=custom", headers=BEARER)
     assert unknown.status_code == 422
+
+
+def test_the_admin_pictures_name_only_screenshots(offline: TestClient) -> None:
+    offline.app.state.rooms.pictures[SHOTS[0]] = "a1b2c3d4e5f60718.webp"
+    response = offline.get("/api/admin/questions/pictures", headers=BEARER)
+    assert response.json() == {SHOTS[0]: "a1b2c3d4e5f60718.webp"}
 
 
 def test_without_a_token_the_admin_routes_are_404s(settings: Settings, dist: Path) -> None:

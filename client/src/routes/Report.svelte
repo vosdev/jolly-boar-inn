@@ -9,6 +9,7 @@
   import { onMount } from 'svelte'
 
   import ChoiceSearch from '../components/report/ChoiceSearch.svelte'
+  import PictureChoices from '../components/report/PictureChoices.svelte'
   import {
     ApiFailure,
     getReportAllowance,
@@ -18,6 +19,7 @@
   } from '../lib/api'
   import { npcArt } from '../lib/npcs'
   import {
+    allPictured,
     REPORT_TEXT_MAX,
     reportHost,
     reportModeName,
@@ -47,7 +49,9 @@
       ? null
       : listed?.by === 'item'
         ? 'Select the item, or choose "Something else".'
-        : 'Select the question, or choose "Something else".',
+        : listed !== null && allPictured(listed.choices)
+          ? 'Select the photo, or choose "Something else".'
+          : 'Select the question, or choose "Something else".',
   )
   const length = $derived([...text.trim()].length)
 
@@ -207,12 +211,21 @@
             void send()
           }}
         >
-          <ChoiceSearch
-            choices={listed.choices}
-            bind:picked
-            label={listed.by === 'item' ? 'Which item?' : 'Which question?'}
-            problem={attempted ? pickError : null}
-          />
+          {#if allPictured(listed.choices)}
+            <PictureChoices
+              choices={listed.choices}
+              bind:picked
+              label="Which photo?"
+              problem={attempted ? pickError : null}
+            />
+          {:else}
+            <ChoiceSearch
+              choices={listed.choices}
+              bind:picked
+              label={listed.by === 'item' ? 'Which item?' : 'Which question?'}
+              problem={attempted ? pickError : null}
+            />
+          {/if}
           <div class="field">
             <label for="report-text">What is wrong with it?</label>
             <textarea id="report-text" rows="5" bind:value={text}></textarea>

@@ -29,6 +29,24 @@ beforeEach(() => {
 afterEach(cleanup)
 
 describe('ExistingQuestions', () => {
+  it('shows a round on screenshots by its photos, since every one asks the same', async () => {
+    const label = 'Where was this photo taken?'
+    vi.mocked(api.getReportChoices).mockResolvedValue({
+      by: 'question',
+      choices: [
+        { id: 'a', label, picture: 'a1b2c3d4e5f60718.webp' },
+        { id: 'b', label, picture: '0f1e2d3c4b5a6978.webp' },
+      ],
+    })
+    render(ExistingQuestions, { mode: 'kgp_recon', open: true })
+    const photos = await screen.findAllByRole('img', { name: /^Photo \d$/ })
+    expect(photos.map((img) => img.getAttribute('src'))).toEqual([
+      '/pictures/a1b2c3d4e5f60718.webp',
+      '/pictures/0f1e2d3c4b5a6978.webp',
+    ])
+    expect(screen.queryByLabelText('Search the questions already in the game')).toBeNull()
+  })
+
   it('lists the mode’s questions and narrows them by word prefix, case and accents aside', async () => {
     vi.mocked(api.getReportChoices).mockResolvedValue({
       by: 'question',

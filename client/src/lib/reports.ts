@@ -32,6 +32,13 @@ export interface ReportChoice {
   npc?: number
   /** A random event's: the NPC who asks it. */
   random_event?: string
+  /** A question on a screenshot's: the photo players saw, under `/pictures/`. */
+  picture?: string
+}
+
+/** Whether every choice is a photo, so a picture tells them apart where the label can't. */
+export function allPictured(choices: readonly ReportChoice[]): boolean {
+  return choices.length > 0 && choices.every((choice) => choice.picture !== undefined)
 }
 
 /** What the form's search has picked: a choice, "Something else", or nothing yet. */
