@@ -1,26 +1,31 @@
 <script lang="ts">
   /**
-   * The Emotes button and the game's emote tab it opens: a stone panel of eight, each
-   * icon over its name in Quill orange. A pick sends it and closes the tab; Escape or a tap
-   * outside closes it too.
+   * The Emotes button and the emote tab it opens: a panel of the theme's with the eight
+   * icons, each named for a screen reader and on hover, and by name alone where its icon was
+   * never fetched. A pick sends it and closes the tab; Escape or a tap outside closes it too.
    *
    * After a send the button is held for `EMOTE_MS` while a shade drains across it, left to
    * right, from when the server's `emote` frame lands; until then it is held from the tap,
-   * and let go again if no frame comes. A desktop says the limit under it.
+   * and let go again if no frame comes.
+   *
+   * The icons are pixel art, so they are drawn at their own size or a whole multiple of it:
+   * scaled otherwise, they blur or lose a row of pixels. The button is the game's own Emotes
+   * button and nothing else.
    *
    * `strip` pins it to the left end of a phone's strip, with the tab over the strip.
    */
   import { dismissable } from '../lib/dismissable'
   import { EMOTE_MS, EMOTES, emoteIcon, yourEmoteAt, type EmoteId } from '../lib/emotes'
-  import { roomShown } from '../lib/roomFit'
 
   let { send, strip = false }: { send: (emote: EmoteId) => boolean; strip?: boolean } = $props()
 
-  const cheer = emoteIcon('cheer')
-  const desktop = $derived($roomShown !== null)
+  const face = emoteIcon('button')
 
   let open = $state(false)
   let button = $state<HTMLButtonElement | null>(null)
+  let tab = $state<HTMLElement | null>(null)
+  /** The tab opens leftwards from the button's right edge where rightwards would not fit. */
+  let flip = $state(false)
   let pending = $state(false)
   let pendingTimer: ReturnType<typeof setTimeout> | undefined
   /** When the cooldown being shown began, or null outside one. */
@@ -40,6 +45,13 @@
 
   $effect(() => () => clearTimeout(pendingTimer))
 
+  // The panel holding the button is what scrolls and clips, so the tab has to fit inside it.
+  $effect(() => {
+    if (tab === null || button === null || strip) return
+    const edge = (button.closest('.panel') ?? document.documentElement).getBoundingClientRect()
+    flip = button.getBoundingClientRect().left + tab.getBoundingClientRect().width > edge.right
+  })
+
   const held = $derived(pending || cooling !== null)
 
   function pick(emote: EmoteId): void {
@@ -56,6 +68,7 @@
   {#if open}
     <div
       class="tab"
+      class:flip
       role="dialog"
       aria-label="Emotes"
       use:dismissable={{
@@ -66,14 +79,20 @@
         },
         inside: [button],
       }}
+      bind:this={tab}
     >
       <ul class="grid">
         {#each EMOTES as emote (emote.id)}
           {@const icon = emoteIcon(emote.id)}
           <li>
-            <button type="button" class="slot" onclick={() => pick(emote.id)}>
-              {#if icon !== null}<img src={icon} alt="" />{/if}
-              <span>{emote.name}</span>
+            <button
+              type="button"
+              class="slot"
+              aria-label={emote.name}
+              title={emote.name}
+              onclick={() => pick(emote.id)}
+            >
+              {#if icon !== null}<img src={icon} alt="" />{:else}{emote.name}{/if}
             </button>
           </li>
         {/each}
@@ -83,43 +102,54 @@
   <button
     type="button"
     class="open"
-    class:bare={cheer === null}
     aria-expanded={open}
     aria-haspopup="dialog"
-    aria-label={strip ? 'Emotes' : undefined}
-    aria-describedby={desktop && !strip ? 'emote-limit' : undefined}
+    aria-label="Emotes"
     disabled={held}
     bind:this={button}
     onclick={() => (open = !open)}
   >
     {#key cooling}{#if cooling !== null}<span class="drain" aria-hidden="true"></span>{/if}{/key}
-    {#if cheer !== null}<img src={cheer} alt="" />{/if}
-    {#if !strip || cheer === null}<span class="label">Emotes</span>{/if}
+    {#if face !== null}<img src={face} alt="" />{:else}<span class="label">Emotes</span>{/if}
   </button>
-  {#if desktop && !strip}<p class="limit" id="emote-limit">One every 3 seconds.</p>{/if}
 </div>
 
 <style>
   .emotes {
+    --emotes-size: 60px;
     position: relative;
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 0.25rem 0.6rem;
   }
 
+  /* A square, the same at the table's foot and on a phone's strip. */
   .open {
     position: relative;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    min-height: 44px;
+    display: inline-grid;
+    place-items: center;
+    width: var(--emotes-size);
+    height: var(--emotes-size);
+    min-height: 0;
+    padding: 0;
     overflow: hidden;
+    background: var(--panel-raised);
+    border: var(--border-width) solid var(--line);
+    border-radius: var(--radius);
   }
 
-  .open img {
-    height: 26px;
+  .open img,
+  .slot img {
     image-rendering: pixelated;
+  }
+
+  /* The button's figure is 18 by 27, too small to tap at its own size: twice it, exactly. */
+  .open img {
+    width: 36px;
+    height: 54px;
+  }
+
+  .label {
+    font-size: 0.65rem;
   }
 
   .open:disabled img {
@@ -144,74 +174,51 @@
     }
   }
 
-  .limit {
-    margin: 0;
-    font-size: 0.8rem;
-    color: var(--muted);
-  }
-
-  /* The game's emote tab: its stone and its orange. */
   .tab {
     position: absolute;
     bottom: calc(100% + 0.5rem);
     left: 0;
     z-index: 10;
     width: min(16.5rem, calc(100vw - 1.5rem));
-    padding: 8px;
-    border: 2px solid var(--emote-tab-edge);
-    border-radius: 4px;
-    background: var(--emote-tab);
-    box-shadow:
-      inset 0 0 0 1px var(--emote-tab-rim),
-      0 6px 18px rgb(18 12 4 / 0.45);
+    padding: 0.4rem;
+    border: var(--border-width) solid var(--line);
+    border-radius: var(--radius);
+    background: var(--panel);
+    box-shadow: var(--shadow);
+  }
+
+  .tab.flip {
+    right: 0;
+    left: auto;
   }
 
   .grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 4px;
+    gap: 0.3rem;
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
   .slot {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 4px;
+    display: grid;
+    place-items: center;
     width: 100%;
-    height: 68px;
+    height: 56px;
     min-height: 0;
-    padding: 0 0 5px;
-    border: 1px solid var(--emote-slot-edge);
-    border-radius: 2px;
-    background: var(--emote-slot);
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--panel-raised);
     box-shadow: none;
+    color: var(--ink);
     font: inherit;
+    font-size: 0.8rem;
   }
 
   .slot:hover {
-    background: var(--emote-slot-hover);
-  }
-
-  .slot:focus-visible {
-    outline: 2px solid var(--emote-name);
-    outline-offset: 1px;
-  }
-
-  .slot img {
-    max-height: 40px;
-    image-rendering: pixelated;
-  }
-
-  .slot span {
-    font-family: 'RuneScape', var(--font-body);
-    font-size: 16px;
-    line-height: 1;
-    color: var(--emote-name);
-    text-shadow: 1px 1px 0 var(--chat-outline);
+    border-color: var(--accent);
   }
 
   /* A phone's strip: a square at its left end, like the item's at its right. */
@@ -223,28 +230,13 @@
   }
 
   .strip .open {
-    justify-content: center;
-    width: 52px;
-    height: 52px;
-    padding: 0;
-    background: var(--panel-raised);
-    border: var(--border-width) solid var(--line);
-    border-radius: var(--radius);
     box-shadow: var(--shadow);
-  }
-
-  .strip .open img {
-    height: 30px;
-  }
-
-  .strip .open.bare .label {
-    font-size: 0.65rem;
   }
 
   .strip .tab {
     position: fixed;
     right: 0.75rem;
-    bottom: calc(0.75rem + 52px + 0.5rem + env(safe-area-inset-bottom));
+    bottom: calc(0.75rem + var(--emotes-size) + 0.5rem + env(safe-area-inset-bottom));
     left: 0.75rem;
     width: auto;
   }

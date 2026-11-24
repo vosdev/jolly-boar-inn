@@ -65,8 +65,12 @@ describe('EMOTES', () => {
   })
 
   it('finds an icon by its emote, and none for one the fetch did not bring', () => {
-    const files = { '../assets/emotes/cheer.png': '/a/cheer.png' }
+    const files = {
+      '../assets/emotes/cheer.png': '/a/cheer.png',
+      '../assets/emotes/button.png': '/a/button.png',
+    }
     expect(emoteIcon('cheer', files)).toBe('/a/cheer.png')
+    expect(emoteIcon('button', files)).toBe('/a/button.png')
     expect(emoteIcon('wave', files)).toBeNull()
   })
 })

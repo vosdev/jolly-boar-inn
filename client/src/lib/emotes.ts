@@ -110,8 +110,11 @@ const iconFiles = import.meta.glob<string>('../assets/emotes/*.{avif,webp,png,jp
   import: 'default',
 })
 
-/** The wiki's icon for `id`, or null when `make fetch-assets` has not brought it. */
-export function emoteIcon(id: EmoteId, files: Record<string, string> = iconFiles): string | null {
+/** The wiki's icon for `id`, or the Emotes button's for `button`; null when `make fetch-assets` has not brought it. */
+export function emoteIcon(
+  id: EmoteId | 'button',
+  files: Record<string, string> = iconFiles,
+): string | null {
   for (const [path, url] of Object.entries(files)) {
     const base = path.slice(path.lastIndexOf('/') + 1)
     if (base.slice(0, base.lastIndexOf('.')) === id) return url

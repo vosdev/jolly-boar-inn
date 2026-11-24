@@ -1,7 +1,7 @@
 <script lang="ts">
   /**
    * A chathead that can play an emote: the line over it in the game's overhead chat,
-   * Quill 8 with a black outline in the emote's colour and effect, while the chathead acts
+   * the game's chatbox font with a black outline in the emote's colour and effect, while the chathead acts
    * it out. It shows for `EMOTE_MS`; a new emote from the same player replaces it.
    *
    * Nothing here clips: the line overhangs the chathead upwards and sideways, so whatever
@@ -54,7 +54,7 @@
     bottom: calc(100% + 4px);
     left: 50%;
     z-index: 4;
-    font-family: 'RuneScape', var(--font-body);
+    font-family: 'RuneScape Chat', var(--font-body);
     font-size: 16px;
     line-height: 1;
     white-space: pre;

@@ -4,7 +4,6 @@ import { cleanup, fireEvent, render, screen, within } from '@testing-library/sve
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { EMOTE_MS, clearEmotes, noteEmote } from '../lib/emotes'
-import { roomShown, type RoomFit } from '../lib/roomFit'
 import EmoteButton from './EmoteButton.svelte'
 
 let sent: string[] = []
@@ -32,7 +31,6 @@ beforeEach(() => {
 afterEach(() => {
   cleanup()
   clearEmotes()
-  roomShown.set(null)
   vi.useRealTimers()
 })
 
@@ -43,7 +41,7 @@ describe('EmoteButton', () => {
     expect(
       within(tab)
         .getAllByRole('button')
-        .map((b) => b.textContent?.trim()),
+        .map((b) => b.getAttribute('aria-label')),
     ).toEqual(['Wave', 'Cheer', 'Clap', 'Laugh', 'Think', 'Panic', 'Cry', 'Angry'])
   })
 
@@ -79,10 +77,10 @@ describe('EmoteButton', () => {
     expect(button().querySelector('.drain')).toBeNull()
   })
 
-  it('says the limit on a desktop only', async () => {
+  it('names each slot for a screen reader and on hover, with no line under the button', async () => {
+    await fireEvent.click(button())
+    const wave = within(screen.getByRole('dialog')).getByRole('button', { name: 'Wave' })
+    expect(wave.title).toBe('Wave')
     expect(screen.queryByText('One every 3 seconds.')).toBeNull()
-    roomShown.set({ fit: {} as RoomFit })
-    await vi.advanceTimersByTimeAsync(0)
-    expect(screen.getByText('One every 3 seconds.')).toBeTruthy()
   })
 })
