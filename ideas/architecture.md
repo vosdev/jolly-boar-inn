@@ -394,7 +394,7 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 | `rematch` | | admin | `finished → lobby` for another game (section 7). A daily room or any other status: `bad_state`. |
 | `rotate_key` | | admin | Lobby, invite-only room. New key; the old link stops joining, nobody leaves. |
 | `decide_request` | `request_id`, `accept` | admin | Lets a waiting join request in or turns it away, once (section 10). |
-| `emote` | `emote` | all | While waiting: the lobby, a reveal, or an open question answered or not yours to answer; elsewhere, a daily room or the TV `bad_state`. One of the eight, else `bad_value`. One a player per 3 s; a sooner one is dropped silently, counted as `limiter="emotes"`. |
+| `emote` | `emote` | all | While waiting: the lobby, a reveal, the standings, or an open question answered or not yours; elsewhere, a daily room or the TV `bad_state`. One of the eight, else `bad_value`. One a player per 3 s; a sooner one is dropped silently, counted as `limiter="emotes"`. |
 
 | Server `t` | Fields | When |
 |---|---|---|

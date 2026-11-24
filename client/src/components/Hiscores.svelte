@@ -28,6 +28,7 @@
   import { players } from '../lib/stores'
   import CountUp from './CountUp.svelte'
   import MysteryBox, { BOX_BEAT_MS } from './MysteryBox.svelte'
+  import Emoting from './Emoting.svelte'
   import Pet from './Pet.svelte'
 
   let {
@@ -131,7 +132,9 @@
         {#if columns && changes}<td class="moved">{@render moved(move)}</td>{/if}
         <td class="name">
           <span class="who">
-            <Pet pet={petFor(standing)} size={28} label="" />
+            <Emoting playerId={standing.player_id}>
+              <Pet pet={petFor(standing)} size={28} label="" />
+            </Emoting>
             <span>
               {nameOf(standing)}{#if you}{' '}<span class="note">(you)</span>{/if}
             </span>

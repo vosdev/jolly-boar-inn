@@ -274,6 +274,12 @@
       null
     )
   }
+  /** A pet for the reveal's results: whoever is in the room, or was in the standings. */
+  function petById(id: string): string {
+    const player = $players.find((one) => one.id === id)
+    const standing = $standings.find((one) => one.player_id === id)
+    return petOf(player ?? { id, avatar: standing?.avatar ?? null })
+  }
   /** Our own row in the reveal, if we answered. */
   const yourResult = $derived(
     $you === null || $lastClosed === null ? null : ($lastClosed.results[$you.id] ?? null),
@@ -505,6 +511,7 @@
       teams={$room?.settings.teams ?? []}
       teamOf={teamsOf($players)}
       {panel}
+      petOf={panel ? petById : null}
     />
   {/if}
 {/snippet}
@@ -648,6 +655,7 @@
             stacked={framed === null}
             tv={$you?.role === 'tv'}
             drops={$room.drops ?? []}
+            emotes={emoting ? emotes : undefined}
           />
         {:else if $room.phase === 'open' && $question !== null}
           <QuestionStage

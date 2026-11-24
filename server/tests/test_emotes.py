@@ -108,7 +108,7 @@ def test_the_splash_is_bad_state(table) -> None:
     assert refused(game.players[0]) == "bad_state"
 
 
-def test_the_standings_are_bad_state(table) -> None:
+def test_the_standings_between_rounds_allow_it(table) -> None:
     game = table("Zezima", modes=["more_less", "bestiary"], questions=1, standings_seconds=30)
     game.start()
     game.opened(0)
@@ -120,7 +120,8 @@ def test_the_standings_are_bad_state(table) -> None:
             break
     else:
         raise AssertionError("the standings never came")
-    assert refused(game.players[0]) == "bad_state"
+    emote(game.players[0])
+    assert game.players[0].take("emote")["player_id"] == game.players[0].id
 
 
 def test_the_final_hiscores_are_bad_state(table) -> None:

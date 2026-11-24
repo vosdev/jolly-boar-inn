@@ -2,7 +2,8 @@
   /**
    * The standings' table panel (section 11 of ideas/design.md): "Next up", the next round's
    * host, its name and question count, and the count to its splash, large at the foot.
-   * Stacked on a phone it is a strip at the foot instead, with nothing behind it to open.
+   * Stacked on a phone it is a strip at the foot instead, with nothing behind it to open, and
+   * `afterEmotes` starts it past the Emotes button at its left end.
    */
   import { msUntil, serverNow } from '../lib/clock'
   import { hostOf, modeLabel } from '../lib/modes'
@@ -14,12 +15,14 @@
     segment,
     endsAt,
     stacked = false,
+    afterEmotes = false,
   }: {
     /** The round the standings hand over to, `room.next_segment`. */
     segment: Segment
     /** When the standings end, `room.next_at`. */
     endsAt: string | null
     stacked?: boolean
+    afterEmotes?: boolean
   } = $props()
 
   const label = $derived(modeLabel(segment.mode))
@@ -30,7 +33,7 @@
 </script>
 
 {#if stacked}
-  <section class="strip surface" aria-label="Next up">
+  <section class="strip surface" class:after={afterEmotes} aria-label="Next up">
     <span class="face" aria-hidden="true"><NpcFace npc={host} /></span>
     <span class="summary"><span class="muted">Next up:</span> {label}</span>
     {#if startsIn !== null}<strong class="count">{startsIn}</strong>{/if}
@@ -139,6 +142,10 @@
     border-radius: var(--radius);
     box-shadow: var(--shadow);
     font-size: 0.95rem;
+  }
+
+  .strip.after {
+    left: calc(0.75rem + 52px + 0.5rem);
   }
 
   .strip .face {

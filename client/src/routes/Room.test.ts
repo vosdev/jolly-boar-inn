@@ -757,6 +757,15 @@ describe('the room’s frame', () => {
     expect(sent.at(-1)).toEqual({ t: 'emote', emote: 'cheer' })
   })
 
+  it('offers Emotes between rounds, under Next up, and sends the pick', async () => {
+    windowOf(1440, 900)
+    await arrive(welcome(roomView({ phase: 'standings', next_segment: { ...SEGMENT, index: 1 } })))
+    await screen.findByRole('region', { name: 'Next up' })
+    await fireEvent.click(screen.getByRole('button', { name: 'Emotes' }))
+    await fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Wave' }))
+    expect(sent.at(-1)).toEqual({ t: 'emote', emote: 'wave' })
+  })
+
   function closeWith(results: Record<string, PlayerResult>, unanswered: string[]): void {
     applyServerMessage({
       t: 'question_closed',
@@ -808,7 +817,7 @@ describe('the room’s frame', () => {
     const rows = [...panel.querySelectorAll('.row')].map((row) => [
       row.querySelector('.label')?.textContent,
       row.querySelector('.number')?.textContent,
-      row.querySelector('.names')?.textContent ?? '',
+      row.querySelector('.names')?.textContent?.trim() ?? '',
     ])
     expect(rows).toEqual([
       ['Dragon bones', '1', 'Woox'],
@@ -849,7 +858,8 @@ describe('the room’s frame', () => {
       'Abyssal whip',
       'Dragon bones',
     ])
-    expect(rows[0]!.querySelector('.names')?.textContent).toBe('You')
+    // The chathead beside each name brings its own whitespace.
+    expect(rows[0]!.querySelector('.names')?.textContent?.trim()).toBe('You')
     expect(rows[1]!.querySelector('.names')).toBeNull()
     expect(rows[1]!.querySelector('.number')?.textContent).toBe('1')
   })

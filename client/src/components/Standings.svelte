@@ -11,6 +11,8 @@
    *
    * A team game ranks its teams the same way, each with its members under it.
    *
+   * `emotes` is the Emotes button, under "Next up", or at the strip's left end on a phone.
+   *
    * Once the rows have moved, each finder's Mystery Box opens on their row, and yours in a
    * "You found" panel under "Next up" (a sheet over the strip on a phone). A screen that
    * arrived after the standings began shows them open, as reduced motion does.
@@ -19,7 +21,7 @@
    * scrolls (`crawl`), and nothing says what is next. With drops it goes to the table's foot,
    * where the finders are, before the boxes open, and stays until they have.
    */
-  import { untrack } from 'svelte'
+  import { untrack, type Snippet } from 'svelte'
   import { get } from 'svelte/store'
 
   import {
@@ -61,6 +63,7 @@
     stacked = false,
     tv = false,
     drops = [],
+    emotes,
   }: {
     standings: Standing[]
     /** A team game's teams; null outside one. */
@@ -78,6 +81,8 @@
     tv?: boolean
     /** `room.drops`: who found what, in standings order. */
     drops?: Drop[]
+    /** The Emotes button, while we may send one. */
+    emotes?: Snippet<[boolean]>
   } = $props()
 
   /** How long the TV takes to scroll to the table's foot before the boxes open. */
@@ -194,7 +199,8 @@
 
 {#if !tv && next !== null}
   <AtTable>
-    <NextUp segment={next} {endsAt} {stacked} />
+    <NextUp segment={next} {endsAt} {stacked} afterEmotes={emotes !== undefined} />
+    {@render emotes?.(stacked)}
     {#if found && yourFind !== null}
       <div class:found-sheet={stacked}>
         <ItemSlot

@@ -44,7 +44,8 @@
    * instead: the right one first, labelled with the answer, then the wrong ones and "No
    * answer", each with its count, a bar for its share of everyone who could answer, and
    * its names under it. The right row always names its players; the others only with
-   * `showNames`. The TV keeps the tally as it was.
+   * `showNames`. Given `petOf`, each name has its chathead, which plays that player's emotes,
+   * with room above each line of names for the overhead text. The TV keeps the tally as it was.
    */
   import { normalize } from '../lib/customQuestions'
   import { formatGp } from '../lib/gp'
@@ -54,7 +55,9 @@
   import { loadVocab } from '../lib/vocab'
   import { GEMS, type Gem } from './questions/GemButton.svelte'
   import { placement } from './questions/types/Ordering.svelte'
+  import Emoting from './Emoting.svelte'
   import ItemIcon from './ItemIcon.svelte'
+  import Pet from './Pet.svelte'
   import PinRanking from './PinRanking.svelte'
   import TeamLogo from './TeamLogo.svelte'
 
@@ -71,6 +74,7 @@
     teamOf = {},
     panel = false,
     items = [],
+    petOf = null,
   }: {
     /** The question's type, which decides what an answer's group is. */
     type: string
@@ -93,6 +97,8 @@
     panel?: boolean
     /** Every item that paid on this close, whoever wore it. */
     items?: ItemPoints[]
+    /** A player's pet by id, to draw beside each name in the panel. */
+    petOf?: ((id: string) => string) | null
   } = $props()
 
   const itemRows = $derived(
@@ -464,7 +470,22 @@
             <span class="label">{row.label}</span>
             <span class="number">{row.players.length}</span>
             <span class="bar" aria-hidden="true"><i style:width="{row.share * 100}%"></i></span>
-            {#if row.named.length > 0}
+            {#if row.named.length > 0 && petOf !== null}
+              <span class="names pets">
+                {#each row.named as player, index (player.id)}<span
+                    class="who"
+                    class:you={player.you}
+                  >
+                    <Emoting playerId={player.id}>
+                      <Pet pet={petOf(player.id)} size={28} label="" />
+                    </Emoting>{#if index > 0}<span class="sr">, </span>{/if}{player.you
+                      ? 'You'
+                      : player.name}{#if player.guess !== null}{' '}<span class="guess">
+                        {player.guess}
+                      </span>{/if}
+                  </span>{/each}{#if row.more > 0}<span>{` and ${row.more} more`}</span>{/if}
+              </span>
+            {:else if row.named.length > 0}
               <span class="names">
                 {#each row.named as player, index (player.id)}{index > 0 ? ', ' : ''}<span
                     class="who"
@@ -792,6 +813,22 @@
 
   .names .you {
     color: var(--ink);
+  }
+
+  /* Each line of chatheads keeps room above it for an overhead line, so a line never covers
+     the names above it; nothing here hides overflow, or the text would clip. */
+  .names.pets {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.25rem 0.75rem;
+    padding-top: 1.25rem;
+  }
+
+  .pets .who {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
   }
 
   .results .credit {

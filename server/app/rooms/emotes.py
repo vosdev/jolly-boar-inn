@@ -17,14 +17,14 @@ EMOTE_COOLDOWN = 3.0
 
 
 def _waiting(room: Room, player: Player) -> bool:
-    """Whether ``player`` may emote now: the lobby, a reveal, or a question they cannot answer."""
+    """Whether ``player`` waits now: the lobby, a reveal, the standings, or an answered question."""
     if room.daily is not None or player.role == "tv":
         return False
     if room.status == "lobby":
         return True
     if room.status != "playing":
         return False
-    if room.phase == "reveal":
+    if room.phase in ("reveal", "standings"):
         return True
     question = room.open_question()
     if question is None:

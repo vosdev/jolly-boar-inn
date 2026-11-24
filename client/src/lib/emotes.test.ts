@@ -76,9 +76,10 @@ describe('EMOTES', () => {
 })
 
 describe('canEmote', () => {
-  it('allows the lobby and a reveal', () => {
+  it('allows the lobby, a reveal and the standings between rounds', () => {
     expect(canEmote(ROOM, YOU, null, false)).toBe(true)
     expect(canEmote(playing('reveal'), YOU, null, false)).toBe(true)
+    expect(canEmote(playing('standings'), YOU, null, false)).toBe(true)
   })
 
   it('allows an open question only once answered, or one you cannot answer', () => {
@@ -87,9 +88,8 @@ describe('canEmote', () => {
     expect(canEmote(playing('open'), YOU, { ...OPEN, you_can_answer: false }, false)).toBe(true)
   })
 
-  it('refuses the splash, the standings, the final, a daily room and the TV', () => {
+  it('refuses the splash, the final, a daily room and the TV', () => {
     expect(canEmote(playing('splash'), YOU, null, false)).toBe(false)
-    expect(canEmote(playing('standings'), YOU, null, false)).toBe(false)
     expect(canEmote({ ...ROOM, status: 'finished' }, YOU, null, false)).toBe(false)
     const daily = { ...playing('reveal'), daily: { day: '2026-11-24', number: 1 } }
     expect(canEmote(daily, YOU, null, false)).toBe(false)

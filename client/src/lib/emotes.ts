@@ -123,9 +123,9 @@ export function emoteIcon(
 }
 
 /**
- * Whether `you` may send an emote now, as the server decides it: in the lobby, a reveal, or an
- * open question they have answered or cannot answer. Never the TV, a daily room, the splash,
- * the standings or the final.
+ * Whether `you` may send an emote now, as the server decides it: in the lobby, a reveal, the
+ * standings between rounds, or an open question they have answered or cannot answer. Never the
+ * TV, a daily room, the splash or the final.
  */
 export function canEmote(
   room: RoomView | null,
@@ -136,7 +136,7 @@ export function canEmote(
   if (room === null || you === null || you.role === 'tv' || room.daily != null) return false
   if (room.status === 'lobby') return true
   if (room.status !== 'playing') return false
-  if (room.phase === 'reveal') return true
+  if (room.phase === 'reveal' || room.phase === 'standings') return true
   if (room.phase !== 'open' || question === null) return false
   return answered || !question.you_can_answer
 }
