@@ -14,6 +14,9 @@
 import { getModes, type ModePacing } from './api'
 import { CUSTOM_TYPES } from './customQuestions'
 import type { RoomSettings } from './protocol'
+import { EVENTS_SLUG, HOW_TO_PATH, slugOf } from './seo'
+
+export { HOW_TO_PATH, slugOf }
 
 export type Drawing = 'tap' | 'basket' | 'order' | 'match' | 'text' | 'number' | 'slider' | 'list'
 
@@ -228,19 +231,6 @@ export function roomTypes(settings: RoomSettings, total: number, modes: ModePaci
 /** The rows that cover any of these types, in the order they are listed. */
 export function rowsFor(types: Set<string>): HowToRow[] {
   return HOW_TO_ROWS.filter((row) => row.types.some((type) => types.has(type)))
-}
-
-/** The How to play page's address; its views sit under it. */
-export const HOW_TO_PATH = '/how-to-play'
-
-const EVENTS_SLUG = 'random-events'
-
-/** A mode's part of the address, from its name, which reads better in a shared link than its id. */
-export function slugOf(label: string): string {
-  return label
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
 }
 
 /** The address of a view of How to play: `'overview'`, `'events'` or a mode's id. */

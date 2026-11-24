@@ -16,12 +16,15 @@ import {
   faroTag,
   definedThemes,
   favicons,
+  loadSeoModes,
   readBranding,
   retitle,
+  seoManifest,
   shareTags,
   signSvg,
   themeColours,
 } from './site-branding.ts'
+import { HOME_DESCRIPTION, NOT_SHOWN_MODES } from './src/lib/seo.ts'
 
 let root: string
 
@@ -217,10 +220,11 @@ describe('a shared link', () => {
   it('is titled and described with the site’s name, and has no image without a card', () => {
     expect(meta(shareTags(readBranding({ PUBLIC_SITE_NAME: 'The Dancing Donkey' }, root)))).toEqual(
       {
+        description: HOME_DESCRIPTION,
         'og:type': 'website',
         'og:site_name': 'The Dancing Donkey',
-        'og:title': 'The Dancing Donkey',
-        'og:description': 'Think you know Gielinor? Prove it at The Dancing Donkey.',
+        'og:title': 'The Dancing Donkey — OSRS Party Trivia Game',
+        'og:description': HOME_DESCRIPTION,
         'twitter:card': 'summary',
       },
     )
@@ -233,6 +237,35 @@ describe('a shared link', () => {
     expect(tags['og:image:width']).toBe('1200')
     expect(tags['og:image:height']).toBe('630')
     expect(tags['twitter:card']).toBe('summary_large_image')
+  })
+})
+
+describe('SEO manifest', () => {
+  it('loads every built public mode in registry order and lists it in the sitemap', async () => {
+    const modes = await loadSeoModes()
+    expect(modes.length).toBeGreaterThanOrEqual(20)
+    for (const hidden of NOT_SHOWN_MODES) {
+      expect(modes.some((mode) => mode.id === hidden)).toBe(false)
+    }
+    const manifest = seoManifest(readBranding(BOAR, root), modes)
+    expect(manifest.site_name).toBe(DEFAULT_SITE_NAME)
+    expect(manifest.has_card).toBe(true)
+    const paths = manifest.routes.map((route) => route.path)
+    expect(paths.slice(0, 5)).toEqual([
+      '/',
+      '/daily',
+      '/create',
+      '/how-to-play',
+      '/how-to-play/random-events',
+    ])
+    expect(paths).toContain('/how-to-play/more-or-less')
+    expect(paths).toContain('/how-to-play/the-price-is-right')
+    const sitemapPaths = manifest.routes.filter((route) => route.sitemap).map((route) => route.path)
+    expect(sitemapPaths).toContain('/daily')
+    expect(sitemapPaths).toContain('/how-to-play/more-or-less')
+    expect(sitemapPaths).not.toContain('/suggest')
+    expect(sitemapPaths).not.toContain('/report')
+    expect(manifest.routes.find((route) => route.path === '/report')?.noindex).toBe(true)
   })
 })
 

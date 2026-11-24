@@ -1,13 +1,11 @@
 <script lang="ts" module>
   import { MODES, type Mode } from '../lib/modes'
   import { STRANGER } from '../lib/randomEvents'
-
-  /** Never a round anywhere (`custom`, `random_event`), or only on a server switched to testing. */
-  const NOT_SHOWN = new Set(['custom', 'random_event', 'random_events_only'])
+  import { NOT_SHOWN_MODES } from '../lib/seo'
 
   /** The modes Home shows; each visit walks them in its own order. */
   export const SHOWN: readonly Mode[] = Object.values(MODES).filter(
-    (mode) => !NOT_SHOWN.has(mode.id),
+    (mode) => !NOT_SHOWN_MODES.has(mode.id),
   )
 
   /** What a slide shows: a mode, or the random events under their stranger. */

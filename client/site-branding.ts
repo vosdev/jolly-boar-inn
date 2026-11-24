@@ -24,9 +24,19 @@
 
 import { existsSync, readFileSync, statSync } from 'node:fs'
 import { basename, dirname, extname, join, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import { loadEnv, type HtmlTagDescriptor, type Plugin } from 'vite'
+
+import {
+  HOME_DESCRIPTION,
+  NOT_SHOWN_MODES,
+  SEO_MANIFEST,
+  homeTitle,
+  seoRoutes,
+  type SeoManifest,
+  type SeoMode,
+} from './src/lib/seo.ts'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(HERE, '..')
@@ -273,18 +283,20 @@ export const faroTag: HtmlTagDescriptor = {
   injectTo: 'head',
 }
 
-/** What a shared link says, and the card it shows when the selfhoster has one. */
+/** What a search snippet and shared link say, and the card a link shows when the selfhoster has one. */
 export function shareTags(branding: Branding): HtmlTagDescriptor[] {
   const meta = (key: 'property' | 'name', value: string, content: string): HtmlTagDescriptor => ({
     tag: 'meta',
     attrs: { [key]: value, content },
     injectTo: 'head',
   })
+  const title = homeTitle(branding.name)
   const tags = [
+    meta('name', 'description', HOME_DESCRIPTION),
     meta('property', 'og:type', 'website'),
     meta('property', 'og:site_name', branding.name),
-    meta('property', 'og:title', branding.name),
-    meta('property', 'og:description', `Think you know Gielinor? Prove it at ${branding.name}.`),
+    meta('property', 'og:title', title),
+    meta('property', 'og:description', HOME_DESCRIPTION),
   ]
   if (branding.card === null) return [...tags, meta('name', 'twitter:card', 'summary')]
   return [
@@ -297,9 +309,40 @@ export function shareTags(branding: Branding): HtmlTagDescriptor[] {
   ]
 }
 
-/** `index.html` with the site's name as its title. */
-export function retitle(html: string, name: string): string {
-  return html.replace(/<title>[^<]*<\/title>/, `<title>${escapeXml(name)}</title>`)
+/** Built modes shown in How to play, in `schema/modes.json` order. */
+export async function loadSeoModes(root = ROOT): Promise<SeoMode[]> {
+  const schema = JSON.parse(readFileSync(join(root, 'schema/modes.json'), 'utf8')) as {
+    modes: { id: string }[]
+  }
+  const modes: SeoMode[] = []
+  for (const entry of schema.modes) {
+    if (NOT_SHOWN_MODES.has(entry.id)) continue
+    const file = join(root, 'client/src/lib/modes', `${entry.id}.ts`)
+    if (!existsSync(file)) continue
+    const loaded = (await import(pathToFileURL(file).href)) as { mode?: SeoMode }
+    if (loaded.mode === undefined) continue
+    modes.push({
+      id: loaded.mode.id,
+      label: loaded.mode.label,
+      hint: loaded.mode.hint,
+      blurb: loaded.mode.blurb,
+    })
+  }
+  return modes
+}
+
+/** The route manifest emitted into `client/dist/` for `server/app/static.py`. */
+export function seoManifest(branding: Branding, modes: readonly SeoMode[]): SeoManifest {
+  return {
+    site_name: branding.name,
+    has_card: branding.card !== null,
+    routes: seoRoutes(branding.name, modes),
+  }
+}
+
+/** `index.html` with `title` as its document title. */
+export function retitle(html: string, title: string): string {
+  return html.replace(/<title>[^<]*<\/title>/, `<title>${escapeXml(title)}</title>`)
 }
 
 export function siteBranding(): Plugin {
@@ -321,7 +364,7 @@ export function siteBranding(): Plugin {
       icons = favicons(branding)
       for (const warning of branding.warnings) config.logger.warn(warning)
     },
-    buildStart() {
+    async buildStart() {
       if (serving) return
       const emitted = new Set<string>()
       for (const icon of Object.values(icons)) {
@@ -336,6 +379,12 @@ export function siteBranding(): Plugin {
         if (image !== null)
           this.emitFile({ type: 'asset', fileName, source: readFileSync(image.file) })
       }
+      const manifest = seoManifest(branding, await loadSeoModes())
+      this.emitFile({
+        type: 'asset',
+        fileName: SEO_MANIFEST,
+        source: `${JSON.stringify(manifest, null, 2)}\n`,
+      })
     },
     resolveId(id) {
       return id === VIRTUAL ? RESOLVED : null
@@ -396,7 +445,7 @@ export function siteBranding(): Plugin {
         })
       }
       return {
-        html: retitle(html, branding.name),
+        html: retitle(html, homeTitle(branding.name)),
         tags: [...tags, ...shareTags(branding), faroTag],
       }
     },
