@@ -60,6 +60,7 @@
   import TonightPanel from './TonightPanel.svelte'
   import ConfirmDialog, { type Question } from './ConfirmDialog.svelte'
   import ErrorBanner from './ErrorBanner.svelte'
+  import EmoteButton from './EmoteButton.svelte'
   import FullScreenSwitch from './FullScreenSwitch.svelte'
   import Switch from './Switch.svelte'
   import HowToPlay from './HowToPlay.svelte'
@@ -428,6 +429,9 @@
               />
             {/if}
             <FullScreenSwitch short={squeezed} />
+            {#if !isTV}
+              <EmoteButton send={(emote) => socket.send({ t: 'emote', emote })} />
+            {/if}
           </div>
           {#if needTeam}
             <p class="hint" id="pick-first">Pick a team first.</p>

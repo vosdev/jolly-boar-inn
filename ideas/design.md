@@ -387,6 +387,14 @@ and a disabled Answered, and its reveal says "Answered by the Book of Knowledge"
   among them, Off and fixed in a team game) and Random events, sent as they edit, 250 ms after the last change. A host's own question is written in a pop-up, which fills a phone. At the table: the host's Free for all or Teams, then join requests, a team game's gods, the halves,
   the Ready switch, and Start (plain at the threshold, "Start anyway" below it, which asks first; off
   until a round is picked) or "Waiting for the host to start…". The host taps a pet to kick or promote.
+- **Emotes (#771).** The Cheer icon and "Emotes", only while the room lets you send one: at the
+  table column's foot (on a phone the strip's left end), beside Ready in the lobby. It opens the
+  game's emote tab, a stone panel of eight, icon over name in Quill orange; a pick sends and closes
+  it, as do Esc and a tap outside. For 3 s after the server's frame it is disabled under a shade
+  draining left to right, "One every 3 seconds." under it on a desktop. The pet's line shows 3 s in
+  Quill 8 with a black outline, in the game's chat colour and effect, while the chathead acts it
+  out; over every pet the screen draws, and nothing clips either. Reduced motion holds both still.
+  No sound.
 - **Doors shut.** `/create` is that lobby before the room exists: "Your room's code" and Reroll on
   the scroll, Tonight's game under it, and at the head of the table column a room panel, Who can
   join, Surprise rounds and Open the doors, which goes when they open. Those stay as they are from

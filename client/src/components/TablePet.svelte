@@ -10,6 +10,7 @@
   import { shownItems } from '../lib/heldItems'
   import { petOf } from '../lib/pets'
   import type { PlayerView } from '../lib/protocol'
+  import Emoting from './Emoting.svelte'
   import Pet from './Pet.svelte'
   import WornItem from './WornItem.svelte'
 
@@ -24,7 +25,7 @@
 
 <span class="table-pet" class:you class:away={!player.connected}>
   <span class="face">
-    <Pet pet={petOf(player)} size={48} label="" />
+    <Emoting playerId={player.id}><Pet pet={petOf(player)} size={48} label="" /></Emoting>
     {#if player.role === 'tv'}
       <svg class="screen" viewBox="0 0 16 16" aria-hidden="true">
         <rect x="3.5" y="4.5" width="9" height="6" rx="0.8" />
@@ -54,14 +55,14 @@
     display: inline-flex;
   }
 
-  .face > :global(.pet) {
+  .face :global(.pet) {
     transition:
       opacity 200ms ease-out,
       filter 200ms ease-out;
   }
 
   /* Opacity and not colour, so an away pet reads the same in every theme. */
-  .away .face > :global(.pet) {
+  .away .face :global(.pet) {
     opacity: 0.3;
     filter: grayscale(1);
   }
@@ -113,7 +114,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .face > :global(.pet) {
+    .face :global(.pet) {
       transition: none;
     }
   }

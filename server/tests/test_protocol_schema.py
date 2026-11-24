@@ -85,8 +85,10 @@ def test_both_unions_name_every_message() -> None:
         "SetTeams",
         "SetSettings",
         "Editing",
+        "SendEmote",
     }
     assert "Error" in server and "Welcome" in server and "ItemUsed" in server
+    assert "EmoteSent" in server
 
 
 def test_field_docstrings_reach_the_schema() -> None:

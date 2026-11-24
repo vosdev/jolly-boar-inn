@@ -744,6 +744,19 @@ describe('the room’s frame', () => {
     expect(table.textContent?.replace(/\s+/g, ' ')).toContain('Answered 2')
   })
 
+  it('offers Emotes only once we have answered, and sends the pick', async () => {
+    windowOf(1440, 900)
+    await arrive(welcome(roomView({ phase: 'open', next_at: null })))
+    applyServerMessage({ t: 'question_open', question: tableQuestion('q1', ['a', 'b']) })
+    await screen.findByRole('group', { name: 'At the table' })
+    expect(screen.queryByRole('button', { name: 'Emotes' })).toBeNull()
+    ;(await screen.findByText('Abyssal whip')).click()
+    await tick()
+    await fireEvent.click(screen.getByRole('button', { name: 'Emotes' }))
+    await fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Cheer' }))
+    expect(sent.at(-1)).toEqual({ t: 'emote', emote: 'cheer' })
+  })
+
   function closeWith(results: Record<string, PlayerResult>, unanswered: string[]): void {
     applyServerMessage({
       t: 'question_closed',

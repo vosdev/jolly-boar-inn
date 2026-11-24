@@ -51,6 +51,7 @@ from app.questions.types.scoring import Scoring
 from app.questions.types.timing import MIN_REVEAL
 from app.rooms import codes, items, scoring, selection
 from app.rooms.daily_room import DAILY_REVEAL_SECONDS, DailyRooms, record_close
+from app.rooms.emotes import Emotes
 from app.rooms.errors import (
     AlreadyAnswered,
     BadSession,
@@ -155,7 +156,7 @@ class _Slot:
     users: int = 0
 
 
-class RoomManager(Joins, Lobby, Loop, DailyRooms):
+class RoomManager(Joins, Lobby, Loop, DailyRooms, Emotes):
     def __init__(
         self,
         pool: Callable[[], Awaitable[asyncpg.Pool]],

@@ -29,6 +29,7 @@ export type ClientMessage =
   | SetTeams
   | SetSettings
   | Editing
+  | SendEmote
 export type ServerMessage =
   | Welcome
   | RoomUpdated
@@ -39,6 +40,7 @@ export type ServerMessage =
   | AnswerCount
   | QuestionClosed
   | GameFinished
+  | EmoteSent
   | Pong
   | Error
 /**
@@ -184,6 +186,14 @@ export interface SetSettings {
 export interface Editing {
   t: 'editing'
   on: boolean
+}
+/**
+ * Play an emote at the table while waiting. Left a plain string here and checked by the
+ * manager, so an unknown one is `bad_value` and costs nobody their socket.
+ */
+export interface SendEmote {
+  t: 'emote'
+  emote: string
 }
 /**
  * Reply to `hello`: the full snapshot the client rebuilds all state from.
@@ -710,6 +720,16 @@ export interface GameFinished {
   t: 'game_finished'
   standings: Standing[]
   team_standings: TeamStanding[] | null
+}
+/**
+ * A player's emote, to every socket in the room. `line` picks which of its two lines
+ * shows, so everyone reads the same words.
+ */
+export interface EmoteSent {
+  t: 'emote'
+  player_id: string
+  emote: 'wave' | 'cheer' | 'clap' | 'laugh' | 'think' | 'panic' | 'cry' | 'angry'
+  line: number
 }
 export interface Pong {
   t: 'pong'

@@ -12,6 +12,7 @@
 
 import { get, writable } from 'svelte/store'
 
+import { clearEmotes, noteEmote } from './emotes'
 import { type Refusal, refusedEarly } from './errors'
 import { savePastGame } from './history'
 import type {
@@ -211,6 +212,7 @@ export function resetRoom(): void {
   profileError.set(null)
   connection.set('connecting')
   serverOffsetMs.set(0)
+  clearEmotes()
 }
 
 /**
@@ -249,6 +251,7 @@ export function applyServerMessage(message: ServerMessage): void {
       lastError.set(null)
       noteServerTime(message.server_time)
       requestsSettled.update((n) => n + 1)
+      clearEmotes()
       fileFinishedGame()
       break
 
@@ -352,6 +355,10 @@ export function applyServerMessage(message: ServerMessage): void {
     case 'answer_count':
       // A count for a question that has already closed is late news; drop it.
       if (get(question)?.question_id === message.question_id) countFrom(message)
+      break
+
+    case 'emote':
+      noteEmote(message, get(you)?.id ?? null)
       break
 
     case 'pong':

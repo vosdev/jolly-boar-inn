@@ -33,7 +33,7 @@ server/app/                        main, config, db, static, accesslog, errors, 
                                    random_events, suggestions, suggestion_pictures, reports, question_edits, roster_edits, stats,
                                    question_stats, pictures, map, profiling
 server/app/rooms/                  state, host, joins, lobby, loop, daily_room, models, errors, queries,
-                                   settings, selection, segments, scoring, ready, codes, plan, duration, hold, teams, items
+                                   settings, selection, segments, scoring, ready, codes, plan, duration, hold, teams, items, emotes
 server/app/modes/, questions/      Mode and MODES; schema, packs, vocab, normalize, custom,
                                    submission, text; types/ one module per type
 server/app/ws/, http/              handler, protocol, schema, outbox; one module per route or middleware
@@ -394,6 +394,7 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 | `rematch` | | admin | `finished → lobby` for another game (section 7). A daily room or any other status: `bad_state`. |
 | `rotate_key` | | admin | Lobby, invite-only room. New key; the old link stops joining, nobody leaves. |
 | `decide_request` | `request_id`, `accept` | admin | Lets a waiting join request in or turns it away, once (section 10). |
+| `emote` | `emote` | all | While waiting: the lobby, a reveal, or an open question answered or not yours to answer; elsewhere, a daily room or the TV `bad_state`. One of the eight, else `bad_value`. One a player per 3 s; a sooner one is dropped silently, counted as `limiter="emotes"`. |
 
 | Server `t` | Fields | When |
 |---|---|---|
@@ -406,6 +407,7 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 | `answer_count` | `question_id`, `answered`, `of`, `waiting` | Another player's answer, connect, disconnect or kick moved the count. Who is still to, never what. |
 | `question_closed` | `question_id`, `reveal`, `picture`, `results`, `unanswered`, `settled`, `standings`, `team_standings`, `next_at`, `reveal_seconds`, `suggested_by`? | Closed. `unanswered`: connected players who could answer and did not. `settled`: `{player_id: {item, points}}`, what a `settle` added on the round's last close, whichever question it raised; `{}` on every other close. `next_at` ends the reveal, the last one's too. `reveal_seconds` is its length, null in a daily room. `suggested_by` is a shown `credit`. |
 | `game_finished` | `standings`, `team_standings` | Final. `team_standings` is null outside a team game. |
+| `emote` | `player_id`, `emote`, `line` | To every socket, the sender's and the TV's too. `line` (0 or 1) picks the words (`lib/emotes.ts`), so all see the same. Never stored, in `welcome` or replayed. |
 | `pong` | `server_time` | Reply to `ping`. |
 | `error` | `code`, `message` | `bad_hello`, `bad_message`, `not_admin`, `not_open`, `already_answered`, `excluded`, `bad_value`, `bad_state`, `bad_name`, `name_taken`, `bad_avatar`. |
 

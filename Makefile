@@ -165,7 +165,7 @@ edit-roster:
 # there, so a re-run sends nothing. Needs WIKI_USER_AGENT (.env.example). The script's flags are
 # variables, since make reads `--force` as its own, e.g. `make fetch-assets FORCE=1 ONLY=npcs`:
 #   FORCE=1 refetches files that exist, DRY_RUN=1 lists what is missing and sends nothing,
-#   ONLY="npcs pets pictures teams themes trophies" limits the categories, FROM_DIR=dir takes the files
+#   ONLY="emotes npcs pets pictures teams themes trophies" limits the categories, FROM_DIR=dir takes the files
 #   from dir instead.
 # Only the repo is mounted, so FROM_DIR is a folder inside it, relative to server/.
 FETCH_ASSETS_FLAGS = $(if $(filter 1,$(FORCE)),--force) $(if $(filter 1,$(DRY_RUN)),--dry-run) \
