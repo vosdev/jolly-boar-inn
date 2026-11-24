@@ -118,6 +118,17 @@ def test_the_form_lists_every_pack_mode_but_none_switched_off(offline: TestClien
     assert offline.get("/api/questions?mode=random_events_only").status_code == 422
 
 
+def test_a_round_that_takes_suggestions_but_has_no_questions_lists_none(
+    offline: TestClient,
+) -> None:
+    for mode in ("prop_hunt", "kgp_recon"):
+        assert mode not in offline.get("/api/questions/modes").json()
+        response = offline.get(f"/api/questions?mode={mode}")
+        assert response.status_code == 200, mode
+        assert response.json() == {"by": "question", "choices": []}
+    assert offline.get("/api/questions?mode=no_such_round").status_code == 422
+
+
 @pytest.mark.parametrize(
     "mode", [m for m in reports.pack_modes() if m in SHIPPED_MODES or m == "random_events_only"]
 )
