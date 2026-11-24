@@ -8,8 +8,8 @@
    * right, from when the server's `emote` frame lands; until then it is held from the tap,
    * and let go again if no frame comes.
    *
-   * The icons are pixel art, so they are drawn at their own size or a whole multiple of it:
-   * scaled otherwise, they blur or lose a row of pixels. The button is the game's own Emotes
+   * The icons are pixel art, so they are drawn at their own size: scaled, they blur or lose
+   * a row of pixels. The button is the game's own Emotes
    * button and nothing else.
    *
    * `strip` pins it to the left end of a phone's strip, with the tab over the strip.
@@ -23,9 +23,6 @@
 
   let open = $state(false)
   let button = $state<HTMLButtonElement | null>(null)
-  let tab = $state<HTMLElement | null>(null)
-  /** The tab opens leftwards from the button's right edge where rightwards would not fit. */
-  let flip = $state(false)
   let pending = $state(false)
   let pendingTimer: ReturnType<typeof setTimeout> | undefined
   /** When the cooldown being shown began, or null outside one. */
@@ -45,13 +42,6 @@
 
   $effect(() => () => clearTimeout(pendingTimer))
 
-  // The panel holding the button is what scrolls and clips, so the tab has to fit inside it.
-  $effect(() => {
-    if (tab === null || button === null || strip) return
-    const edge = (button.closest('.panel') ?? document.documentElement).getBoundingClientRect()
-    flip = button.getBoundingClientRect().left + tab.getBoundingClientRect().width > edge.right
-  })
-
   const held = $derived(pending || cooling !== null)
 
   function pick(emote: EmoteId): void {
@@ -68,7 +58,6 @@
   {#if open}
     <div
       class="tab"
-      class:flip
       role="dialog"
       aria-label="Emotes"
       use:dismissable={{
@@ -79,7 +68,6 @@
         },
         inside: [button],
       }}
-      bind:this={tab}
     >
       <ul class="grid">
         {#each EMOTES as emote (emote.id)}
@@ -115,14 +103,18 @@
 </div>
 
 <style>
+  /* At the right of its row, so the tab, which opens leftwards from there, stays inside the
+     panel: the table column scrolls and would cut off what passes its edge. */
   .emotes {
-    --emotes-size: 60px;
+    --emotes-size: 44px;
     position: relative;
+    align-self: flex-end;
+    margin-left: auto;
     display: flex;
     align-items: center;
   }
 
-  /* A square, the same at the table's foot and on a phone's strip. */
+  /* A square: 44px at the table, the strip's 52px on a phone. */
   .open {
     position: relative;
     display: inline-grid;
@@ -140,12 +132,6 @@
   .open img,
   .slot img {
     image-rendering: pixelated;
-  }
-
-  /* The button's figure is 18 by 27, too small to tap at its own size: twice it, exactly. */
-  .open img {
-    width: 36px;
-    height: 54px;
   }
 
   .label {
@@ -176,8 +162,8 @@
 
   .tab {
     position: absolute;
+    right: 0;
     bottom: calc(100% + 0.5rem);
-    left: 0;
     z-index: 10;
     width: min(16.5rem, calc(100vw - 1.5rem));
     padding: 0.4rem;
@@ -185,11 +171,6 @@
     border-radius: var(--radius);
     background: var(--panel);
     box-shadow: var(--shadow);
-  }
-
-  .tab.flip {
-    right: 0;
-    left: auto;
   }
 
   .grid {
@@ -223,6 +204,7 @@
 
   /* A phone's strip: a square at its left end, like the item's at its right. */
   .strip {
+    --emotes-size: 52px;
     position: fixed;
     bottom: calc(0.75rem + env(safe-area-inset-bottom));
     left: 0.75rem;

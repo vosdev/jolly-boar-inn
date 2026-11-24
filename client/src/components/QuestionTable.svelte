@@ -236,9 +236,8 @@
     right: calc(0.75rem + 52px + 0.5rem);
   }
 
-  /* Past the Emotes button, a 60px square. */
   .strip.after {
-    left: calc(0.75rem + 60px + 0.5rem);
+    left: calc(0.75rem + 52px + 0.5rem);
   }
 
   .item-square {
