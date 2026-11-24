@@ -183,6 +183,7 @@ READ_AS = {
     "mark_the_map": _prompt,
     # Every prompt is the same, and the choice carries the minimap to tell them apart.
     "minimap_guesser": _prompt,
+    "lost_in_gielinor": _prompt,
     # Certer's are pictures, named as Pixel Hunt's are.
     "random_event": lambda q: (
         q["payload"]["subject"]["name"] if q.get("random_event") == "certer" else _prompt(q)

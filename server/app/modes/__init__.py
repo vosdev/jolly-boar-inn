@@ -206,6 +206,15 @@ MODES: dict[str, Mode] = {
         stem="minimap",
         suggest=Suggest(fixed_prompt="Where is this?", wiki_only=True, minimap=True),
     ),
+    # Hans describes where he is, in one or two sentences, and players pin the place. A
+    # description takes longer to read than a name.
+    "lost_in_gielinor": Mode(
+        id="lost_in_gielinor",
+        types=frozenset({"map_pin"}),
+        described=True,
+        extra_answer=10,
+        suggest=Suggest(wiki_only=True),
+    ),
     # The NPCs' questions as a round, to test them in a row. Off unless the instance says so.
     "random_events_only": Mode(
         id="random_events_only",
@@ -237,7 +246,6 @@ UPCOMING: dict[str, Suggest] = {
 PLANNED: tuple[str, ...] = (
     "whats_that_noise",
     "scrying_pool",
-    "lost_in_gielinor",
     "diary_dash",
     "entrana_customs",
 )
@@ -388,6 +396,8 @@ def problems(mode: Mode) -> list[str]:
         found.append(f"{mode.id}: a round needs at least one type")
     if mode.clues and (mode.steps is None or mode.steps.count != mode.clues):
         found.append(f"{mode.id}: shows a clue a step, so it needs {mode.clues} steps")
+    if mode.described and mode.types != {"map_pin"}:
+        found.append(f"{mode.id}: describes a place on the map, so it plays only map_pin")
     if mode.clues and mode.types != {"pick_from_list"}:
         found.append(f"{mode.id}: clues are a pick_from_list field, its only type")
     if mode.questions is None and len({type_questions(t) for t in mode.types}) > 1:

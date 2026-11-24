@@ -48,6 +48,7 @@ from itertools import combinations, permutations
 from typing import Any
 from uuid import UUID
 
+from app.questions.normalize import normalize
 from app.questions.submission import Submission
 from app.questions.types.scoring import Scoring
 from app.questions.types.timing import Timing
@@ -73,6 +74,9 @@ SURFACE = {"min_x": 768, "max_x": 4096, "min_y": 1792, "max_y": 4352}
 
 # The wiki's minimap radius, in tiles; the picture is twice it across at 4 px a tile.
 MINIMAP_RADIUS = 19
+
+# Words a place's name shares with any sentence, which a description may use freely.
+_COMMON_WORDS = frozenset({"the", "of", "a", "an", "and", "in", "on", "at", "to"})
 
 _OPEN_KEYS = ("intro", "prompt", "bounds", "view", "width", "height")
 _PIN_KEYS = {"x", "y"}
@@ -283,3 +287,14 @@ def overlap(first: dict[str, Any], second: dict[str, Any]) -> bool:
         and first["min_y"] <= second["max_y"]
         and second["min_y"] <= first["max_y"]
     )
+
+
+def naming_word(text: str, name: str) -> str | None:
+    """The first word of ``name`` that ``text`` uses, alone or with an ``s`` after it, or
+    ``None``; ``_COMMON_WORDS`` never count."""
+    named = {word for word in normalize(name).split() if word not in _COMMON_WORDS}
+    for word in normalize(text).split():
+        for found in (word, word.removesuffix("s")):
+            if found in named:
+                return found
+    return None

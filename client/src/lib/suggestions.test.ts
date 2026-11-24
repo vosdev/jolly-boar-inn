@@ -124,6 +124,7 @@ describe('the choices', () => {
       ['prop_hunt', ['picture_pin']],
       ['riddles_of_the_sphinx', ['pick_from_list']],
       ['minimap_guesser', ['map_pin']],
+      ['lost_in_gielinor', ['map_pin']],
       ['no_round', trivia],
     ])
     const scaperune = CHOICES.find((c) => c.id === 'scaperune')
@@ -144,6 +145,7 @@ describe('the choices', () => {
       'whos_that_npc',
       'mark_the_map',
       'minimap_guesser',
+      'lost_in_gielinor',
     ])
     const npc = CHOICES.find((c) => c.id === 'whos_that_npc')
     expect([npc?.types, npc?.host, npc?.prompt, npc?.editor]).toEqual([
@@ -240,6 +242,7 @@ describe('a place on the map', () => {
     expect(roundsFor('map_pin').map((choice) => choice.id)).toEqual([
       'mark_the_map',
       'minimap_guesser',
+      'lost_in_gielinor',
     ])
     expect(roundsFor('map_pin', true).map((choice) => choice.id)).toEqual(['kgp_recon'])
     expect(CHOICES.find((c) => c.id === NO_ROUND)?.types).not.toContain('map_pin')
@@ -542,6 +545,7 @@ describe('steps in the suggestion form', () => {
       'mark_the_map',
       'prop_hunt',
       'riddles_of_the_sphinx',
+      'lost_in_gielinor',
     ])
   })
 

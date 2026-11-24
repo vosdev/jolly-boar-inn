@@ -46,6 +46,7 @@ export interface ModeRules {
   options: [number, number] | null
   steps: { build: number; of: number } | null
   clues: number
+  described: boolean
   pictured: boolean
   picture_at_reveal: boolean
   extra_answer: number

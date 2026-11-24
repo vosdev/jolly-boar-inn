@@ -375,7 +375,7 @@ describe('Create', () => {
 
   it('names the modes still coming by face and name, with nothing to pick', async () => {
     await loaded()
-    for (const name of ['Scrying Pool', "What's That Noise?", 'Lost in Gielinor']) {
+    for (const name of ['Scrying Pool', "What's That Noise?", 'Diary Dash']) {
       const soon = screen.getByText(name).closest('li')!
       expect(soon.classList.contains('upcoming')).toBe(true)
       expect(soon.querySelector('img')).toBeTruthy()
@@ -498,12 +498,12 @@ describe('Create', () => {
     vi.mocked(api.getModes).mockResolvedValue([
       ...structuredClone(PACING),
       { ...shipped, id: 'scrying_pool' },
-      { ...shipped, id: 'lost_in_gielinor' },
+      { ...shipped, id: 'diary_dash' },
     ])
     await loaded()
     expect(screen.queryByText('Scrying Pool')).toBeNull()
-    expect(screen.queryByText('Lost in Gielinor')).toBeNull()
-    for (const id of ['scrying_pool', 'lost_in_gielinor']) {
+    expect(screen.queryByText('Diary Dash')).toBeNull()
+    for (const id of ['scrying_pool', 'diary_dash']) {
       expect((screen.getByRole('checkbox', { name: id }) as HTMLInputElement).checked).toBe(false)
     }
     expect(

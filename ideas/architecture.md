@@ -85,7 +85,7 @@ A **type** is an answer shape: what a player sends, how it is checked, how it ea
 planned modes share `multiple_choice`; as five types they would be five copies of `grade`.
 
 `Mode(id, types, is_round=True, questions=None, pool=None, setting=None, options=None,
-steps=None, clues=0, pictured=False, picture_at_reveal=False, extra_answer=0, stem="text",
+steps=None, clues=0, described=False, pictured=False, picture_at_reveal=False, extra_answer=0, stem="text",
 hold_counts_prompt=False, suggest=None, report="question", compare="question")` in `modes/`,
 registered in `MODES` in the create form's order. A mode's rules are its entry's alone: no other
 module lists mode ids, which a test greps for.
@@ -111,7 +111,7 @@ module lists mode ids, which a test greps for.
   the `Settings` flag that offers the mode; off, or with an empty pool, `/api/modes` omits it and
   `POST /api/rooms` is a 403 `mode_not_offered`. A stored room keeps playing it. `options` holds a
   round's `multiple_choice` questions to fewer options than the schema's two to six; `mode_errors`
-  refuses the rest. `steps` is Pixel Hunt's and `pictured` Pixel Hunt's and Who's That NPC?'s (sections 8 and 12); `BUILT_UP` in `random_events.py` gives Certer both. `clues` is how many `clues` each question carries, one a step, so `steps.count` equals it; every other mode's carry none. `picture_at_reveal` keeps a question's `picture` off the open view. `extra_answer` adds seconds to a question's answer time, before the pace, for a round that takes longer to read.
+  refuses the rest. `steps` is Pixel Hunt's and `pictured` Pixel Hunt's and Who's That NPC?'s (sections 8 and 12); `BUILT_UP` in `random_events.py` gives Certer both. `clues` is how many `clues` each question carries, one a step, so `steps.count` equals it; every other mode's carry none. `described` makes the prompt a description of one place, explained, that `mode_errors` refuses when it holds a word of the place's name, but for the, of, a, an, and, in, on, at and to. `picture_at_reveal` keeps a question's `picture` off the open view. `extra_answer` adds seconds to a question's answer time, before the pace, for a round that takes longer to read.
 
 Each module in `questions/types/` exports:
 
@@ -171,7 +171,8 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 | `kgp_recon` | KGP Recon | `map_pin` on a suggester's own photo of the place, one pin, `extra_answer` 10 | player suggestions; the first import writes the pack | done, hosted by a KGP Agent; the `photo` stem sets the photo, under a camera overlay, on a card of its own beside the sheet |
 | `prop_hunt` | Prop Hunt | `picture_pin` on the suggester's own screenshot | player suggestions | upcoming: takes suggestions (#438) |
 | `minimap_guesser` | Minimap Guesser | `map_pin` on a minimap round a spot, one pin anywhere on it for full points | hand-written, then suggestions | done, hosted by Captain Errdo; the `minimap` stem sets it on a card of its own, as KGP Recon's photo, in the game's minimap ring with its compass turned to the angle |
-| `whats_that_noise`, `scrying_pool`, `lost_in_gielinor`, `diary_dash`, `entrana_customs` | planned | see each issue | | #260, #330, #328, #927, #930 |
+| `lost_in_gielinor` | Lost in Gielinor | `map_pin`, one pin on the whole surface, `described`, `extra_answer` 10 | hand-written, then suggestions | done, hosted by Hans: his description is the prompt, towns and landmarks only |
+| `whats_that_noise`, `scrying_pool`, `diary_dash`, `entrana_customs` | planned | see each issue | | #260, #330, #927, #930 |
 
 Create lists the unbuilt ones from their files in `lib/modes/`, in `UPCOMING` then `PLANNED` order.
 
@@ -293,7 +294,7 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   the NPCs and a question with no round; a suggestion's fields are names only, and `/admin` adds icons.
 - Every round on Create takes suggestions, the price rounds and Pixel Hunt as items and Random Events Only as the
   NPCs' questions; a test fails on a new round that does neither. Not-yet-built image modes are not on Create.
-- `/suggest` offers `map_pin` for Mark the Map, KGP Recon and Minimap Guesser, with their cards shown once a tile loads: a place's name, one box and a `reach` of 50 to 200 on `MapView`, whose `grips` keep their markers through a drag. The prompt is `Where is <name>?`; the queue may reword it. Minimap Guesser takes a spot instead, nudged a tile at a time and turned (North resets), previewed by `lib/minimap.ts` from the tiles as `scripts/minimap.py` bakes it (`minimap.fixture.json` holds both).
+- `/suggest` offers `map_pin` for Mark the Map, KGP Recon, Minimap Guesser and Lost in Gielinor, with their cards shown once a tile loads: a place's name, one box and a `reach` of 50 to 200 on `MapView`, whose `grips` keep their markers through a drag. The prompt is `Where is <name>?`, which the queue may reword, or for Lost in Gielinor the player's description and a required explanation. Minimap Guesser takes a spot instead, nudged a tile at a time and turned (North resets), previewed by `lib/minimap.ts` from the tiles as `scripts/minimap.py` bakes it (`minimap.fixture.json` holds both).
 
 `select(packs, custom, settings, rng, pictures, played)` fixes a room's questions at `start_game`.
 Until then a lobby's `total`, `events`, `rounds` and `estimated_seconds` come from a dry `select`

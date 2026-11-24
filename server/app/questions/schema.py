@@ -21,7 +21,7 @@ from jsonschema import Draft202012Validator, FormatChecker
 
 from app.modes import MODES
 from app.questions import text
-from app.questions.types import TYPES
+from app.questions.types import TYPES, map_pin
 from app.random_events import BUILT_UP, RANDOM_EVENTS
 
 SCHEMA_PATH = Path(__file__).resolve().parents[3] / "schema" / "question.schema.json"
@@ -111,8 +111,8 @@ def consistency_errors(question: dict[str, Any]) -> list[str]:
 
 
 def mode_errors(question: dict[str, Any]) -> list[str]:
-    """A ``mode`` the registry does not have, a ``type`` other than the ones it plays as, or
-    more or fewer options or clues than the round offers.
+    """A ``mode`` the registry does not have, a ``type`` other than the ones it plays as,
+    more or fewer options or clues than the round offers, or a description naming its place.
 
     The schema can only hold ``mode`` to a pattern, because which modes exist is the
     registry's to say. A pack question with an unknown mode would sit in a pool nobody can
@@ -152,6 +152,10 @@ def mode_errors(question: dict[str, Any]) -> list[str]:
     if clues != mode.clues:
         wanted = f"exactly {mode.clues} clues" if mode.clues else "no clues"
         return [f"$.payload.clues: {mode.id!r} takes {wanted}"]
+    if mode.described:
+        found = _description_errors(mode.id, question["payload"])
+        if found:
+            return found
     if (
         mode.suggest is not None
         and mode.suggest.picture
@@ -163,6 +167,19 @@ def mode_errors(question: dict[str, Any]) -> list[str]:
             f"$.type: {question['type']!r} is not accepted in {mode.id!r} yet:"
             " a question of it can only be shown inside its own round"
         ]
+    return []
+
+
+def _description_errors(mode: str, payload: dict[str, Any]) -> list[str]:
+    # A description is of one place, and a word of its name in it would be the answer.
+    targets = payload["targets"]
+    if len(targets) != 1:
+        return [f"$.payload.targets: {mode!r} describes one place"]
+    if "explanation" not in payload:
+        return [f"$.payload.explanation: required, what ties {mode!r}'s description to the place"]
+    word = map_pin.naming_word(payload["prompt"], targets[0]["name"])
+    if word is not None:
+        return [f"$.payload.prompt: the description names its place, {word!r}"]
     return []
 
 

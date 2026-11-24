@@ -222,6 +222,8 @@ export interface Choice {
   wording?: FormWording
   /** Whether only a wiki page proves it: `wiki_only` on the server. */
   wikiOnly?: boolean
+  /** Whether a place is described, never named, and explained: `described` on the server. */
+  described?: boolean
   /** Whether it may name an item to picture: `picture_item` on the server. */
   pictureItem?: boolean
   /** The form of its own that writes it, where the shared question forms do not. */
@@ -328,7 +330,13 @@ function roundChoice(id: string, rules: SuggestRules): Choice | undefined {
     case 'riddle':
       return { ...base, prompt, explanation, editor: 'riddle' }
     case 'place':
-      return { ...base, explanation, wikiOnly: rules.wiki_only, editor: 'place' }
+      return {
+        ...base,
+        explanation,
+        wikiOnly: rules.wiki_only,
+        described: rulesOf(id)?.described ?? false,
+        editor: 'place',
+      }
     case 'photo':
       return { ...base, prompt, explanation, editor: 'photo' }
     case 'minimap':
@@ -580,6 +588,33 @@ export function itemPage(name: string): string {
   return trimmed === '' ? '' : `${WIKI_URL}/w/${encodeURI(trimmed.replaceAll(' ', '_'))}`
 }
 
+/** A description's and its explanation's limits: the schema's `map_pin` fields. */
+export const DESCRIPTION_MAX = limit(field('map_pin', 'prompt'), 'maxLength') ?? 0
+export const EXPLAINED_MAX = limit(field('map_pin', 'explanation'), 'maxLength') ?? 0
+
+// The words a place's name shares with any sentence: `_COMMON_WORDS` on the server.
+const COMMON_WORDS = new Set(['the', 'of', 'a', 'an', 'and', 'in', 'on', 'at', 'to'])
+
+/** A place's description, which may not use a word of its name, alone or with an `s` after it. */
+export function descriptionProblem(text: string, place: string): string | null {
+  const named = new Set(
+    bareWords(place)
+      .split(' ')
+      .filter((word) => !COMMON_WORDS.has(word)),
+  )
+  named.delete('')
+  for (const word of bareWords(text).split(' ')) {
+    const found = [word, word.replace(/s$/u, '')].find((each) => named.has(each))
+    if (found !== undefined) return `It names the place: “${found}”.`
+  }
+  return textProblem(text, DESCRIPTION_MAX, 'what Hans sees')
+}
+
+/** What ties a description to its place on the reveal, which a described round requires. */
+export function explainedProblem(text: string): string | null {
+  return textProblem(text, EXPLAINED_MAX, 'what gives it away')
+}
+
 /** What a place's round asks, from the name a player gives it. */
 export function placePrompt(name: string): string {
   return name.trim() === '' ? '' : `Where is ${name.trim()}?`
@@ -625,6 +660,8 @@ export function needsSource(choice: Choice): boolean {
 /** Whether a question choice offers the optional extras card (intro, picture item, or explanation). */
 export function hasExtras(choice: Choice): boolean {
   if (choice.kind !== 'question') return false
+  // A described place's explanation is required, so it sits with the question.
+  if (choice.described) return false
   return (choice.explanation ?? true) || Boolean(choice.pictureItem) || takesIntro(choice.id)
 }
 
