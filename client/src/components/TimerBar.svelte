@@ -18,11 +18,15 @@
    * On the room's TV the stage is scaled to the window (`tvFit`), and the tabs with it: at
    * the scaled stage's edges, at its scale, readable across the room.
    *
+   * A daily's reveal counts nothing and waits on its player: the track fills in the accent
+   * and a Next button takes the seconds' tab, so it is in one place whatever the stage's height.
+   *
    * The clock is `Timer`'s, `lib/clock.ts`, so a phone that was locked for twenty seconds
    * wakes onto the right width, not twenty seconds behind.
    */
   import { msUntil, serverNow } from '../lib/clock'
   import type { TeamId } from '../lib/teams'
+  import type { TimerBarAction } from '../lib/timerbar'
   import { roomShown, stageEdges } from '../lib/roomFit'
   import { tvFit } from '../lib/tv'
   import TeamBadge from './TeamBadge.svelte'
@@ -37,6 +41,7 @@
     quiet = false,
     team = null,
     flush = false,
+    action,
   }: {
     endsAt: string
     totalSeconds: number
@@ -52,6 +57,8 @@
     team?: TeamId | null
     /** At the window's top, with no top bar above it: the room's TV. */
     flush?: boolean
+    /** A button in the seconds' place over a full track. */
+    action?: TimerBarAction
   } = $props()
 
   /** Where the bar turns urgent, in seconds. */
@@ -62,8 +69,16 @@
   // than the whole: a random event's clock starts after its NPC's hold, and until
   // then the bar sits full on the question's own length rather than counting the hold.
   const seconds = $derived(Math.ceil(Math.min(remainingMs, totalSeconds * 1000) / 1000))
-  const fraction = $derived(totalSeconds > 0 ? Math.min(1, remainingMs / (totalSeconds * 1000)) : 0)
-  const urgent = $derived(next === undefined && !quiet && remainingMs > 0 && seconds <= URGENT_S)
+  const fraction = $derived(
+    action !== undefined
+      ? 1
+      : totalSeconds > 0
+        ? Math.min(1, remainingMs / (totalSeconds * 1000))
+        : 0,
+  )
+  const urgent = $derived(
+    next === undefined && !quiet && action === undefined && remainingMs > 0 && seconds <= URGENT_S,
+  )
   const edges = $derived(
     $roomShown === null ? null : stageEdges($roomShown.fit, $roomShown.centred),
   )
@@ -76,7 +91,7 @@
   class:next={next !== undefined || quiet}
   class:framed={team !== null}
   class:flush
-  aria-label="{seconds} seconds {label}"
+  aria-label={action === undefined ? `${seconds} seconds ${label}` : undefined}
 >
   <div class="track" aria-hidden="true">
     <div class="fill" style:width="{fraction * 100}%"></div>
@@ -92,15 +107,27 @@
     style:--stage-left={edges === null ? null : `${edges.left}px`}
     style:--stage-width={edges === null ? null : `${edges.width}px`}
     style:--tab-scale={scale}
-    aria-hidden="true"
   >
     {#if progress !== undefined}
-      <span class="tab progress">{progress}</span>
+      <span class="tab progress" aria-hidden="true">{progress}</span>
     {/if}
     {#if team !== null}
-      <span class="team"><TeamBadge {team} /></span>
+      <span class="team" aria-hidden="true"><TeamBadge {team} /></span>
     {/if}
-    <span class="tab seconds">{next === undefined ? `${seconds}s` : `${next} in ${seconds}s`}</span>
+    {#if action !== undefined}
+      <button
+        type="button"
+        class="tab seconds action"
+        aria-label={action.name}
+        onclick={action.press}
+      >
+        {action.text}
+      </button>
+    {:else}
+      <span class="tab seconds" aria-hidden="true">
+        {next === undefined ? `${seconds}s` : `${next} in ${seconds}s`}
+      </span>
+    {/if}
   </div>
 </div>
 
@@ -199,6 +226,27 @@
     font-size: 0.8rem;
     font-weight: 700;
     line-height: 1.5;
+  }
+
+  /* A button, so in the accent like a primary one and wider than the read-only tabs, but
+     no taller: the stage's speech bubble starts a few pixels under the bar, with the
+     points chip in its corner. A finger gets a larger target than it can see. */
+  .action {
+    position: relative;
+    padding: 0 0.9rem;
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-color: var(--accent);
+    font-family: var(--font-display);
+    cursor: pointer;
+  }
+
+  @media (pointer: coarse) {
+    .action::after {
+      content: '';
+      position: absolute;
+      inset: -0.5rem -0.5rem -1rem;
+    }
   }
 
   .urgent .seconds {

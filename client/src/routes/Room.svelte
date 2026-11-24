@@ -173,7 +173,7 @@
   )
 
   const isAdmin = $derived($you?.role === 'admin')
-  /** A daily attempt: one player, a Next button for a reveal, and a result for an end. */
+  /** A daily attempt: one player, a Next tab on the timer bar for a reveal, and a result for an end. */
   const daily = $derived($room?.daily ?? null)
   /** The position, 0-based. `index` is it while open; `current_index` survives a close. */
   const position = $derived($question?.index ?? $room?.current_index ?? 0)
@@ -238,6 +238,17 @@
         totalSeconds: questionSeconds,
         label: 'to answer',
         ...(daily === null ? { progress: `${number}/${total}` } : { stage: true }),
+      })
+    } else if (current.phase === 'reveal' && daily !== null) {
+      const last = current.current_index !== null && current.current_index + 1 >= current.total
+      timerBar.set({
+        endsAt: current.next_at ?? new Date().toISOString(),
+        totalSeconds: 0,
+        label: '',
+        stage: true,
+        action: last
+          ? { text: 'Score ›', name: 'See your score', press: skip }
+          : { text: 'Next ›', name: 'Next question', press: skip },
       })
     } else if (
       (current.phase === 'reveal' || current.phase === 'standings') &&
@@ -487,6 +498,21 @@
     return socket?.send({ t: 'emote', emote }) ?? false
   }
 
+  /** Enter is a daily reveal's Next, unless it is already pressing something focused. */
+  function nextOnEnter(event: KeyboardEvent): void {
+    if (event.key !== 'Enter' || event.repeat || event.altKey || event.ctrlKey || event.metaKey)
+      return
+    if (daily === null || $room?.phase !== 'reveal') return
+    const target = event.target
+    if (
+      target instanceof Element &&
+      target.closest('button, a, input, textarea, select, [contenteditable], [role="button"]')
+    )
+      return
+    event.preventDefault()
+    skip()
+  }
+
   function leave(): void {
     navigate('/')
   }
@@ -520,15 +546,7 @@
   {@render tally(true)}
 {/snippet}
 
-{#snippet next()}
-  <div class="row next">
-    <button type="button" class="primary" onclick={skip}>
-      {$room?.current_index != null && $room.current_index + 1 >= $room.total
-        ? 'See your score'
-        : 'Next'}
-    </button>
-  </div>
-{/snippet}
+<svelte:window onkeydown={nextOnEnter} />
 
 <RoomFrame
   fit={framed}
@@ -687,7 +705,6 @@
               {#if $lastClosed.suggested_by != null}
                 <p class="credit">Question by {$lastClosed.suggested_by}</p>
               {/if}
-              {@render next()}
             {/if}
           </QuestionStage>
         {:else if $lastClosed !== null}
@@ -707,9 +724,6 @@
                   : 'Between questions — the next one opens shortly.'
                 : 'Waiting for the next question…'}
             </p>
-            {#if daily !== null && $room.phase === 'reveal'}
-              {@render next()}
-            {/if}
           </section>
         {/if}
       </div>
@@ -751,11 +765,6 @@
   /* On the desktop frame a question's column is as wide as the stage it holds. */
   :global(.fitted) .column {
     max-width: var(--stage-wide);
-  }
-
-  .next {
-    justify-content: center;
-    margin-top: 1rem;
   }
 
   .credit {

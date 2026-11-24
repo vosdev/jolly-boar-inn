@@ -158,7 +158,7 @@ describe('History', () => {
     vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } })
     savePastGame({ code: 'FireCape', finishedAt: FINISHED, standings: STANDINGS, youId: 'Woox' })
     render(History, { code: 'FireCape', stamp: historyStamp(FINISHED), navigate: vi.fn() })
-    await fireEvent.click(screen.getByRole('button', { name: 'Copy result' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Copy top 3 results' }))
     const text: string = writeText.mock.lastCall?.[0]
     expect(text).toBe(
       [

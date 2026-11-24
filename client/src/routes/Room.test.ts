@@ -1976,17 +1976,51 @@ describe('a daily room', () => {
     localStorage.clear()
   })
 
-  it('waits on a Next button instead of a countdown, and Next skips the reveal', async () => {
+  it('waits on a Next tab on the timer bar instead of a countdown, and Next skips the reveal', async () => {
     await arrive(welcome(dailyReveal(2)))
-    expect(get(timerBar)).toBeNull()
+    const bar = get(timerBar)
+    expect(bar?.action).toMatchObject({ text: 'Next ›', name: 'Next question' })
+    expect(bar?.stage).toBe(true)
+    expect(bar?.next).toBeUndefined()
     expect(hostLabels()).toBeNull()
-    await fireEvent.click(screen.getByRole('button', { name: 'Next' }))
+    bar?.action?.press()
     expect(sent).toEqual([{ t: 'skip', phase: 'reveal', index: 2 }])
   })
 
   it('goes to the score from the last reveal', async () => {
     await arrive(welcome(dailyReveal(9)))
-    expect(screen.getByRole('button', { name: 'See your score' })).toBeTruthy()
+    expect(get(timerBar)?.action).toMatchObject({ text: 'Score ›', name: 'See your score' })
+  })
+
+  it('takes Enter as Next on a reveal', async () => {
+    await arrive(welcome(dailyReveal(2)))
+    await fireEvent.keyDown(document.body, { key: 'Enter' })
+    expect(sent).toEqual([{ t: 'skip', phase: 'reveal', index: 2 }])
+  })
+
+  it('leaves Enter to a focused control, a held key and a modifier', async () => {
+    await arrive(welcome(dailyReveal(2)))
+    const control = document.createElement('button')
+    document.body.append(control)
+    await fireEvent.keyDown(control, { key: 'Enter' })
+    control.remove()
+    await fireEvent.keyDown(document.body, { key: 'Enter', repeat: true })
+    await fireEvent.keyDown(document.body, { key: 'Enter', ctrlKey: true })
+    await fireEvent.keyDown(document.body, { key: ' ' })
+    expect(sent).toEqual([])
+  })
+
+  it('takes no Enter while a daily question is open', async () => {
+    await dailyOpen(2)
+    sent.length = 0
+    await fireEvent.keyDown(document.body, { key: 'Enter' })
+    expect(sent).toEqual([])
+  })
+
+  it('takes no Enter outside a daily room', async () => {
+    await arrive(welcome(roomView({ phase: 'reveal', current_index: 2, next_at: inSeconds(8) })))
+    await fireEvent.keyDown(document.body, { key: 'Enter' })
+    expect(sent).toEqual([])
   })
 
   function dailyQuestion(index: number): OpenQuestion {
@@ -2050,7 +2084,8 @@ describe('a daily room', () => {
     expect(document.querySelector('.play')!.classList.contains('final')).toBe(true)
     expect(document.querySelector('.table')!.childElementCount).toBe(0)
     closeDaily(open)
-    await screen.findByRole('button', { name: 'Next' })
+    await tick()
+    expect(get(timerBar)?.action).toBeDefined()
     expect(document.querySelector('.table')!.childElementCount).toBe(0)
   })
 
@@ -2064,23 +2099,26 @@ describe('a daily room', () => {
     expect(screen.getByRole('heading', { level: 1 }).textContent?.trim()).toBe('Question 3 of 10')
   })
 
-  it('puts Next in the answer panel, with the question’s credit above it', async () => {
+  it('keeps the question’s credit in the answer panel, with no Next under it', async () => {
     const open = await dailyOpen(2)
     closeDaily(open, 'RunecraftRuth45')
-    const next = await screen.findByRole('button', { name: 'Next' })
-    const panel = next.closest('.answers')!
-    expect(panel).not.toBeNull()
-    const credit = within(panel as HTMLElement).getByText('Question by RunecraftRuth45')
-    expect(credit.compareDocumentPosition(next) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    await fireEvent.click(next)
-    expect(sent).toEqual([{ t: 'skip', phase: 'reveal', index: 2 }])
+    const credit = await screen.findByText('Question by RunecraftRuth45')
+    expect(credit.closest('.answers')).not.toBeNull()
+    expect(screen.queryByRole('button', { name: /Next|score/ })).toBeNull()
   })
 
   it('names nobody when the question has no credit', async () => {
     const open = await dailyOpen(2)
     closeDaily(open)
-    await screen.findByRole('button', { name: 'Next' })
+    await tick()
+    expect(get(timerBar)?.action).toBeDefined()
     expect(screen.queryByText(/Question by/)).toBeNull()
+  })
+
+  it('has no Next in the panel for a reveal it arrived into', async () => {
+    await arrive(welcome(dailyReveal(2)))
+    expect(screen.getByText('Between questions.')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /Next|score/ })).toBeNull()
   })
 
   it('keeps the daily’s address', async () => {

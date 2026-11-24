@@ -440,7 +440,7 @@ chrome or circle around them), on in `--ok`, in lobby and splash;
 - The timer is a thin bar under the top bar, with the seconds in a tab at the stage's right edge
   and the question's number (`2/3`) in one at its left. In a reveal it counts to what follows,
   the tab naming it, "Next in 6s", "Standings in 6s" or "Final in 6s", and the fill in `--muted`,
-  never turning urgent.
+  never turning urgent. A Daily reveal's track is full in the accent and the tab is its Next button, "Next ›".
 - **The answers take the size the question needs**, laid out by the stage's width, so a preview
   matches the room. Choices are two abreast and 56px tall on a phone, an odd last one across the
   row: thumb targets at a pub table. On a wide stage they are at least 84px tall, three abreast,
@@ -698,7 +698,8 @@ from a sofa across the room on a 1080p screen, in every theme.
   wide (at least 16rem tall there), and one size throughout: what does not fit in it shrinks,
   never the stage. Open, it says
   "3 of 5 answered", then shows the pet and name of everyone still to answer, each leaving as
-  they answer, or drop. No answers and no admin controls. The host says its waiting line.
+  they answer, or drop, and under them "Answered" with the faces of those who have, which show
+  their emotes (#771, #1070). No answers and no admin controls. The host says its waiting line.
 - **The reveal** fades into the panel (200 ms): the answers with their counts, the explanation,
   the tally and names, team rows and "Question by" (§10–11). The foot has the host's reveal line
   or the event's explanation; the TV scored nothing, so no points, pin, confetti or NPC reaction.
