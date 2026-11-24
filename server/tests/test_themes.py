@@ -26,7 +26,7 @@ sys.path.insert(0, str(REPO_ROOT / "server" / "scripts"))
 import check_contrast as check  # noqa: E402
 
 # Each recolour, and the theme whose shape it keeps.
-RECOLOURS = {"corrupted_gauntlet": "gauntlet"}
+RECOLOURS: dict[str, str] = {}
 HEX = re.compile(r"#[0-9a-fA-F]{3,8}\b")
 THEME_BLOCK = re.compile(r"([^{}]*\[data-theme=['\"]?([\w-]+)['\"]?\][^{}]*)\{([^{}]*)\}")
 
@@ -58,10 +58,9 @@ def test_the_ten_themes_in_menu_order() -> None:
         "jungle",
         "party_room",
         "zanaris",
+        "prifddinas",
         "tzhaar",
         "wilderness",
-        "gauntlet",
-        "corrupted_gauntlet",
         "morytania",
     ]
 
@@ -233,54 +232,48 @@ def test_tzhaar_is_not_the_wilderness_twice() -> None:
     assert floors["--accent"] >= 15
 
 
-# --- jungle, gauntlet, morytania ------------------------------------------------------
+# --- jungle, prifddinas, morytania ----------------------------------------------------
 
 
-def test_the_gauntlet_is_not_toktz_or_morytania_again() -> None:
-    """All three are dark; the Gauntlet's floor is a cold navy and its accent the crystal's
-    cyan, where Toktz is warm and Morytania green."""
-    assert check.luminance(colour("gauntlet", "--bg")) < check.luminance(
-        colour("gauntlet", "--bg-ink")
-    )
-    assert 190 <= check.hue(colour("gauntlet", "--bg")) <= 230
-    for other in ("tzhaar", "morytania"):
+def test_prifddinas_is_not_the_jungle_or_morytania_again() -> None:
+    """All three are green places; Prifddinas's meadow is a cool blue-green under white
+    panels, the jungle's grass sunlit yellow and Morytania's water dark."""
+    for other in ("jungle", "morytania"):
         gaps = {
-            token: check.delta_e(colour("gauntlet", token), colour(other, token))
+            token: check.delta_e(colour("prifddinas", token), colour(other, token))
             for token in ("--bg", "--panel", "--accent")
         }
-        assert gaps["--bg"] >= 10, (other, gaps)
-        assert gaps["--accent"] >= 30, (other, gaps)
+        assert gaps["--bg"] >= 15, (other, gaps)
+    assert check.luminance(colour("prifddinas", "--panel")) > 0.8
 
 
-def test_the_corrupted_gauntlet_is_the_gauntlet_in_red() -> None:
-    """Its floor and edge are the Gauntlet's drawn in other colours, its accent and the
-    sheet's rim red, and it is dark like the Gauntlet."""
-    blocks = dict(theme_blocks())
-    for token in ("--texture-bg", "--texture-panel"):
-        files = [
-            CLIENT_SRC / re.search(r"url\('\./([^']+)'\)", blocks[name][token]).group(1)
-            for name in ("gauntlet", "corrupted_gauntlet")
-        ]
-        own, corrupted = (HEX.sub("#", path.read_text(encoding="utf-8")) for path in files)
-        assert own == corrupted, token
-    for token in ("--accent", "--scroll-edge"):
-        hue = check.hue(colour("corrupted_gauntlet", token))
-        assert hue <= 15 or hue >= 345, (token, hue)
-    assert check.luminance(colour("corrupted_gauntlet", "--bg")) < check.luminance(
-        colour("corrupted_gauntlet", "--bg-ink")
-    )
-    assert (
-        check.delta_e(colour("corrupted_gauntlet", "--accent"), colour("tzhaar", "--accent")) >= 30
-    )
+def test_prifddinas_has_bark_up_its_sides_its_roof_over_them_and_no_foot() -> None:
+    """The panel's border is clear, so the bark is drawn only up the sides, and the eave
+    is the first image so it runs over the tops of the posts."""
+    tokens = dict(theme_blocks())["prifddinas"]
+    assert tokens["--panel-edge"].strip() == "transparent"
+    assert tokens["--panel-sides"].strip().startswith("linear-gradient(\n    to right,")
+    rules = check.strip_comments(read(APP_CSS))
+    panel = re.search(r"(?m)^\.panel \{([^}]*)\}", rules)
+    assert panel is not None
+    assert "background-image: var(--texture-panel), var(--panel-sides)" in panel.group(1)
+    assert "background-origin: border-box" in panel.group(1)
+    assert "var(--panel-edge)" in panel.group(1)
 
 
-def test_the_corrupted_gauntlet_keeps_wrong_apart_from_red_when_colour_blind() -> None:
-    """Its accent is the red that wrong would be anywhere else, so wrong turns rose."""
-    bad = colour("corrupted_gauntlet", "--bad")
-    accent = colour("corrupted_gauntlet", "--accent")
-    for name, matrix in DICHROMACY.items():
-        gap = check.delta_e(simulate(bad, matrix), simulate(accent, matrix))
-        assert gap >= check.MIN_FADE_DELTA_E, f"{name}: --bad and --accent only {gap:.1f} apart"
+def test_only_prifddinas_paints_the_bar_and_its_tile_apart_from_its_panels() -> None:
+    """Every other theme's bar and picker tile are a stretch of its panel, as before they had
+    tokens; Prifddinas's tile is its meadow."""
+    for name, tokens in theme_blocks():
+        if name == "prifddinas":
+            assert tokens["--bar"].strip() != tokens["--panel"].strip()
+            assert tokens["--swatch"].strip() == tokens["--bg"].strip()
+            continue
+        pairs = (("--bar", "--panel"), ("--bar-ink", "--ink"), ("--bar-edge", "--line"))
+        for bar, panel in (*pairs, ("--swatch", "--panel")):
+            assert tokens[bar].strip() == tokens[panel].strip(), (name, bar)
+        assert tokens["--panel-edge"].strip() == tokens["--line"].strip(), name
+        assert tokens["--panel-sides"].strip() == "none", name
 
 
 def test_the_jungle_is_the_light_one() -> None:

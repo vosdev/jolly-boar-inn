@@ -31,14 +31,17 @@ describe('applyTheme', () => {
 describe('getTheme', () => {
   afterEach(() => localStorage.clear())
 
-  it('gives a browser that stored the retired Prifddinas theme the default', () => {
-    localStorage.setItem('jbi:theme', 'prifddinas')
-    expect(storedTheme()).toBeNull()
-    expect(getTheme()).toBe(DEFAULT_THEME)
-  })
+  it.each(['gauntlet', 'corrupted_gauntlet'])(
+    'gives a browser that stored the retired %s theme the default',
+    (retired) => {
+      localStorage.setItem('jbi:theme', retired)
+      expect(storedTheme()).toBeNull()
+      expect(getTheme()).toBe(DEFAULT_THEME)
+    },
+  )
 
-  it('keeps a browser that picked the Gauntlet in it', () => {
-    localStorage.setItem('jbi:theme', 'gauntlet')
-    expect(getTheme()).toBe('gauntlet')
+  it('keeps a browser that picked Prifddinas in it', () => {
+    localStorage.setItem('jbi:theme', 'prifddinas')
+    expect(getTheme()).toBe('prifddinas')
   })
 })

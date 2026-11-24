@@ -3,7 +3,7 @@
  * no change to the component: `emblemFile` finding one is all it takes.
  */
 
-import { render } from '@testing-library/svelte'
+import { fireEvent, render } from '@testing-library/svelte'
 import { describe, expect, it, vi } from 'vitest'
 
 import { EMBLEMS } from '../lib/emblems'
@@ -21,7 +21,19 @@ describe('Emblem', () => {
     expect(container.querySelector('svg')).toBeNull()
   })
 
-  it('draws a mark of its own for every emblem without a file, a recolour its original’s', () => {
+  it('keeps a sprite pixelated, and scales a detail image smoothly once it loads', async () => {
+    const loaded = async (width: number): Promise<HTMLImageElement> => {
+      const { container } = render(Emblem, { theme: 'wilderness' })
+      const img = container.querySelector('img')!
+      Object.defineProperty(img, 'naturalWidth', { value: width })
+      await fireEvent.load(img)
+      return img
+    }
+    expect((await loaded(32)).classList.contains('detail')).toBe(false)
+    expect((await loaded(1052)).classList.contains('detail')).toBe(true)
+  })
+
+  it('draws a mark of its own for every emblem without a file', () => {
     const marks = new Map<string, string>()
     for (const theme of EMBLEMS.filter((id) => id !== 'wilderness')) {
       const { container, unmount } = render(Emblem, { theme })
@@ -31,8 +43,6 @@ describe('Emblem', () => {
       marks.set(theme, svg.innerHTML)
       unmount()
     }
-    expect(marks.get('corrupted_gauntlet')).toBe(marks.get('gauntlet'))
-    marks.delete('corrupted_gauntlet')
-    expect(new Set(marks.values()).size).toBe(EMBLEMS.length - 2)
+    expect(new Set(marks.values()).size).toBe(EMBLEMS.length - 1)
   })
 })

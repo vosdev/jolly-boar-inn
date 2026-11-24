@@ -3,8 +3,8 @@
  *
  * The inn and the desert keep the quest reward scroll; the Wilderness nails up a bounty
  * poster, the Party Room hangs a card under bunting, and the TzHaar carve an obsidian slab,
- * since paper would burn. The jungle stretches bark cloth in a bamboo frame, the Gauntlet
- * keeps its board, Morytania a gravestone and Zanaris a crystal-studded stone.
+ * since paper would burn. The jungle stretches bark cloth in a bamboo frame, Prifddinas
+ * raises a crystal door like its city gate's, Morytania a gravestone and Zanaris a crystal-studded stone.
  */
 
 /**
@@ -28,11 +28,15 @@ export const ART = {
   moss: '#6f9248',
   mossDark: '#3f5a2a',
   signShard: '#a6e2f0',
+  gateWood: '#a08460',
+  gateWoodDark: '#6e5636',
+  gateCrystal: '#eef9fb',
+  gateCrystalShade: '#a9d8e2',
   signShardDark: '#7ccce0',
 }
 
 export type Sheet =
-  'scroll' | 'poster' | 'bunting' | 'slab' | 'bamboo' | 'gauntlet' | 'gravestone' | 'sign'
+  'scroll' | 'poster' | 'bunting' | 'slab' | 'bamboo' | 'gate' | 'gravestone' | 'sign'
 
 /** The sheet `theme` draws. */
 export function sheetFor(theme: string): Sheet {
@@ -45,9 +49,8 @@ export function sheetFor(theme: string): Sheet {
       return 'slab'
     case 'jungle':
       return 'bamboo'
-    case 'gauntlet':
-    case 'corrupted_gauntlet':
-      return 'gauntlet'
+    case 'prifddinas':
+      return 'gate'
     case 'morytania':
       return 'gravestone'
     case 'zanaris':

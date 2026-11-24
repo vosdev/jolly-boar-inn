@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import type { Sheet } from '../../lib/sheet'
 import scrollSource from './ClueScroll.svelte?raw'
 
-const OTHERS: Sheet[] = ['poster', 'bunting', 'slab', 'bamboo', 'gauntlet', 'gravestone', 'sign']
+const OTHERS: Sheet[] = ['poster', 'bunting', 'slab', 'bamboo', 'gate', 'gravestone', 'sign']
 
 function rule(selector: string): string | null {
   const start = scrollSource.indexOf(`\n  ${selector} {`)

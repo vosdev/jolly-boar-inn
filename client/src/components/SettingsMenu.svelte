@@ -471,6 +471,9 @@
     scrollbar-color: var(--surface-muted) var(--panel-raised);
     overscroll-behavior: contain;
     padding: 1rem;
+    /* It opens from the bar, whose inks are the bar's. */
+    --ink: var(--surface-ink);
+    --muted: var(--surface-muted);
     color: var(--ink);
     background: var(--panel-raised);
     border: var(--border-width) solid var(--line);

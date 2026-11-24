@@ -67,18 +67,14 @@ describe('the sheet', () => {
     expect(container.querySelector('.stage-row')?.classList.contains('flat')).toBe(true)
   })
 
-  it("is the Gauntlet's board in the Gauntlet, its corners cut and no close button", () => {
-    const { sheet } = stage('gauntlet')
-    expect(sheet.dataset.sheet).toBe('gauntlet')
+  it("is the city gate's crystal door in Prifddinas, its ring faint, branches and crystal at its corners", () => {
+    const { sheet } = stage('prifddinas')
+    expect(sheet.dataset.sheet).toBe('gate')
     expect(sheet.querySelector('.paper svg.close')).toBeNull()
-    expect(sheet.querySelectorAll('.paper svg.cut')).toHaveLength(4)
+    expect(sheet.querySelector('.paper svg.gate-mark')).not.toBeNull()
+    expect(sheet.querySelectorAll('svg.branch')).toHaveLength(2)
+    expect(sheet.querySelectorAll('svg.crystals')).toHaveLength(2)
     expect(sheet.querySelector('.roll')).toBeNull()
-  })
-
-  it("is the Gauntlet's board in the Corrupted Gauntlet too", () => {
-    const { sheet } = stage('corrupted_gauntlet')
-    expect(sheet.dataset.sheet).toBe('gauntlet')
-    expect(sheet.querySelectorAll('.paper svg.cut')).toHaveLength(4)
   })
 
   it('is a gravestone in Morytania, moss at its foot and nothing under it', () => {
@@ -108,8 +104,7 @@ describe('the sheet', () => {
       'party_room',
       'tzhaar',
       'jungle',
-      'gauntlet',
-      'corrupted_gauntlet',
+      'prifddinas',
       'morytania',
       'zanaris',
     ]

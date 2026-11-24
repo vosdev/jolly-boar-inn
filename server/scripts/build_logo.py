@@ -142,36 +142,22 @@ THEMES: dict[str, dict[str, str]] = {
         "eye-lo": "#9a9a7a",
         "eye-hi": "#fffbe6",
     },
-    "gauntlet": {
+    # Prifddinas: a boar of the city's crystal, pale and faceted, lit from within, with
+    # shards for a crown and the green of the city's roofs in its eyes.
+    "prifddinas": {
         "ornament": "crystals",
-        "rim": "#123c40",
-        "hide-lo": "#0e1416",
-        "hide-hi": "#a69a8c",
-        "tusk-lo": "#2f7c80",
-        "tusk-hi": "#e9ffff",
-        "eye-lo": "#5fc9cf",
-        "eye-hi": "#f0ffff",
-        "eye-glow": "#5fe6ea",
-        "tusk-glow": "#8fe3e6",
-        "crystal-lo": "#bff3f3",
-        "crystal-hi": "#e9ffff",
-        "crystal-facet": "#8fe3e6",
-    },
-    # The same boar, its crystals, tusks and eyes corrupted red.
-    "corrupted_gauntlet": {
-        "ornament": "crystals",
-        "rim": "#40121a",
-        "hide-lo": "#160e0e",
-        "hide-hi": "#a6928c",
-        "tusk-lo": "#80302c",
-        "tusk-hi": "#ffe6e2",
-        "eye-lo": "#cf5f55",
-        "eye-hi": "#fff0ee",
-        "eye-glow": "#ea5f50",
-        "tusk-glow": "#e6908a",
-        "crystal-lo": "#f0928a",
-        "crystal-hi": "#ffd6d0",
-        "crystal-facet": "#e2483e",
+        "rim": "#1a4650",
+        "hide-lo": "#4a93a3",
+        "hide-hi": "#f0fdff",
+        "tusk-lo": "#9edbe6",
+        "tusk-hi": "#ffffff",
+        "eye-lo": "#1d6d4e",
+        "eye-hi": "#b8ffd8",
+        "eye-glow": "#5fe6a0",
+        "tusk-glow": "#c8f6ff",
+        "crystal-lo": "#bfeef0",
+        "crystal-hi": "#f2ffff",
+        "crystal-facet": "#7ccce0",
     },
     # A Ghast, the swamp's near-invisible ghost: the body half gone, the eyes still lit.
     "morytania": {
@@ -429,7 +415,7 @@ def _fez(rim: int) -> str:
     )
 
 
-# Three palm fronds and a banana for the jungle, three crystal shards for the Gauntlet: drawn,
+# Three palm fronds and a banana for the jungle, three crystal shards for Prifddinas: drawn,
 # like the fez, in the render's pixels over the crown, and as large as the fez stands.
 _FRONDS = (
     (

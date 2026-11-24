@@ -53,8 +53,7 @@ def test_every_theme_defines_every_token(css: str) -> None:
         "party_room",
         "tzhaar",
         "jungle",
-        "gauntlet",
-        "corrupted_gauntlet",
+        "prifddinas",
         "morytania",
         "zanaris",
     }

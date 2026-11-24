@@ -505,10 +505,9 @@ describe('SettingsMenu, the themes', () => {
       'jungle',
       'party_room',
       'zanaris',
+      'prifddinas',
       'tzhaar',
       'wilderness',
-      'gauntlet',
-      'corrupted_gauntlet',
       'morytania',
     ])
     for (const radio of radios().slice(1)) {

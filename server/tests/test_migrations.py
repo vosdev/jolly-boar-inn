@@ -142,7 +142,7 @@ TABLES = {
         "played_on",
     },
 }
-ALL = list(range(1, 33))
+ALL = list(range(1, 34))
 INDEXES = {
     "rooms_code_idx",
     "rooms_expires_at_idx",
@@ -189,6 +189,7 @@ SHA256 = {
     30: "202f41967c6ab1a98229741e2eb8645f21132d2e43599eb9a6116011d04ab3c0",
     31: "3c773323ff64f76fe65b5d4460514cff2963f60d3402aa01e55d6aa02d0da693",
     32: "6b987a19a8e0cc0670102d8011ab4dd4bcde2c405dfb318a05de2f34403ed5d2",
+    33: "888248f2ab903406547b6731b6ae2da4f75e224089095120b44161396362b914",
 }
 
 
@@ -253,6 +254,7 @@ def test_migration_files_are_numbered_and_ordered() -> None:
         "0030_items.sql",
         "0031_book_answers.sql",
         "0032_suggestion_pictures.sql",
+        "0033_prifddinas_theme.sql",
     ]
 
 
@@ -442,6 +444,7 @@ async def test_0004_rewrites_a_room_created_before_per_mode_rounds(
         30,
         31,
         32,
+        33,
     ]
     loaded = RoomSettings.model_validate(
         without_the_hold(await pool.fetchval("select settings from rooms where code = 'ABYSSAL'"))
@@ -518,6 +521,7 @@ async def test_0005_gives_a_room_from_before_heads_players_with_no_avatar(
         30,
         31,
         32,
+        33,
     ]
     rows = await pool.fetch("select display_name, avatar from players order by display_name")
     assert [(r["display_name"], r["avatar"]) for r in rows] == [("Woox", None), ("Zezima", None)]
@@ -561,6 +565,7 @@ async def test_0014_clears_the_head_a_player_chose_before_pets(
         30,
         31,
         32,
+        33,
     ]
     assert await pool.fetchval("select avatar from players") is None
     await pool.execute("update players set avatar = 'aggy'")
@@ -590,7 +595,7 @@ async def test_0018_turns_an_examine_suggestion_into_its_question(
         [(content, index) for index, content in enumerate(examines)],
     )
 
-    assert await run_migrations(pool) == list(range(18, 33))
+    assert await run_migrations(pool) == list(range(18, 34))
     rows = await pool.fetch("select kind, content from suggestions order by created_at")
     assert [(row["kind"], row["content"]) for row in rows] == [
         ("item", {"name": "Cabbage"}),
@@ -635,13 +640,47 @@ async def test_0019_counts_the_prifddinas_days_under_the_gauntlet(
         ],
     )
 
-    assert await run_migrations(pool) == [19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32]
+    (tmp_path / "0019_gauntlet_theme.sql").write_text(
+        (MIGRATIONS_DIR / "0019_gauntlet_theme.sql").read_text()
+    )
+    assert await run_migrations(pool, tmp_path) == [19]
     rows = await pool.fetch("select day, metric, key, count from daily_stats order by 1, 2, 3")
     assert [tuple(row) for row in rows] == [
         (date(2026, 10, 1), "themes", "gauntlet", 3),
         (date(2026, 10, 2), "rooms_created", "", 4),
         (date(2026, 10, 2), "themes", "gauntlet", 7),
         (date(2026, 10, 2), "themes", "jolly", 7),
+    ]
+
+
+async def test_0033_counts_both_gauntlets_under_prifddinas(
+    pool: asyncpg.Pool, tmp_path: Path
+) -> None:
+    """0033: both Gauntlets' days count under Prifddinas, summed where a day has several."""
+    for _, path in migration_files(MIGRATIONS_DIR)[:32]:
+        (tmp_path / path.name).write_text(path.read_text())
+    assert await run_migrations(pool, tmp_path) == ALL[:32]
+    await pool.executemany(
+        "insert into daily_stats (day, metric, key, count) values ($1, $2, $3, $4)",
+        [
+            (date(2026, 11, 1), "themes", "gauntlet", 3),
+            (date(2026, 11, 2), "themes", "gauntlet", 2),
+            (date(2026, 11, 2), "themes", "corrupted_gauntlet", 5),
+            (date(2026, 11, 3), "themes", "corrupted_gauntlet", 4),
+            (date(2026, 11, 3), "themes", "prifddinas", 1),
+            (date(2026, 11, 3), "themes", "jolly", 7),
+            (date(2026, 11, 3), "rooms_created", "", 4),
+        ],
+    )
+
+    assert await run_migrations(pool) == [33]
+    rows = await pool.fetch("select day, metric, key, count from daily_stats order by 1, 2, 3")
+    assert [tuple(row) for row in rows] == [
+        (date(2026, 11, 1), "themes", "prifddinas", 3),
+        (date(2026, 11, 2), "themes", "prifddinas", 7),
+        (date(2026, 11, 3), "rooms_created", "", 4),
+        (date(2026, 11, 3), "themes", "jolly", 7),
+        (date(2026, 11, 3), "themes", "prifddinas", 5),
     ]
 
 
@@ -790,6 +829,7 @@ async def test_0007_swaps_order_for_the_event_settings_once(
         30,
         31,
         32,
+        33,
     ]
     after = await pool.fetchval("select settings from rooms where code = 'ABYSSAL'")
     expected = {k: v for k, v in before.items() if k != "order"}
@@ -1024,6 +1064,7 @@ async def test_0009_dates_a_room_finished_before_it_from_its_last_close(
         30,
         31,
         32,
+        33,
     ]
     rows = await pool.fetch("select code, finished_at from rooms")
     assert {row["code"]: row["finished_at"] for row in rows} == {
@@ -1069,6 +1110,7 @@ async def test_0011_leaves_a_room_from_before_it_without_a_key(
         30,
         31,
         32,
+        33,
     ]
     assert await pool.fetchval("select invite_key from rooms where code = 'ABYSSAL'") is None
 
@@ -1107,6 +1149,7 @@ async def test_0012_leaves_a_room_from_before_it_unlisted(
         30,
         31,
         32,
+        33,
     ]
     assert await pool.fetchval("select public from rooms where code = 'ABYSSAL'") is False
 
@@ -1129,7 +1172,7 @@ async def test_0020_leaves_a_player_from_before_it_teamless(
         room_id,
         hash_token("before teams"),
     )
-    assert await run_migrations(pool) == [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32]
+    assert await run_migrations(pool) == [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]
     assert await pool.fetchval("select team from players") is None
     settings = await pool.fetchval("select settings from rooms")
     assert RoomSettings.stored(settings).teams == []
@@ -1152,7 +1195,7 @@ async def test_0023_holds_a_new_name_to_12_and_keeps_a_longer_one_from_before(
         " values ($1, $2, $3, 'player')"
     )
     await pool.execute(insert, room_id, "Cow31337Killer42Forever1", hash_token("before"))
-    assert await run_migrations(pool) == [23, 24, 25, 26, 27, 28, 29, 30, 31, 32]
+    assert await run_migrations(pool) == [23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]
     assert await pool.fetchval("select display_name from players") == "Cow31337Killer42Forever1"
     await pool.execute(insert, room_id, "x" * 12, hash_token("twelve"))
     with pytest.raises(asyncpg.CheckViolationError):

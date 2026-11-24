@@ -30,13 +30,6 @@ export const LANTERN = {
   bracketLit: '#4a4441',
 } as const
 
-/** The Gauntlet's door logo per Gauntlet: its glow, the glow's paler core, and the dark it is
- * cut into. */
-export const DOOR_LOGO = {
-  gauntlet: { glow: '#1ac8d8', core: '#78f8f8', cut: '#0c1414' },
-  corrupted_gauntlet: { glow: '#e2483e', core: '#ff9a80', cut: '#0c1414' },
-} as const
-
 /** The Wilderness torch, after the game's wall torch: an iron arm and band, a tarred head
  * on a wooden handle, and two pale flames with orange hearts. */
 export const TORCH = {

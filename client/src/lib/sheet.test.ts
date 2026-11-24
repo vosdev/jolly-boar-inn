@@ -12,8 +12,7 @@ describe('sheetFor', () => {
     expect(sheetFor('party_room')).toBe('bunting')
     expect(sheetFor('tzhaar')).toBe('slab')
     expect(sheetFor('jungle')).toBe('bamboo')
-    expect(sheetFor('gauntlet')).toBe('gauntlet')
-    expect(sheetFor('corrupted_gauntlet')).toBe('gauntlet')
+    expect(sheetFor('prifddinas')).toBe('gate')
     expect(sheetFor('morytania')).toBe('gravestone')
     expect(sheetFor('zanaris')).toBe('sign')
   })
@@ -26,16 +25,7 @@ describe('sheetFor', () => {
 
 describe('hasRolls', () => {
   it('is the scroll alone', () => {
-    const sheets = [
-      'scroll',
-      'poster',
-      'bunting',
-      'slab',
-      'bamboo',
-      'gauntlet',
-      'gravestone',
-      'sign',
-    ]
+    const sheets = ['scroll', 'poster', 'bunting', 'slab', 'bamboo', 'gate', 'gravestone', 'sign']
     expect(sheets.filter((sheet) => hasRolls(sheet as never))).toEqual(['scroll'])
   })
 })
