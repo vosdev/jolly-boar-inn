@@ -175,17 +175,20 @@
 </script>
 
 {#snippet inside()}
-  <span class="content"
-    >{#if struck}<s>{@render children()}</s
-      >{:else}{@render children()}{/if}{#if pickers !== null}<span
+  <span class="content">
+    {#if struck}<s>
+        {@render children()}
+      </s>{:else}{@render children()}{/if}{#if pickers !== null}<span
         class="pickers"
         aria-hidden="true"
-        >{#each pickers.shown as picker (picker.id)}<span class="picker" class:me={picker.you}
-            ><Pet pet={picker.pet} size={24} label="" />{picker.name}</span
-          >{/each}{#if pickers.more > 0}<span class="picker more">and {pickers.more} more</span
-          >{/if}</span
-      >{/if}</span
-  >
+      >
+        {#each pickers.shown as picker (picker.id)}<span class="picker" class:me={picker.you}>
+            <Pet pet={picker.pet} size={24} label="" />{picker.name}
+          </span>{/each}{#if pickers.more > 0}<span class="picker more">
+            and {pickers.more} more
+          </span>{/if}
+      </span>{/if}
+  </span>
   {#if checked !== null}
     <span class="tick" class:checked aria-hidden="true">{checked ? '✓' : ''}</span>
   {:else if place !== undefined}
@@ -200,11 +203,11 @@
   {/if}
   {#if spoken !== ''}<span class="sr">{spoken}</span>{/if}
   {#if votes !== null}<span class="sr">, picked by {votes.count} of {votes.of}</span>{/if}
-  {#if pickers !== null}<span class="sr"
-      >: {pickers.shown.map((picker) => picker.name).join(', ')}{pickers.more > 0
+  {#if pickers !== null}<span class="sr">
+      : {pickers.shown.map((picker) => picker.name).join(', ')}{pickers.more > 0
         ? ` and ${pickers.more} more`
-        : ''}</span
-    >{/if}
+        : ''}
+    </span>{/if}
   {#if end !== undefined}<span class="end">{@render end()}</span>{/if}
 {/snippet}
 

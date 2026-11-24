@@ -25,8 +25,9 @@
     title="Start over"
     disabled={!moved}
     onclick={onrestart}
-    ><span class="arrow" aria-hidden="true">↺</span><span class="word">Start over</span></button
   >
+    <span class="arrow" aria-hidden="true">↺</span><span class="word">Start over</span>
+  </button>
   <button type="button" class="primary submit" disabled={!ready} onclick={onsubmit}>
     Submit
   </button>

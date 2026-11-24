@@ -236,29 +236,37 @@
                 class="small"
                 aria-label="Move question {index + 1} earlier"
                 disabled={index === 0}
-                onclick={() => move(index, -1)}>↑</button
+                onclick={() => move(index, -1)}
               >
+                ↑
+              </button>
               <button
                 type="button"
                 class="small"
                 aria-label="Move question {index + 1} later"
                 disabled={index === bank.length - 1}
-                onclick={() => move(index, 1)}>↓</button
+                onclick={() => move(index, 1)}
               >
+                ↓
+              </button>
               <button
                 type="button"
                 class="small"
                 aria-label="Edit question {index + 1}"
                 disabled={open !== null}
-                onclick={() => edit(index)}>Edit</button
+                onclick={() => edit(index)}
               >
+                Edit
+              </button>
               <button
                 type="button"
                 class="small"
                 aria-label="Delete question {index + 1}"
                 disabled={open !== null}
-                onclick={() => (deleting = index)}>Delete</button
+                onclick={() => (deleting = index)}
               >
+                Delete
+              </button>
             </div>
           </div>
         </li>

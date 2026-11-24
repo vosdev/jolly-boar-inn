@@ -221,9 +221,9 @@
   {#if fresh}
     <fieldset class="ticks">
       <legend>Before you upload</legend>
-      <label
-        ><input type="checkbox" bind:checked={own} /> I took this screenshot myself in Old School RuneScape</label
-      >
+      <label>
+        <input type="checkbox" bind:checked={own} /> I took this screenshot myself in Old School RuneScape
+      </label>
       <label>
         <input type="checkbox" bind:checked={hidden} /> I hid my own character with
         <code>::renderself</code> in RuneLite

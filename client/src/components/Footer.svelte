@@ -70,18 +70,18 @@
       {#if asOf !== null}<li>GE prices as of {asOfDate(asOf)}</li>{/if}
       {#if questionCounts.counts !== null}
         <li>
-          <button type="button" class="plain" onclick={() => (showCounts = true)}
-            >{formatCount(totalQuestions(questionCounts.counts))} questions and counting</button
-          >
+          <button type="button" class="plain" onclick={() => (showCounts = true)}>
+            {formatCount(totalQuestions(questionCounts.counts))} questions and counting
+          </button>
         </li>
       {/if}
       <li>
         <button type="button" class="plain" onclick={() => (showCredits = true)}>Credits</button>
       </li>
       <li>
-        <button type="button" class="plain" onclick={() => void openChangelog()}
-          >What's new in v{VERSION_LABEL}</button
-        >
+        <button type="button" class="plain" onclick={() => void openChangelog()}>
+          What's new in v{VERSION_LABEL}
+        </button>
         {#if changelogFailed}<span>Couldn't load the changelog.</span>{/if}
       </li>
     </ul>

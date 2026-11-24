@@ -120,9 +120,9 @@
       <div class="slide" class:on={i === index} inert={i !== index} data-mode={mode.id}>
         <img class="face {art.cut}" src={art.url} alt="" draggable="false" />
         <p class="name">
-          <button type="button" class="open" onclick={() => onpick(mode.id)}
-            >{mode.label}<span class="sr">, how to play</span></button
-          >
+          <button type="button" class="open" onclick={() => onpick(mode.id)}>
+            {mode.label}<span class="sr">, how to play</span>
+          </button>
         </p>
         <p class="hint">{mode.hint}</p>
         <p class="by">Presented by: {mode.host.name}</p>

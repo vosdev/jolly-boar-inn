@@ -50,9 +50,9 @@
       <table class="authors">
         <thead>
           <tr>
-            <th scope="col" class="rank"
-              ><span aria-hidden="true">#</span><span class="sr">Rank</span></th
-            >
+            <th scope="col" class="rank">
+              <span aria-hidden="true">#</span><span class="sr">Rank</span>
+            </th>
             <th scope="col" class="name">Name</th>
             <th scope="col" class="count">Questions</th>
           </tr>
@@ -90,8 +90,10 @@
       class="link"
       href="https://prices.runescape.wiki/"
       target="_blank"
-      rel="noopener">real-time prices API</a
-    >. Each time the game is built, prices are fetched with a single <code>/mapping</code>
+      rel="noopener"
+    >
+      real-time prices API
+    </a>. Each time the game is built, prices are fetched with a single <code>/mapping</code>
     and <code>/latest</code> request.
   </p>
   <p>

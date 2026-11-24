@@ -100,11 +100,11 @@
       {points}
     {/if}
     {#if item !== null}
-      <span class="item-part"
-        ><ItemIcon id={item.item} charges={item.charges} size={chip ? 18 : 22} label="" />
+      <span class="item-part">
+        <ItemIcon id={item.item} charges={item.charges} size={chip ? 18 : 22} label="" />
         {itemName(item.item, item.charges)}
-        {signed(item.points)}</span
-      >
+        {signed(item.points)}
+      </span>
     {/if}
   </p>
   {#if total !== null}

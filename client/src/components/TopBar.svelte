@@ -164,11 +164,11 @@
 
     {#if past !== null}
       <p class="where past">
-        <strong class="named">{past.code}</strong>{#if past.finishedAt !== null}<span class="when"
-            >, <span class="long">finished {finishedAt(past.finishedAt)}</span><span class="short"
-              >{finishedDay(past.finishedAt)}</span
-            ></span
-          >{/if}
+        <strong class="named">{past.code}</strong>{#if past.finishedAt !== null}<span class="when">
+            , <span class="long">finished {finishedAt(past.finishedAt)}</span><span class="short">
+              {finishedDay(past.finishedAt)}
+            </span>
+          </span>{/if}
       </p>
     {/if}
 

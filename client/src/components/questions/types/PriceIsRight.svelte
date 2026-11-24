@@ -71,9 +71,9 @@
     </p>
     {#if sent !== null}
       <p class="yours">
-        Your guess {precise(sent)}{#if off !== null}, <span class="off"
-            >{off === 0 ? 'spot on' : `${off > 0 ? '+' : '−'}${Math.abs(off)}%`}</span
-          >{/if}
+        Your guess {precise(sent)}{#if off !== null}, <span class="off">
+            {off === 0 ? 'spot on' : `${off > 0 ? '+' : '−'}${Math.abs(off)}%`}
+          </span>{/if}
       </p>
     {/if}
   {:else if canAnswer || sent !== null}

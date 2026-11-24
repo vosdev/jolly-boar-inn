@@ -61,9 +61,9 @@
     <p class="note">Nobody sees the rounds — not even you — until each one starts.</p>
   {/if}
   <div class="row">
-    <button type="button" class="primary" onclick={() => onPick(howMany, canHide && secret)}
-      >Pick</button
-    >
+    <button type="button" class="primary" onclick={() => onPick(howMany, canHide && secret)}>
+      Pick
+    </button>
     <button type="button" onclick={onCancel}>Cancel</button>
   </div>
 </dialog>

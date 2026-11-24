@@ -77,9 +77,9 @@
     </p>
     {#if sent !== null}
       <p class="yours">
-        Your guess {written(sent)}{#if off !== null}, <span class="off"
-            >{off === 0 ? 'spot on' : `off by ${written(off)}`}</span
-          >{/if}
+        Your guess {written(sent)}{#if off !== null}, <span class="off">
+            {off === 0 ? 'spot on' : `off by ${written(off)}`}
+          </span>{/if}
       </p>
     {/if}
   {:else if canAnswer || sent !== null}

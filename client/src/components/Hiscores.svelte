@@ -79,16 +79,16 @@
 
 {#snippet moved(move: Movement | null)}
   {#if move !== null}
-    <span class="move" class:up={move.up} class:down={!move.up}
-      ><span class="sr">{move.up ? 'up ' : 'down '}</span>{move.by}</span
-    >
+    <span class="move" class:up={move.up} class:down={!move.up}>
+      <span class="sr">{move.up ? 'up ' : 'down '}</span>{move.by}
+    </span>
   {/if}
 {/snippet}
 
 {#snippet gained(standing: Standing)}
-  <span class="gain" class:shown={settled}
-    >+{numbers.format(standing.points_gained)}<span class="sr">{' this round'}</span></span
-  >
+  <span class="gain" class:shown={settled}>
+    +{numbers.format(standing.points_gained)}<span class="sr">{' this round'}</span>
+  </span>
 {/snippet}
 
 {#snippet boxHead()}
@@ -105,9 +105,9 @@
         {#if drops.length > 0}{@render boxHead()}{/if}
         {#if changes}<th scope="col" class="round">This round</th>{/if}
       {:else}
-        <th scope="col" class="rank"
-          ><span aria-hidden="true">#</span><span class="sr">Rank</span></th
-        >
+        <th scope="col" class="rank">
+          <span aria-hidden="true">#</span><span class="sr">Rank</span>
+        </th>
         <th scope="col" class="name">Name</th>
         {#if drops.length > 0}{@render boxHead()}{/if}
       {/if}
@@ -132,9 +132,9 @@
         <td class="name">
           <span class="who">
             <Pet pet={petFor(standing)} size={28} label="" />
-            <span
-              >{nameOf(standing)}{#if you}{' '}<span class="note">(you)</span>{/if}</span
-            >
+            <span>
+              {nameOf(standing)}{#if you}{' '}<span class="note">(you)</span>{/if}
+            </span>
           </span>
         </td>
         {#if drops.length > 0}
@@ -152,12 +152,12 @@
         {/if}
         {#if columns && changes}<td class="round">{@render gained(standing)}</td>{/if}
         <td class="points">
-          <span class="total"
-            ><CountUp
+          <span class="total">
+            <CountUp
               value={settled ? standing.points : pointsBefore(standing)}
               duration={instant ? 0 : SHUFFLE.count}
-            /></span
-          >
+            />
+          </span>
           {#if changes && !columns}{@render gained(standing)}{/if}
         </td>
       </tr>

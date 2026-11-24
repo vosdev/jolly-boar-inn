@@ -304,11 +304,12 @@
   <div class="head">
     <h2 id="packs-heading">Pack questions</h2>
     <div class="views" role="group" aria-label="View">
-      <button type="button" aria-pressed={view === 'list'} onclick={() => show('list')}>List</button
-      >
-      <button type="button" aria-pressed={view === 'stats'} onclick={() => show('stats')}
-        >Stats</button
-      >
+      <button type="button" aria-pressed={view === 'list'} onclick={() => show('list')}>
+        List
+      </button>
+      <button type="button" aria-pressed={view === 'stats'} onclick={() => show('stats')}>
+        Stats
+      </button>
     </div>
   </div>
   {#if view === 'stats'}

@@ -315,8 +315,10 @@
           id="{id}-{one.id}"
           aria-selected={tab === one.id}
           aria-controls="{id}-{one.id}-panel"
-          onclick={() => (tab = one.id)}>{index + 1} · {one.label}</button
+          onclick={() => (tab = one.id)}
         >
+          {index + 1} · {one.label}
+        </button>
       {/each}
     </div>
   </div>
@@ -374,8 +376,10 @@
         type="button"
         class="pick"
         onclick={() => (pickingForMe = true)}
-        disabled={roundModes.length === 0}>Pick for me</button
+        disabled={roundModes.length === 0}
       >
+        Pick for me
+      </button>
       <RoundList
         bind:rounds
         bind:order={modeOrder}

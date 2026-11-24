@@ -284,8 +284,10 @@
                     {#each place.standings as standing, i (standing.player_id)}{i > 0
                         ? ', '
                         : ''}{nameOf(standing)}{#if standing.player_id === youId}{' '}<span
-                          class="note">(you)</span
-                        >{/if}{/each}
+                          class="note"
+                        >
+                          (you)
+                        </span>{/if}{/each}
                   </p>
                   <p class="points">
                     {numbers.format(place.standings[0]?.points ?? 0)} points

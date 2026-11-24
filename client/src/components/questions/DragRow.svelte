@@ -63,8 +63,10 @@
           data-handle={shown}
           aria-label="Move {name}"
           onkeydown={(event) => dragging.key(event, shown)}
-          onblur={(event) => dragging.blur(event, shown)}>⠿</button
+          onblur={(event) => dragging.blur(event, shown)}
         >
+          ⠿
+        </button>
       {/if}
     {/snippet}
   </GemButton>
