@@ -440,7 +440,7 @@ chrome or circle around them), on in `--ok`, in lobby and splash;
 - The timer is a thin bar under the top bar, with the seconds in a tab at the stage's right edge
   and the question's number (`2/3`) in one at its left. In a reveal it counts to what follows,
   the tab naming it, "Next in 6s", "Standings in 6s" or "Final in 6s", and the fill in `--muted`,
-  never turning urgent.
+  never turning urgent. A Daily reveal's track is full in the accent and the tab is its Next button, "Next ›".
 - **The answers take the size the question needs**, laid out by the stage's width, so a preview
   matches the room. Choices are two abreast and 56px tall on a phone, an odd last one across the
   row: thumb targets at a pub table. On a wide stage they are at least 84px tall, three abreast,

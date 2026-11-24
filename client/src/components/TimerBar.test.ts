@@ -1,7 +1,7 @@
 /** The timer bar's tabs: the seconds on the right, and a question's number on the left. */
 
-import { render } from '@testing-library/svelte'
-import { afterEach, describe, expect, it } from 'vitest'
+import { fireEvent, render, screen } from '@testing-library/svelte'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { roomShown } from '../lib/roomFit'
 import TimerBar from './TimerBar.svelte'
@@ -10,6 +10,25 @@ const endsAt = () => new Date(Date.now() + 10_000).toISOString()
 const tabs = () => [...document.querySelectorAll('.tab')].map((tab) => tab.textContent)
 
 describe('TimerBar', () => {
+  it('puts a button in the seconds’ place over a full track for an action', async () => {
+    const press = vi.fn()
+    render(TimerBar, {
+      endsAt: endsAt(),
+      totalSeconds: 0,
+      label: '',
+      stage: true,
+      action: { text: 'Next ›', name: 'Next question', press },
+    })
+    const button = screen.getByRole('button', { name: 'Next question' })
+    expect(button.textContent?.trim()).toBe('Next ›')
+    expect(button.classList.contains('seconds')).toBe(true)
+    expect(document.querySelector('span.seconds')).toBeNull()
+    expect((document.querySelector('.fill') as HTMLElement).style.width).toBe('100%')
+    expect(document.querySelector('.timerbar')!.classList.contains('urgent')).toBe(false)
+    await fireEvent.click(button)
+    expect(press).toHaveBeenCalledOnce()
+  })
+
   it('hangs the question’s number on the left of a question’s bar', () => {
     render(TimerBar, { endsAt: endsAt(), totalSeconds: 10, label: 'to answer', progress: '2/3' })
     expect(tabs()).toEqual(['2/3', '10s'])

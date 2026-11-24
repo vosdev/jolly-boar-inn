@@ -25,6 +25,17 @@ export interface TimerBarState {
   next?: string
   /** The quiet fill alone, the tab plain seconds: the standings, whose panel says what is next. */
   quiet?: boolean
+  /** A button in the seconds' place over a full track: a daily's reveal, which waits on Next. */
+  action?: TimerBarAction
+}
+
+/** The tab a player presses to move on, where nothing is counting. */
+export interface TimerBarAction {
+  /** What the tab shows: "Next ›". */
+  text: string
+  /** Its accessible name: "Next question". */
+  name: string
+  press: () => void
 }
 
 export const timerBar = writable<TimerBarState | null>(null)
