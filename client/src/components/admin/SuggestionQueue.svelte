@@ -381,9 +381,9 @@
                                   : modeName(match.question.mode)}
                               </span>
                               {matchLine(match.question)}
-                              <strong
-                                >{answerOf({ kind: 'question', content: match.question })}</strong
-                              >
+                              <strong>
+                                {answerOf({ kind: 'question', content: match.question })}
+                              </strong>
                             </li>
                           {/each}
                         </ul>

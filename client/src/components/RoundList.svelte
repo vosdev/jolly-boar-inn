@@ -151,9 +151,9 @@
             </button>
             <span class="number" aria-hidden="true">{index + 1}</span>
           {:else}
-            <span class="face" aria-hidden="true"
-              ><img class={art.cut} src={art.url} alt="" draggable="false" /></span
-            >
+            <span class="face" aria-hidden="true">
+              <img class={art.cut} src={art.url} alt="" draggable="false" />
+            </span>
           {/if}
           {#if bounds[round.mode]}
             <Stepper

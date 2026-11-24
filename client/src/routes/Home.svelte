@@ -477,9 +477,9 @@
                   <span class="code-small">{room}</span>
                   <span class="when">Expires {expiresIn(expiresAt, now)}</span>
                 </span>
-                <button type="button" class="small" onclick={() => navigate(`/r/${room}`)}
-                  >Open</button
-                >
+                <button type="button" class="small" onclick={() => navigate(`/r/${room}`)}>
+                  Open
+                </button>
                 <button
                   type="button"
                   class="small"
@@ -577,9 +577,9 @@
           <button type="button" onclick={() => navigate('/suggest')}>Suggest a question</button>
           <button type="button" onclick={() => navigate('/report')}>Report a question</button>
         {/if}
-        <a class="button" href={DISCORD_URL} target="_blank" rel="noopener noreferrer"
-          >Give feedback</a
-        >
+        <a class="button" href={DISCORD_URL} target="_blank" rel="noopener noreferrer">
+          Give feedback
+        </a>
         {#if adminToken !== null}
           <button type="button" onclick={() => navigate('/admin')}>
             Admin{pending ? ` (${pending})` : ''}

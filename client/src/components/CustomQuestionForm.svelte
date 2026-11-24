@@ -303,8 +303,10 @@
               class="remove"
               aria-label="Remove {wording.option} {index + 1}"
               disabled={draft.options.length <= optionsMin}
-              onclick={() => removeOption(index)}>✕</button
+              onclick={() => removeOption(index)}
             >
+              ✕
+            </button>
           {/if}
         </div>
         {@render errors(`payload.options[${index}]`)}
@@ -316,8 +318,10 @@
           type="button"
           class="small"
           disabled={draft.options.length >= optionsMax}
-          onclick={addOption}>Add an answer</button
+          onclick={addOption}
         >
+          Add an answer
+        </button>
         <p class="note">{optionsMin} to {optionsMax} {wording.option}s.</p>
       {/if}
       {@render errors('payload.options')}
@@ -344,8 +348,10 @@
               class="remove"
               aria-label="Remove answer {index + 1}"
               disabled={draft.options.length <= optionsMin}
-              onclick={() => removeOption(index)}>✕</button
+              onclick={() => removeOption(index)}
             >
+              ✕
+            </button>
           {/if}
         </div>
         {@render errors(`payload.options[${index}]`)}
@@ -354,8 +360,10 @@
         type="button"
         class="small"
         disabled={draft.options.length >= optionsMax}
-        onclick={addOption}>Add an answer</button
+        onclick={addOption}
       >
+        Add an answer
+      </button>
       <p class="note">
         {optionsMin} to {optionsMax} answers: at least one right.
       </p>
@@ -384,8 +392,10 @@
             class="small"
             aria-label="Remove accepted answer {index + 1}"
             disabled={draft.accepted.length <= ACCEPTED_MIN}
-            onclick={() => draft.accepted.splice(index, 1)}>✕</button
+            onclick={() => draft.accepted.splice(index, 1)}
           >
+            ✕
+          </button>
         </div>
         {@render errors(`payload.accepted[${index}]`)}
       {/each}
@@ -393,8 +403,10 @@
         type="button"
         class="small"
         disabled={draft.accepted.length >= ACCEPTED_MAX}
-        onclick={() => draft.accepted.push('')}>Add another spelling</button
+        onclick={() => draft.accepted.push('')}
       >
+        Add another spelling
+      </button>
       <p class="note">Case, accents, punctuation and spacing never count against a player.</p>
       {@render errors('payload.accepted')}
     </fieldset>

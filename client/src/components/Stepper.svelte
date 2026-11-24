@@ -32,16 +32,20 @@
       class="square"
       aria-label="Fewer {noun}"
       disabled={value <= min}
-      onclick={() => onchange(Math.max(min, value - step))}>−</button
+      onclick={() => onchange(Math.max(min, value - step))}
     >
+      −
+    </button>
     <output class="value">{value}</output>
     <button
       type="button"
       class="square"
       aria-label="More {noun}"
       disabled={value >= max}
-      onclick={() => onchange(Math.min(max, value + step))}>+</button
+      onclick={() => onchange(Math.min(max, value + step))}
     >
+      +
+    </button>
   </span>
 </div>
 

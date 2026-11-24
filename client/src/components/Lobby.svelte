@@ -399,11 +399,12 @@
                       <span class="face"><Pet pet={petOf(request)} size={40} label="" /></span>
                       <span class="name">{request.display_name}</span>
                       <span class="decide">
-                        <button type="button" class="primary" onclick={() => decide(request, true)}
-                          >Let in</button
-                        >
-                        <button type="button" onclick={() => decide(request, false)}>Decline</button
-                        >
+                        <button type="button" class="primary" onclick={() => decide(request, true)}>
+                          Let in
+                        </button>
+                        <button type="button" onclick={() => decide(request, false)}>
+                          Decline
+                        </button>
                       </span>
                     </li>
                   {/each}

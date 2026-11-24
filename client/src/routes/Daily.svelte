@@ -134,8 +134,10 @@
           type="button"
           class="primary"
           disabled={starting}
-          onclick={() => view.name === 'intro' && begin(view.today)}>Start</button
+          onclick={() => view.name === 'intro' && begin(view.today)}
         >
+          Start
+        </button>
         <button type="button" onclick={() => navigate('/')}>Home</button>
       </div>
     {:else}

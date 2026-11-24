@@ -164,21 +164,33 @@
       </div>
       <div class="controls">
         <div class="pad" role="group" aria-label="Move one tile">
-          <button type="button" class="up" aria-label="One tile north" onclick={() => nudge(0, 1)}
-            >↑</button
+          <button type="button" class="up" aria-label="One tile north" onclick={() => nudge(0, 1)}>
+            ↑
+          </button>
+          <button
+            type="button"
+            class="left"
+            aria-label="One tile west"
+            onclick={() => nudge(-1, 0)}
           >
-          <button type="button" class="left" aria-label="One tile west" onclick={() => nudge(-1, 0)}
-            >←</button
+            ←
+          </button>
+          <button
+            type="button"
+            class="right"
+            aria-label="One tile east"
+            onclick={() => nudge(1, 0)}
           >
-          <button type="button" class="right" aria-label="One tile east" onclick={() => nudge(1, 0)}
-            >→</button
-          >
+            →
+          </button>
           <button
             type="button"
             class="down"
             aria-label="One tile south"
-            onclick={() => nudge(0, -1)}>↓</button
+            onclick={() => nudge(0, -1)}
           >
+            ↓
+          </button>
         </div>
         <div class="field">
           <label for="{id}-angle">Turned {spot.angle}°</label>
@@ -195,14 +207,18 @@
             <button
               type="button"
               aria-label="Turn left {TURN_STEP}°"
-              onclick={() => turn(spot!.angle - TURN_STEP)}>⟲</button
+              onclick={() => turn(spot!.angle - TURN_STEP)}
             >
+              ⟲
+            </button>
             <button type="button" disabled={spot.angle === 0} onclick={() => turn(0)}>North</button>
             <button
               type="button"
               aria-label="Turn right {TURN_STEP}°"
-              onclick={() => turn(spot!.angle + TURN_STEP)}>⟳</button
+              onclick={() => turn(spot!.angle + TURN_STEP)}
             >
+              ⟳
+            </button>
           </div>
         </div>
       </div>

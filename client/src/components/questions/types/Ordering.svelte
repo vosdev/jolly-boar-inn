@@ -225,8 +225,9 @@
         >
           <span class="text">{entry?.text}</span>
           {#if entry?.detail}<span class="detail">{entry.detail}</span>{/if}
-          {#if !right && had !== undefined}<span class="had" aria-hidden="true">you: {had}</span
-            >{/if}
+          {#if !right && had !== undefined}<span class="had" aria-hidden="true">
+              you: {had}
+            </span>{/if}
         </GemButton>
       </li>
     {/each}

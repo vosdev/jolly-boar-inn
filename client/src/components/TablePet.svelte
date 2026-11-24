@@ -34,8 +34,9 @@
     {#if held !== null}<WornItem {held} />{/if}
   </span>
   <span class="pet-name" title={player.display_name}>{player.display_name}</span>
-  {#if status !== ''}<span class="status" class:editing={player.editing === true}>{status}</span
-    >{/if}
+  {#if status !== ''}<span class="status" class:editing={player.editing === true}>
+      {status}
+    </span>{/if}
 </span>
 
 <style>

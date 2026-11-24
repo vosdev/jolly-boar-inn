@@ -191,8 +191,10 @@
                   status="idle"
                   disabled={picked === null}
                   said={picked === null ? '' : `, put ${entryName(picked)} here`}
-                  onclick={() => drop(index)}>{bin.text}</GemButton
+                  onclick={() => drop(index)}
                 >
+                  {bin.text}
+                </GemButton>
               {:else}
                 <GemButton tag="div" gem={gemAt(index)} status="idle">{bin.text}</GemButton>
               {/if}
@@ -252,18 +254,24 @@
     onpointercancel={() => dragging.letGo()}
   >
     {#if movable}
-      <button type="button" class="pick" aria-pressed={picked === entry} onclick={() => pick(entry)}
-        >{@render label(entry)}<span class="sr">{bin === null ? '' : `, in ${binName(bin)}`}</span
-        ></button
+      <button
+        type="button"
+        class="pick"
+        aria-pressed={picked === entry}
+        onclick={() => pick(entry)}
       >
+        {@render label(entry)}<span class="sr">{bin === null ? '' : `, in ${binName(bin)}`}</span>
+      </button>
       <button
         type="button"
         class="handle"
         data-handle={entry}
         aria-label="Move {entryName(entry)}"
         onkeydown={(event) => dragging.key(event, entry)}
-        onblur={(event) => dragging.blur(event, entry)}>⠿</button
+        onblur={(event) => dragging.blur(event, entry)}
       >
+        ⠿
+      </button>
     {:else}
       {@render label(entry)}
     {/if}

@@ -63,9 +63,9 @@
         ]}
         <li>
           {entry.text ?? ''}{#if entry.icon}{' '}<code>{entry.icon}</code>{/if} →
-          <strong>{option?.text}</strong>{#if option?.detail}{' '}<span class="note"
-              >{option.detail}</span
-            >{/if}
+          <strong>{option?.text}</strong>{#if option?.detail}{' '}<span class="note">
+              {option.detail}
+            </span>{/if}
         </li>
       {/each}
     </ul>

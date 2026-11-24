@@ -70,16 +70,16 @@
 
 {#snippet moved(move: Movement | null)}
   {#if move !== null}
-    <span class="move" class:up={move.up} class:down={!move.up}
-      ><span class="sr">{move.up ? 'up ' : 'down '}</span>{move.by}</span
-    >
+    <span class="move" class:up={move.up} class:down={!move.up}>
+      <span class="sr">{move.up ? 'up ' : 'down '}</span>{move.by}
+    </span>
   {/if}
 {/snippet}
 
 {#snippet gained(row: TeamStanding)}
-  <span class="gain" class:shown={settled}
-    >+{numbers.format(row.points_gained)}<span class="sr">{' this round'}</span></span
-  >
+  <span class="gain" class:shown={settled}>
+    +{numbers.format(row.points_gained)}<span class="sr">{' this round'}</span>
+  </span>
 {/snippet}
 
 <ol
@@ -101,9 +101,9 @@
     >
       <div class="head">
         <span class="rank">
-          <span class="sr">Rank </span><span class="number"
-            >{settled ? row.rank : (row.previous_rank ?? '–')}</span
-          >
+          <span class="sr">Rank </span><span class="number">
+            {settled ? row.rank : (row.previous_rank ?? '–')}
+          </span>
           {#if !columns}{@render moved(move)}{/if}
         </span>
         {#if columns && changes}<span class="moved">{@render moved(move)}</span>{/if}
@@ -111,12 +111,12 @@
         <span class="name">{god.name}</span>
         {#if columns && changes}<span class="round">{@render gained(row)}</span>{/if}
         <span class="points">
-          <span class="total"
-            ><CountUp
+          <span class="total">
+            <CountUp
               value={settled ? row.points : pointsBefore(row)}
               duration={instant ? 0 : SHUFFLE.count}
-            /><span class="sr">{' points'}</span></span
-          >
+            /><span class="sr">{' points'}</span>
+          </span>
           {#if changes && !columns}{@render gained(row)}{/if}
         </span>
       </div>
@@ -127,16 +127,16 @@
             <li class:you>
               <span class="who">
                 <Pet pet={petFor(standing)} size={24} label="" />
-                <span
-                  >{nameOf(standing)}{#if you}{' '}<span class="note">(you)</span>{/if}</span
-                >
+                <span>
+                  {nameOf(standing)}{#if you}{' '}<span class="note">(you)</span>{/if}
+                </span>
               </span>
-              <span class="member-points"
-                ><CountUp
+              <span class="member-points">
+                <CountUp
                   value={settled ? standing.points : pointsBefore(standing)}
                   duration={instant ? 0 : SHUFFLE.count}
-                /></span
-              >
+                />
+              </span>
             </li>
           {/each}
         </ul>

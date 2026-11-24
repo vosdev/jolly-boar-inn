@@ -37,8 +37,9 @@
           {@render submit()}
         {:else if row.drawing === 'match'}
           <span class="pair"><span class="box">Zulrah</span><span class="bar ruby"></span></span>
-          <span class="pair"><span class="box">Kraken</span><span class="bar sapphire"></span></span
-          >
+          <span class="pair">
+            <span class="box">Kraken</span><span class="bar sapphire"></span>
+          </span>
           {@render submit()}
         {:else if row.drawing === 'list'}
           <span class="list">

@@ -48,9 +48,9 @@
       {#if revealed || rung <= current}
         <span class="clue">{clue}</span>
       {:else}
-        <span class="clue later" data-room={clue} aria-label="Clue {rung}, still hidden"
-          ><span aria-hidden="true">· · · · ·</span></span
-        >
+        <span class="clue later" data-room={clue} aria-label="Clue {rung}, still hidden">
+          <span aria-hidden="true">· · · · ·</span>
+        </span>
       {/if}
     </li>
   {/each}

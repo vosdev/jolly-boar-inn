@@ -56,11 +56,12 @@
     </div>
   {:else if usable && held !== null && label !== null}
     <div class="bar item-bar">
-      <span class="square"><ItemIcon id={held.id} charges={held.charges} size={30} label="" /></span
-      >
-      <span class="words"
-        ><b>{itemName(held.id, held.charges)}</b><span class="line">{itemLine(held.id)}</span></span
-      >
+      <span class="square">
+        <ItemIcon id={held.id} charges={held.charges} size={30} label="" />
+      </span>
+      <span class="words">
+        <b>{itemName(held.id, held.charges)}</b><span class="line">{itemLine(held.id)}</span>
+      </span>
       <button type="button" class="primary" onclick={use}>{label}</button>
     </div>
   {/if}

@@ -465,13 +465,16 @@
             <span class="number">{row.players.length}</span>
             <span class="bar" aria-hidden="true"><i style:width="{row.share * 100}%"></i></span>
             {#if row.named.length > 0}
-              <span class="names"
-                >{#each row.named as player, index (player.id)}{index > 0 ? ', ' : ''}<span
+              <span class="names">
+                {#each row.named as player, index (player.id)}{index > 0 ? ', ' : ''}<span
                     class="who"
-                    class:you={player.you}>{player.you ? 'You' : player.name}</span
-                  >{#if player.guess !== null}{' '}<span class="guess">{player.guess}</span
-                    >{/if}{/each}{#if row.more > 0}{` and ${row.more} more`}{/if}</span
-              >
+                    class:you={player.you}
+                  >
+                    {player.you ? 'You' : player.name}
+                  </span>{#if player.guess !== null}{' '}<span class="guess">
+                      {player.guess}
+                    </span>{/if}{/each}{#if row.more > 0}{` and ${row.more} more`}{/if}
+              </span>
             {/if}
           </li>
         {/each}
@@ -493,13 +496,13 @@
       <ul class="teams items">
         {#each itemRows as row (row.playerId)}
           <li class="team">
-            <span class="logo"
-              ><ItemIcon id={row.item} charges={row.charges} size={24} label="" /></span
-            >
-            <span class="label"
-              ><span class="who" class:you={row.you}>{row.name}{row.you ? ' (you)' : ''}</span>
-              {itemName(row.item, row.charges)}</span
-            >
+            <span class="logo">
+              <ItemIcon id={row.item} charges={row.charges} size={24} label="" />
+            </span>
+            <span class="label">
+              <span class="who" class:you={row.you}>{row.name}{row.you ? ' (you)' : ''}</span>
+              {itemName(row.item, row.charges)}
+            </span>
             <span class="number points">{signed(row.points)}</span>
           </li>
         {/each}
@@ -533,13 +536,15 @@
             <li class="group" class:quiet={group.quiet}>
               {#if group.gem !== null}<span class="chip {group.gem}" aria-hidden="true"></span>{/if}
               <span class="label">{group.label}</span>
-              <span class="number">({group.players.length})</span
-              >{#if showNames}:{' '}{#each group.named as player, index (player.id)}{index > 0
+              <span class="number">
+                ({group.players.length})
+              </span>{#if showNames}:{' '}{#each group.named as player, index (player.id)}{index > 0
                     ? group.sep
-                    : ''}<span class="who" class:you={player.you}
-                    >{player.name}{player.you ? ' (you)' : ''}</span
-                  >{#if player.guess !== null}{' '}<span class="guess">{player.guess}</span
-                    >{/if}{/each}{#if group.more > 0}{` and ${group.more} more`}{/if}{/if}
+                    : ''}<span class="who" class:you={player.you}>
+                    {player.name}{player.you ? ' (you)' : ''}
+                  </span>{#if player.guess !== null}{' '}<span class="guess">
+                      {player.guess}
+                    </span>{/if}{/each}{#if group.more > 0}{` and ${group.more} more`}{/if}{/if}
             </li>
           {/each}
         </ul>
@@ -562,13 +567,13 @@
       <ul class="teams items">
         {#each itemRows as row (row.playerId)}
           <li class="team">
-            <span class="logo"
-              ><ItemIcon id={row.item} charges={row.charges} size={24} label="" /></span
-            >
-            <span class="label"
-              ><span class="who" class:you={row.you}>{row.name}{row.you ? ' (you)' : ''}</span>
-              {itemName(row.item, row.charges)}</span
-            >
+            <span class="logo">
+              <ItemIcon id={row.item} charges={row.charges} size={24} label="" />
+            </span>
+            <span class="label">
+              <span class="who" class:you={row.you}>{row.name}{row.you ? ' (you)' : ''}</span>
+              {itemName(row.item, row.charges)}
+            </span>
             <span class="number points">{signed(row.points)}</span>
           </li>
         {/each}

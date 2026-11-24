@@ -202,8 +202,10 @@
             class="small"
             aria-label="Remove bin {index + 1}"
             disabled={draft.bins.length <= BINS_MIN}
-            onclick={() => removeBin(index)}>✕</button
+            onclick={() => removeBin(index)}
           >
+            ✕
+          </button>
         </div>
         {@render errors([`payload.options[${index}].text`, `payload.options[${index}].detail`])}
       {/each}
@@ -211,8 +213,10 @@
         type="button"
         class="small"
         disabled={draft.bins.length >= BINS_MAX}
-        onclick={() => draft.bins.push({ option: '', detail: '' })}>Add a bin</button
+        onclick={() => draft.bins.push({ option: '', detail: '' })}
       >
+        Add a bin
+      </button>
       {@render errors(['payload.options'])}
     </fieldset>
 
@@ -246,8 +250,10 @@
             class="small"
             aria-label="Remove entry {index + 1}"
             disabled={draft.entries.length <= ENTRIES_MIN}
-            onclick={() => draft.entries.splice(index, 1)}>✕</button
+            onclick={() => draft.entries.splice(index, 1)}
           >
+            ✕
+          </button>
         </div>
         {@render errors([`payload.fields[${index}].text`, `payload.fields[${index}].icon`])}
       {/each}
@@ -255,8 +261,10 @@
         type="button"
         class="small"
         disabled={draft.entries.length >= ENTRIES_MAX}
-        onclick={() => draft.entries.push(blankEntry())}>Add an entry</button
+        onclick={() => draft.entries.push(blankEntry())}
       >
+        Add an entry
+      </button>
       <p class="note">
         {BINS_MIN} to {BINS_MAX} bins and {ENTRIES_MIN} to {ENTRIES_MAX} entries, up to {TEXT_MAX}
         characters each and {DETAIL_MAX} for a detail. A bin may stay empty.
@@ -301,8 +309,10 @@
             class="small"
             aria-label="Remove pair {index + 1}"
             disabled={draft.pairs.length <= FIELDS_MIN}
-            onclick={() => draft.pairs.splice(index, 1)}>✕</button
+            onclick={() => draft.pairs.splice(index, 1)}
           >
+            ✕
+          </button>
         </div>
         {@render errors([`payload.fields[${index}].text`, `payload.fields[${index}].icon`])}
         {@render errors([`payload.options[${index}].text`, `payload.options[${index}].detail`])}
@@ -312,8 +322,9 @@
         class="small"
         disabled={draft.pairs.length >= FIELDS_MAX || total >= OPTIONS_MAX}
         onclick={() => draft.pairs.push({ field: '', icon: '', option: '', detail: '' })}
-        >Add a pair</button
       >
+        Add a pair
+      </button>
       {@render errors(['payload.fields'])}
     </fieldset>
 
@@ -340,8 +351,10 @@
             type="button"
             class="small"
             aria-label="Remove left-over answer {index + 1}"
-            onclick={() => draft.decoys.splice(index, 1)}>✕</button
+            onclick={() => draft.decoys.splice(index, 1)}
           >
+            ✕
+          </button>
         </div>
         {@render errors([`payload.options[${at}].text`, `payload.options[${at}].detail`])}
       {/each}
@@ -349,8 +362,10 @@
         type="button"
         class="small"
         disabled={total >= OPTIONS_MAX}
-        onclick={() => draft.decoys.push({ option: '', detail: '' })}>Add a left-over answer</button
+        onclick={() => draft.decoys.push({ option: '', detail: '' })}
       >
+        Add a left-over answer
+      </button>
       <p class="note">
         {FIELDS_MIN} to {FIELDS_MAX} pairs and {OPTIONS_MAX} answers in all, up to {TEXT_MAX} characters
         each and {DETAIL_MAX} for a detail. Left-over answers keep the last field from being a giveaway.

@@ -244,8 +244,10 @@
           type="button"
           class="back"
           aria-label="Take {textOf(shown)} off"
-          onclick={() => back(shown)}>×</button
+          onclick={() => back(shown)}
         >
+          ×
+        </button>
       {/if}
     {/snippet}
   </DragRow>

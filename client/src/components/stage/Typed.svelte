@@ -38,14 +38,15 @@
   })
 </script>
 
-{#snippet runs(list: Part[])}{#each list as part, i (i)}{#if part.class}<span class={part.class}
-        >{part.text}</span
-      >{:else}{part.text}{/if}{/each}{/snippet}
+{#snippet runs(list: Part[])}{#each list as part, i (i)}{#if part.class}<span class={part.class}>
+        {part.text}
+      </span>{:else}{part.text}{/if}{/each}{/snippet}
 
 {#if shown !== undefined && shown < total}<span class="sr">{@render runs(parts)}</span><span
     aria-hidden="true"
-    >{@render runs(split.typed)}<span class="untyped">{@render runs(split.untyped)}</span></span
-  >{:else}{@render runs(parts)}{/if}
+  >
+    {@render runs(split.typed)}<span class="untyped">{@render runs(split.untyped)}</span>
+  </span>{:else}{@render runs(parts)}{/if}
 
 <style>
   /* Laid out and invisible: the line holds its full height while it types. */

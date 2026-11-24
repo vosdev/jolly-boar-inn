@@ -61,9 +61,9 @@
     </select>
   </div>
   <p class="asker">
-    <span id="{id}-npc">Who asks it</span>{#if picked !== ''}<span class="picked"
-        >{` · ${picked}`}</span
-      >{/if}
+    <span id="{id}-npc">Who asks it</span>{#if picked !== ''}<span class="picked">
+        {` · ${picked}`}
+      </span>{/if}
   </p>
   <div
     class="npcs"

@@ -225,22 +225,28 @@
             class="small"
             aria-label="Move entry {index + 1} up"
             disabled={index === 0}
-            onclick={() => move(index, -1)}>↑</button
+            onclick={() => move(index, -1)}
           >
+            ↑
+          </button>
           <button
             type="button"
             class="small"
             aria-label="Move entry {index + 1} down"
             disabled={index === draft.entries.length - 1}
-            onclick={() => move(index, 1)}>↓</button
+            onclick={() => move(index, 1)}
           >
+            ↓
+          </button>
           <button
             type="button"
             class="small"
             aria-label="Remove entry {index + 1}"
             disabled={draft.entries.length <= ENTRIES_MIN}
-            onclick={() => removeEntry(index)}>✕</button
+            onclick={() => removeEntry(index)}
           >
+            ✕
+          </button>
         </span>
       </div>
       {@render errors(`payload.entries[${index}]`)}
@@ -251,8 +257,10 @@
       type="button"
       class="small"
       disabled={draft.entries.length >= ENTRIES_MAX}
-      onclick={() => draft.entries.push({ text: '', detail: '', tied: false })}>Add an entry</button
+      onclick={() => draft.entries.push({ text: '', detail: '', tied: false })}
     >
+      Add an entry
+    </button>
     <p class="note">
       {ENTRIES_MIN} to {ENTRIES_MAX} entries, up to {TEXT_MAX} characters each and {DETAIL_MAX}
       for a detail. Tied entries take the same place, and players may put them either way round.

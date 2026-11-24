@@ -41,9 +41,9 @@
 {/if}
 {#if onStage && hidden}
   <button type="button" class="show" onclick={() => (hidden = false)}>
-    <svg viewBox="0 0 24 24" aria-hidden="true"
-      ><circle cx="12" cy="12" r="8" /><path d="M12 7l2 5h-4z" /></svg
-    >
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="8" /><path d="M12 7l2 5h-4z" />
+    </svg>
     Show minimap
   </button>
 {/if}
