@@ -11,10 +11,24 @@
   let { theme }: { theme: EmblemId } = $props()
 
   const file = $derived(emblemFile(theme))
+
+  /** The file that loaded larger than a sprite: a detail image, scaled smoothly instead. */
+  let large = $state<string | null>(null)
+
+  /** Anything wider than this is a detail image rather than a sprite. */
+  const SPRITE_MAX = 64
 </script>
 
 {#if file !== null}
-  <img class="emblem" src={file} alt="" />
+  <img
+    class="emblem"
+    class:detail={large === file}
+    src={file}
+    alt=""
+    onload={(event) => {
+      if ((event.currentTarget as HTMLImageElement).naturalWidth > SPRITE_MAX) large = file
+    }}
+  />
 {:else}
   <svg
     class="emblem"
@@ -113,6 +127,13 @@
   img.emblem {
     object-fit: scale-down;
     image-rendering: pixelated;
+  }
+
+  /* A detail image, hundreds of pixels across, only ever shrinks, and smooth is what keeps
+     its shape when it does. */
+  img.emblem.detail {
+    object-fit: contain;
+    image-rendering: auto;
   }
 
   .mark {

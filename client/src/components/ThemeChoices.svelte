@@ -119,13 +119,13 @@
     pointer-events: none;
   }
 
-  /* Resolves against the tile's own data-theme, not the page's. Plain panel, without
-     the texture, which is busier than a 32px mark can stand against. */
+  /* Resolves against the tile's own data-theme, not the page's. The theme's swatch, flat,
+     without the texture, which is busier than a 32px mark can stand against. */
   .tile {
     width: 2.75rem;
     height: 2.75rem;
     padding: 0.35rem;
-    background: var(--panel);
+    background: var(--swatch);
     border: var(--border-width) solid var(--line);
     border-radius: var(--radius);
   }

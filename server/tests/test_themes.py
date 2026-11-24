@@ -261,13 +261,16 @@ def test_prifddinas_has_bark_up_its_sides_its_roof_over_them_and_no_foot() -> No
     assert "var(--panel-edge)" in panel.group(1)
 
 
-def test_only_prifddinas_paints_the_bar_apart_from_its_panels() -> None:
-    """Every other theme's bar is a stretch of its panel, as before the bar had tokens."""
+def test_only_prifddinas_paints_the_bar_and_its_tile_apart_from_its_panels() -> None:
+    """Every other theme's bar and picker tile are a stretch of its panel, as before they had
+    tokens; Prifddinas's tile is its meadow."""
     for name, tokens in theme_blocks():
         if name == "prifddinas":
             assert tokens["--bar"].strip() != tokens["--panel"].strip()
+            assert tokens["--swatch"].strip() == tokens["--bg"].strip()
             continue
-        for bar, panel in (("--bar", "--panel"), ("--bar-ink", "--ink"), ("--bar-edge", "--line")):
+        pairs = (("--bar", "--panel"), ("--bar-ink", "--ink"), ("--bar-edge", "--line"))
+        for bar, panel in (*pairs, ("--swatch", "--panel")):
             assert tokens[bar].strip() == tokens[panel].strip(), (name, bar)
         assert tokens["--panel-edge"].strip() == tokens["--line"].strip(), name
         assert tokens["--panel-sides"].strip() == "none", name

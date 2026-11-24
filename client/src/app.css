@@ -145,13 +145,15 @@
   --texture-panel: url('./assets/textures/inn-trim.svg');
   --texture-bg: url('./assets/textures/inn-rug.svg');
 
-  /* The top bar is a stretch of panel; a panel's edge is its line all round. */
+  /* The top bar is a stretch of panel, as is its tile in the picker; a panel's edge is its
+     line all round. */
   --bar: #f2e5bf;
   --bar-ink: #2a2012;
   --bar-muted: #5f4d2c;
   --bar-edge: #8c6a34;
   --bar-texture: none;
   --panel-edge: #8c6a34;
+  --swatch: #f2e5bf;
   --panel-sides: none;
 
   /* 8. Sheet: the stage's sheet (the clue scroll, a poster, a card, a slab), its edge and
@@ -240,13 +242,15 @@
   --texture-panel: url('./assets/textures/town-dentils.svg');
   --texture-bg: url('./assets/textures/town-sand.svg');
 
-  /* The top bar is a stretch of panel; a panel's edge is its line all round. */
+  /* The top bar is a stretch of panel, as is its tile in the picker; a panel's edge is its
+     line all round. */
   --bar: #f6f4ee;
   --bar-ink: #2b2319;
   --bar-muted: #5e5244;
   --bar-edge: #c99a58;
   --bar-texture: none;
   --panel-edge: #c99a58;
+  --swatch: #f6f4ee;
   --panel-sides: none;
 
   /* A paler sheet, bleached by the noon. */
@@ -322,13 +326,15 @@
   --texture-panel: none;
   --texture-bg: url('./assets/textures/wild-wall.svg');
 
-  /* The top bar is a stretch of panel; a panel's edge is its line all round. */
+  /* The top bar is a stretch of panel, as is its tile in the picker; a panel's edge is its
+     line all round. */
   --bar: #302c2b;
   --bar-ink: #efe8df;
   --bar-muted: #aaa198;
   --bar-edge: #4d4745;
   --bar-texture: none;
   --panel-edge: #4d4745;
+  --swatch: #302c2b;
   --panel-sides: none;
 
   /* A bounty poster gone dark with soot, so the dark theme stays dark around the words. */
@@ -408,13 +414,15 @@
   --texture-panel: none;
   --texture-bg: url('./assets/textures/party-floor.svg');
 
-  /* The top bar is a stretch of panel; a panel's edge is its line all round. */
+  /* The top bar is a stretch of panel, as is its tile in the picker; a panel's edge is its
+     line all round. */
   --bar: #f4f4f8;
   --bar-ink: #23263a;
   --bar-muted: #565c73;
   --bar-edge: #9aa2b6;
   --bar-texture: none;
   --panel-edge: #9aa2b6;
+  --swatch: #f4f4f8;
   --panel-sides: none;
 
   /* A cream card, so the checks around it are not all that keeps it from being a panel. */
@@ -494,13 +502,15 @@
   --texture-panel: none;
   --texture-bg: url('./assets/textures/tzhaar-cracks.svg');
 
-  /* The top bar is a stretch of panel; a panel's edge is its line all round. */
+  /* The top bar is a stretch of panel, as is its tile in the picker; a panel's edge is its
+     line all round. */
   --bar: #1c1210;
   --bar-ink: #fbeee2;
   --bar-muted: #c9a993;
   --bar-edge: #4a2a20;
   --bar-texture: none;
   --panel-edge: #4a2a20;
+  --swatch: #1c1210;
   --panel-sides: none;
 
   /* Parchment lit by the lava, on rolls scorched red. */
@@ -580,13 +590,15 @@
   --texture-panel: url('./assets/textures/jungle-bamboo.svg');
   --texture-bg: url('./assets/textures/jungle-grass.svg');
 
-  /* The top bar is a stretch of panel; a panel's edge is its line all round. */
+  /* The top bar is a stretch of panel, as is its tile in the picker; a panel's edge is its
+     line all round. */
   --bar: #fbf9ef;
   --bar-ink: #1f2414;
   --bar-muted: #4d5638;
   --bar-edge: #8a7a3a;
   --bar-texture: none;
   --panel-edge: #8a7a3a;
+  --swatch: #fbf9ef;
   --panel-sides: none;
 
   /* Bark cloth, darker than the panels, inside its bamboo frame. */
@@ -666,14 +678,16 @@
   --texture-panel: url('./assets/textures/prifddinas-eave.svg');
   --texture-bg: url('./assets/textures/prifddinas-grass.svg');
 
-  /* The roof over the top bar, and bark posts up a panel's sides only: the eave runs over
-     their tops, and the foot stands bare on the grass. */
+  /* The roof over the top bar, the meadow for its tile in the picker, and bark posts up a
+     panel's sides only: the eave runs over their tops, and the foot stands bare on the
+     grass. */
   --bar: #225c46;
   --bar-ink: #f4faf7;
   --bar-muted: #c6e8da;
   --bar-edge: #153c2d;
   --bar-texture: url('./assets/textures/prifddinas-roof.svg');
   --panel-edge: transparent;
+  --swatch: #37541b;
   --panel-sides: linear-gradient(
     to right,
     #4e3420 0 2px,
@@ -757,13 +771,15 @@
   --texture-panel: none;
   --texture-bg: url('./assets/textures/morytania-swamp.svg');
 
-  /* The top bar is a stretch of panel; a panel's edge is its line all round. */
+  /* The top bar is a stretch of panel, as is its tile in the picker; a panel's edge is its
+     line all round. */
   --bar: #1b2a26;
   --bar-ink: #e4ece2;
   --bar-muted: #a3b7ad;
   --bar-edge: #3f5f55;
   --bar-texture: none;
   --panel-edge: #3f5f55;
+  --swatch: #1b2a26;
   --panel-sides: none;
 
   /* The gravestone: grey stone, engraved dark. */
@@ -841,13 +857,15 @@
   --texture-panel: none;
   --texture-bg: url('./assets/textures/zanaris-ground.svg');
 
-  /* The top bar is a stretch of panel; a panel's edge is its line all round. */
+  /* The top bar is a stretch of panel, as is its tile in the picker; a panel's edge is its
+     line all round. */
   --bar: #f1f9fb;
   --bar-ink: #0d2a33;
   --bar-muted: #3d5c66;
   --bar-edge: #4f8ea0;
   --bar-texture: none;
   --panel-edge: #4f8ea0;
+  --swatch: #f1f9fb;
   --panel-sides: none;
 
   /* The altar sign: teal stone, its letters cut dark. */

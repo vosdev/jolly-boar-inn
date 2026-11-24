@@ -92,6 +92,8 @@ TEXTURE = ("--texture-panel", "--texture-bg", "--bar-texture")
 BAR = ("--bar", "--bar-ink", "--bar-muted", "--bar-edge")
 # A panel's border colour, which may be transparent, and the image up its sides, or none.
 PANEL_EDGE = ("--panel-edge", "--panel-sides")
+# The ground of the theme's tile in the picker.
+SWATCH = ("--swatch",)
 SCROLL = ("--scroll-paper", "--scroll-edge", "--scroll-ink", "--scroll-muted", "--silhouette")
 TILE = ("--tile-dark", "--tile-seam")
 ROSETTE = tuple(
@@ -101,7 +103,7 @@ ROSETTE = tuple(
 )
 
 COLOUR_TOKENS = (
-    SURFACE + BRAND + VERDICT + SEMANTIC + GEMS + GEM_INK + SCROLL + TILE + ROSETTE + BAR
+    SURFACE + BRAND + VERDICT + SEMANTIC + GEMS + GEM_INK + SCROLL + TILE + ROSETTE + BAR + SWATCH
 )
 REQUIRED_TOKENS = COLOUR_TOKENS + SHAPE + TEXTURE + PANEL_EDGE + ("--scroll-facet-light",)
 
