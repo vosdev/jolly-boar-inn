@@ -87,7 +87,11 @@ SHAPE = (
     "--font-body",
     "--font-numeric",
 )
-TEXTURE = ("--texture-panel", "--texture-bg")
+TEXTURE = ("--texture-panel", "--texture-bg", "--bar-texture")
+# The top bar, which a theme may paint apart from its panels.
+BAR = ("--bar", "--bar-ink", "--bar-muted", "--bar-edge")
+# A panel's border colour, which may be transparent, and the image up its sides, or none.
+PANEL_EDGE = ("--panel-edge", "--panel-sides")
 SCROLL = ("--scroll-paper", "--scroll-edge", "--scroll-ink", "--scroll-muted", "--silhouette")
 TILE = ("--tile-dark", "--tile-seam")
 ROSETTE = tuple(
@@ -96,8 +100,10 @@ ROSETTE = tuple(
     for shade in ("", "-dark")
 )
 
-COLOUR_TOKENS = SURFACE + BRAND + VERDICT + SEMANTIC + GEMS + GEM_INK + SCROLL + TILE + ROSETTE
-REQUIRED_TOKENS = COLOUR_TOKENS + SHAPE + TEXTURE + ("--scroll-facet-light",)
+COLOUR_TOKENS = (
+    SURFACE + BRAND + VERDICT + SEMANTIC + GEMS + GEM_INK + SCROLL + TILE + ROSETTE + BAR
+)
+REQUIRED_TOKENS = COLOUR_TOKENS + SHAPE + TEXTURE + PANEL_EDGE + ("--scroll-facet-light",)
 
 TEXT_RATIO = 4.5
 # WCAG's floor for a shape that carries meaning.
@@ -293,6 +299,8 @@ def check_theme(name: str, tokens: dict[str, str]) -> list[str]:
     ratio("--more", "--panel", TEXT_RATIO)
     ratio("--less", "--panel", TEXT_RATIO)
     ratio("--scroll-ink", "--scroll-paper", BODY_TEXT_RATIO)
+    ratio("--bar-ink", "--bar", BODY_TEXT_RATIO)
+    ratio("--bar-muted", "--bar", TEXT_RATIO)
     ratio("--scroll-muted", "--scroll-paper", TEXT_RATIO)
     apart("--ok", "--bad")
     apart("--more", "--less")

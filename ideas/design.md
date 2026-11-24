@@ -17,8 +17,7 @@ A theme is a palette the player picks, kept in `localStorage["jbi:theme"]`, neve
 | `party_room` | Party Room | Loud. A drop party, as in game. | Two-blue checks, balloons, white panels | Tablecloth blue |
 | `tzhaar` | Toktz | Hot. The volcano's cracked obsidian floor. | Brown-black, ember seams, near-black panels | Lava orange |
 | `wilderness` | Wilderness | Dark. Cold ash and ember. | Near-black slate | Ember red, bone white |
-| `gauntlet` | Gauntlet | The crystal dungeon under Prifddinas. | Navy tiled floor, rock-grey panels with a cyan top edge | Crystal cyan |
-| `corrupted_gauntlet` | Corrupted Gauntlet | The Gauntlet gone red. | Its floor with a maroon grid, a red top edge | Corrupted red |
+| `prifddinas` | Prifddinas | The elves' crystal city. | Faceted grass with crystal shards, white panels between bark posts under an emerald eave, an emerald roof for a top bar | Roof emerald |
 | `morytania` | Morytania | Mort Myre's swamp. | Murky teal water and banks, dark stone panels | Moonlit lilac |
 | `zanaris` | Zanaris | The fairy city. | Teal ground with red and blue mushrooms, ice-blue panels on rainbow strata | Mushroom red |
 
@@ -30,7 +29,8 @@ A theme is a palette the player picks, kept in `localStorage["jbi:theme"]`, neve
   `jungle` fruit, `pollnivneach` desert finds, afresh each visit (`Floor.svelte`). A wall light hangs either
   side, level with Broav, the right one mirrored (`WallLights.svelte`): `jolly` a flickering candle
   lantern, `wilderness` the game's wall torch turned to face the page, `tzhaar` a sulphur vent whose
-  small red glow rises only from its lava, both Gauntlets the dungeon's door logo, glowing steady cyan or red. Only from 800px wide, shrinking
+  small red glow rises only from its lava, `prifddinas` an elven clan's symbol, glowing and unmirrored, the same
+  clan either side, picked each page load. Only from 800px wide, shrinking
   as the room beside the sheet narrows, so never on a phone. `zanaris` lays a fairy ring there instead,
   at its own size and unlit, and keeps the left one in a phone's bottom corner.
 
@@ -47,14 +47,14 @@ and 7. Layers 3, 4 and 8 are a contract that `scripts/check_contrast.py` enforce
 | 4. Semantic | `--more` `--less` | Must pass; must differ from layer 3 by hue or shape cue |
 | 5. Gems | `--gem-sapphire` `--gem-emerald` `--gem-ruby` `--gem-red-topaz` `--gem-dragonstone` `--gem-zenyte` `--gem-ink` | Freely, within the gem checks |
 | 6. Shape | `--radius` `--border-width` `--shadow` `--font-display` `--font-body` `--font-numeric` | Freely |
-| 7. Texture | `--texture-panel` `--texture-bg` (a local `url()` or `none`) | Freely |
+| 7. Texture | `--texture-panel` `--texture-bg` `--bar-texture` (a local `url()` or `none`); the bar's `--bar` `--bar-ink` `--bar-muted` `--bar-edge`; a panel's `--panel-edge` and `--panel-sides` | Freely, the bar's inks within their check |
 | 8. Sheet | `--scroll-paper` `--scroll-edge` `--scroll-ink` `--scroll-muted` `--silhouette`; Pixel Hunt's `--tile` `--tile-light` `--tile-dark` `--tile-seam` | Must pass contrast; tiles freely |
 
 No text sits on the bare page: each screen opens with its heading and tagline on a panel, and the
 `--bg-ink` page inks are only a fallback. `--more` and `--less` are not right and wrong, so they
 never borrow layer 3's colours. Layer 6 is
-what makes a theme a different place: `wilderness` has a 2px radius and a hard border. A recolour
-(`corrupted_gauntlet`) is the same place, so it keeps its original's shape.
+what makes a theme a different place: `wilderness` has a 2px radius and a hard border. A recolour of
+a theme is the same place, so it keeps its original's shape.
 
 The script asserts, per `[data-theme]` block:
 
@@ -245,8 +245,8 @@ Every round is presented by an NPC, the **host**, who stands above the theme's *
 quest reward scroll: upright rolls with knobs, a sheet torn top and bottom. `wilderness` nails up a
 sooty bounty poster, the game's skull faint behind its words, `party_room` hangs a cream card in a
 checked border with bunting along its top, `tzhaar` carves an obsidian slab glowing at its edge, since paper would burn,
-`jungle` lashes bark cloth into a bamboo frame, both Gauntlets show its dark board in a glowing
-crystal or red rim, `morytania` raises a low-arched gravestone, which a long sheet makes a pillar, and `zanaris` a teal
+`jungle` lashes bark cloth into a bamboo frame, `prifddinas` raises its city gate's crystal door,
+branches curling at its top, `morytania` raises a low-arched gravestone, which a long sheet makes a pillar, and `zanaris` a teal
 stone with the Cosmic altar sign's crystal at its corners and mushrooms at its foot.
 Every sheet sets its words in by the scroll's rolls and margins, 34px top, 40px a side and 32px
 bottom at scale 1, and draws only inside its box but for the pin, so the same words make the
@@ -457,7 +457,7 @@ chrome or circle around them), on in `--ok`, in lobby and splash;
   answer input (160px to 12rem, never above one image pixel per screen pixel; 12rem off a room's
   stage); the list stays inside the stage. One box open, answered and revealed, and its shadow, which fades into the render (700 ms)
   with the name under it on the reveal. One flat colour, no glow or gradient, so a see-through part shows lighter
-  in every theme: the scroll ink, Toktz's lava orange and the Gauntlet's crystal cyan.
+  in every theme: the scroll ink, Toktz's lava orange and Prifddinas's deep green.
   An item's inventory icon, in a 72px box at whole pixels, sits under The Price is Right's question
   and above each More or Less name. Without a file, the name stands alone.
 - The `pick_from_list` combobox (behaviour in architecture §4) is full width, 56px tall, in the body

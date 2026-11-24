@@ -25,36 +25,30 @@ function rules(text: string): { selector: string; body: string }[] {
   }))
 }
 
-describe.each([
-  'party_room',
-  'tzhaar',
-  'jungle',
-  'gauntlet',
-  'corrupted_gauntlet',
-  'morytania',
-  'zanaris',
-])('%s', (theme) => {
-  const own = `[data-theme='${theme}']`
-  // `gauntlet` must not match `corrupted_gauntlet`, a theme of its own.
-  const names = new RegExp(`(?<![\\w-])${theme}(?![\\w-])`)
+describe.each(['party_room', 'tzhaar', 'jungle', 'prifddinas', 'morytania', 'zanaris'])(
+  '%s',
+  (theme) => {
+    const own = `[data-theme='${theme}']`
+    const names = new RegExp(`(?<![\\w-])${theme}(?![\\w-])`)
 
-  it('sets the verdict and semantic tokens nowhere but its own block', () => {
-    expect(Object.keys(sources).length).toBeGreaterThan(20)
-    const contract = /--(ok|bad|warn)(-ink)?\s*:|--(more|less)\s*:/
-    const strays = Object.entries(sources).flatMap(([path, text]) =>
-      rules(text)
-        .filter(({ selector }) => names.test(selector))
-        .filter(({ selector }) => selector !== own)
-        .filter(({ body }) => contract.test(body))
-        .map(({ selector }) => `${path}: ${selector}`),
-    )
-    expect(strays).toEqual([])
-  })
+    it('sets the verdict and semantic tokens nowhere but its own block', () => {
+      expect(Object.keys(sources).length).toBeGreaterThan(20)
+      const contract = /--(ok|bad|warn)(-ink)?\s*:|--(more|less)\s*:/
+      const strays = Object.entries(sources).flatMap(([path, text]) =>
+        rules(text)
+          .filter(({ selector }) => names.test(selector))
+          .filter(({ selector }) => selector !== own)
+          .filter(({ body }) => contract.test(body))
+          .map(({ selector }) => `${path}: ${selector}`),
+      )
+      expect(strays).toEqual([])
+    })
 
-  it('has exactly one block of its own', () => {
-    const blocks = Object.values(sources).flatMap((text) =>
-      rules(text).filter(({ selector }) => selector === own),
-    )
-    expect(blocks).toHaveLength(1)
-  })
-})
+    it('has exactly one block of its own', () => {
+      const blocks = Object.values(sources).flatMap((text) =>
+        rules(text).filter(({ selector }) => selector === own),
+      )
+      expect(blocks).toHaveLength(1)
+    })
+  },
+)

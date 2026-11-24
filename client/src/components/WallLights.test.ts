@@ -1,7 +1,7 @@
 /**
  * The wall lights hang while a theme that has them is on, and only then, following
  * `data-theme` on <html> as the menu changes it: the inn's lanterns under Jolly, torches
- * under the Wilderness, sulphur vents under Toktz, the door logos under both Gauntlets, a
+ * under the Wilderness, sulphur vents under Toktz, a clan's symbols under Prifddinas, a
  * fairy ring in their place under Zanaris.
  */
 
@@ -9,6 +9,7 @@ import { render } from '@testing-library/svelte'
 import { tick } from 'svelte'
 import { afterEach, describe, expect, it } from 'vitest'
 
+import { CLANS } from '../lib/clans'
 import { roomShown } from '../lib/roomFit'
 import WallLights from './WallLights.svelte'
 import source from './WallLights.svelte?raw'
@@ -36,32 +37,18 @@ describe('WallLights', () => {
     expect(lights(container)).toEqual(['left', 'right'])
   })
 
-  it('hangs a door logo either side under the Gauntlet, not a lantern', async () => {
-    const container = await shown('gauntlet')
-    expect(container.querySelector('.wall-lights')?.getAttribute('data-lights')).toBe('gauntlet')
+  it('hangs the same clan symbol either side under Prifddinas, unmirrored and unlit', async () => {
+    const container = await shown('prifddinas')
+    expect(container.querySelector('.wall-lights')?.getAttribute('data-lights')).toBe('prifddinas')
     expect(lights(container)).toEqual(['left', 'right'])
-    expect(container.querySelectorAll('[data-light] svg[viewBox="-66 -66 132 132"]')).toHaveLength(
-      2,
+    const banners = [...container.querySelectorAll('[data-light] [data-clan]')]
+    expect(banners).toHaveLength(2)
+    expect(CLANS.map((clan) => clan.id)).toContain(banners[0]!.getAttribute('data-clan'))
+    expect(banners[1]!.getAttribute('data-clan')).toBe(banners[0]!.getAttribute('data-clan'))
+    expect(source).toMatch(/\[data-lights='prifddinas'\] \.light \{\s*display: none;/)
+    expect(source).toMatch(
+      /\[data-lights='prifddinas'\] \.fitting\.right \{\s*transform: translate\(50%, -50%\);/,
     )
-    expect(container.querySelector('[data-light] svg[viewBox="0 0 97 160"]')).toBeNull()
-  })
-
-  it('lights the door logos red under the Corrupted Gauntlet, cyan under the Gauntlet', async () => {
-    const glows = (container: HTMLElement): string[] => [
-      ...new Set(
-        [...container.querySelectorAll('[data-light] svg circle[r="37"]')].map(
-          (ring) => ring.closest('g')?.getAttribute('stroke') ?? '',
-        ),
-      ),
-    ]
-    const corrupted = await shown('corrupted_gauntlet')
-    expect(corrupted.querySelector('.wall-lights')?.getAttribute('data-lights')).toBe(
-      'corrupted_gauntlet',
-    )
-    expect(lights(corrupted)).toEqual(['left', 'right'])
-    expect(glows(corrupted)).toEqual(['#0c1414', '#e2483e'])
-    corrupted.remove()
-    expect(glows(await shown('gauntlet'))).toEqual(['#0c1414', '#1ac8d8'])
   })
 
   it('hangs a torch either side under the Wilderness, flickering', async () => {
@@ -103,7 +90,7 @@ describe('WallLights', () => {
     expect(phone).toMatch(/\.wall-lights\[data-lights='zanaris'\] \{\s*display: block;/)
     expect(phone).toMatch(/\[data-lights='zanaris'\] \.fitting\.left \{[^}]*bottom: 0;/)
     expect(phone).toMatch(/\[data-lights='zanaris'\] \.fitting\.right \{\s*display: none;/)
-    expect(phone).not.toMatch(/data-lights='(jolly|gauntlet|corrupted_gauntlet)'/)
+    expect(phone).not.toMatch(/data-lights='(jolly|prifddinas)'/)
   })
 
   it('gives each lantern its own glass, so the two drawings never share an id', async () => {
@@ -126,12 +113,10 @@ describe('WallLights', () => {
     await new Promise((settle) => setTimeout(settle))
     await tick()
     expect(lights(container)).toHaveLength(2)
-    document.documentElement.dataset.theme = 'gauntlet'
+    document.documentElement.dataset.theme = 'prifddinas'
     await new Promise((settle) => setTimeout(settle))
     await tick()
-    expect(container.querySelectorAll('[data-light] svg[viewBox="-66 -66 132 132"]')).toHaveLength(
-      2,
-    )
+    expect(container.querySelectorAll('[data-light] [data-clan]')).toHaveLength(2)
     document.documentElement.dataset.theme = 'party_room'
     await new Promise((settle) => setTimeout(settle))
     await tick()

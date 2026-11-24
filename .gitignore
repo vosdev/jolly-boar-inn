@@ -43,6 +43,8 @@ client/src/assets/emotes/*
 client/src/assets/themes/*.png
 # The gods' symbols, the teams' logos (make fetch-assets)
 client/src/assets/teams/*.png
+# The elven clans' symbols, on Prifddinas's banners (make fetch-assets)
+client/src/assets/clans/*.png
 # Question pictures: staged under their asset ids, copied into the client under random names
 .pictures/
 client/public/pictures/

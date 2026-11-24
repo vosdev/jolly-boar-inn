@@ -29,10 +29,9 @@ Theme = Literal[
     "jungle",
     "party_room",
     "zanaris",
+    "prifddinas",
     "tzhaar",
     "wilderness",
-    "gauntlet",
-    "corrupted_gauntlet",
     "morytania",
 ]
 Device = Literal["mobile", "desktop"]

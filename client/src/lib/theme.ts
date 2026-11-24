@@ -25,10 +25,9 @@ export const THEMES = [
   'jungle',
   'party_room',
   'zanaris',
+  'prifddinas',
   'tzhaar',
   'wilderness',
-  'gauntlet',
-  'corrupted_gauntlet',
   'morytania',
 ] as const
 
@@ -41,10 +40,9 @@ export const THEME_LABELS: Record<Theme, { name: string }> = {
   jungle: { name: 'Jungle' },
   party_room: { name: 'Party Room' },
   zanaris: { name: 'Zanaris' },
+  prifddinas: { name: 'Prifddinas' },
   tzhaar: { name: 'Toktz' },
   wilderness: { name: 'Wilderness' },
-  gauntlet: { name: 'Gauntlet' },
-  corrupted_gauntlet: { name: 'Corrupted Gauntlet' },
   morytania: { name: 'Morytania' },
 }
 

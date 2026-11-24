@@ -2,8 +2,9 @@
   /**
    * A light on the wall either side of the page, behind everything, in the themes that
    * hang one: the inn's candle lanterns, the Wilderness's torches, TzHaar's sulphur vents,
-   * both Gauntlets' glowing door logos. Zanaris has no
-   * lights, only a fairy ring on the floor in their place, and keeps the left one on a phone.
+   * and the inn's. Prifddinas hangs no light but an elven clan's symbol, the same clan either
+   * side and chosen once per page load; Zanaris has no lights, only a fairy ring on the floor
+   * in their place, and keeps the left one on a phone.
    *
    * Drawn only on a window wide enough to leave them room beside the stage: on a phone the
    * sheet and its host stand where they would hang. The right one is the left one mirrored,
@@ -20,22 +21,18 @@
   import { roomShown } from '../lib/roomFit'
   import { watchTheme } from '../lib/theme'
   import { tvFit } from '../lib/tv'
-  import GauntletDoorLogo from './GauntletDoorLogo.svelte'
+  import { pickClan } from '../lib/clans'
+  import ClanSymbol from './ClanSymbol.svelte'
   import InnLantern from './InnLantern.svelte'
   import SulphurVent from './SulphurVent.svelte'
   import WildernessTorch from './WildernessTorch.svelte'
 
-  const LIT = [
-    'jolly',
-    'wilderness',
-    'tzhaar',
-    'gauntlet',
-    'corrupted_gauntlet',
-    'zanaris',
-  ] as const
+  const LIT = ['jolly', 'wilderness', 'tzhaar', 'prifddinas', 'zanaris'] as const
   type Lit = (typeof LIT)[number]
 
   let lit = $state<Lit | null>(null)
+
+  const clan = pickClan()
 
   onMount(() =>
     watchTheme((theme) => {
@@ -72,7 +69,7 @@
         {:else if lit === 'zanaris'}
           <img class="ring" src={fairyRing} alt="" width="250" height="127" draggable="false" />
         {:else}
-          <GauntletDoorLogo gauntlet={lit} />
+          <ClanSymbol {clan} />
         {/if}
       </div>
     {/each}
@@ -151,24 +148,6 @@
     --flicker: none;
   }
 
-  /* The crystal's cyan, steady: nothing burns in it. */
-  [data-lights='gauntlet'] {
-    --light-near: rgb(26 200 216 / 0.42);
-    --light-mid: rgb(26 200 216 / 0.2);
-    --light-far: rgb(26 200 216 / 0.07);
-    --logo-glow: rgb(26 200 216 / 0.9);
-    --flicker: none;
-  }
-
-  /* The corruption's red, as steady. */
-  [data-lights='corrupted_gauntlet'] {
-    --light-near: rgb(226 72 62 / 0.42);
-    --light-mid: rgb(226 72 62 / 0.2);
-    --light-far: rgb(226 72 62 / 0.07);
-    --logo-glow: rgb(226 72 62 / 0.9);
-    --flicker: none;
-  }
-
   .light,
   .fitting {
     position: absolute;
@@ -228,6 +207,21 @@
 
   .fitting.right {
     transform: translate(50%, -50%) scaleX(-1);
+  }
+
+  /* A symbol gives off no light but its own glow, and stands in a box half again as wide
+     as a light and three times as tall, so a tall one and a round one look alike in size. */
+  [data-lights='prifddinas'] .light {
+    display: none;
+  }
+
+  [data-lights='prifddinas'] .fitting {
+    width: calc(var(--fitting-width) * 1.5);
+    height: calc(var(--fitting-width) * 3);
+  }
+
+  [data-lights='prifddinas'] .fitting.right {
+    transform: translate(50%, -50%);
   }
 
   /* A fairy ring at its own size, pixel for pixel, whatever room the stage leaves: it lies on

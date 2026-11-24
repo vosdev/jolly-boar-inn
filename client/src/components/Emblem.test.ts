@@ -21,7 +21,7 @@ describe('Emblem', () => {
     expect(container.querySelector('svg')).toBeNull()
   })
 
-  it('draws a mark of its own for every emblem without a file, a recolour its original’s', () => {
+  it('draws a mark of its own for every emblem without a file', () => {
     const marks = new Map<string, string>()
     for (const theme of EMBLEMS.filter((id) => id !== 'wilderness')) {
       const { container, unmount } = render(Emblem, { theme })
@@ -31,8 +31,6 @@ describe('Emblem', () => {
       marks.set(theme, svg.innerHTML)
       unmount()
     }
-    expect(marks.get('corrupted_gauntlet')).toBe(marks.get('gauntlet'))
-    marks.delete('corrupted_gauntlet')
-    expect(new Set(marks.values()).size).toBe(EMBLEMS.length - 2)
+    expect(new Set(marks.values()).size).toBe(EMBLEMS.length - 1)
   })
 })

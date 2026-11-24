@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.282.0',
+    date: '2026-11-24',
+    text: 'Replace both Gauntlet themes with Prifddinas: crystal-lit meadow, white walls under emerald roofs, and a random elven clan on the banners.',
+  },
+  {
     version: '0.281.2',
     date: '2026-11-24',
     text: 'Stop the Suggest page logging an error for rounds with no questions yet.',

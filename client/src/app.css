@@ -145,6 +145,15 @@
   --texture-panel: url('./assets/textures/inn-trim.svg');
   --texture-bg: url('./assets/textures/inn-rug.svg');
 
+  /* The top bar is a stretch of panel; a panel's edge is its line all round. */
+  --bar: #f2e5bf;
+  --bar-ink: #2a2012;
+  --bar-muted: #5f4d2c;
+  --bar-edge: #8c6a34;
+  --bar-texture: none;
+  --panel-edge: #8c6a34;
+  --panel-sides: none;
+
   /* 8. Sheet: the stage's sheet (the clue scroll, a poster, a card, a slab), its edge and
      the ink on it. Checked like a panel: --scroll-ink 7:1 and --scroll-muted 4.5:1 on the
      paper, which also has to stand off --bg and --panel. --scroll-facet-light is how much
@@ -231,6 +240,15 @@
   --texture-panel: url('./assets/textures/town-dentils.svg');
   --texture-bg: url('./assets/textures/town-sand.svg');
 
+  /* The top bar is a stretch of panel; a panel's edge is its line all round. */
+  --bar: #f6f4ee;
+  --bar-ink: #2b2319;
+  --bar-muted: #5e5244;
+  --bar-edge: #c99a58;
+  --bar-texture: none;
+  --panel-edge: #c99a58;
+  --panel-sides: none;
+
   /* A paler sheet, bleached by the noon. */
   --scroll-paper: #efe0b2;
   --scroll-edge: #9c7238;
@@ -303,6 +321,15 @@
   /* The wall: irregular blocks, a shade off the mortar. The panels stay plain stone. */
   --texture-panel: none;
   --texture-bg: url('./assets/textures/wild-wall.svg');
+
+  /* The top bar is a stretch of panel; a panel's edge is its line all round. */
+  --bar: #302c2b;
+  --bar-ink: #efe8df;
+  --bar-muted: #aaa198;
+  --bar-edge: #4d4745;
+  --bar-texture: none;
+  --panel-edge: #4d4745;
+  --panel-sides: none;
 
   /* A bounty poster gone dark with soot, so the dark theme stays dark around the words. */
   --scroll-paper: #54473d;
@@ -381,6 +408,15 @@
   --texture-panel: none;
   --texture-bg: url('./assets/textures/party-floor.svg');
 
+  /* The top bar is a stretch of panel; a panel's edge is its line all round. */
+  --bar: #f4f4f8;
+  --bar-ink: #23263a;
+  --bar-muted: #565c73;
+  --bar-edge: #9aa2b6;
+  --bar-texture: none;
+  --panel-edge: #9aa2b6;
+  --panel-sides: none;
+
   /* A cream card, so the checks around it are not all that keeps it from being a panel. */
   --scroll-paper: #fbf1d6;
   --scroll-edge: #3f5f99;
@@ -457,6 +493,15 @@
      its repeat. The panels stay plain rock. */
   --texture-panel: none;
   --texture-bg: url('./assets/textures/tzhaar-cracks.svg');
+
+  /* The top bar is a stretch of panel; a panel's edge is its line all round. */
+  --bar: #1c1210;
+  --bar-ink: #fbeee2;
+  --bar-muted: #c9a993;
+  --bar-edge: #4a2a20;
+  --bar-texture: none;
+  --panel-edge: #4a2a20;
+  --panel-sides: none;
 
   /* Parchment lit by the lava, on rolls scorched red. */
   /* Paper would burn: an obsidian slab, its edge the lava's glow. */
@@ -535,6 +580,15 @@
   --texture-panel: url('./assets/textures/jungle-bamboo.svg');
   --texture-bg: url('./assets/textures/jungle-grass.svg');
 
+  /* The top bar is a stretch of panel; a panel's edge is its line all round. */
+  --bar: #fbf9ef;
+  --bar-ink: #1f2414;
+  --bar-muted: #4d5638;
+  --bar-edge: #8a7a3a;
+  --bar-texture: none;
+  --panel-edge: #8a7a3a;
+  --panel-sides: none;
+
   /* Bark cloth, darker than the panels, inside its bamboo frame. */
   --scroll-paper: #eadcb4;
   --scroll-edge: #8a7a3a;
@@ -557,155 +611,98 @@
   color-scheme: light;
 }
 
-/* The Gauntlet, the crystal dungeon under Prifddinas: rock-grey walls over a navy tiled
-   floor, crystal cyan along every edge, and the dungeon's door logo glowing on the wall.
-   Dark like Morytania, but cold and tiled where that is wet and green. The sheet is the
-   Gauntlet's board, dark inside a glowing crystal rim, as the game draws it. */
-[data-theme='gauntlet'] {
-  /* The tiled floor, and the dungeon's rock. */
-  --bg: #081828;
-  --panel: #2a2727;
-  --panel-raised: #363232;
-  --line: #4c4644;
-  --ink: #ece6dc;
-  --muted: #b1a99e;
-  --speaker: #f0a08c;
-  --bg-ink: #ece6dc;
-  --bg-muted: #a9bccb;
+/* Prifddinas, the elves' crystal city: a faceted meadow with the city's crystal growing out
+   of it, white crystal walls between posts of bark, an emerald roof over every panel and over
+   the top bar, the gate's crystal door for a stage, and a clan's symbol on the wall either side, the same
+   clan on both, chosen
+   at random each time the page loads. The light one of the crystal places. */
+[data-theme='prifddinas'] {
+  /* The meadow, and the city's white crystal. */
+  --bg: #37541b;
+  --panel: #f5f7f7;
+  --panel-raised: #ffffff;
+  --line: #6b492c;
+  --ink: #1a2622;
+  --muted: #4b5d56;
+  --speaker: #800000;
+  --bg-ink: #f7faf7;
+  --bg-muted: #e2f2ec;
 
-  /* The crystal. */
-  --accent: #1ac8d8;
-  --accent-ink: #06181c;
-  --accent-hover: #52dae6;
+  /* The roofs. */
+  --accent: #1d6d4e;
+  --accent-ink: #ffffff;
+  --accent-hover: #16573e;
 
-  --ok: #7dc08a;
-  --ok-ink: #161313;
-  --bad: #ec7a6c;
-  --bad-ink: #161313;
-  --warn: #dcae5c;
-  --warn-ink: #161313;
+  /* Teal for right, so it is not the roofs' emerald. */
+  --ok: #1a6470;
+  --ok-ink: #ffffff;
+  --bad: #a82834;
+  --bad-ink: #fff6f6;
+  --warn: #855400;
+  --warn-ink: #fffaf2;
 
-  /* Violet and amber: neither is a verdict, nor the crystal's cyan. */
-  --more: #b5a2f2;
-  --less: #e8a86a;
+  /* Ithell's blue, and Trahaearn's amber. */
+  --more: #246394;
+  --less: #9a4a1a;
 
-  --gem-sapphire: #1e3f7a;
-  --gem-emerald: #15613a;
-  --gem-ruby: #7d1c22;
-  --gem-red-topaz: #9a2f6e;
-  --gem-dragonstone: #5a2172;
-  --gem-zenyte: #7c4510;
-  --gem-ink: #ece6dc;
+  --gem-sapphire: #a4c8ec;
+  --gem-emerald: #9fdcb4;
+  --gem-ruby: #f4aca4;
+  --gem-red-topaz: #f094c2;
+  --gem-dragonstone: #d8b8ea;
+  --gem-zenyte: #f2c47e;
+  --gem-ink: #1a2622;
 
-  /* Cut rock: barely rounded, a dark rim and a deep drop onto the floor. */
-  --radius: 4px;
+  /* Rounded like the city's arches; the panels stand on the grass rather than on a ledge. */
+  --radius: 12px;
   --border-width: 2px;
-  --shadow: 0 0 0 1px rgb(0 0 0 / 0.35), 0 6px 18px rgb(0 0 0 / 0.5);
-  --scrim: rgb(0 0 0 / 0.6);
+  --shadow: 0 2px 0 rgb(12 38 26 / 0.3), 0 10px 24px rgb(12 38 26 / 0.28);
+  --scrim: rgb(12 38 26 / 0.5);
   --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-display: var(--font-body);
   --font-numeric: var(--font-display);
 
-  /* Floor tiles in a teal grid; a line of crystal light along every panel's top. */
-  --texture-panel: url('./assets/textures/gauntlet-edge.svg');
-  --texture-bg: url('./assets/textures/gauntlet-tiles.svg');
+  /* Faceted grass with crystal shards in it; a scalloped emerald eave along every panel. */
+  --texture-panel: url('./assets/textures/prifddinas-eave.svg');
+  --texture-bg: url('./assets/textures/prifddinas-grass.svg');
 
-  /* The Gauntlet's board: near-black, darker than the rock so it stands off a panel, its
-     rim the crystal's cyan. */
-  --scroll-paper: #131212;
-  --scroll-edge: #7acdd2;
-  --scroll-ink: #f0ead2;
-  --scroll-muted: #8adfe3;
-  --scroll-facet-light: 0.04;
-  --silhouette: #1ac8d8;
-  --tile-dark: #0b1618;
-  --tile-seam: #1ac8d8;
+  /* The roof over the top bar, and bark posts up a panel's sides only: the eave runs over
+     their tops, and the foot stands bare on the grass. */
+  --bar: #225c46;
+  --bar-ink: #f4faf7;
+  --bar-muted: #c6e8da;
+  --bar-edge: #153c2d;
+  --bar-texture: url('./assets/textures/prifddinas-roof.svg');
+  --panel-edge: transparent;
+  --panel-sides: linear-gradient(
+    to right,
+    #4e3420 0 2px,
+    #6b492c 2px 6px,
+    transparent 6px calc(100% - 6px),
+    #6b492c calc(100% - 6px) calc(100% - 2px),
+    #4e3420 calc(100% - 2px)
+  );
 
-  --rosette-petal: #6fd8e0;
-  --rosette-petal-dark: #2fa8b4;
-  --rosette-tail: #2a8a8a;
-  --rosette-tail-dark: #1f6e70;
-  --rosette-tip: #bff3f3;
-  --rosette-tip-dark: #8fe3e6;
-  --rosette-heart: #e9ffff;
-  --rosette-heart-dark: #bff3f3;
+  /* The city gate's crystal door in its rim of pale bark. */
+  --scroll-paper: #cfe6e8;
+  --scroll-edge: #8c6f4c;
+  --scroll-ink: #13262a;
+  --scroll-muted: #34505a;
+  --scroll-facet-light: 0.08;
+  --silhouette: #1d4a38;
+  --tile-dark: #163d2e;
+  --tile-seam: #163d2e;
 
-  color-scheme: dark;
-}
+  --rosette-petal: #2f8a64;
+  --rosette-petal-dark: #1d6d4e;
+  --rosette-tail: #2f8a64;
+  --rosette-tail-dark: #1d6d4e;
+  --rosette-tip: #bfeef0;
+  --rosette-tip-dark: #7ccce0;
+  --rosette-heart: #e6fbff;
+  --rosette-heart-dark: #bfeef0;
 
-/* The Corrupted Gauntlet: the same dungeon gone red, a maroon grid on its floor and the
-   door logos burning red. Only the colours differ from the Gauntlet. Wrong is a rose red,
-   because the accent is the red that wrong would otherwise be. */
-[data-theme='corrupted_gauntlet'] {
-  /* The tiled floor, and the dungeon's rock. */
-  --bg: #240c14;
-  --panel: #2a2424;
-  --panel-raised: #352d2d;
-  --line: #4e4040;
-  --ink: #eee2dc;
-  --muted: #b9a59e;
-  --speaker: #f0a08c;
-  --bg-ink: #f6e6e2;
-  --bg-muted: #c8aaa6;
-
-  /* The corruption. */
-  --accent: #e2483e;
-  --accent-ink: #1a0606;
-  --accent-hover: #ec6c62;
-
-  --ok: #7dc08a;
-  --ok-ink: #161313;
-  --bad: #ef6c98;
-  --bad-ink: #161313;
-  --warn: #dcae5c;
-  --warn-ink: #161313;
-
-  /* Violet and amber: neither is a verdict, nor the corruption's red. */
-  --more: #b5a2f2;
-  --less: #e8a86a;
-
-  --gem-sapphire: #1e3f7a;
-  --gem-emerald: #15613a;
-  --gem-ruby: #7d1c22;
-  --gem-red-topaz: #9a2f6e;
-  --gem-dragonstone: #5a2172;
-  --gem-zenyte: #7c4510;
-  --gem-ink: #eee2dc;
-
-  /* Cut rock: barely rounded, a dark rim and a deep drop onto the floor. */
-  --radius: 4px;
-  --border-width: 2px;
-  --shadow: 0 0 0 1px rgb(0 0 0 / 0.35), 0 6px 18px rgb(0 0 0 / 0.5);
-  --scrim: rgb(0 0 0 / 0.6);
-  --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-display: var(--font-body);
-  --font-numeric: var(--font-display);
-
-  /* Floor tiles in a maroon grid; a line of red light along every panel's top. */
-  --texture-panel: url('./assets/textures/corrupted-gauntlet-edge.svg');
-  --texture-bg: url('./assets/textures/corrupted-gauntlet-tiles.svg');
-
-  /* The Gauntlet's board, its rim red, and blacker than the Gauntlet's so it stands off a
-     floor this warm. */
-  --scroll-paper: #0b0b0b;
-  --scroll-edge: #e0705e;
-  --scroll-ink: #f0ead2;
-  --scroll-muted: #f2a08e;
-  --scroll-facet-light: 0.04;
-  --silhouette: #e2483e;
-  --tile-dark: #1a0808;
-  --tile-seam: #e2483e;
-
-  --rosette-petal: #e2483e;
-  --rosette-petal-dark: #a8302a;
-  --rosette-tail: #8a241e;
-  --rosette-tail-dark: #6e1a16;
-  --rosette-tip: #ffd0c8;
-  --rosette-tip-dark: #e0705e;
-  --rosette-heart: #ffe4de;
-  --rosette-heart-dark: #f0a090;
-
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 /* Morytania's Mort Myre: murky teal water between banks of land, and the gravestone as the
@@ -759,6 +756,15 @@
   /* Banks, ripples and reeds. The panels stay plain stone. */
   --texture-panel: none;
   --texture-bg: url('./assets/textures/morytania-swamp.svg');
+
+  /* The top bar is a stretch of panel; a panel's edge is its line all round. */
+  --bar: #1b2a26;
+  --bar-ink: #e4ece2;
+  --bar-muted: #a3b7ad;
+  --bar-edge: #3f5f55;
+  --bar-texture: none;
+  --panel-edge: #3f5f55;
+  --panel-sides: none;
 
   /* The gravestone: grey stone, engraved dark. */
   --scroll-paper: #b0b0a6;
@@ -834,6 +840,15 @@
 
   --texture-panel: none;
   --texture-bg: url('./assets/textures/zanaris-ground.svg');
+
+  /* The top bar is a stretch of panel; a panel's edge is its line all round. */
+  --bar: #f1f9fb;
+  --bar-ink: #0d2a33;
+  --bar-muted: #3d5c66;
+  --bar-edge: #4f8ea0;
+  --bar-texture: none;
+  --panel-edge: #4f8ea0;
+  --panel-sides: none;
 
   /* The altar sign: teal stone, its letters cut dark. */
   --scroll-paper: #6bacbd;
@@ -1078,13 +1093,17 @@ main select {
 
 .panel {
   background-color: var(--panel);
-  background-image: var(--texture-panel);
-  border: var(--border-width) solid var(--line);
+  /* The band first, so it runs over the tops of the sides. */
+  background-image: var(--texture-panel), var(--panel-sides);
+  border: var(--border-width) solid var(--panel-edge);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  /* --texture-panel is a band along the top edge, not a fill: repeated across, once. */
-  background-repeat: repeat-x;
+  /* --texture-panel is a band along the top edge, not a fill: repeated across, once. Both
+     start at the border's outer edge, so a transparent border shows them rather than a
+     gap. */
+  background-repeat: repeat-x, no-repeat;
   background-position: top left;
+  background-origin: border-box;
   padding: calc(1.25rem - var(--border-give));
   margin-bottom: 1.25rem;
 }

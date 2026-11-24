@@ -7,7 +7,8 @@
    * them: the Wilderness's bounty poster, the game's skull faint behind its words; the Party
    * Room's card in a checked tablecloth border, bunting strung along its top; the TzHaar's
    * obsidian slab, chipped and glowing at the edge; the jungle's bark cloth in a frame of
-   * bamboo lashed at the corners; the Gauntlet's board, dark inside a glowing crystal rim;
+   * bamboo lashed at the corners; Prifddinas's crystal door, after its city gate, the gate's
+   * thorned ring faint in it, branches curling at its top and crystal at its foot;
    * Morytania's gravestone, moss at its foot; and Zanaris's teal stone, crystal in its
    * corners and mushrooms at its foot.
    *
@@ -156,14 +157,15 @@
         {@render facets()}
       {:else if sheet === 'poster'}
         <img class="skull" src={skullUrl} alt="" width="50" height="50" draggable="false" />
-      {:else if sheet === 'gauntlet'}
-        <!-- The rim along each cut corner, which the inset rings cannot follow. -->
-        {#each ['top-left', 'top-right', 'bottom-left', 'bottom-right'] as corner (corner)}
-          <svg class="cut {corner}" viewBox="0 0 24 24" aria-hidden="true">
-            <path class="rim-outer" d="M0 13L13 0" />
-            <path class="rim-inner" d="M0 20L20 0" />
-          </svg>
-        {/each}
+      {:else if sheet === 'gate'}
+        <!-- The ring and compass star carved into the city gate's doors. -->
+        <svg class="gate-mark" viewBox="-60 -60 120 120" aria-hidden="true">
+          <circle r="50" />
+          <circle r="37" />
+          <path
+            d="M0-37V37M-37 0H37M-30-22C-10-5 10-5 30-22M-30 22C-10 5 10 5 30 22M-22-30C-5-10-5 10-22 30M22-30C5-10 5 10 22 30"
+          />
+        </svg>
       {/if}
       {#if sheet === 'sign'}
         <!-- The stone's ragged edge, and inside it the stone itself, which clips its crystal. -->
@@ -241,6 +243,33 @@
           {/each}
         </svg>
       </div>
+    {:else if sheet === 'gate'}
+      {#each ['left', 'right'] as side (side)}
+        <svg class="branch {side}" viewBox="0 0 40 40" aria-hidden="true">
+          <path
+            d="M3 40C2 26 4 14 12 7 17 3 23 2 27 5M10 12C7 8 7 4 9 1M15 6C20 9 21 14 18 18"
+            fill="none"
+            stroke={ART.gateWoodDark}
+            stroke-width="5"
+            stroke-linecap="round"
+          />
+          <path
+            d="M3 40C2 26 4 14 12 7 17 3 23 2 27 5M10 12C7 8 7 4 9 1M15 6C20 9 21 14 18 18"
+            fill="none"
+            stroke={ART.gateWood}
+            stroke-width="3"
+            stroke-linecap="round"
+          />
+        </svg>
+        <svg class="crystals {side}" viewBox="0 0 36 30" aria-hidden="true">
+          <path d="M2 30 7 10 12 30Z" fill={ART.gateCrystal} />
+          <path d="M7 10 12 30H7Z" fill={ART.gateCrystalShade} />
+          <path d="M11 30 18 0 25 30Z" fill={ART.gateCrystal} />
+          <path d="M18 0 25 30H18Z" fill={ART.gateCrystalShade} />
+          <path d="M24 30 29 14 34 30Z" fill={ART.gateCrystal} />
+          <path d="M29 14 34 30H29Z" fill={ART.gateCrystalShade} />
+        </svg>
+      {/each}
     {:else if sheet === 'bamboo'}
       {@render pole('top')}
       {@render pole('bottom')}
@@ -599,75 +628,91 @@
     bottom: 0;
   }
 
-  /* The Gauntlet's board: near-black inside a crystal rim that glows, its
-     corners cut. Centred, like the game's. */
-  .scroll[data-sheet='gauntlet'] {
-    filter: drop-shadow(0 0 5px color-mix(in srgb, var(--scroll-edge) 55%, transparent))
-      drop-shadow(0 3px 0 rgb(0 0 0 / 0.35));
+  /* Prifddinas's crystal door, after the city gate's: pale faceted crystal rounded at the
+     top inside a rim of bark, lit from within, the gate's ring carved faintly behind its words,
+     branches curling at its top corners and crystal growing at its foot. */
+  .scroll[data-sheet='gate'] {
+    filter: drop-shadow(
+        0 0 calc(10px * var(--k)) color-mix(in srgb, var(--panel-raised) 45%, transparent)
+      )
+      drop-shadow(0 calc(4px * var(--k)) calc(8px * var(--k)) rgb(10 30 10 / 0.35));
   }
 
-  :where(.scroll[data-sheet='gauntlet']) .paper {
+  :where(.scroll[data-sheet='gate']) .paper {
     background:
-      radial-gradient(
-        ellipse 60% 50% at 50% 0%,
-        color-mix(in srgb, var(--scroll-edge) 8%, transparent),
-        transparent
+      linear-gradient(
+        118deg,
+        color-mix(in srgb, var(--scroll-paper), var(--panel-raised) 55%) 0 22%,
+        transparent 22%
+      ),
+      linear-gradient(
+        242deg,
+        color-mix(in srgb, var(--scroll-paper), var(--panel-raised) 35%) 0 28%,
+        transparent 28%
+      ),
+      linear-gradient(
+        160deg,
+        transparent 0 64%,
+        color-mix(in srgb, var(--scroll-paper), var(--scroll-muted) 10%) 64%
       ),
       var(--scroll-paper);
+    border-radius: calc(44px * var(--k)) calc(44px * var(--k)) calc(8px * var(--k))
+      calc(8px * var(--k));
     box-shadow:
-      inset 0 0 0 2px var(--scroll-edge),
-      inset 0 0 0 5px var(--scroll-paper),
-      inset 0 0 0 6.5px color-mix(in srgb, var(--scroll-edge) 50%, var(--scroll-paper));
-    clip-path: polygon(
-      12px 0,
-      calc(100% - 12px) 0,
-      100% 12px,
-      100% calc(100% - 12px),
-      calc(100% - 12px) 100%,
-      12px 100%,
-      0 calc(100% - 12px),
-      0 12px
-    );
+      inset 0 0 0 calc(3px * var(--k)) var(--scroll-edge),
+      inset 0 0 0 calc(5px * var(--k))
+        color-mix(in srgb, var(--scroll-paper), var(--panel-raised) 70%),
+      inset 0 0 calc(20px * var(--k)) color-mix(in srgb, var(--panel-raised) 60%, transparent);
   }
 
-  .cut {
+  .gate-mark {
     position: absolute;
-    width: 24px;
-    height: 24px;
+    left: 50%;
+    top: 50%;
+    width: calc(110px * var(--k));
+    height: calc(110px * var(--k));
+    transform: translate(-50%, -50%);
     fill: none;
+    stroke: var(--scroll-muted);
+    stroke-width: 4.5;
+    stroke-linecap: round;
+    opacity: 0.12;
   }
 
-  .cut.top-left {
+  .branch,
+  .crystals {
+    position: absolute;
+    z-index: 2;
+  }
+
+  .branch {
+    top: 0;
+    width: calc(40px * var(--k));
+    height: calc(40px * var(--k));
+  }
+
+  .branch.left {
     left: 0;
-    top: 0;
   }
 
-  .cut.top-right {
+  .branch.right {
     right: 0;
-    top: 0;
     transform: scaleX(-1);
   }
 
-  .cut.bottom-left {
-    left: 0;
+  .crystals {
     bottom: 0;
-    transform: scaleY(-1);
+    width: calc(36px * var(--k));
+    height: calc(30px * var(--k));
   }
 
-  .cut.bottom-right {
-    right: 0;
-    bottom: 0;
-    transform: scale(-1);
+  .crystals.left {
+    left: calc(4px * var(--k));
   }
 
-  .rim-outer {
-    stroke: var(--scroll-edge);
-    stroke-width: 3;
-  }
-
-  .rim-inner {
-    stroke: color-mix(in srgb, var(--scroll-edge) 50%, var(--scroll-paper));
-    stroke-width: 1.5;
+  .crystals.right {
+    right: calc(4px * var(--k));
+    transform: scaleX(-1);
   }
 
   /* Zanaris's stone: teal and faceted, ragged at its edge like the Cosmic altar's sign but

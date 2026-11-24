@@ -204,11 +204,17 @@
     top: 0;
     z-index: 20;
     height: var(--topbar-height);
-    background: var(--panel);
+    background-color: var(--bar);
+    background-image: var(--bar-texture);
     /* Drawn as a shadow rather than a border, so a theme with a thicker edge thickens
        the line without taking height from the controls: they sit at the same y in every
        theme, and a switch mid-question does not nudge them. */
-    box-shadow: 0 var(--border-width) 0 var(--line);
+    box-shadow: 0 var(--border-width) 0 var(--bar-edge);
+    /* The bar's own inks for what sits on it; the menu opens on a surface of its own,
+       which takes the panel's back. */
+    --ink: var(--bar-ink);
+    --muted: var(--bar-muted);
+    color: var(--ink);
   }
 
   /* Fixed rather than sticky, so the page takes no room for it while it is away. */
@@ -242,6 +248,7 @@
   .framed {
     background: var(--frame);
     box-shadow: none;
+    --ink: var(--frame-ink);
     color: var(--frame-ink);
   }
 
