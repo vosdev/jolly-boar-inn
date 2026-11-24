@@ -247,7 +247,7 @@ describe('FinalStandings share text', () => {
     players.set([{ ...PLAYER, id: 'Zezima', display_name: 'Zezima the Great' }])
     const writeText = clipboard(() => Promise.resolve())
     render(FinalStandings, { standings: FOUR, youId: 'Mod Ash', past: true, children })
-    await fireEvent.click(screen.getByRole('button', { name: 'Copy result' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Copy top 3 results' }))
     expect(writeText).toHaveBeenCalledWith(
       [
         'Quiz night at The Jolly Boar Inn: 4 players.',
@@ -259,13 +259,13 @@ describe('FinalStandings share text', () => {
       ].join('\n'),
     )
     await screen.findByRole('button', { name: 'Copied' })
+    expect(screen.getByRole('button', { name: 'Copy full results' })).toBeTruthy()
   })
 
   it('copies everyone when asked', async () => {
     const writeText = clipboard(() => Promise.resolve())
     render(FinalStandings, { standings: FOUR, youId: 'Mod Ash', past: true, children })
-    await fireEvent.click(screen.getByRole('radio', { name: 'Everyone' }))
-    await fireEvent.click(screen.getByRole('button', { name: 'Copy result' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Copy full results' }))
     expect(writeText.mock.lastCall?.[0]).toContain('🥉 Lynx 100\n4. Mod Ash 0\nThink you can')
   })
 
@@ -282,18 +282,17 @@ describe('FinalStandings share text', () => {
       past: true,
       children,
     })
-    await fireEvent.click(screen.getByRole('radio', { name: 'With players' }))
-    await fireEvent.click(screen.getByRole('button', { name: 'Copy result' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Copy gods and players' }))
     expect(writeText.mock.lastCall?.[0]).toContain(
       '🥇 Zamorak 450 avg\n   Zezima 900 · Lynx 0\n🥈 Saradomin 400 avg\n   Woox 400',
     )
-    expect(screen.getByRole('radio', { name: 'Gods' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Copy gods' })).toBeTruthy()
   })
 
   it('shows the text to copy by hand when the clipboard refuses', async () => {
     clipboard(() => Promise.reject(new Error('denied')))
     render(FinalStandings, { standings: TWO, youId: null, past: true, children })
-    await fireEvent.click(screen.getByRole('button', { name: 'Copy result' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Copy top 3 results' }))
     const field = await screen.findByRole<HTMLTextAreaElement>('textbox', { name: 'The result' })
     expect(field.value).toContain('🥇 Zezima 900')
   })
