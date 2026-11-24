@@ -698,7 +698,8 @@ from a sofa across the room on a 1080p screen, in every theme.
   wide (at least 16rem tall there), and one size throughout: what does not fit in it shrinks,
   never the stage. Open, it says
   "3 of 5 answered", then shows the pet and name of everyone still to answer, each leaving as
-  they answer, or drop. No answers and no admin controls. The host says its waiting line.
+  they answer, or drop, and under them "Answered" with the faces of those who have, which show
+  their emotes (#771, #1070). No answers and no admin controls. The host says its waiting line.
 - **The reveal** fades into the panel (200 ms): the answers with their counts, the explanation,
   the tally and names, team rows and "Question by" (§10–11). The foot has the host's reveal line
   or the event's explanation; the TV scored nothing, so no points, pin, confetti or NPC reaction.

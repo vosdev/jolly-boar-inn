@@ -1238,8 +1238,14 @@ describe("the room's TV", () => {
 
   it('names who is still to answer, leaving out whoever has dropped', () => {
     render(QuestionStage, { question: watching, yourValue: null, onAnswer, tv: true })
-    const names = [...document.querySelectorAll('.tv-panel li')].map((li) => li.textContent?.trim())
+    const names = [...document.querySelectorAll('.tv-panel .waiting li')].map((li) =>
+      li.textContent?.trim(),
+    )
     expect(names).toEqual(['Dave'])
+    const answered = [...document.querySelectorAll('.tv-panel .answered [role="img"]')].map(
+      (face) => face.getAttribute('aria-label'),
+    )
+    expect(answered).toEqual(['Ann'])
   })
 
   it("shows a random event's open question with no answer controls", () => {
