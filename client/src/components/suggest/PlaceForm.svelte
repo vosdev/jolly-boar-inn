@@ -1,12 +1,16 @@
 <script lang="ts">
   /**
    * A place on the map: a name, a box and a reach. The name fills in its wiki page, and the
-   * operator alone may reword what its round asks.
+   * operator alone may reword what its round asks. A described round asks the player's own
+   * description instead, which may not name the place, and what ties the two for the reveal.
    */
   import { boundsOf, type PinTarget } from '../../lib/pins'
   import type { MapBounds } from '../../lib/map'
   import { DEFAULT_REACH } from '../../lib/mapBox'
+  import { fieldHints } from '../../lib/placeholders'
   import {
+    descriptionProblem,
+    explainedProblem,
     placeProblem,
     placePrompt,
     questionPreview,
@@ -43,13 +47,28 @@
   let box = $state<MapBounds | null>(startPlace === undefined ? null : boundsOf(startPlace))
   let reach = $state((start?.payload?.reach as number | undefined) ?? DEFAULT_REACH)
   let asks = $state(startPlace === undefined ? '' : ((start?.payload?.prompt as string) ?? ''))
+  let described = $state((start?.payload?.prompt as string | undefined) ?? '')
+  let explanation = $state((start?.payload?.explanation as string | undefined) ?? '')
   let attempted = $state(false)
+  // svelte-ignore state_referenced_locally
+  const hints = fieldHints(choice.id)
 
   const nameError = $derived(placeProblem(name))
   const boxError = $derived(box === null ? 'Tap the map to mark the place.' : null)
-  const askedText = $derived(fresh ? placePrompt(name) : asks.trim())
-  const askError = $derived(askedText === '' ? 'Required: what the round asks.' : null)
-  const done = $derived(nameError === null && boxError === null && askError === null)
+  const askedText = $derived(
+    choice.described ? described.trim() : fresh ? placePrompt(name) : asks.trim(),
+  )
+  const askError = $derived(
+    choice.described
+      ? descriptionProblem(described, name)
+      : askedText === ''
+        ? 'Required: what the round asks.'
+        : null,
+  )
+  const explanationError = $derived(choice.described ? explainedProblem(explanation) : null)
+  const done = $derived(
+    nameError === null && boxError === null && askError === null && explanationError === null,
+  )
   const question = $derived<QuestionContent>({
     type: 'map_pin',
     mode: choice.id,
@@ -68,6 +87,7 @@
               },
             ],
       ...(reach === DEFAULT_REACH ? {} : { reach }),
+      ...(choice.described ? { explanation: explanation.trim() } : {}),
     },
   })
 
@@ -103,7 +123,23 @@
     />
     {@render problem(nameError, attempted)}
   </div>
-  {#if !fresh}
+  {#if choice.described}
+    <div class="field">
+      <label for="{id}-described">What Hans sees, without naming the place</label>
+      <textarea id="{id}-described" rows="3" placeholder={hints.prompt} bind:value={described}
+      ></textarea>
+      {@render problem(askError, attempted)}
+    </div>
+    <div class="field">
+      <label for="{id}-explanation">What gives it away, for the reveal</label>
+      <textarea
+        id="{id}-explanation"
+        rows="2"
+        placeholder={hints.explanation}
+        bind:value={explanation}></textarea>
+      {@render problem(explanationError, attempted)}
+    </div>
+  {:else if !fresh}
     <div class="field">
       <label for="{id}-asks">What the round asks</label>
       <input id="{id}-asks" type="text" bind:value={asks} />

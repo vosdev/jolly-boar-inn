@@ -93,7 +93,9 @@ class Mode:
 
     ``steps`` is how a round's picture builds up, for its ``STEP`` questions; without it they
     score on speed. ``clues`` is how many clues each question carries, one shown a step, so a
-    clued mode's steps count as many; 0 for a round whose questions carry none. ``pictured``
+    clued mode's steps count as many; 0 for a round whose questions carry none. ``described``
+    makes the prompt a description of its one place that never names it, with an
+    ``explanation`` that ties the two for the reveal. ``pictured``
     keeps a question whose picture this install lacks out of the round: the picture is the
     whole question. ``picture_at_reveal`` holds a question's picture
     back until it closes, for a round where the picture would give the answer away.
@@ -117,6 +119,7 @@ class Mode:
     options: tuple[int, int] | None = None
     steps: Steps | None = None
     clues: int = 0
+    described: bool = False
     pictured: bool = False
     picture_at_reveal: bool = False
     extra_answer: int = 0

@@ -1,0 +1,49 @@
+{
+  "pack": "lost_in_gielinor",
+  "questions": [
+    {
+      "id": "q_cdcc2f9842baa578",
+      "type": "map_pin",
+      "mode": "lost_in_gielinor",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Big white walls, knights in shiny white armour, and a park where moles keep stealing my shoes. Nice castle. Not my castle.",
+        "targets": [
+          {
+            "name": "Falador",
+            "min_x": 2935,
+            "max_x": 3066,
+            "min_y": 3309,
+            "max_y": 3395
+          }
+        ],
+        "explanation": "The White Knights guard Falador's castle, and the Giant Mole digs under Falador Park."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Falador",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_b4b6ba6799831b87",
+      "type": "map_pin",
+      "mode": "lost_in_gielinor",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Fishing boats, a beach full of lobster cages and a man who will not stop talking about his harpoon. Lovely sea air. Very far from home.",
+        "targets": [
+          {
+            "name": "Catherby",
+            "min_x": 2795,
+            "max_x": 2862,
+            "min_y": 3425,
+            "max_y": 3475
+          }
+        ],
+        "explanation": "Catherby's beach is a fishing hotspot for lobsters, swordfish and sharks, with Arhein's boat at the docks."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Catherby",
+      "difficulty": "medium"
+    }
+  ]
+}

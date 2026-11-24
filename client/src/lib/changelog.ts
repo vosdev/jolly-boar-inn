@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.277.0',
+    date: '2026-11-24',
+    text: 'Play Lost in Gielinor: Hans describes where he wandered off to, and you pin the spot. Suggest your own places for him.',
+  },
+  {
     version: '0.276.0',
     date: '2026-11-23',
     text: 'Play Minimap Guesser: pin where a minimap was drawn, and suggest your own spots. KGP Recon’s photo gets its own card on the map again.',
