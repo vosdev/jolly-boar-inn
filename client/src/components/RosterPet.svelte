@@ -11,6 +11,7 @@
   import { shownItems } from '../lib/heldItems'
   import { petOf } from '../lib/pets'
   import type { PlayerView } from '../lib/protocol'
+  import Emoting from './Emoting.svelte'
   import Pet from './Pet.svelte'
   import WornItem from './WornItem.svelte'
 
@@ -28,7 +29,7 @@
   class:editing={player.editing === true}
 >
   <span class="face">
-    <Pet pet={petOf(player)} size={48} label="" />
+    <Emoting playerId={player.id}><Pet pet={petOf(player)} size={48} label="" /></Emoting>
     {#if tv}
       <svg class="badge screen" viewBox="0 0 16 16" aria-hidden="true">
         <rect x="3.5" y="4.5" width="9" height="6" rx="0.8" />
@@ -89,7 +90,7 @@
 
   /* Opacity and not colour, so an away pet reads the same in every theme. The name is
      dimmed by ink instead, so it keeps its contrast. */
-  .face > :global(.pet) {
+  .face :global(.pet) {
     transition:
       opacity 200ms ease-out,
       filter 200ms ease-out;
@@ -104,7 +105,7 @@
     color: var(--muted);
   }
 
-  .away .face > :global(.pet) {
+  .away .face :global(.pet) {
     opacity: 0.3;
     filter: grayscale(1);
   }
@@ -136,7 +137,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     .roster-pet,
-    .face > :global(.pet) {
+    .face :global(.pet) {
       transition: none;
     }
   }

@@ -55,6 +55,7 @@ LimiterName = Literal[
     "ws_messages",
     "connects",
     "auth_failures",
+    "emotes",
 ]
 DisconnectReason = Literal[
     "client",

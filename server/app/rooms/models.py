@@ -119,6 +119,8 @@ class Player:
     editing_expiry: asyncio.Task[None] | None = field(default=None, repr=False)
     # The one item slot, as ``players`` stores it, so a restart finds it.
     item: Worn | None = None
+    # When this player's last emote went out, on the manager's monotonic clock.
+    emoted_at: float = field(default=-math.inf, repr=False)
 
     def view(self) -> PlayerView:
         return PlayerView(

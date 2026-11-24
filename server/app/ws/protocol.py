@@ -26,6 +26,8 @@ Phase = Literal["idle", "splash", "open", "reveal", "standings"]
 # Every timed phase: each one is a wait the host can cut short.
 SkippablePhase = Literal["splash", "open", "reveal", "standings"]
 Role = Literal["player", "admin", "tv"]
+# The emote tab's eight, in its order; the words of each are the client's (``lib/emotes.ts``).
+Emote = Literal["wave", "cheer", "clap", "laugh", "think", "panic", "cry", "angry"]
 ErrorCode = Literal[
     "bad_hello",
     "bad_message",  # unparseable or unknown frame after ``hello``; the socket closes with 4008
@@ -417,6 +419,15 @@ class SetSettings(_Message):
     settings: dict[str, Any]
 
 
+class SendEmote(_Message):
+    """Play an emote at the table while waiting. Left a plain string here and checked by the
+    manager, so an unknown one is ``bad_value`` and costs nobody their socket.
+    """
+
+    t: Literal["emote"]
+    emote: str = Field(max_length=32, strict=True)
+
+
 ClientMessage = Annotated[
     Hello
     | Ping
@@ -438,7 +449,8 @@ ClientMessage = Annotated[
     | MoveTeam
     | SetTeams
     | SetSettings
-    | Editing,
+    | Editing
+    | SendEmote,
     Field(discriminator="t"),
 ]
 _client_message = TypeAdapter[ClientMessage](ClientMessage)
@@ -597,6 +609,16 @@ class GameFinished(_Message):
     team_standings: list[TeamStanding] | None
 
 
+class EmoteSent(_Message):
+    """A player's emote, to every socket in the room. ``line`` picks which of its two lines
+    shows, so everyone reads the same words."""
+
+    t: Literal["emote"] = "emote"
+    player_id: UUID
+    emote: Emote
+    line: int = Field(ge=0, le=1)
+
+
 class Pong(_Message):
     t: Literal["pong"] = "pong"
     server_time: datetime
@@ -618,6 +640,7 @@ ServerMessage = (
     | AnswerCount
     | QuestionClosed
     | GameFinished
+    | EmoteSent
     | Pong
     | Error
 )

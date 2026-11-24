@@ -250,6 +250,18 @@ describe('Lobby', () => {
   describe('with a TV', () => {
     const TV: PlayerView = { ...WOOX, id: 't', display_name: 'Lounge', role: 'tv' }
 
+    it('offers the TV no Emotes, and a player the button beside Ready', async () => {
+      lobby([HOST, WOOX, TV], ROOM, TV)
+      expect(screen.queryByRole('button', { name: 'Emotes' })).toBeNull()
+      cleanup()
+      lobby([HOST, WOOX, TV], ROOM, WOOX)
+      const emotes = screen.getByRole('button', { name: 'Emotes' })
+      expect(emotes.closest('.ready')).toBeTruthy()
+      await fireEvent.click(emotes)
+      await fireEvent.click(within(dialog()).getByRole('button', { name: 'Wave' }))
+      expect(sent).toEqual([{ t: 'emote', emote: 'wave' }])
+    })
+
     it('lets an admin make a player the TV from their menu, at once', async () => {
       lobby()
       await fireEvent.click(tile('Woox'))

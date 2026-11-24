@@ -160,6 +160,13 @@ describe('Next up', () => {
     expect(rule('.starts')).not.toContain('margin: auto')
   })
 
+  it('starts its strip past the Emotes button when there is one', () => {
+    const endsAt = new Date(Date.now() + 8_000).toISOString()
+    render(Standings, { standings: NOW, segment: SEGMENT, next: NEXT, endsAt, stacked: true })
+    expect(screen.getByRole('region', { name: 'Next up' }).classList.contains('after')).toBe(false)
+    expect(nextUpSource).toMatch(/\.strip\.after \{\s*left: calc\(0\.75rem \+ 52px \+ 0\.5rem\);/)
+  })
+
   it('is a strip at the foot on a phone', () => {
     const endsAt = new Date(Date.now() + 8_000).toISOString()
     render(Standings, { standings: NOW, segment: SEGMENT, next: NEXT, endsAt, stacked: true })

@@ -453,6 +453,8 @@ async def _dispatch(
             await manager.set_settings(code, player, message.settings)
         case protocol.Editing():
             await manager.set_editing(code, player, message.on)
+        case protocol.SendEmote():
+            await manager.emote(code, player, message.emote)
     return None
 
 

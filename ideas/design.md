@@ -99,9 +99,10 @@ learns the position, which is worth more than variety.
   group, the right one first, labelled with the answer, then the wrong ones: the option (with its
   gem's chip), the typed answer (three, then "Something else"), the list entry, the closest-number
   rank ("Further off" last, every name with its guess), right picks, entries in place, or fields
-  right. Each row has its count, a bar for its share of everyone who could answer, and its names:
-  eight, you first, then "and N more". "No answer" comes last, muted: it is not wrong. The right
-  row always names its players; with `name_wrong_answers` off the others keep only their counts.
+  right. Each row has its count, a bar for its share of everyone who could answer, and its names,
+  each with its chathead: eight, you first, then "and N more". "No answer" comes last, muted: it is
+  not wrong. The right row always names its players; with `name_wrong_answers` off the others keep
+  only their counts.
   The TV keeps its tally under its answers, as a line per wrong group. Then "Items", everywhere: a
   row per item that paid on the close, you first, its icon, wearer, name (a potion as before the
   dose) and points: a charmed miss as `−540`, a Book answer with the answer's points.
@@ -387,6 +388,14 @@ and a disabled Answered, and its reveal says "Answered by the Book of Knowledge"
   among them, Off and fixed in a team game) and Random events, sent as they edit, 250 ms after the last change. A host's own question is written in a pop-up, which fills a phone. At the table: the host's Free for all or Teams, then join requests, a team game's gods, the halves,
   the Ready switch, and Start (plain at the threshold, "Start anyway" below it, which asks first; off
   until a round is picked) or "Waiting for the host to start…". The host taps a pet to kick or promote.
+- **Emotes (#771).** The game's Emotes button, twice its size, only while the room lets you send
+  one: at the table column's foot (on a phone the strip's left end), beside Ready in the lobby,
+  under Next up between rounds. It opens the emote tab, the theme's panel with the eight icons at
+  their own pixel size, named on hover; a pick sends and closes it, as do Esc and a tap outside. For
+  3 s after the server's frame it is disabled under a shade draining left to right. The pet's line
+  shows 3 s in the game's chatbox font with a black outline, in its chat colour and effect, while
+  the chathead acts it out; over every pet the screen draws, and nothing clips either. Reduced
+  motion holds both still. No sound.
 - **Doors shut.** `/create` is that lobby before the room exists: "Your room's code" and Reroll on
   the scroll, Tonight's game under it, and at the head of the table column a room panel, Who can
   join, Surprise rounds and Open the doors, which goes when they open. Those stay as they are from

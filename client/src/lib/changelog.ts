@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.278.0',
+    date: '2026-11-24',
+    text: 'Emote while you wait, even on the hiscores: pick one from the emote tab and your pet says it overhead for everyone.',
+  },
+  {
     version: '0.277.0',
     date: '2026-11-24',
     text: 'Play Lost in Gielinor: Hans describes where he wandered off to, and you pin the spot. Suggest your own places for him.',

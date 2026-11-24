@@ -24,7 +24,7 @@ branding/*
 .idea/
 .vscode/
 
-# Item, NPC, pet and trophy art from the wiki (make fetch-assets): game assets, fetched and not committed
+# Emote, item, NPC, pet and trophy art from the wiki (make fetch-assets): game assets, fetched and not committed
 client/src/assets/items/*
 !client/src/assets/items/README.md
 client/src/assets/npcs/*
@@ -36,6 +36,8 @@ client/src/assets/trophies/*
 !client/src/assets/trophies/README.md
 client/src/assets/logo/*
 !client/src/assets/logo/README.md
+client/src/assets/emotes/*
+!client/src/assets/emotes/README.md
 !client/src/assets/trophies/placeholder/
 # Wiki item icons, the themes' emblems (make fetch-assets): game assets too
 client/src/assets/themes/*.png

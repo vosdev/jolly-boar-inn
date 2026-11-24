@@ -11,6 +11,8 @@
    * The item you found heads the panel, and on a phone is a square at the strip's right
    * end that opens what it does. An item you use has its button under the slot, and on a
    * phone a bar over the strip (`ItemUse`).
+   *
+   * `emotes` is the Emotes button, under the panel, or at the strip's left end on a phone.
    */
   import type { Snippet } from 'svelte'
   import { GONE_THIS_ROUND, itemName, shownItems } from '../lib/heldItems'
@@ -23,6 +25,7 @@
   import ItemIcon from './ItemIcon.svelte'
   import ItemSlot from './ItemSlot.svelte'
   import ItemUse from './ItemUse.svelte'
+  import Emoting from './Emoting.svelte'
   import Pet from './Pet.svelte'
   import Sheet from './Sheet.svelte'
   import TablePanel from './TablePanel.svelte'
@@ -42,6 +45,7 @@
     answered = false,
     used = null,
     onUse = () => {},
+    emotes,
   }: {
     players: PlayerView[]
     youId: string | null
@@ -65,6 +69,8 @@
     /** The item we used on it, through its reveal. */
     used?: string | null
     onUse?: () => void
+    /** The Emotes button, while we may send one. */
+    emotes?: Snippet<[boolean]>
   } = $props()
 
   const FACES = 4
@@ -140,6 +146,7 @@
     </div>
   {/if}
   {@render panel()}
+  {@render emotes?.(false)}
 {:else}
   {#if held !== null}
     <button
@@ -165,17 +172,21 @@
     {/if}
   {/if}
   <ItemUse {held} question={openQuestion} {answered} {used} {onUse} bar />
+  {@render emotes?.(true)}
   <button
     type="button"
     class="strip"
     class:beside={held !== null}
+    class:after={emotes !== undefined}
     aria-haspopup="dialog"
     aria-expanded={open}
     onclick={() => (openedOn = questionId)}
   >
     <span class="faces" aria-hidden="true">
       {#each revealing ? rightFaces : faces as { player, dim } (player.id)}
-        <span class="face" class:dim><Pet pet={petOf(player)} size={30} label="" /></span>
+        <span class="face" class:dim>
+          <Emoting playerId={player.id}><Pet pet={petOf(player)} size={30} label="" /></Emoting>
+        </span>
       {/each}
     </span>
     <span class="summary">{summary}</span>
@@ -223,6 +234,10 @@
 
   .strip.beside {
     right: calc(0.75rem + 52px + 0.5rem);
+  }
+
+  .strip.after {
+    left: calc(0.75rem + 52px + 0.5rem);
   }
 
   .item-square {

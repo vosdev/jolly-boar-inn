@@ -119,6 +119,7 @@
           "answer": "#/$defs/Answer",
           "decide_request": "#/$defs/DecideRequest",
           "editing": "#/$defs/Editing",
+          "emote": "#/$defs/SendEmote",
           "end_game": "#/$defs/EndGame",
           "end_round": "#/$defs/EndRound",
           "hello": "#/$defs/Hello",
@@ -203,6 +204,9 @@
         },
         {
           "$ref": "#/$defs/Editing"
+        },
+        {
+          "$ref": "#/$defs/SendEmote"
         }
       ]
     },
@@ -288,6 +292,47 @@
         "on"
       ],
       "title": "Editing",
+      "type": "object"
+    },
+    "EmoteSent": {
+      "additionalProperties": false,
+      "description": "A player's emote, to every socket in the room. ``line`` picks which of its two lines\nshows, so everyone reads the same words.",
+      "properties": {
+        "t": {
+          "const": "emote",
+          "default": "emote",
+          "type": "string"
+        },
+        "player_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "emote": {
+          "enum": [
+            "wave",
+            "cheer",
+            "clap",
+            "laugh",
+            "think",
+            "panic",
+            "cry",
+            "angry"
+          ],
+          "type": "string"
+        },
+        "line": {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "t",
+        "player_id",
+        "emote",
+        "line"
+      ],
+      "title": "EmoteSent",
       "type": "object"
     },
     "EndGame": {
@@ -1451,6 +1496,26 @@
       "title": "Segment",
       "type": "object"
     },
+    "SendEmote": {
+      "additionalProperties": false,
+      "description": "Play an emote at the table while waiting. Left a plain string here and checked by the\nmanager, so an unknown one is ``bad_value`` and costs nobody their socket.",
+      "properties": {
+        "t": {
+          "const": "emote",
+          "type": "string"
+        },
+        "emote": {
+          "maxLength": 32,
+          "type": "string"
+        }
+      },
+      "required": [
+        "t",
+        "emote"
+      ],
+      "title": "SendEmote",
+      "type": "object"
+    },
     "ServerMessage": {
       "anyOf": [
         {
@@ -1479,6 +1544,9 @@
         },
         {
           "$ref": "#/$defs/GameFinished"
+        },
+        {
+          "$ref": "#/$defs/EmoteSent"
         },
         {
           "$ref": "#/$defs/Pong"

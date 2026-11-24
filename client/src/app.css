@@ -17,6 +17,14 @@
   size-adjust: 133.333%;
 }
 
+/* RuneScape Plain 12, the game's chatbox and overhead-chat font, drawn for 16px: kept at its own
+   size, so its pixels stay sharp. */
+@font-face {
+  font-family: 'RuneScape Chat';
+  src: url('./assets/fonts/RuneScape-Plain-12.ttf') format('truetype');
+  font-display: swap;
+}
+
 /*
  * Tokens (section 2 of ideas/design.md), and the themes built from them.
  *
@@ -945,6 +953,15 @@ html[data-team] body::after {
   font-family: var(--font-body);
   color: var(--ink);
   background: var(--bg);
+
+  /* The game's overhead chat (design §9): its art, so no theme repaints it. */
+  --chat-yellow: #ff0;
+  --chat-white: #fff;
+  --chat-cyan: #0ff;
+  --chat-red: #f00;
+  --chat-green: #0f0;
+  --chat-magenta: #f0f;
+  --chat-outline: #000;
 
   /* Section 4. Shell measurement rather than a theme token: a theme repaints the
      bar, it does not get to decide how tall it is. */

@@ -744,6 +744,28 @@ describe('the room’s frame', () => {
     expect(table.textContent?.replace(/\s+/g, ' ')).toContain('Answered 2')
   })
 
+  it('offers Emotes only once we have answered, and sends the pick', async () => {
+    windowOf(1440, 900)
+    await arrive(welcome(roomView({ phase: 'open', next_at: null })))
+    applyServerMessage({ t: 'question_open', question: tableQuestion('q1', ['a', 'b']) })
+    await screen.findByRole('group', { name: 'At the table' })
+    expect(screen.queryByRole('button', { name: 'Emotes' })).toBeNull()
+    ;(await screen.findByText('Abyssal whip')).click()
+    await tick()
+    await fireEvent.click(screen.getByRole('button', { name: 'Emotes' }))
+    await fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Cheer' }))
+    expect(sent.at(-1)).toEqual({ t: 'emote', emote: 'cheer' })
+  })
+
+  it('offers Emotes between rounds, under Next up, and sends the pick', async () => {
+    windowOf(1440, 900)
+    await arrive(welcome(roomView({ phase: 'standings', next_segment: { ...SEGMENT, index: 1 } })))
+    await screen.findByRole('region', { name: 'Next up' })
+    await fireEvent.click(screen.getByRole('button', { name: 'Emotes' }))
+    await fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Wave' }))
+    expect(sent.at(-1)).toEqual({ t: 'emote', emote: 'wave' })
+  })
+
   function closeWith(results: Record<string, PlayerResult>, unanswered: string[]): void {
     applyServerMessage({
       t: 'question_closed',
@@ -795,7 +817,7 @@ describe('the room’s frame', () => {
     const rows = [...panel.querySelectorAll('.row')].map((row) => [
       row.querySelector('.label')?.textContent,
       row.querySelector('.number')?.textContent,
-      row.querySelector('.names')?.textContent ?? '',
+      row.querySelector('.names')?.textContent?.trim() ?? '',
     ])
     expect(rows).toEqual([
       ['Dragon bones', '1', 'Woox'],
@@ -836,7 +858,8 @@ describe('the room’s frame', () => {
       'Abyssal whip',
       'Dragon bones',
     ])
-    expect(rows[0]!.querySelector('.names')?.textContent).toBe('You')
+    // The chathead beside each name brings its own whitespace.
+    expect(rows[0]!.querySelector('.names')?.textContent?.trim()).toBe('You')
     expect(rows[1]!.querySelector('.names')).toBeNull()
     expect(rows[1]!.querySelector('.number')?.textContent).toBe('1')
   })

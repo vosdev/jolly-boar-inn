@@ -56,6 +56,7 @@
 
   import Connecting from '../components/Connecting.svelte'
   import ConfirmDialog from '../components/ConfirmDialog.svelte'
+  import EmoteButton from '../components/EmoteButton.svelte'
   import ErrorBanner from '../components/ErrorBanner.svelte'
   import FinalStandings from '../components/FinalStandings.svelte'
   import AtTable from '../components/AtTable.svelte'
@@ -69,6 +70,7 @@
   import SoundChip from '../components/SoundChip.svelte'
   import SharedStageView from '../components/stage/SharedStageView.svelte'
   import { barWhere, whereOf } from '../lib/barWhere'
+  import { canEmote, type EmoteId } from '../lib/emotes'
   import { BOOK, itemPoints } from '../lib/heldItems'
   import { hostMenu, type HostAction } from '../lib/hostMenu'
   import { historyPath, latestPastGame } from '../lib/history'
@@ -272,6 +274,12 @@
       null
     )
   }
+  /** A pet for the reveal's results: whoever is in the room, or was in the standings. */
+  function petById(id: string): string {
+    const player = $players.find((one) => one.id === id)
+    const standing = $standings.find((one) => one.player_id === id)
+    return petOf(player ?? { id, avatar: standing?.avatar ?? null })
+  }
   /** Our own row in the reveal, if we answered. */
   const yourResult = $derived(
     $you === null || $lastClosed === null ? null : ($lastClosed.results[$you.id] ?? null),
@@ -471,10 +479,22 @@
     noteAnswerSent(value)
   }
 
+  const emoting = $derived(
+    socket !== null && canEmote($room, $you, $question, $yourAnswer !== null || booked),
+  )
+
+  function sendEmote(emote: EmoteId): boolean {
+    return socket?.send({ t: 'emote', emote }) ?? false
+  }
+
   function leave(): void {
     navigate('/')
   }
 </script>
+
+{#snippet emotes(strip: boolean)}
+  <EmoteButton send={sendEmote} {strip} />
+{/snippet}
 
 {#snippet tally(panel: boolean)}
   {#if $lastClosed !== null && $lastClosed.was !== null}
@@ -491,6 +511,7 @@
       teams={$room?.settings.teams ?? []}
       teamOf={teamsOf($players)}
       {panel}
+      petOf={panel ? petById : null}
     />
   {/if}
 {/snippet}
@@ -618,6 +639,7 @@
               answered={$yourAnswer !== null || booked}
               used={$itemUsed}
               onUse={useItem}
+              emotes={emoting ? emotes : undefined}
             />
           </AtTable>
         {/if}
@@ -633,6 +655,7 @@
             stacked={framed === null}
             tv={$you?.role === 'tv'}
             drops={$room.drops ?? []}
+            emotes={emoting ? emotes : undefined}
           />
         {:else if $room.phase === 'open' && $question !== null}
           <QuestionStage
