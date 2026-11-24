@@ -18,6 +18,7 @@ from app.db import _init_connection, create_pool, run_migrations
 from app.main import create_app
 from app.modes import MODES, TILES, Mode
 from app.questions.packs import Pack
+from app.questions.types import map_pin
 from app.rooms import loop
 from app.ws import handler as ws_handler
 from tests.game_api import Faults, Game, seat_table
@@ -256,6 +257,11 @@ def pictures(app: FastAPI, client: TestClient) -> dict[str, str]:
         for pack in app.state.packs
         for q in pack.questions
         if "image" in q["payload"]
+    } | {
+        asset
+        for pack in app.state.packs
+        for q in pack.questions
+        if q["type"] == "map_pin" and (asset := map_pin.picture_asset(q["payload"])) is not None
     }
     app.state.rooms.pictures = {asset: f"{n:016x}.png" for n, asset in enumerate(sorted(images))}
     app.state.rooms.pictures[TILES] = "clean"

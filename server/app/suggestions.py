@@ -79,6 +79,7 @@ NO_EXPLANATION_MODES = _where(lambda r: not r.explanation)
 NO_DIFFICULTY_MODES = _where(lambda r: not r.difficulty)
 PICTURE_ITEM_MODES = _where(lambda r: r.picture_item)
 PICTURE_MODES = _where(lambda r: r.picture)
+MINIMAP_MODES = _where(lambda r: r.minimap)
 FIXED_PROMPTS = {m: r.fixed_prompt for m, r in SUGGESTIBLE.items() if r.fixed_prompt is not None}
 
 NPC_NAME_MAX = 80
@@ -89,7 +90,7 @@ ITEM_NAME_MAX = 80
 # round's points stop meaning much from one question to the next. A round's own photo of it
 # and an explanation, where the round takes them, are held to its rules elsewhere.
 PLACE_KEYS = frozenset(
-    {"prompt", "targets", "reach", "explanation", "screenshot", "width", "height"}
+    {"prompt", "targets", "reach", "explanation", "screenshot", "width", "height", "minimap"}
 )
 PLACE_REACH = (50, 200)
 
@@ -195,7 +196,7 @@ def _question_errors(content: dict[str, Any], sourced: bool) -> list[str]:
     if "explanation" in content["payload"] and not held.explanation:
         return [f"$.payload.explanation: {mode!r} shows no explanation"]
     found = _icon_errors(content["type"], content["payload"]) + _place_errors(
-        content["type"], content["payload"]
+        content["type"], content["payload"], held
     )
     if found:
         return found
@@ -241,12 +242,19 @@ def _icon_errors(type_: str, payload: dict[str, Any]) -> list[str]:
     ]
 
 
-def _place_errors(type_: str, payload: dict[str, Any]) -> list[str]:
+def _place_errors(type_: str, payload: dict[str, Any], held: Suggest) -> list[str]:
     if type_ != "map_pin":
         return []
     extra = sorted(payload.keys() - PLACE_KEYS)
     if extra:
         return [f"$.payload.{key}: a suggested place has none" for key in extra]
+    if held.minimap and "minimap" not in payload:
+        return ["$.payload.minimap: required, the spot the minimap is round"]
+    if not held.minimap and "minimap" in payload:
+        return [f"$.payload.minimap: only {', '.join(sorted(MINIMAP_MODES))} show a minimap"]
+    # Its target is the spot's own box, so a near miss is scored as every minimap's is.
+    if held.minimap and "reach" in payload:
+        return ["$.payload.reach: a minimap's spot keeps the round's reach"]
     targets, reach = payload.get("targets"), payload.get("reach", PLACE_REACH[0])
     if not isinstance(targets, list) or len(targets) != 1:
         return ["$.payload.targets: a suggestion is one place"]

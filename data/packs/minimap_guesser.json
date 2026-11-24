@@ -1,0 +1,285 @@
+{
+  "pack": "minimap_guesser",
+  "questions": [
+    {
+      "id": "q_9fe457f5003cc25f",
+      "type": "map_pin",
+      "mode": "minimap_guesser",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is this?",
+        "targets": [
+          {
+            "name": "Lumbridge Castle",
+            "min_x": 3203,
+            "max_x": 3241,
+            "min_y": 3199,
+            "max_y": 3237,
+            "round": true
+          }
+        ],
+        "minimap": {
+          "x": 3222,
+          "y": 3218,
+          "angle": 0
+        },
+        "explanation": "Just outside Lumbridge Castle, where every adventure starts."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Lumbridge_Castle",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_d5edacc2f1e0e96b",
+      "type": "map_pin",
+      "mode": "minimap_guesser",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is this?",
+        "targets": [
+          {
+            "name": "Varrock Square",
+            "min_x": 3193,
+            "max_x": 3231,
+            "min_y": 3409,
+            "max_y": 3447,
+            "round": true
+          }
+        ],
+        "minimap": {
+          "x": 3212,
+          "y": 3428,
+          "angle": 0
+        },
+        "explanation": "The fountain in the middle of Varrock Square."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Varrock_Square",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_048097d2b2ab3417",
+      "type": "map_pin",
+      "mode": "minimap_guesser",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is this?",
+        "targets": [
+          {
+            "name": "Grand Exchange",
+            "min_x": 3146,
+            "max_x": 3184,
+            "min_y": 3468,
+            "max_y": 3506,
+            "round": true
+          }
+        ],
+        "minimap": {
+          "x": 3165,
+          "y": 3487,
+          "angle": 0
+        },
+        "explanation": "The Grand Exchange's octagon, north-west of Varrock."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Grand_Exchange",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_f2e103a49ac78225",
+      "type": "map_pin",
+      "mode": "minimap_guesser",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is this?",
+        "targets": [
+          {
+            "name": "Draynor Village",
+            "min_x": 3074,
+            "max_x": 3112,
+            "min_y": 3226,
+            "max_y": 3264,
+            "round": true
+          }
+        ],
+        "minimap": {
+          "x": 3093,
+          "y": 3245,
+          "angle": 0
+        },
+        "explanation": "Draynor Village's bank, with the market to the north."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Draynor_Village",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_383e8b6640e16197",
+      "type": "map_pin",
+      "mode": "minimap_guesser",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is this?",
+        "targets": [
+          {
+            "name": "Catherby",
+            "min_x": 2790,
+            "max_x": 2828,
+            "min_y": 3417,
+            "max_y": 3455,
+            "round": true
+          }
+        ],
+        "minimap": {
+          "x": 2809,
+          "y": 3436,
+          "angle": 90
+        },
+        "explanation": "Outside Catherby's bank, with the beach to the south."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Catherby",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_e749c2db78d20a7c",
+      "type": "map_pin",
+      "mode": "minimap_guesser",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is this?",
+        "targets": [
+          {
+            "name": "Seers' Village",
+            "min_x": 2706,
+            "max_x": 2744,
+            "min_y": 3466,
+            "max_y": 3504,
+            "round": true
+          }
+        ],
+        "minimap": {
+          "x": 2725,
+          "y": 3485,
+          "angle": 0
+        },
+        "explanation": "The bank in the middle of Seers' Village."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Seers%27_Village",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_a582499772d1c09e",
+      "type": "map_pin",
+      "mode": "minimap_guesser",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is this?",
+        "targets": [
+          {
+            "name": "Port Sarim",
+            "min_x": 3004,
+            "max_x": 3042,
+            "min_y": 3189,
+            "max_y": 3227,
+            "round": true
+          }
+        ],
+        "minimap": {
+          "x": 3023,
+          "y": 3208,
+          "angle": 315
+        },
+        "explanation": "The docks of Port Sarim, where the boats leave for Karamja and Entrana."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Port_Sarim",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_2339f1be4f59802e",
+      "type": "map_pin",
+      "mode": "minimap_guesser",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is this?",
+        "targets": [
+          {
+            "name": "Shilo Village",
+            "min_x": 2833,
+            "max_x": 2871,
+            "min_y": 2936,
+            "max_y": 2974,
+            "round": true
+          }
+        ],
+        "minimap": {
+          "x": 2852,
+          "y": 2955,
+          "angle": 0
+        },
+        "explanation": "Inside the walls of Shilo Village, deep in Karamja."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Shilo_Village_(location)",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_0a9acbfb3831eeec",
+      "type": "map_pin",
+      "mode": "minimap_guesser",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is this?",
+        "targets": [
+          {
+            "name": "Burgh de Rott",
+            "min_x": 3477,
+            "max_x": 3515,
+            "min_y": 3192,
+            "max_y": 3230,
+            "round": true
+          }
+        ],
+        "minimap": {
+          "x": 3496,
+          "y": 3211,
+          "angle": 180
+        },
+        "explanation": "The ruins of Burgh de Rott, in the south of Morytania."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Burgh_de_Rott",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_e4525da1b60f8a14",
+      "type": "map_pin",
+      "mode": "minimap_guesser",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Where is this?",
+        "targets": [
+          {
+            "name": "Lighthouse",
+            "min_x": 2490,
+            "max_x": 2528,
+            "min_y": 3616,
+            "max_y": 3654,
+            "round": true
+          }
+        ],
+        "minimap": {
+          "x": 2509,
+          "y": 3635,
+          "angle": 45
+        },
+        "explanation": "The Lighthouse, north of the Barbarian Outpost."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Lighthouse",
+      "difficulty": "hard"
+    }
+  ]
+}

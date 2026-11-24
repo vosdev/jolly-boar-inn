@@ -20,6 +20,7 @@ import type {
   SuggestionContent,
 } from '../../lib/suggestions'
 import ItemForm from './ItemForm.svelte'
+import MinimapForm from './MinimapForm.svelte'
 import NamedForm from './NamedForm.svelte'
 import PhotoForm from './PhotoForm.svelte'
 import PictureForm from './PictureForm.svelte'
@@ -82,5 +83,6 @@ export const SUGGESTION_FORMS: Record<
   place: { form: PlaceForm, type: 'map_pin', stacks: true },
   picture: { form: PictureForm, type: 'picture_pin' },
   photo: { form: PhotoForm, type: 'map_pin', stacks: true },
+  minimap: { form: MinimapForm, type: 'map_pin', stacks: true },
   item: { form: ItemForm },
 }

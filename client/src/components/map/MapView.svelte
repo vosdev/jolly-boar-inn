@@ -76,6 +76,8 @@
     name: string
     /** Draws the line this many tiles out from the box. */
     reach?: number
+    /** The circle inside the square box, not the box. */
+    round?: boolean
   }
 
   export interface MapGrip {
@@ -278,15 +280,27 @@
         interactive: false,
       }).addTo(drawing)
     }
-    marks = areas.map(({ box, name, reach }) => {
+    marks = areas.map(({ box, name, reach, round }) => {
       const whole = { ...box, maxX: box.maxX + 1, maxY: box.maxY + 1 }
       const edges = corners(whole)
       const middle = L.latLngBounds(edges).getCenter()
-      if (reach !== undefined) {
+      // Half a tile out, so a tile whose middle is on the edge is drawn inside.
+      const radius = (whole.maxX - whole.minX) / 2
+      if (reach !== undefined && round === true) {
+        L.circle(middle, {
+          radius: radius + reach,
+          className: 'map-reach',
+          interactive: false,
+        }).addTo(drawing)
+      } else if (reach !== undefined) {
         const line = reachLine(whole, reach).map(({ x, y }): [number, number] => [y, x])
         L.polygon(line, { className: 'map-reach', interactive: false }).addTo(drawing)
       }
-      L.rectangle(edges, { className: 'map-ring', interactive: false }).addTo(drawing)
+      if (round === true) {
+        L.circle(middle, { radius, className: 'map-ring', interactive: false }).addTo(drawing)
+      } else {
+        L.rectangle(edges, { className: 'map-ring', interactive: false }).addTo(drawing)
+      }
       const ring = L.circleMarker(middle, {
         className: 'map-ring',
         radius: SMALLEST_RING,

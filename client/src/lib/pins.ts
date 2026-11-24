@@ -19,9 +19,10 @@ export interface WireBounds {
   max_y: number
 }
 
-/** A box of tiles, both edges inside it. */
+/** A box of tiles, both edges inside it; or, `round`, the circle inside the square box. */
 export interface PinTarget extends WireBounds {
   name: string
+  round?: boolean
 }
 
 export interface PlacedPin {
@@ -53,8 +54,19 @@ export function boundsOf(bounds: WireBounds): MapBounds {
   return { minX: bounds.min_x, maxX: bounds.max_x, minY: bounds.min_y, maxY: bounds.max_y }
 }
 
-/** The nearest tile of `target` to `pin`. */
+/** The nearest point of `target` to `pin`: a tile of a box, or a point on a circle's edge. */
 export function nearestTile(pin: WorldPoint, target: PinTarget): WorldPoint {
+  if (target.round === true) {
+    const middle = { x: (target.min_x + target.max_x) / 2, y: (target.min_y + target.max_y) / 2 }
+    const radius = (target.max_x - target.min_x) / 2
+    const apart = Math.hypot(pin.x - middle.x, pin.y - middle.y)
+    if (apart <= radius) return pin
+    const share = radius / apart
+    return {
+      x: middle.x + (pin.x - middle.x) * share,
+      y: middle.y + (pin.y - middle.y) * share,
+    }
+  }
   return {
     x: Math.min(Math.max(pin.x, target.min_x), target.max_x),
     y: Math.min(Math.max(pin.y, target.min_y), target.max_y),

@@ -21,6 +21,7 @@
    * photo stays on the sheet. A tap on the photo opens it whole in a dialog over the room.
    */
   import { pictureUrl } from '../../../lib/pictures'
+  import { toStage } from '../../../lib/stageCard'
   import Typed from '../../stage/Typed.svelte'
   import type { StemProps } from '../props'
 
@@ -34,27 +35,6 @@
   let dialog = $state<HTMLDialogElement | null>(null)
   let onStage = $state(false)
   let hidden = $state(false)
-
-  /**
-   * Moves the card from the sheet onto the map stage it stands on, if it stands on one, and
-   * keeps `--below`, where the sheet ends, for a stage too narrow to set the card beside it.
-   */
-  function toStage(card: HTMLElement): () => void {
-    const stage = card.closest('.stage.map')
-    const sheet = stage?.querySelector<HTMLElement>('.stage-row')
-    if (!stage || !sheet) return () => {}
-    stage.append(card)
-    onStage = true
-    const place = () =>
-      card.style.setProperty('--below', `${sheet.offsetTop + sheet.offsetHeight}px`)
-    place()
-    const watch = new ResizeObserver(place)
-    watch.observe(sheet)
-    return () => {
-      watch.disconnect()
-      card.remove()
-    }
-  }
 </script>
 
 {#snippet photo()}
@@ -88,7 +68,12 @@
     Show photo
   </button>
 {/if}
-<figure class="recon" class:card={onStage} class:away={onStage && hidden} {@attach toStage}>
+<figure
+  class="recon"
+  class:card={onStage}
+  class:away={onStage && hidden}
+  {@attach (card) => toStage(card, () => (onStage = true))}
+>
   <button
     type="button"
     class="open"

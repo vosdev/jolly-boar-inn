@@ -27,6 +27,7 @@ export interface SuggestRules {
   lined: boolean
   clued: boolean
   picture: boolean
+  minimap: boolean
   tags: [string, string][]
   right_first: boolean
 }

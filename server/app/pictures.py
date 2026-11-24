@@ -14,7 +14,10 @@ from app.config import REPO_ROOT
 from app.static import CLIENT_DIST
 
 PICTURES = REPO_ROOT / "data" / "pictures.json"
-_ASSET = re.compile(r"^((item|npc):[0-9]{1,7}|(place|screenshot):[a-z0-9][a-z0-9-]{0,63})$")
+_ASSET = re.compile(
+    r"^((item|npc):[0-9]{1,7}|(place|screenshot):[a-z0-9][a-z0-9-]{0,63}"
+    r"|minimap:[0-9]{1,4}_[0-9]{1,4}_[0-9]{1,3})$"
+)
 _FILE = re.compile(r"^[0-9a-f]{16}\.(avif|webp|png|jpg|jpeg|svg)$")
 
 

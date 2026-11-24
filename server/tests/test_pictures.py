@@ -192,11 +192,19 @@ def test_a_screenshot_is_named_like_any_other_picture(tmp_path: Path) -> None:
     assert load_pictures(path, tmp_path) == {"screenshot:ice-demon": WHIP}
 
 
+def test_a_minimap_is_named_like_any_other_picture(tmp_path: Path) -> None:
+    path = tmp_path / "pictures.json"
+    path.write_text(json.dumps({"minimap:3212_3428_45": {"file": WHIP, "sha256": "ab"}}))
+    (tmp_path / WHIP).write_bytes(b"\x89PNG")
+    assert load_pictures(path, tmp_path) == {"minimap:3212_3428_45": WHIP}
+
+
 @pytest.mark.parametrize(
     "mapping",
     [
         [],
         {"screenshot:Ice Demon": {"file": WHIP}},
+        {"minimap:3212_3428": {"file": WHIP}},
         {"item:4151": {"file": "abyssal_whip.png"}},
         {"item:4151": {"file": "0123456789abcdef"}},
         {"item:4151": {"file": "0123456789abcdef.gif"}},

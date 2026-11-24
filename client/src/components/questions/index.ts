@@ -26,6 +26,7 @@ import AssetStem, { lines as assetLines } from './stems/AssetStem.svelte'
 import BoardStem, { lines as boardLines } from './stems/BoardStem.svelte'
 import ClueStem, { lines as clueLines } from './stems/ClueStem.svelte'
 import ExamineStem, { lines as examineLines } from './stems/ExamineStem.svelte'
+import MinimapStem, { lines as minimapLines } from './stems/MinimapStem.svelte'
 import MoreLessStem, { lines as moreLessLines } from './stems/MoreLessStem.svelte'
 import PhotoStem, { lines as photoLines } from './stems/PhotoStem.svelte'
 import PriceStem, { lines as priceLines } from './stems/PriceStem.svelte'
@@ -71,6 +72,7 @@ export const STEMS: Record<StemId, Component<StemProps>> = {
   board: BoardStem,
   clues: ClueStem,
   photo: PhotoStem,
+  minimap: MinimapStem,
 }
 
 const STEM_LINES: Record<StemId, (data: Record<string, unknown>) => Line[]> = {
@@ -83,6 +85,7 @@ const STEM_LINES: Record<StemId, (data: Record<string, unknown>) => Line[]> = {
   board: boardLines,
   clues: clueLines,
   photo: photoLines,
+  minimap: minimapLines,
 }
 
 function stemOf(mode: string): StemId | null {

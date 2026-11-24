@@ -117,13 +117,23 @@ def _off_target(payload: dict[str, Any]) -> dict[str, float]:
     return {"x": 0.0 if west else 1.0, "y": 0.0 if north else 1.0}
 
 
+def _inside(target: dict[str, Any]) -> dict[str, int]:
+    """A tile of a ``map_pin`` target: its corner, or a round one's middle, off its circle."""
+    if target.get("round"):
+        return {
+            "x": (target["min_x"] + target["max_x"]) // 2,
+            "y": (target["min_y"] + target["max_y"]) // 2,
+        }
+    return {"x": target["min_x"], "y": target["min_y"]}
+
+
 _RIGHT: dict[str, Callable[[dict[str, Any]], Any]] = {
     "more_less": lambda payload: payload["answer_index"],
     "price_is_right": lambda payload: payload["value"],
     "multiple_choice": lambda payload: multiple_choice.reveal(payload)["answer_index"],
     "pick_from_list": lambda payload: payload["answer_id"],
     "closest_number": lambda payload: payload["answer"],
-    "map_pin": lambda payload: [{"x": t["min_x"], "y": t["min_y"]} for t in payload["targets"]],
+    "map_pin": lambda payload: [_inside(target) for target in payload["targets"]],
     "number_slider": lambda payload: payload["answer"],
     "free_text": lambda payload: payload["accepted"][0],
     "pick_all_that_apply": lambda payload: pick_all_that_apply.reveal(payload)["answer_indices"],

@@ -123,9 +123,11 @@ export function questionPreview(content: QuestionContent, picture?: string | nul
   }
   if (content.type === 'map_pin') {
     const open = previewOf({ type: 'multiple_choice', payload: {} }, mode)
-    const { prompt, width, height } = content.payload
+    const { prompt, width, height, minimap } = content.payload
     const photo = width === undefined ? {} : { width, height, ...(picture ? { picture } : {}) }
-    return { ...open, type: 'map_pin', view: { prompt, pins: 1, ...photo } }
+    // The server never sends the spot: only this preview draws it from the tiles.
+    const spot = minimap === undefined ? {} : { minimap }
+    return { ...open, type: 'map_pin', view: { prompt, pins: 1, ...photo, ...spot } }
   }
   if (content.type === 'picture_pin') {
     const open = previewOf({ type: 'multiple_choice', payload: {} }, mode)
@@ -194,7 +196,8 @@ export interface QueueMatch {
  * `riddle`, five clues and the subject they describe (`clued`).
  * `components/suggest/forms.ts` maps each to its component.
  */
-export type EditorKind = 'shadow' | 'verse' | 'riddle' | 'place' | 'photo' | 'picture' | 'item'
+export type EditorKind =
+  'shadow' | 'verse' | 'riddle' | 'place' | 'photo' | 'minimap' | 'picture' | 'item'
 
 /** One thing the form offers to write. */
 export interface Choice {
@@ -277,7 +280,7 @@ function formOf(id: string, rules: SuggestRules): Exclude<EditorKind, 'item'> | 
   if (rules.verse) return 'verse'
   if (rules.clued) return 'riddle'
   if (rules.named !== null) return 'shadow'
-  if (only === 'map_pin') return rules.picture ? 'photo' : 'place'
+  if (only === 'map_pin') return rules.picture ? 'photo' : rules.minimap ? 'minimap' : 'place'
   if (only === 'picture_pin') return 'picture'
   if (!(rulesOf(id)?.is_round ?? true) || only === 'ordering') return 'plain'
   return 'choice'
@@ -328,6 +331,8 @@ function roundChoice(id: string, rules: SuggestRules): Choice | undefined {
       return { ...base, explanation, wikiOnly: rules.wiki_only, editor: 'place' }
     case 'photo':
       return { ...base, prompt, explanation, editor: 'photo' }
+    case 'minimap':
+      return { ...base, prompt, explanation, wikiOnly: rules.wiki_only, editor: 'minimap' }
     case 'picture':
       return { ...base, prompt, explanation, editor: 'picture' }
   }

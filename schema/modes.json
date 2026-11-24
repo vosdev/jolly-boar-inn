@@ -79,6 +79,7 @@
         "lined": false,
         "clued": false,
         "picture": false,
+        "minimap": false,
         "tags": [
           [
             "multiple_choice",
@@ -124,6 +125,7 @@
         "lined": false,
         "clued": false,
         "picture": false,
+        "minimap": false,
         "tags": [],
         "right_first": false
       },
@@ -164,6 +166,7 @@
         "lined": false,
         "clued": false,
         "picture": false,
+        "minimap": false,
         "tags": [],
         "right_first": false
       },
@@ -210,6 +213,7 @@
         "lined": false,
         "clued": false,
         "picture": false,
+        "minimap": false,
         "tags": [],
         "right_first": false
       },
@@ -262,6 +266,7 @@
         "lined": false,
         "clued": false,
         "picture": false,
+        "minimap": false,
         "tags": [],
         "right_first": false
       },
@@ -312,6 +317,7 @@
         "lined": false,
         "clued": false,
         "picture": false,
+        "minimap": false,
         "tags": [],
         "right_first": false
       },
@@ -355,6 +361,7 @@
         "lined": false,
         "clued": false,
         "picture": false,
+        "minimap": false,
         "tags": [],
         "right_first": false
       },
@@ -407,6 +414,7 @@
         "lined": false,
         "clued": false,
         "picture": false,
+        "minimap": false,
         "tags": [],
         "right_first": false
       },
@@ -449,6 +457,7 @@
         "lined": false,
         "clued": false,
         "picture": false,
+        "minimap": false,
         "tags": [
           [
             "pick_from_list",
@@ -522,6 +531,7 @@
         "lined": false,
         "clued": false,
         "picture": false,
+        "minimap": false,
         "tags": [],
         "right_first": false
       },
@@ -565,6 +575,7 @@
         "lined": false,
         "clued": true,
         "picture": false,
+        "minimap": false,
         "tags": [],
         "right_first": false
       },
@@ -608,6 +619,7 @@
         "lined": true,
         "clued": false,
         "picture": false,
+        "minimap": false,
         "tags": [],
         "right_first": false
       },
@@ -660,6 +672,7 @@
         "lined": false,
         "clued": false,
         "picture": false,
+        "minimap": false,
         "tags": [],
         "right_first": false
       },
@@ -712,6 +725,7 @@
         "lined": false,
         "clued": false,
         "picture": false,
+        "minimap": false,
         "tags": [],
         "right_first": false
       },
@@ -764,6 +778,7 @@
         "lined": false,
         "clued": false,
         "picture": false,
+        "minimap": false,
         "tags": [],
         "right_first": false
       },
@@ -804,6 +819,7 @@
         "lined": false,
         "clued": false,
         "picture": false,
+        "minimap": false,
         "tags": [],
         "right_first": false
       },
@@ -844,6 +860,48 @@
         "lined": false,
         "clued": false,
         "picture": true,
+        "minimap": false,
+        "tags": [],
+        "right_first": false
+      },
+      "report": "question",
+      "compare": "question"
+    },
+    {
+      "id": "minimap_guesser",
+      "types": [
+        "map_pin"
+      ],
+      "is_round": true,
+      "questions": null,
+      "pool": null,
+      "setting": null,
+      "options": null,
+      "steps": null,
+      "clues": 0,
+      "pictured": false,
+      "picture_at_reveal": false,
+      "extra_answer": 0,
+      "stem": "minimap",
+      "hold_counts_prompt": false,
+      "suggest": {
+        "types": [
+          "map_pin"
+        ],
+        "quote": false,
+        "intro": false,
+        "explanation": true,
+        "difficulty": true,
+        "fixed_prompt": "Where is this?",
+        "wiki_only": true,
+        "named": null,
+        "verse": false,
+        "render": false,
+        "picture_item": false,
+        "lined": false,
+        "clued": false,
+        "picture": false,
+        "minimap": true,
         "tags": [],
         "right_first": false
       },
@@ -939,6 +997,7 @@
         "lined": false,
         "clued": false,
         "picture": false,
+        "minimap": false,
         "tags": [],
         "right_first": false
       },
@@ -966,6 +1025,7 @@
         "lined": false,
         "clued": false,
         "picture": true,
+        "minimap": false,
         "tags": [],
         "right_first": false
       }
@@ -973,7 +1033,6 @@
   ],
   "planned": [
     "whats_that_noise",
-    "minimap_guesser",
     "scrying_pool",
     "lost_in_gielinor",
     "diary_dash",

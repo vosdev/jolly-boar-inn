@@ -67,10 +67,12 @@
   // What the server said about an older version of the question is not shown for this one.
   const current = $derived(trial !== null && trial.key === key ? trial.trial : null)
   const given = $derived(answer !== null && answer.key === key ? answer : null)
-  // A trial names no picture, so a picture pin keeps the one the page draws.
-  const own = $derived(
-    typeof question.view.picture === 'string' ? { picture: question.view.picture } : {},
-  )
+  // A trial names no picture, so a picture pin keeps the one the page draws, and a minimap
+  // the spot it draws from the tiles.
+  const own = $derived({
+    ...(typeof question.view.picture === 'string' ? { picture: question.view.picture } : {}),
+    ...(question.view.minimap === undefined ? {} : { minimap: question.view.minimap }),
+  })
   const shown = $derived<OpenQuestion>(
     current === null ? question : { ...question, view: { ...current.view, ...own } },
   )
