@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.281.1',
+    date: '2026-11-24',
+    text: 'Give each page its own tab title and link preview, and list the Daily and game modes for search.',
+  },
+  {
     version: '0.281.0',
     date: '2026-11-24',
     text: 'Move on in the Daily from the Next tab under the top bar, or press Enter, so tall questions like maps never hide it.',

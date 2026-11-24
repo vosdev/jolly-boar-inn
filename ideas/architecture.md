@@ -14,7 +14,7 @@ final. The licence is AGPL-3.0.
 | Validation | Pydantic v2 for HTTP and websocket, `jsonschema` for questions | The question schema is shared with CI and the client. |
 | Client | Svelte 5 with runes, Vite SPA, TypeScript; Leaflet for the map, Admin, Suggest, Report, History and the changelog each load on first use | No SSR is needed, so no SvelteKit. |
 | Tooling | `uv`, `ruff`, `mypy`, `pytest` with `pytest-xdist`; `pnpm`, ESLint, Prettier, `svelte-check`, `vitest` in jsdom | Vitest compiles components exactly as the build does. |
-| Serving | FastAPI serves `client/dist`, SPA fallback to `index.html` (404 for a missing file under `/assets/`, `/pictures/` or `/map/`); `robots.txt`, `sitemap.xml` and `/.well-known/security.txt` built from `PUBLIC_BASE_URL` | One container, one origin, no CORS. |
+| Serving | FastAPI serves `client/dist` with per-route `<head>` metadata and JSON-LD from `.seo.json`, 404 on unknown paths and missing media; `robots.txt`, `sitemap.xml` and `/.well-known/security.txt` built from `PUBLIC_BASE_URL` | One container, one origin, no CORS. |
 | Time | `datetime.now(UTC)` on the server, `timestamptz`, ISO 8601 on the wire | The client never sends a time. |
 | IDs | uuid rows, word room codes, content-hash question ids | Codes are for people; uuids go on the wire. |
 
@@ -876,8 +876,8 @@ ends at the proxy, and HSTS would lock out a LAN selfhoster on plain HTTP.
   process fails to start or answers `503 db_unavailable`, so stop the old container first.
 - The app's env vars and defaults are in `config.py`. `.env.example` documents them, the
   scripts' `WIKI_USER_AGENT`, and the client's build-time `PUBLIC_SITE_*`, `PUBLIC_HERO_NAME` and
-  `PUBLIC_DEFAULT_THEME` (`client/site-branding.ts`). `PUBLIC_BASE_URL` only makes a shared
-  link's `og:image` absolute, written into `index.html` as it is served like `FARO_URL`; the client links from
+  `PUBLIC_DEFAULT_THEME` (`client/site-branding.ts`). `PUBLIC_BASE_URL` makes `og:image`,
+  canonical URLs, JSON-LD and `sitemap.xml` absolute at serve time like `FARO_URL`; the client links from
   `location.origin`.
 
 ## 11. Database

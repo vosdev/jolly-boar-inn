@@ -483,6 +483,58 @@ describe('App', () => {
     })
   })
 
+  describe('per-route document head', () => {
+    let descriptionMeta: HTMLMetaElement
+
+    beforeEach(() => {
+      descriptionMeta = document.createElement('meta')
+      descriptionMeta.name = 'description'
+      descriptionMeta.content = ''
+      document.head.append(descriptionMeta)
+    })
+
+    afterEach(() => {
+      descriptionMeta.remove()
+      document.head.querySelector('link[rel="canonical"]')?.remove()
+    })
+
+    it.each([
+      ['/', 'The Jolly Boar Inn — OSRS Party Trivia Game', '/'],
+      ['/daily', 'Daily OSRS Quiz — The Jolly Boar Inn', '/daily'],
+      ['/create', 'Create a Room — The Jolly Boar Inn', '/create'],
+      ['/how-to-play', 'How to Play — The Jolly Boar Inn', '/how-to-play'],
+      [
+        '/how-to-play/more-or-less',
+        'More or Less — The Jolly Boar Inn',
+        '/how-to-play/more-or-less',
+      ],
+      [
+        '/how-to-play/random-events',
+        'Random Events — The Jolly Boar Inn',
+        '/how-to-play/random-events',
+      ],
+      ['/report', 'Report a Question — The Jolly Boar Inn', null],
+    ])('sets title, description and canonical for %s', (path, title, canonicalPath) => {
+      at(path)
+      expect(document.title).toBe(title)
+      expect(descriptionMeta.content.length).toBeGreaterThan(20)
+      const canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]')
+      if (canonicalPath === null) {
+        expect(canonical).toBeNull()
+      } else {
+        expect(canonical?.getAttribute('href')).toBe(`${location.origin}${canonicalPath}`)
+      }
+    })
+
+    it('keeps the short inn name in the tab title once inside a room', async () => {
+      await inRoom(LIVE)
+      applyServerMessage({ t: 'question_open', question: QUESTION })
+      await screen.findByText('Dragon bones')
+      expect(document.title).toBe('Question 1 of 1 · The Jolly Boar Inn')
+      expect(document.head.querySelector('link[rel="canonical"]')).toBeNull()
+    })
+  })
+
   it('links to /admin from Home alone, which shows it only to a browser holding the token', () => {
     const sources = import.meta.glob(['./**/*.svelte', './**/*.ts', '!./**/*.test.ts'], {
       query: '?raw',

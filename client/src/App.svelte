@@ -25,6 +25,7 @@
    * not change between the two.
    */
   import { onMount } from 'svelte'
+  import { siteName } from 'virtual:branding'
 
   import Footer from './components/Footer.svelte'
   import LazyRoute from './components/LazyRoute.svelte'
@@ -45,6 +46,14 @@
   import { adminTabOf, type AdminTab } from './lib/admin'
   import { keyFromHash } from './lib/invite'
   import { getSession, normalizeCode } from './lib/session'
+  import {
+    EVENTS_SLUG,
+    HOW_TO_PATH,
+    joinDescription,
+    pageTitle,
+    seoRoutes,
+    slugOf,
+  } from './lib/seo'
   import { barPast, barWhere } from './lib/barWhere'
   import { hostMenu } from './lib/hostMenu'
   import { roomShown } from './lib/roomFit'
@@ -132,6 +141,88 @@
         : route.name !== 'room' || (!tv && $room?.status === 'lobby'),
   )
   $effect(() => wearTeam(team))
+
+  const SEO_BY_PATH = new Map(seoRoutes(siteName, SHOWN).map((entry) => [entry.path, entry]))
+
+  function routeHead(
+    current: Route,
+  ): { title: string; description: string; canonicalPath: string | null } | null {
+    switch (current.name) {
+      case 'room':
+        return null
+      case 'home': {
+        const entry = SEO_BY_PATH.get('/')!
+        return { title: entry.title, description: entry.description, canonicalPath: '/' }
+      }
+      case 'daily':
+      case 'create':
+      case 'suggest':
+      case 'report': {
+        const path = `/${current.name}`
+        const entry = SEO_BY_PATH.get(path)!
+        return {
+          title: entry.title,
+          description: entry.description,
+          canonicalPath: entry.noindex ? null : path,
+        }
+      }
+      case 'how-to': {
+        let path = HOW_TO_PATH
+        if (current.view === 'events') path = `${HOW_TO_PATH}/${EVENTS_SLUG}`
+        else if (current.view !== 'overview') {
+          const mode = SHOWN.find((entry) => entry.id === current.view)
+          if (mode !== undefined) path = `${HOW_TO_PATH}/${slugOf(mode.label)}`
+        }
+        const entry = SEO_BY_PATH.get(path) ?? SEO_BY_PATH.get(HOW_TO_PATH)!
+        return { title: entry.title, description: entry.description, canonicalPath: entry.path }
+      }
+      case 'join':
+        return {
+          title: pageTitle('Join Room', siteName),
+          description: joinDescription(siteName),
+          canonicalPath: null,
+        }
+      case 'history':
+        return {
+          title: pageTitle('Past Game', siteName),
+          description: `Finished OSRS trivia game standings at ${siteName}.`,
+          canonicalPath: null,
+        }
+      case 'admin':
+        return {
+          title: pageTitle('Admin', siteName),
+          description: `Operator tools for ${siteName}.`,
+          canonicalPath: null,
+        }
+      case 'dev-map':
+        return { title: pageTitle('Map', siteName), description: '', canonicalPath: null }
+    }
+  }
+
+  $effect.pre(() => {
+    const head = routeHead(route)
+    if (head === null) {
+      // Room mounts next and reads document.title for its short tab suffix.
+      document.title = siteName
+      return
+    }
+    document.title = head.title
+    const description = document.head.querySelector('meta[name="description"]')
+    if (description !== null) description.setAttribute('content', head.description)
+    const canonical = document.head.querySelector('link[rel="canonical"]')
+    if (head.canonicalPath !== null && location.origin !== 'null') {
+      const href = `${location.origin}${head.canonicalPath}`
+      if (canonical !== null) canonical.setAttribute('href', href)
+      else {
+        const link = document.createElement('link')
+        link.rel = 'canonical'
+        link.href = href
+        document.head.append(link)
+      }
+    } else {
+      canonical?.remove()
+    }
+  })
 
   /** `state` rides along in `history.state`, for the screen at `to` to read. */
   function navigate(to: string, state: unknown = null): void {

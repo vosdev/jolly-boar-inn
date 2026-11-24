@@ -53,6 +53,7 @@
    * screen.
    */
   import { onMount, tick, untrack } from 'svelte'
+  import { siteName } from 'virtual:branding'
 
   import Connecting from '../components/Connecting.svelte'
   import ConfirmDialog from '../components/ConfirmDialog.svelte'
@@ -331,7 +332,9 @@
     })
   })
 
-  const siteTitle = document.title
+  const previousTitle = document.title
+  // Keep the short inn name in the tab rather than a whole route title like "Daily OSRS Quiz — …".
+  const siteTitle = previousTitle.includes(' — ') ? siteName : previousTitle
   const screenTitle = $derived(
     departure !== null
       ? 'Disconnected'
@@ -351,7 +354,7 @@
     document.title = `${screenTitle} · ${siteTitle}`
   })
   onMount(() => () => {
-    document.title = siteTitle
+    document.title = previousTitle
   })
 
   /** The host's skip, naming the phase and question on screen (see `Skip`). */

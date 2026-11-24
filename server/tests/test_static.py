@@ -1,3 +1,5 @@
+import json
+import re
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from xml.etree import ElementTree
@@ -6,7 +8,7 @@ from fastapi.testclient import TestClient
 
 from app.config import REPO_ROOT, Settings
 from app.main import create_app
-from app.static import BASE_URL_SLOT, FARO_URL_SLOT
+from app.static import BASE_URL_SLOT, FARO_URL_SLOT, SEO_MANIFEST
 
 
 def test_index_and_spa_fallback(settings: Settings, dist: Path) -> None:
@@ -68,10 +70,22 @@ def test_missing_media_is_404_not_index(settings: Settings, dist: Path) -> None:
                 assert response.headers["cache-control"] == "no-cache", path
 
 
-def test_media_prefix_alone_is_still_a_client_route(settings: Settings, dist: Path) -> None:
+def test_unknown_paths_answer_404_with_noindex_spa_page(settings: Settings, dist: Path) -> None:
+    """Unknown paths avoid soft-404s for crawlers while still loading the SPA for browsers."""
     with TestClient(create_app(settings, dist)) as client:
-        for path in ("/assets", "/pictures", "/pictures-of-cats"):
-            assert client.get(path).status_code == 200, path
+        for path in (
+            "/assets",
+            "/pictures",
+            "/pictures-of-cats",
+            "/credits",
+            "/how-to-play/no-such-mode",
+            "/admin/nope",
+        ):
+            response = client.get(path)
+            assert response.status_code == 404, path
+            assert response.headers["content-type"].startswith("text/html"), path
+            assert '<meta name="robots" content="noindex">' in response.text, path
+            assert response.headers["cache-control"] == "no-cache", path
 
 
 def test_unknown_api_path_is_404_not_index(settings: Settings, dist: Path) -> None:
@@ -167,7 +181,7 @@ def test_robots_hides_private_pages_and_names_the_sitemap(settings: Settings, di
     assert "Sitemap: https://quiz.example/sitemap.xml" in lines
 
 
-def test_sitemap_lists_home_and_create_at_the_base_url(settings: Settings, dist: Path) -> None:
+def test_sitemap_lists_public_pages_at_the_base_url(settings: Settings, dist: Path) -> None:
     configured = settings.model_copy(update={"public_base_url": "https://quiz.example/inn&co"})
     with TestClient(create_app(configured, dist)) as client:
         response = client.get("/sitemap.xml")
@@ -177,8 +191,152 @@ def test_sitemap_lists_home_and_create_at_the_base_url(settings: Settings, dist:
     namespace = "{http://www.sitemaps.org/schemas/sitemap/0.9}"
     assert [loc.text for loc in tree.iter(f"{namespace}loc")] == [
         "https://quiz.example/inn&co/",
+        "https://quiz.example/inn&co/daily",
         "https://quiz.example/inn&co/create",
+        "https://quiz.example/inn&co/how-to-play",
+        "https://quiz.example/inn&co/how-to-play/random-events",
     ]
+
+
+def test_seo_manifest_drives_sitemap_per_route_head_and_json_ld(
+    settings: Settings, dist: Path
+) -> None:
+    assert f"SEO_MANIFEST = '{SEO_MANIFEST}'" in (
+        REPO_ROOT / "client" / "src" / "lib" / "seo.ts"
+    ).read_text(encoding="utf-8")
+    (dist / "index.html").write_text(
+        "<!doctype html><html><head>"
+        "<title>The Jolly Boar Inn — OSRS Party Trivia Game</title>"
+        '<meta name="description" content="placeholder">'
+        '<meta property="og:title" content="placeholder">'
+        '<meta property="og:description" content="placeholder">'
+        f'<meta property="og:image" content="{BASE_URL_SLOT}/og-card.png">'
+        "</head><body></body></html>",
+        encoding="utf-8",
+    )
+    (dist / SEO_MANIFEST).write_text(
+        json.dumps(
+            {
+                "site_name": "The Jolly Boar Inn",
+                "has_card": True,
+                "routes": [
+                    {
+                        "path": "/",
+                        "title": "The Jolly Boar Inn — OSRS Party Trivia Game",
+                        "description": "Think you know Gielinor? Host multiplayer quizzes.",
+                        "sitemap": True,
+                    },
+                    {
+                        "path": "/daily",
+                        "title": "Daily OSRS Quiz — The Jolly Boar Inn",
+                        "description": "Play today's solo OSRS trivia challenge.",
+                        "sitemap": True,
+                    },
+                    {
+                        "path": "/how-to-play/more-or-less",
+                        "title": "More or Less — The Jolly Boar Inn",
+                        "description": "Two fine wares, one simple question.",
+                        "sitemap": True,
+                        "breadcrumb": "More or Less",
+                    },
+                    {
+                        "path": "/report",
+                        "title": "Report a Question — The Jolly Boar Inn",
+                        "description": "Report an issue.",
+                        "sitemap": False,
+                        "noindex": True,
+                    },
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    configured = settings.model_copy(update={"public_base_url": "https://jollyboar.com/"})
+    with TestClient(create_app(configured, dist)) as client:
+        # The internal manifest itself is never served publicly.
+        assert client.get(f"/{SEO_MANIFEST}").status_code == 404
+
+        sitemap = client.get("/sitemap.xml")
+        tree = ElementTree.fromstring(sitemap.content)
+        ns = "{http://www.sitemaps.org/schemas/sitemap/0.9}"
+        assert [loc.text for loc in tree.iter(f"{ns}loc")] == [
+            "https://jollyboar.com/",
+            "https://jollyboar.com/daily",
+            "https://jollyboar.com/how-to-play/more-or-less",
+        ]
+
+        home = client.get("/")
+        assert home.status_code == 200
+        assert "<title>The Jolly Boar Inn — OSRS Party Trivia Game</title>" in home.text
+        assert '<link rel="canonical" href="https://jollyboar.com/">' in home.text
+        assert '<meta property="og:url" content="https://jollyboar.com/">' in home.text
+        assert 'content="noindex"' not in home.text
+        ld_match = re.search(r'<script type="application/ld\+json">([^<]+)</script>', home.text)
+        assert ld_match is not None
+        ld = json.loads(ld_match.group(1))
+        assert ld["@type"] == "WebApplication"
+        assert ld["name"] == "The Jolly Boar Inn"
+        assert ld["alternateName"] == "Jolly Boar Inn"
+        assert ld["url"] == "https://jollyboar.com/"
+        assert ld["image"] == "https://jollyboar.com/og-card.png"
+        assert ld["isAccessibleForFree"] is True
+
+        # Trailing slashes resolve to the route and point canonical to the normalized URL.
+        daily = client.get("/daily/")
+        assert daily.status_code == 200
+        assert "<title>Daily OSRS Quiz — The Jolly Boar Inn</title>" in daily.text
+        assert (
+            '<meta name="description" content="Play today&#x27;s solo OSRS trivia challenge.">'
+            in daily.text
+        )
+        assert (
+            '<meta property="og:title" content="Daily OSRS Quiz — The Jolly Boar Inn">'
+            in daily.text
+        )
+        assert '<link rel="canonical" href="https://jollyboar.com/daily">' in daily.text
+        assert "application/ld+json" not in daily.text
+
+        mode = client.get("/how-to-play/more-or-less")
+        assert mode.status_code == 200
+        assert "<title>More or Less — The Jolly Boar Inn</title>" in mode.text
+        assert (
+            '<link rel="canonical" href="https://jollyboar.com/how-to-play/more-or-less">'
+            in mode.text
+        )
+        crumb_match = re.search(r'<script type="application/ld\+json">([^<]+)</script>', mode.text)
+        assert crumb_match is not None
+        crumb = json.loads(crumb_match.group(1))
+        assert crumb["@type"] == "BreadcrumbList"
+        assert [item["name"] for item in crumb["itemListElement"]] == [
+            "The Jolly Boar Inn",
+            "How to Play",
+            "More or Less",
+        ]
+
+        # Private and noindex routes never carry a canonical and always declare noindex.
+        for private in (
+            "/report",
+            "/r/ABYSSAL",
+            "/history/ABYSSAL/2610012005",
+            "/admin",
+            "/admin/questions",
+        ):
+            resp = client.get(private)
+            assert resp.status_code == 200, private
+            assert '<meta name="robots" content="noindex">' in resp.text, private
+            assert 'rel="canonical"' not in resp.text, private
+
+
+def test_json_ld_escapes_script_closing_tags(settings: Settings, dist: Path) -> None:
+    (dist / "index.html").write_text("<!doctype html><html><head></head></html>", encoding="utf-8")
+    configured = settings.model_copy(
+        update={"public_base_url": "https://quiz.example/</script><script>alert(1)"}
+    )
+    with TestClient(create_app(configured, dist)) as client:
+        response = client.get("/")
+    assert response.status_code == 200
+    assert "</script><script>alert(1)" not in response.text
+    assert "\\u003c/script>" in response.text
 
 
 def test_security_txt_follows_rfc_9116(settings: Settings, dist: Path) -> None:
