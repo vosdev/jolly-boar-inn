@@ -17,6 +17,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from app import question_edits, question_stats, reports
 from app.http.admin import require_token
+from app.modes import SUGGESTIBLE, entry
 from app.questions.packs import mode_questions
 
 router = APIRouter(prefix="/api/questions")
@@ -37,6 +38,9 @@ def modes(request: Request) -> list[str]:
 def choices(mode: str, request: Request) -> dict[str, Any]:
     state = request.app.state
     if mode not in reports.report_modes(state.settings, state.packs, state.rooms.pictures):
+        # /suggest asks for every round that takes suggestions, built or not, to list its pack.
+        if mode in SUGGESTIBLE:
+            return {"by": "item" if entry(mode).report == "item" else "question", "choices": []}
         raise reports.BadMode(f"{mode!r} is not a mode with pack questions here")
     return reports.choices(state.packs, mode, state.rooms.pictures)
 

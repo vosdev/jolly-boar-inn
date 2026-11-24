@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.281.2',
+    date: '2026-11-24',
+    text: 'Stop the Suggest page logging an error for rounds with no questions yet.',
+  },
+  {
     version: '0.281.1',
     date: '2026-11-24',
     text: 'Give each page its own tab title and link preview, and list the Daily and game modes for search.',
