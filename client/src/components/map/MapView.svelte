@@ -52,7 +52,6 @@
   import { onlyCurrentLevel } from '../../lib/mapOverlay'
   import { reachLine } from '../../lib/mapBox'
   import { placeLabels, type PinLabel } from '../../lib/mapLabels'
-  import { onlyCurrentLevel } from '../../lib/mapOverlay'
   import { LABELS_FROM_ZOOM, labelsOnTile, type LabelLayer, loadLabels } from '../../lib/placeNames'
   import { canvasIn, handOn, type Held, takeOver } from '../../lib/keptMap'
   import { WORDS_OUT_MS } from '../../lib/stageMoves'
