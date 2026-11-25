@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.282.1',
+    date: '2026-11-25',
+    text: "Rebuild each theme's sheet on its own, so new themes come sooner; the stage looks the same.",
+  },
+  {
     version: '0.282.0',
     date: '2026-11-24',
     text: 'Replace both Gauntlet themes with Prifddinas: crystal-lit meadow, white walls under emerald roofs, and a random elven clan on the banners.',

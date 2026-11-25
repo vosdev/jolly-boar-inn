@@ -12,6 +12,10 @@ import { ENTER_MOVE_MS } from '../../lib/stageMoves'
 import scrollSource from './ClueScroll.svelte?raw'
 import source from './StageView.svelte?raw'
 
+const SHEET_SOURCES = Object.values(
+  import.meta.glob<string>('./sheets/*.svelte', { query: '?raw', import: 'default', eager: true }),
+)
+
 /** The duration and delay of the animation a rule for `state` plays, in ms. */
 function timing(selector: string, state = 'returning'): { duration: number; delay: number } {
   const rule = source.match(
@@ -82,10 +86,9 @@ describe('the map', () => {
 
 describe('the sheet inside the stage', () => {
   it('is styled from the stage only at its root, never inside it', () => {
-    const markup = scrollSource.slice(
-      scrollSource.indexOf('</script>'),
-      scrollSource.indexOf('<style>'),
-    )
+    const markup = [scrollSource, ...SHEET_SOURCES]
+      .map((file) => file.slice(file.indexOf('</script>'), file.indexOf('<style>')))
+      .join('\n')
     const inside = new Set([
       ...[...markup.matchAll(/class="([^"]+)"/g)].flatMap((m) =>
         m[1]!.split(/\s+/).filter((name) => /^[\w-]+$/.test(name)),

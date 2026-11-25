@@ -44,6 +44,7 @@ server/scripts/                    wiki, gen_price_questions, import_suggestions
 client/src/lib/                    api, ws, protocol, stores, session, history, profile, modes, …
 client/src/routes/, components/    Home, Create, Join, Room, Daily, History, Admin, Suggest, Report; TopBar, …
 client/src/components/questions/   viewFor(type, mode), Question, gem buttons; types/, stems/
+client/src/components/stage/       StageView, ClueScroll (shared paper); sheets/: one per Sheet, in SHEETS
 ```
 
 Routes: `/`, `/create`, `/r/:code` (the room with a session, Join without), `/r/:code/create` and
