@@ -16,10 +16,14 @@
    * would drop it from under the finger, so they keep their markers and only move. Marker
    * labels are found a place after every zoom (`lib/mapLabels.ts`), in `markers`' order. `frame`
    * moves the view to a rectangle, leaving `inset` pixels clear of what lies over the map.
+   * `icons` draws the game's map icons over the tiles (`lib/mapIcons.ts`), loaded the first
+   * time a view asks for them.
    */
   import type {
     CircleMarker,
     Coords,
+    GridLayer,
+    GridLayerOptions,
     LatLngBounds,
     Layer,
     LayerGroup,
@@ -44,6 +48,7 @@
     type WorldPoint,
   } from '../../lib/map'
   import { reducedMotion } from '../../lib/interlude'
+  import { ICONS_FROM_ZOOM, iconsOnTile, type IconLayer, loadIcons } from '../../lib/mapIcons'
   import { reachLine } from '../../lib/mapBox'
   import { placeLabels, type PinLabel } from '../../lib/mapLabels'
   import { canvasIn, handOn, type Held, takeOver } from '../../lib/keptMap'
@@ -97,6 +102,7 @@
     opening: opensOn,
     keep = false,
     fresh = false,
+    icons = false,
     markers = [],
     lines = [],
     areas = [],
@@ -116,6 +122,8 @@
     keep?: boolean
     /** A new question on a map taken over: glide to the opening. */
     fresh?: boolean
+    /** Draw the game's map icons over the tiles. */
+    icons?: boolean
     markers?: readonly MapMarker[]
     lines?: readonly MapLine[]
     areas?: readonly MapArea[]
@@ -138,6 +146,7 @@
   /** The Leaflet module and map, once they have loaded and the frame has a size. */
   let live = $state.raw<{
     L: typeof import('leaflet')
+    kept: Held
     map: LeafletMap
     pins: LayerGroup
     drawing: LayerGroup
@@ -354,6 +363,55 @@
   })
 
   $effect(() => {
+    if (live === null) return
+    const { L, kept, map } = live
+    if (!icons) {
+      kept.icons?.remove()
+      return
+    }
+    let stale = false
+    void loadIcons().then((layer) => {
+      if (stale || layer === null) return
+      kept.icons ??= iconGrid(L, layer)
+      if (!map.hasLayer(kept.icons)) kept.icons.addTo(map)
+    })
+    return () => {
+      stale = true
+    }
+  })
+
+  /** A layer that paints each tile's icons onto a canvas, crisp at any pixel ratio. */
+  function iconGrid(L: typeof import('leaflet'), layer: IconLayer): GridLayer {
+    const Grid = L.GridLayer.extend({
+      createTile(coords: Coords): HTMLCanvasElement {
+        const tile = document.createElement('canvas')
+        const ratio = window.devicePixelRatio || 1
+        tile.width = tile.height = TILE_SIZE * ratio
+        const context = tile.getContext('2d')
+        if (context === null) return tile
+        context.imageSmoothingEnabled = false
+        context.scale(ratio, ratio)
+        for (const { sprite, left, top } of iconsOnTile(layer, coords.z, coords.x, coords.y)) {
+          const cell = layer.sprites[sprite]
+          if (cell === undefined) continue
+          const [x, y, width, height] = cell
+          context.drawImage(layer.sheet, x, y, width, height, left, top, width, height)
+        }
+        return tile
+      },
+    }) as new (options: GridLayerOptions) => GridLayer
+    return new Grid({
+      tileSize: TILE_SIZE,
+      minZoom: ICONS_FROM_ZOOM,
+      maxZoom: HIGHEST_ZOOM,
+      noWrap: true,
+      className: 'map-icons',
+      // Over the tiles, under the mask outside `bounds`, which is an overlay.
+      zIndex: 2,
+    })
+  }
+
+  $effect(() => {
     if (live === null || frame === null) return
     const { top, right, bottom, left } = inset
     const fitting = {
@@ -436,7 +494,7 @@
       bounds: limit,
     })
     tiles.getTileUrl = (coords: Coords) => tileUrl(coords.z, coords.x, flipRow(coords.y))
-    return { L, map, canvas, tiles, outside: null, limits: '', groups: [] }
+    return { L, map, canvas, tiles, icons: null, outside: null, limits: '', groups: [] }
   }
 
   /** Keeps the map to `bounds`, masking what lies outside, unless it already is. */
@@ -545,6 +603,7 @@
 
       live = {
         L,
+        kept,
         map,
         pins: L.layerGroup().addTo(map),
         drawing: L.layerGroup().addTo(map),

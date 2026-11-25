@@ -9,7 +9,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.config import REPO_ROOT
-from app.modes import MODES, TILES, Mode, drawable, offered
+from app.modes import MODES, TILES, Mode, drawable, offered, problems
 from app.questions import schema
 from app.questions.packs import Pack
 from app.questions.submission import Submission
@@ -272,3 +272,14 @@ def test_the_client_reads_the_same_credit(case: dict[str, Any]) -> None:
             payload[key] = case[key]
     assert credit(payload, case["pins"]) == pytest.approx(case["credit"])
     assert map_pin.reveal(payload)["reach"] == case["scored_reach"]
+
+
+def test_only_kgp_recon_and_minimap_guesser_draw_map_icons_while_open() -> None:
+    rules = json.loads((REPO_ROOT / "schema" / "modes.json").read_text(encoding="utf-8"))
+    drawn = {mode["id"] for mode in rules["modes"] if mode["map_icons"]}
+    assert drawn == {"kgp_recon", "minimap_guesser"}
+
+
+def test_a_mode_with_map_icons_plays_map_pin() -> None:
+    mode = Mode(id="x", types=frozenset({"multiple_choice"}), map_icons=True)
+    assert problems(mode) == ["x: draws map icons, so it plays map_pin"]

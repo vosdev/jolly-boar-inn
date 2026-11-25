@@ -196,6 +196,7 @@ MODES: dict[str, Mode] = {
         id="kgp_recon",
         types=frozenset({"map_pin"}),
         extra_answer=10,
+        map_icons=True,
         stem="photo",
         suggest=Suggest(fixed_prompt="Where was this photo taken?", picture=True),
     ),
@@ -203,6 +204,7 @@ MODES: dict[str, Mode] = {
     "minimap_guesser": Mode(
         id="minimap_guesser",
         types=frozenset({"map_pin"}),
+        map_icons=True,
         stem="minimap",
         suggest=Suggest(fixed_prompt="Where is this?", wiki_only=True, minimap=True),
     ),
@@ -398,6 +400,8 @@ def problems(mode: Mode) -> list[str]:
         found.append(f"{mode.id}: shows a clue a step, so it needs {mode.clues} steps")
     if mode.described and mode.types != {"map_pin"}:
         found.append(f"{mode.id}: describes a place on the map, so it plays only map_pin")
+    if mode.map_icons and "map_pin" not in mode.types:
+        found.append(f"{mode.id}: draws map icons, so it plays map_pin")
     if mode.clues and mode.types != {"pick_from_list"}:
         found.append(f"{mode.id}: clues are a pick_from_list field, its only type")
     if mode.questions is None and len({type_questions(t) for t in mode.types}) > 1:

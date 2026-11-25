@@ -49,6 +49,7 @@ export interface ModeRules {
   described: boolean
   pictured: boolean
   picture_at_reveal: boolean
+  map_icons: boolean
   extra_answer: number
   stem: string | null
   hold_counts_prompt: boolean

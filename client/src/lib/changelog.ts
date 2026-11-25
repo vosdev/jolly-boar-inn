@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.283.0',
+    date: '2026-11-25',
+    text: 'Show banks, shops and quest icons on the map in KGP Recon and Minimap Guesser, and on every map reveal.',
+  },
+  {
     version: '0.282.2',
     date: '2026-11-25',
     text: 'Open each question right when the reveal countdown ends, even on a slow server.',
