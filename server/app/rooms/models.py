@@ -409,6 +409,9 @@ class Room:
     # The same moment on the manager's monotonic clock, and what the timer sleeps to: a
     # wall clock that jumps must not move it. ``next_at`` is for the wire.
     next_mono: float | None = None
+    # The deadline the last sleep ended on, as (monotonic, wall), or ``None`` when a skip
+    # cut it short: the moment the next question was due, whatever the loop did first.
+    due: tuple[float, datetime] | None = None
     # How long the reveal in progress holds, for the clients' countdown: its question's own.
     reveal_seconds: int | None = None
     # The one task driving open → closed → reveal → next.

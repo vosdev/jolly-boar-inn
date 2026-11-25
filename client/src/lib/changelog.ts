@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.282.2',
+    date: '2026-11-25',
+    text: 'Open each question right when the reveal countdown ends, even on a slow server.',
+  },
+  {
     version: '0.282.1',
     date: '2026-11-25',
     text: "Rebuild each theme's sheet on its own, so new themes come sooner; the stage looks the same.",

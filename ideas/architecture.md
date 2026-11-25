@@ -67,7 +67,7 @@ Nothing else writes `rooms`, `players`, `questions` or `answers` after creation.
 `end_round`, `rotate_key`, `request_join`, `poll_request`, `cancel_request`, `decide_request`, `promote`, `kick`,
 `end_game`, `rematch`, `delete`, `purge_expired`, `evict_idle`, `evict`, `shutdown`. A `Room` holds `players`, `requests`, `plan`,
 `custom_questions`, `custom_author`, `played_ids`, `questions`, `totals`, `totals_round`, `current_index`, `phase`,
-`next_at`, `next_mono`, `sockets`, `timer`, `awaiting_player`, `daily`, `advance`, `rescheduled`, `players_stale`,
+`next_at`, `next_mono`, `due`, `sockets`, `timer`, `awaiting_player`, `daily`, `advance`, `rescheduled`, `players_stale`,
 `players_flush`, `active_at` and `lock`.
 
 - One `asyncio.Lock` per room. Every public method takes it. Nothing locks across rooms.
@@ -439,6 +439,8 @@ PlayerResult { value, correct, credit, points, item_points, item, by_book }
   but for a `picture_at_reveal` round's, which only `question_closed` names. Devtools still show the
   whole picture before it builds up or loses its shadow, and a riddle's every clue. A `picture_pin`'s screenshot is
   `view.picture` instead, open and revealed, and its target only the reveal's.
+- `opened_at` is the moment the phase before ended on its clock (the reveal's `next_at`, or the splash's countdown), however long the
+  lock and the writes after it took; after a skip it is the time of the skip.
 - `answerable_at` is `opened_at` plus the hold the question types in (`rooms/hold.py`): 0.4 s (0.9 s
   for an event), each line, a round's host's ask line counted as 50 letters, at 50 letters a second
   with a 0.5–1 s pause after it, then 0.2 s. Answers before it are `not_open`, and `ends_at` and timing count from it, so the typing

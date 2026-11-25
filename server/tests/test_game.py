@@ -131,7 +131,22 @@ def test_the_next_question_opens_when_question_closed_said_it_would(table) -> No
     opened = game.admin.take("question_open")
     opened_at = datetime.fromisoformat(opened["question"]["opened_at"])
     assert opened["question"]["index"] == 1
-    assert abs((opened_at - next_at).total_seconds()) < 0.5
+    assert opened_at == next_at
+
+
+def test_a_slow_step_between_the_reveal_and_the_next_question_does_not_move_it(
+    table, faults
+) -> None:
+    """The write that moves the room on stalls 0.4 s; the question still opens at ``next_at``."""
+    faults.stall("update rooms set current_index", 0.4)
+    game = table("Zezima", seconds=1, reveal_seconds=1)
+    game.start()
+    game.opened(0)
+    next_at = datetime.fromisoformat(game.admin.take("question_closed")["next_at"])
+    view = game.admin.take("question_open")["question"]
+    assert datetime.fromisoformat(view["opened_at"]) == next_at
+    ends_at = datetime.fromisoformat(view["ends_at"])
+    assert (ends_at - next_at).total_seconds() == 1
 
 
 def _leaves(node: Any) -> Iterator[Any]:

@@ -490,14 +490,24 @@ class Loop(RoomHost):
 
         The delay is measured against the clock every time rather than counted down, so
         a wakeup that is late (a busy event loop) closes the question immediately instead
-        of pushing the rest of the game back by that much.
+        of pushing the rest of the game back by that much. A deadline reached on the
+        clock, not by a skip, is left in ``room.due`` for the next question to open at.
         """
         delay = max(0.0, deadline - self.clock())
+        room.due = None
         try:
             async with asyncio.timeout(delay):
                 await room.advance.wait()
         except TimeoutError:
-            pass
+            self._mark_due(room, deadline)
+
+    def _mark_due(self, room: Room, deadline: float) -> None:
+        """Remember that the phase ended on ``deadline``, the wall time ``next_at`` named."""
+        if room.next_mono == deadline and room.next_at is not None:
+            wall = room.next_at
+        else:
+            wall = datetime.now(UTC) - timedelta(seconds=self.clock() - deadline)
+        room.due = (deadline, wall)
 
     async def _pause_if_all_answered(self, room: Room, question: RoomQuestion) -> None:
         """Hold a question everyone answered early open ``all_answered_pause`` longer.
@@ -564,6 +574,7 @@ class Loop(RoomHost):
         ``next_mono`` and clearing ``rescheduled`` happen with no await between them, so a
         change is never lost between the read and the wait.
         """
+        room.due = None
         while True:
             target = room.next_mono
             room.rescheduled.clear()
@@ -574,6 +585,7 @@ class Loop(RoomHost):
                 continue
             delay = target - self.clock()
             if delay <= 0:
+                self._mark_due(room, target)
                 return
             await _wait_for_either(room.advance, room.rescheduled, delay)
 
@@ -719,6 +731,12 @@ class Loop(RoomHost):
                 return None
             question = room.questions[index]
             shown_at, now = datetime.now(UTC), self.clock()
+            # Opens at the moment the room was told, so the lock and the database writes
+            # between the last sleep and here come out of the typing hold, not of the
+            # players' time or the gap ``next_at`` promised.
+            due, room.due = room.due, None
+            if due is not None and due[0] < now:
+                now, shown_at = due
             segment = room.segment_at(index)
             assert segment is not None  # every question belongs to a round
             async with pool.acquire() as conn, conn.transaction():
