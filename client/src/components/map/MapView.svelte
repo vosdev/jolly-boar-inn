@@ -49,6 +49,7 @@
   } from '../../lib/map'
   import { reducedMotion } from '../../lib/interlude'
   import { ICONS_FROM_ZOOM, iconsOnTile, type IconLayer, loadIcons } from '../../lib/mapIcons'
+  import { onlyCurrentLevel } from '../../lib/mapOverlay'
   import { reachLine } from '../../lib/mapBox'
   import { placeLabels, type PinLabel } from '../../lib/mapLabels'
   import { canvasIn, handOn, type Held, takeOver } from '../../lib/keptMap'
@@ -400,15 +401,17 @@
         return tile
       },
     }) as new (options: GridLayerOptions) => GridLayer
-    return new Grid({
-      tileSize: TILE_SIZE,
-      minZoom: ICONS_FROM_ZOOM,
-      maxZoom: HIGHEST_ZOOM,
-      noWrap: true,
-      className: 'map-icons',
-      // Over the tiles, under the mask outside `bounds`, which is an overlay.
-      zIndex: 2,
-    })
+    return onlyCurrentLevel(
+      new Grid({
+        tileSize: TILE_SIZE,
+        minZoom: ICONS_FROM_ZOOM,
+        maxZoom: HIGHEST_ZOOM,
+        noWrap: true,
+        className: 'map-icons',
+        // Over the tiles, under the mask outside `bounds`, which is an overlay.
+        zIndex: 2,
+      }),
+    )
   }
 
   $effect(() => {
