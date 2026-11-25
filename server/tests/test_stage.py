@@ -13,9 +13,11 @@ two-line prompt fit in 650px.
 
 import re
 
-from tests.client_source import read
+from tests.client_source import CLIENT_SRC, read
 
 SCROLL = read("components/stage/ClueScroll.svelte")
+SHEETS = [read(path) for path in sorted((CLIENT_SRC / "components/stage/sheets").glob("*.svelte"))]
+ROLLS = read("components/stage/sheets/Scroll.svelte")
 STAGE = read("components/stage/StageView.svelte")
 CONFETTI = read("components/stage/Confetti.svelte")
 
@@ -28,7 +30,7 @@ def _reduced_motion(source: str) -> str:
 
 def test_no_style_attribute_or_directive_on_the_stage() -> None:
     """Layer 8 is read from the stylesheet; the CSP forbids inline styles anyway."""
-    for source in (SCROLL, STAGE):
+    for source in (SCROLL, STAGE, *SHEETS):
         assert re.search(r"(?<![\w-])style\s*=", source) is None
         assert re.search(r"(?<![\w-])style:", source) is None
 
@@ -37,14 +39,14 @@ def test_only_what_runs_lengthwise_stretches() -> None:
     """The knobs, lashings and corners keep their aspect ratio at every size; only what has
     no ends to distort stretches: a roll's body, the facets and a bamboo pole along its
     bands. Zanaris's stone is a clip path, not a stretched picture."""
-    svgs = re.findall(r"<svg\s[^>]*>", SCROLL)
+    svgs = [tag for source in (SCROLL, *SHEETS) for tag in re.findall(r"<svg\s[^>]*>", source)]
     stretched = [
         re.search(r'class="([^"\s]+)', tag).group(1)  # type: ignore[union-attr]
         for tag in svgs
         if 'preserveAspectRatio="none"' in tag
     ]
-    assert stretched == ["body", "pole", "facets"]
-    assert re.search(r'<svg class="finial[^>]*preserveAspectRatio', SCROLL) is None
+    assert sorted(stretched) == ["body", "facets", "pole"]
+    assert re.search(r'<svg class="finial[^>]*preserveAspectRatio', ROLLS) is None
 
 
 def test_a_host_leaves_and_arrives_in_200ms_and_the_confetti_lasts_900ms() -> None:
@@ -70,7 +72,7 @@ def test_reduced_motion_stills_the_scroll_and_drops_the_confetti() -> None:
 
 
 def test_under_448px_the_screen_cuts_the_rolls_in_half() -> None:
-    edge = re.search(r"@media \(max-width: 447\.98px\) \{(.*?)\n  \}", SCROLL, re.S)
+    edge = re.search(r"@media \(max-width: 447\.98px\) \{(.*?)\n  \}", ROLLS, re.S)
     assert edge is not None
     assert "left: calc(-0.5 * var(--roll-w));" in edge.group(1)
     assert "right: calc(-0.5 * var(--roll-w));" in edge.group(1)
