@@ -14,6 +14,10 @@ from app.static import CLIENT_DIST
 
 PIN = REPO_ROOT / "data" / "map.json"
 LAYER = "clean"
+# The map icons the browser draws over the tiles, in a folder beside them.
+ICONS = "icons"
+# The place names the browser writes over them, in another.
+LABELS = "labels"
 MANIFEST = "manifest.json"
 
 

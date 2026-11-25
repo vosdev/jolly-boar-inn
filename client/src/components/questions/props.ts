@@ -63,6 +63,10 @@ export interface TypeViewProps<Value = unknown> extends Drawn {
   timing?: StemTiming
   /** The mode's options are long: one a row on a phone. Only `multiple_choice` reads it. */
   stacked?: boolean
+  /** The mode draws the map's icons while open, as every map does at the reveal. Only `map_pin` reads it. */
+  mapIcons?: boolean
+  /** The same for the map's place names. Only `map_pin` reads it. */
+  mapLabels?: boolean
   /**
    * The options our item took off the question (`OpenQuestion.removed`), struck through and
    * out of reach, open and revealed. Only `multiple_choice` reads it.

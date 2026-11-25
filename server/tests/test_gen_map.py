@@ -1,12 +1,13 @@
-"""The world map's tiles: how they are built, and that a run is whole or leaves nothing.
+"""The world map's tiles and icons: how they are built, and that a run is whole or leaves nothing.
 
-The download and the Java renderer are stubbed: CI has no Java, and the pipeline around them
-is what can go wrong quietly. ``make gen-map`` itself is checked by hand.
+The download and the Java renderer and exporter are stubbed: CI has no Java, and the pipeline
+around them is what can go wrong quietly. ``make gen-map`` itself is checked by hand.
 """
 
 import hashlib
 import io
 import json
+import shutil
 import sys
 import zipfile
 from pathlib import Path
@@ -59,6 +60,26 @@ def draw_falador(cache: Path, squares: Path) -> None:
     square(squares / "12_28.png", (0, 0, 0))
 
 
+def export_falador(cache: Path, exported: Path) -> None:
+    """A bank twice over, as the cache can list one, and an altar with a wider sprite."""
+    (exported / "icons.json").write_text("[[2946,3368,1454],[2946,3368,1454],[2964,3378,1477]]")
+    Image.new("RGBA", (15, 15), RED + (255,)).save(exported / "1454.png")
+    Image.new("RGBA", (17, 15), BLUE + (255,)).save(exported / "1477.png")
+
+
+def label_falador(cache: Path, found: Path) -> None:
+    """Falador on two lines in the medium font, and a kingdom in orange in the large one."""
+    fonts = [
+        {"ascent": 35, "advances": [7] * 256, "glyphs": {}},
+        {"ascent": 35, "advances": [8] * 256, "glyphs": {"70": [0, 26]}},
+        {"ascent": 35, "advances": [10] * 256, "glyphs": {"65": [1, 24]}},
+    ]
+    labels = [[2965, 3380, 1, 0xFFFFFF, "F<br>F"], [2900, 3300, 2, 0xFF981F, "A"]]
+    (found / "labels.json").write_text(json.dumps({"fonts": fonts, "labels": labels}))
+    Image.new("RGBA", (7, 9), WHITE + (255,)).save(found / "1_70.png")
+    Image.new("RGBA", (9, 11), WHITE + (255,)).save(found / "2_65.png")
+
+
 @pytest.fixture(autouse=True)
 def ignored(monkeypatch: pytest.MonkeyPatch) -> None:
     """These paths are in a temporary folder, where git has no opinion."""
@@ -82,6 +103,8 @@ def generate(pin: gen_map.Pin, client: Path, stage: Path, **kwargs: Any) -> bool
         stage=stage,
         fetch=kwargs.get("fetch", fetch_zip),
         draw=kwargs.get("draw", draw_falador),
+        export=kwargs.get("export", export_falador),
+        label=kwargs.get("label", label_falador),
     )
 
 
@@ -230,3 +253,76 @@ def test_has_tiles_ignores_another_caches_tileset(tmp_path: Path) -> None:
     (client / "2746" / "clean").mkdir(parents=True)
     (client / "2746" / "clean" / "manifest.json").write_text("{}")
     assert not has_tiles(pin, client)
+
+
+def test_the_icons_are_written_once_each_with_their_sprites_on_one_sheet(
+    client: Path, stage: Path
+) -> None:
+    generate(pin_of(disk_zip()), client, stage)
+    root = client / "2752" / "icons"
+    layer = json.loads((root / "icons.json").read_text())
+    assert layer == {
+        "sprites": [[0, 0, 15, 15], [17, 0, 17, 15]],
+        "icons": [[2946, 3368, 0], [2964, 3378, 1]],
+    }
+    with Image.open(root / "sheet.png") as sheet:
+        assert sheet.size == (34, 17)
+        assert sheet.getpixel((7, 7)) == RED + (255,)
+        assert sheet.getpixel((25, 7)) == BLUE + (255,)
+        assert sheet.getpixel((7, 16)) == (0, 0, 0, 0)
+
+
+def test_a_map_with_tiles_and_no_icons_gains_only_the_icons(client: Path, stage: Path) -> None:
+    def never(cache: Path, squares: Path) -> None:
+        raise AssertionError("the tiles were rendered again")
+
+    pin = pin_of(disk_zip())
+    generate(pin, client, stage)
+    shutil.rmtree(client / "2752" / "icons")
+    assert generate(pin, client, stage, draw=never)
+    assert (client / "2752" / "icons" / "icons.json").is_file()
+    assert not stage.exists()
+
+
+def test_a_stopped_icon_export_keeps_the_tiles_and_serves_no_icons(
+    client: Path, stage: Path
+) -> None:
+    def fails(cache: Path, exported: Path) -> None:
+        (exported / "icons.json").write_text("[]")
+        raise OSError("out of memory")
+
+    with pytest.raises(OSError, match="out of memory"):
+        generate(pin_of(disk_zip()), client, stage, export=fails)
+    assert has_tiles(PIN, client)
+    assert not (client / "2752" / "icons").exists()
+
+
+def test_the_labels_keep_their_lines_and_fonts_with_the_glyphs_on_one_sheet(
+    client: Path, stage: Path
+) -> None:
+    generate(pin_of(disk_zip()), client, stage)
+    root = client / "2752" / "labels"
+    layer = json.loads((root / "labels.json").read_text())
+    assert layer["labels"] == [
+        [2900, 3300, 2, 0xFF981F, ["A"]],
+        [2965, 3380, 1, 0xFFFFFF, ["F", "F"]],
+    ]
+    assert [font["glyphs"] for font in layer["fonts"]] == [
+        {},
+        {"70": [0, 0, 7, 9, 0, 26]},
+        {"65": [11, 0, 9, 11, 1, 24]},
+    ]
+    assert layer["fonts"][2]["advances"][65] == 10
+    with Image.open(root / "glyphs.png") as sheet:
+        assert sheet.size == (22, 11)
+
+
+def test_a_map_without_labels_gains_only_the_labels(client: Path, stage: Path) -> None:
+    def never(cache: Path, out: Path) -> None:
+        raise AssertionError("a finished layer was made again")
+
+    pin = pin_of(disk_zip())
+    generate(pin, client, stage)
+    shutil.rmtree(client / "2752" / "labels")
+    assert generate(pin, client, stage, draw=never, export=never)
+    assert (client / "2752" / "labels" / "labels.json").is_file()

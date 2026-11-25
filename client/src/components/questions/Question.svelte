@@ -204,6 +204,8 @@
       {results}
       {timing}
       stacked={MODES[question.mode]?.stacked}
+      mapIcons={rulesOf(question.mode)?.map_icons}
+      mapLabels={rulesOf(question.mode)?.map_labels}
       removed={question.removed}
       {onAnswer}
     />
