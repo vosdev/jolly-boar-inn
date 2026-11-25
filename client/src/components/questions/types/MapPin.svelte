@@ -15,8 +15,8 @@
    * (`lib/mapLabels.ts`), which keeps the wrong answers named however the near ones pile up.
    * With several pins and a crowd the map keeps to your own, and the table has the rest.
    *
-   * The game's map icons show at the reveal, and while open only for a mode that wants them
-   * (`mapIcons`): where they help too much, the round leaves them off.
+   * The game's map icons and place names show at the reveal, and while open only for a mode
+   * that wants them (`mapIcons`, `mapLabels`): where they help too much, the round leaves them off.
    *
    * A view without `results` is a phone beside the room's TV, which only shows your own pins.
    *
@@ -95,6 +95,7 @@
     results,
     timing,
     mapIcons = false,
+    mapLabels = false,
     onAnswer,
   }: TypeViewProps<WorldPoint[]> = $props()
 
@@ -302,6 +303,7 @@
     keep
     fresh={!revealed}
     icons={mapIcons || revealed}
+    labels={mapLabels || revealed}
     {markers}
     {lines}
     {areas}

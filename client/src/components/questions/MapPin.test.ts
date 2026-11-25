@@ -14,11 +14,16 @@ import { PREVIEW_ID } from '../../lib/resultRows'
 import { players, you } from '../../lib/stores'
 import MapPin from './types/MapPin.svelte'
 
-// jsdom fetches nothing, so the layer is a sheet that is never drawn on.
+// jsdom fetches nothing, so each layer is a sheet that is never drawn on.
 vi.mock('../../lib/mapIcons', async (original) => ({
   ...(await original<typeof import('../../lib/mapIcons')>()),
   loadIcons: () =>
     Promise.resolve({ sprites: [], icons: [], sheet: document.createElement('canvas') }),
+}))
+vi.mock('../../lib/placeNames', async (original) => ({
+  ...(await original<typeof import('../../lib/placeNames')>()),
+  loadLabels: () =>
+    Promise.resolve({ fonts: [], labels: [], glyphs: document.createElement('canvas') }),
 }))
 
 const SARIM = { name: 'Port Sarim', min_x: 3008, max_x: 3060, min_y: 3180, max_y: 3260 }
@@ -191,6 +196,30 @@ describe('MapPin', () => {
     const { container } = setup({ mapIcons: true })
     await loaded(container)
     await waitFor(() => expect(container.querySelector('.map-icons')).not.toBeNull())
+  })
+
+  it('writes the place names while open only for a mode that wants them', async () => {
+    const plain = setup({ mapIcons: true })
+    await loaded(plain.container)
+    await waitFor(() => expect(plain.container.querySelector('.map-icons')).not.toBeNull())
+    expect(plain.container.querySelector('.map-labels')).toBeNull()
+    plain.unmount()
+
+    const { container } = setup({ mapLabels: true })
+    await loaded(container)
+    await waitFor(() => expect(container.querySelector('.map-labels')).not.toBeNull())
+    expect(container.querySelector('.map-icons')).toBeNull()
+  })
+
+  it('writes the place names at the reveal whatever the mode', async () => {
+    const { container } = setup({
+      data: { prompt: 'Where?', pins: 1, targets: [SARIM], reach: 100 },
+      revealed: true,
+      yourValue: [{ x: 3228, y: 3217 }],
+      results: resultsFor(3, 1),
+    })
+    await loaded(container)
+    await waitFor(() => expect(container.querySelector('.map-labels')).not.toBeNull())
   })
 
   it('draws the map icons at the reveal whatever the mode', async () => {

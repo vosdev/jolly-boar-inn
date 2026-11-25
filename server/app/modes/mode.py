@@ -101,6 +101,7 @@ class Mode:
     back until it closes, for a round where the picture would give the answer away.
     ``map_icons`` draws the game's map icons over a ``map_pin`` map while it is open; every
     map shows them at the reveal, so a round where they would help too much keeps them off.
+    ``map_labels`` does the same with the game's place names, which can be the answer.
 
     ``stem`` is what the client draws above the answers (``lib/modes/``), or ``None`` for a
     mode its view alone draws; ``rooms/hold.py`` reads it to count the letters typed.
@@ -125,6 +126,7 @@ class Mode:
     pictured: bool = False
     picture_at_reveal: bool = False
     map_icons: bool = False
+    map_labels: bool = False
     extra_answer: int = 0
     stem: str | None = "text"
     hold_counts_prompt: bool = False

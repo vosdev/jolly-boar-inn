@@ -283,3 +283,13 @@ def test_only_kgp_recon_and_minimap_guesser_draw_map_icons_while_open() -> None:
 def test_a_mode_with_map_icons_plays_map_pin() -> None:
     mode = Mode(id="x", types=frozenset({"multiple_choice"}), map_icons=True)
     assert problems(mode) == ["x: draws map icons, so it plays map_pin"]
+
+
+def test_only_kgp_recon_draws_map_labels_while_open() -> None:
+    rules = json.loads((REPO_ROOT / "schema" / "modes.json").read_text(encoding="utf-8"))
+    assert {mode["id"] for mode in rules["modes"] if mode["map_labels"]} == {"kgp_recon"}
+
+
+def test_a_mode_with_map_labels_plays_map_pin() -> None:
+    mode = Mode(id="x", types=frozenset({"multiple_choice"}), map_labels=True)
+    assert problems(mode) == ["x: draws map labels, so it plays map_pin"]

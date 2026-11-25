@@ -16,8 +16,8 @@
    * would drop it from under the finger, so they keep their markers and only move. Marker
    * labels are found a place after every zoom (`lib/mapLabels.ts`), in `markers`' order. `frame`
    * moves the view to a rectangle, leaving `inset` pixels clear of what lies over the map.
-   * `icons` draws the game's map icons over the tiles (`lib/mapIcons.ts`), loaded the first
-   * time a view asks for them.
+   * `icons` draws the game's map icons over the tiles (`lib/mapIcons.ts`) and `labels` its place
+   * names (`lib/placeNames.ts`), each loaded the first time a view asks for it.
    */
   import type {
     CircleMarker,
@@ -52,6 +52,8 @@
   import { onlyCurrentLevel } from '../../lib/mapOverlay'
   import { reachLine } from '../../lib/mapBox'
   import { placeLabels, type PinLabel } from '../../lib/mapLabels'
+  import { onlyCurrentLevel } from '../../lib/mapOverlay'
+  import { LABELS_FROM_ZOOM, labelsOnTile, type LabelLayer, loadLabels } from '../../lib/placeNames'
   import { canvasIn, handOn, type Held, takeOver } from '../../lib/keptMap'
   import { WORDS_OUT_MS } from '../../lib/stageMoves'
 
@@ -104,6 +106,7 @@
     keep = false,
     fresh = false,
     icons = false,
+    labels = false,
     markers = [],
     lines = [],
     areas = [],
@@ -125,6 +128,8 @@
     fresh?: boolean
     /** Draw the game's map icons over the tiles. */
     icons?: boolean
+    /** Write the game's place names over the tiles. */
+    labels?: boolean
     markers?: readonly MapMarker[]
     lines?: readonly MapLine[]
     areas?: readonly MapArea[]
@@ -381,17 +386,92 @@
     }
   })
 
+  $effect(() => {
+    if (live === null) return
+    const { L, kept, map } = live
+    if (!labels) {
+      kept.labels?.remove()
+      return
+    }
+    let stale = false
+    void loadLabels().then((layer) => {
+      if (stale || layer === null) return
+      kept.labels ??= labelGrid(L, layer)
+      if (!map.hasLayer(kept.labels)) kept.labels.addTo(map)
+    })
+    return () => {
+      stale = true
+    }
+  })
+
+  /** A tile's canvas, sized for the pixel ratio and drawn on without smoothing. */
+  function tileCanvas(): { tile: HTMLCanvasElement; context: CanvasRenderingContext2D | null } {
+    const tile = document.createElement('canvas')
+    const ratio = window.devicePixelRatio || 1
+    tile.width = tile.height = TILE_SIZE * ratio
+    const context = tile.getContext('2d')
+    context?.scale(ratio, ratio)
+    if (context !== null) context.imageSmoothingEnabled = false
+    return { tile, context }
+  }
+
+  /** A layer that writes each tile's place names onto a canvas, its glyphs tinted per colour. */
+  function labelGrid(L: typeof import('leaflet'), layer: LabelLayer): GridLayer {
+    const tinted = new Map<number, HTMLCanvasElement>()
+    const inColour = (colour: number): HTMLCanvasElement => {
+      const ready = tinted.get(colour)
+      if (ready !== undefined) return ready
+      const sheet = document.createElement('canvas')
+      const source = layer.glyphs as HTMLImageElement
+      sheet.width = source.width
+      sheet.height = source.height
+      const context = sheet.getContext('2d')
+      if (context !== null) {
+        context.drawImage(source, 0, 0)
+        context.globalCompositeOperation = 'source-in'
+        context.fillStyle = `#${colour.toString(16).padStart(6, '0')}`
+        context.fillRect(0, 0, sheet.width, sheet.height)
+      }
+      tinted.set(colour, sheet)
+      return sheet
+    }
+    const Grid = L.GridLayer.extend({
+      createTile(coords: Coords): HTMLCanvasElement {
+        const { tile, context } = tileCanvas()
+        if (context === null) return tile
+        const written = labelsOnTile(layer, coords.z, coords.x, coords.y)
+        // Every shadow first, so no shadow falls over a neighbouring glyph.
+        for (const [shift, colourOf] of [
+          [1, () => 0],
+          [0, (colour: number) => colour],
+        ] as const) {
+          for (const { glyph, colour, left, top } of written) {
+            const [x, y, width, height] = glyph
+            const sheet = inColour(colourOf(colour))
+            context.drawImage(sheet, x, y, width, height, left + shift, top + shift, width, height)
+          }
+        }
+        return tile
+      },
+    }) as new (options: GridLayerOptions) => GridLayer
+    return onlyCurrentLevel(
+      new Grid({
+        tileSize: TILE_SIZE,
+        minZoom: Math.min(...LABELS_FROM_ZOOM),
+        maxZoom: HIGHEST_ZOOM,
+        noWrap: true,
+        className: 'map-labels',
+        zIndex: 3,
+      }),
+    )
+  }
+
   /** A layer that paints each tile's icons onto a canvas, crisp at any pixel ratio. */
   function iconGrid(L: typeof import('leaflet'), layer: IconLayer): GridLayer {
     const Grid = L.GridLayer.extend({
       createTile(coords: Coords): HTMLCanvasElement {
-        const tile = document.createElement('canvas')
-        const ratio = window.devicePixelRatio || 1
-        tile.width = tile.height = TILE_SIZE * ratio
-        const context = tile.getContext('2d')
+        const { tile, context } = tileCanvas()
         if (context === null) return tile
-        context.imageSmoothingEnabled = false
-        context.scale(ratio, ratio)
         for (const { sprite, left, top } of iconsOnTile(layer, coords.z, coords.x, coords.y)) {
           const cell = layer.sprites[sprite]
           if (cell === undefined) continue
@@ -497,7 +577,17 @@
       bounds: limit,
     })
     tiles.getTileUrl = (coords: Coords) => tileUrl(coords.z, coords.x, flipRow(coords.y))
-    return { L, map, canvas, tiles, icons: null, outside: null, limits: '', groups: [] }
+    return {
+      L,
+      map,
+      canvas,
+      tiles,
+      icons: null,
+      labels: null,
+      outside: null,
+      limits: '',
+      groups: [],
+    }
   }
 
   /** Keeps the map to `bounds`, masking what lies outside, unless it already is. */

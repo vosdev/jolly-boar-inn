@@ -16,6 +16,8 @@ export interface Held {
   tiles: TileLayer
   /** The map icons, once a view has shown them: on the map only while one does. */
   icons: GridLayer | null
+  /** The place names, likewise. */
+  labels: GridLayer | null
   outside: Polygon | null
   /** The `bounds` its limits were set for, as a key. */
   limits: string

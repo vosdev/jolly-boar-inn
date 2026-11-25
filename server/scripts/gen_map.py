@@ -5,8 +5,8 @@ cache, while the wiki retires a tileset weeks after the next one, so a pin stays
 selfhoster who runs this years later. RuneLite's renderer draws each map square without icons or
 labels (``map_render/``, the only Java here, which is why this runs in its own image), at 4 px per
 game tile. That is zoom 2 of the wiki's grid, and Pillow halves it down to the overview. The map
-icons are exported beside them, for the browser to draw over the tiles, with their sprites on one
-sheet.
+icons and labels are exported beside them, for the browser to draw over the tiles, with their
+sprites and the labels' glyphs on a sheet each.
 
 Each layer is built in ``.map/`` and moved into ``client/public/map/<cache_id>/`` whole, so a
 stopped run serves nothing, and a run makes only the layers missing. A complete map sends no
@@ -31,7 +31,7 @@ from pathlib import Path
 from fetch_assets import REPO_ROOT, NotIgnored, git_ignored
 from PIL import Image
 
-from app.map import ICONS, LAYER, MANIFEST, PIN
+from app.map import ICONS, LABELS, LAYER, MANIFEST, PIN
 
 CLIENT_MAP = REPO_ROOT / "client" / "public" / "map"
 STAGE = REPO_ROOT / ".map"
@@ -109,6 +109,11 @@ def export_icons(cache: Path, icons: Path) -> None:
     java("Icons", cache, icons)
 
 
+def export_labels(cache: Path, labels: Path) -> None:
+    """Write the surface's map labels and fonts to ``labels/labels.json``, their glyphs beside."""
+    java("Labels", cache, labels)
+
+
 def sha256(path: Path) -> str:
     """The hex digest of a file too large to read at once."""
     with path.open("rb") as file:
@@ -174,27 +179,57 @@ def build_tiles(squares: Path, out: Path) -> int:
     return count
 
 
+def pack(images: list[Image.Image], out: Path) -> list[list[int]]:
+    """Lay ``images`` on one sheet in a grid, write it, and return each one's cell."""
+    cell = max(max(image.width, image.height) for image in images)
+    rows = -(-len(images) // SHEET_COLUMNS)
+    sheet = Image.new("RGBA", (cell * min(len(images), SHEET_COLUMNS), cell * rows))
+    cells = []
+    for index, image in enumerate(images):
+        left, top = index % SHEET_COLUMNS * cell, index // SHEET_COLUMNS * cell
+        sheet.paste(image, (left, top))
+        cells.append([left, top, image.width, image.height])
+    sheet.save(out, optimize=True)
+    return cells
+
+
 def build_icons(exported: Path, out: Path) -> int:
     """Pack the exported sprites onto one sheet and write the layer's index; returns the icons."""
     icons = json.loads((exported / "icons.json").read_text(encoding="utf-8"))
     places = sorted({(x, y, sprite) for x, y, sprite in icons})
     sprite_ids = sorted({sprite for _, _, sprite in places})
     images = [Image.open(exported / f"{sprite}.png").convert("RGBA") for sprite in sprite_ids]
-    cell = max(max(image.width, image.height) for image in images)
-    rows = -(-len(images) // SHEET_COLUMNS)
-    sheet = Image.new("RGBA", (cell * min(len(images), SHEET_COLUMNS), cell * rows))
-    sprites = []
-    for index, image in enumerate(images):
-        left, top = index % SHEET_COLUMNS * cell, index // SHEET_COLUMNS * cell
-        sheet.paste(image, (left, top))
-        sprites.append([left, top, image.width, image.height])
-        image.close()
     out.mkdir(parents=True)
-    sheet.save(out / "sheet.png", optimize=True)
+    sprites = pack(images, out / "sheet.png")
+    for image in images:
+        image.close()
     cells = {sprite: index for index, sprite in enumerate(sprite_ids)}
     layer = {"sprites": sprites, "icons": [[x, y, cells[sprite]] for x, y, sprite in places]}
     (out / "icons.json").write_text(json.dumps(layer, separators=(",", ":")) + "\n", "utf-8")
     return len(places)
+
+
+def build_labels(exported: Path, out: Path) -> int:
+    """Pack the exported glyphs onto one sheet and write the layer's index; returns the labels."""
+    found = json.loads((exported / "labels.json").read_text(encoding="utf-8"))
+    keys = [(size, code) for size, font in enumerate(found["fonts"]) for code in font["glyphs"]]
+    images = [Image.open(exported / f"{size}_{code}.png").convert("RGBA") for size, code in keys]
+    out.mkdir(parents=True)
+    cells = pack(images, out / "glyphs.png")
+    for image in images:
+        image.close()
+    fonts = [
+        {"ascent": font["ascent"], "advances": font["advances"], "glyphs": {}}
+        for font in found["fonts"]
+    ]
+    for (size, code), cell in zip(keys, cells, strict=True):
+        fonts[size]["glyphs"][code] = cell + found["fonts"][size]["glyphs"][code]
+    labels = sorted(
+        [x, y, size, colour, text.split("<br>")] for x, y, size, colour, text in found["labels"]
+    )
+    layer = {"fonts": fonts, "labels": labels}
+    (out / "labels.json").write_text(json.dumps(layer, separators=(",", ":")) + "\n", "utf-8")
+    return len(labels)
 
 
 def fetch_cache(pin: Pin, stage: Path, fetch: Callable[[Pin, Path], None]) -> Path:
@@ -226,20 +261,27 @@ def generate(
     fetch: Callable[[Pin, Path], None] = download,
     draw: Callable[[Path, Path], None] = render,
     export: Callable[[Path, Path], None] = export_icons,
+    label: Callable[[Path, Path], None] = export_labels,
 ) -> bool:
     """Make the pinned map's missing layers; False when it was already complete."""
     root = client / str(pin.cache_id)
     tiles_done = (root / LAYER / MANIFEST).is_file()
     icons_done = (root / ICONS / "icons.json").is_file()
-    if tiles_done and icons_done:
+    labels_done = (root / LABELS / "labels.json").is_file()
+    if tiles_done and icons_done and labels_done:
         return False
-    written = [stage / "x", root / LAYER / "0" / "0_0_0.png", root / ICONS / "sheet.png"]
+    written = [
+        stage / "x",
+        root / LAYER / "0" / "0_0_0.png",
+        root / ICONS / "sheet.png",
+        root / LABELS / "glyphs.png",
+    ]
     if git_ignored(written) != set(written):
         raise NotIgnored(f"git would commit what this writes: {written}")
 
     stage.mkdir(exist_ok=True)
     archive = fetch_cache(pin, stage, fetch)
-    for leftover in ("cache", "squares", "tiles", "exported", "icons"):
+    for leftover in ("cache", "squares", "tiles", "exported", "icons", "found", "labels"):
         shutil.rmtree(stage / leftover, ignore_errors=True)
     unpack(archive, stage / "cache")
 
@@ -256,6 +298,11 @@ def generate(
         export(stage / "cache", stage / "exported")
         build_icons(stage / "exported", stage / "icons")
         install(stage / "icons", pin, client, ICONS)
+    if not labels_done:
+        (stage / "found").mkdir()
+        label(stage / "cache", stage / "found")
+        build_labels(stage / "found", stage / "labels")
+        install(stage / "labels", pin, client, LABELS)
     shutil.rmtree(stage)
     return True
 

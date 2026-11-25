@@ -197,6 +197,7 @@ MODES: dict[str, Mode] = {
         types=frozenset({"map_pin"}),
         extra_answer=10,
         map_icons=True,
+        map_labels=True,
         stem="photo",
         suggest=Suggest(fixed_prompt="Where was this photo taken?", picture=True),
     ),
@@ -402,6 +403,8 @@ def problems(mode: Mode) -> list[str]:
         found.append(f"{mode.id}: describes a place on the map, so it plays only map_pin")
     if mode.map_icons and "map_pin" not in mode.types:
         found.append(f"{mode.id}: draws map icons, so it plays map_pin")
+    if mode.map_labels and "map_pin" not in mode.types:
+        found.append(f"{mode.id}: draws map labels, so it plays map_pin")
     if mode.clues and mode.types != {"pick_from_list"}:
         found.append(f"{mode.id}: clues are a pick_from_list field, its only type")
     if mode.questions is None and len({type_questions(t) for t in mode.types}) > 1:

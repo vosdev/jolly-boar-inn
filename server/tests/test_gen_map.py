@@ -67,6 +67,19 @@ def export_falador(cache: Path, exported: Path) -> None:
     Image.new("RGBA", (17, 15), BLUE + (255,)).save(exported / "1477.png")
 
 
+def label_falador(cache: Path, found: Path) -> None:
+    """Falador on two lines in the medium font, and a kingdom in orange in the large one."""
+    fonts = [
+        {"ascent": 35, "advances": [7] * 256, "glyphs": {}},
+        {"ascent": 35, "advances": [8] * 256, "glyphs": {"70": [0, 26]}},
+        {"ascent": 35, "advances": [10] * 256, "glyphs": {"65": [1, 24]}},
+    ]
+    labels = [[2965, 3380, 1, 0xFFFFFF, "F<br>F"], [2900, 3300, 2, 0xFF981F, "A"]]
+    (found / "labels.json").write_text(json.dumps({"fonts": fonts, "labels": labels}))
+    Image.new("RGBA", (7, 9), WHITE + (255,)).save(found / "1_70.png")
+    Image.new("RGBA", (9, 11), WHITE + (255,)).save(found / "2_65.png")
+
+
 @pytest.fixture(autouse=True)
 def ignored(monkeypatch: pytest.MonkeyPatch) -> None:
     """These paths are in a temporary folder, where git has no opinion."""
@@ -91,6 +104,7 @@ def generate(pin: gen_map.Pin, client: Path, stage: Path, **kwargs: Any) -> bool
         fetch=kwargs.get("fetch", fetch_zip),
         draw=kwargs.get("draw", draw_falador),
         export=kwargs.get("export", export_falador),
+        label=kwargs.get("label", label_falador),
     )
 
 
@@ -281,3 +295,34 @@ def test_a_stopped_icon_export_keeps_the_tiles_and_serves_no_icons(
         generate(pin_of(disk_zip()), client, stage, export=fails)
     assert has_tiles(PIN, client)
     assert not (client / "2752" / "icons").exists()
+
+
+def test_the_labels_keep_their_lines_and_fonts_with_the_glyphs_on_one_sheet(
+    client: Path, stage: Path
+) -> None:
+    generate(pin_of(disk_zip()), client, stage)
+    root = client / "2752" / "labels"
+    layer = json.loads((root / "labels.json").read_text())
+    assert layer["labels"] == [
+        [2900, 3300, 2, 0xFF981F, ["A"]],
+        [2965, 3380, 1, 0xFFFFFF, ["F", "F"]],
+    ]
+    assert [font["glyphs"] for font in layer["fonts"]] == [
+        {},
+        {"70": [0, 0, 7, 9, 0, 26]},
+        {"65": [11, 0, 9, 11, 1, 24]},
+    ]
+    assert layer["fonts"][2]["advances"][65] == 10
+    with Image.open(root / "glyphs.png") as sheet:
+        assert sheet.size == (22, 11)
+
+
+def test_a_map_without_labels_gains_only_the_labels(client: Path, stage: Path) -> None:
+    def never(cache: Path, out: Path) -> None:
+        raise AssertionError("a finished layer was made again")
+
+    pin = pin_of(disk_zip())
+    generate(pin, client, stage)
+    shutil.rmtree(client / "2752" / "labels")
+    assert generate(pin, client, stage, draw=never, export=never)
+    assert (client / "2752" / "labels" / "labels.json").is_file()
