@@ -71,6 +71,19 @@ export interface DailyResult {
   /** Full credit only, the 🟩 in the row. */
   correct: number
   results: ('right' | 'partial' | 'missed')[]
+  /** The day's other finished attempts, null below the server's minimum. */
+  others: number | null
+  /** Of those, the ones scoring strictly less; null with `others`. */
+  beaten: number | null
+}
+
+/**
+ * The whole percent of the others the result beat, rounded down so that 100% means every one,
+ * or null when the server left the comparison out.
+ */
+export function beatenShare(result: DailyResult): number | null {
+  if (result.others === null || result.beaten === null || result.others === 0) return null
+  return Math.floor((100 * result.beaten) / result.others)
 }
 
 export const SQUARES: Record<DailyResult['results'][number], string> = {
@@ -115,6 +128,24 @@ export function saveScore(result: DailyResult): void {
   const others = dailyScores().filter((score) => score.day !== day)
   const score: DailyScore = { day, number, points, correct, total: results.length }
   writeStored(SCORES_KEY, JSON.stringify([score, ...others]))
+}
+
+/** The day before `day`, both as the server names them. */
+export function dayBefore(day: string): string {
+  return new Date(Date.parse(day) - DAY_MS).toISOString().slice(0, 10)
+}
+
+/** Days finished here in a row, ending on `day`: 0 when `day` itself has no score. */
+export function streak(scores: DailyScore[], day: string): number {
+  const days = new Set(scores.map((score) => score.day))
+  let count = 0
+  for (let at = day; days.has(at); at = dayBefore(at)) count++
+  return count
+}
+
+/** `streak`'s count as players read it. */
+export function inARow(count: number): string {
+  return `${count} ${count === 1 ? 'day' : 'days'} in a row`
 }
 
 /**

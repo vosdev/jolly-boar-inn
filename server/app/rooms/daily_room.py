@@ -34,6 +34,9 @@ DAILY_REVEAL_SECONDS = 300
 
 Result = Literal["right", "partial", "missed"]
 
+# Fewer others than this, and "better than x%" says more about luck than about the score.
+COMPARE_MIN = 3
+
 DAILY_SETTINGS = RoomSettings(
     modes=[],
     pace="run",
@@ -64,12 +67,18 @@ class DailyNotOpen(ApiError):
 
 @dataclass(frozen=True, slots=True)
 class DailyResult:
-    """A finished attempt: its day, points and one result per question, in play order."""
+    """A finished attempt: its day, points and one result per question, in play order.
+
+    ``others`` counts the day's other finished attempts and ``beaten`` those scoring strictly
+    less; both are ``None`` while there are fewer than ``COMPARE_MIN`` others.
+    """
 
     day: date
     number: int
     points: int
     results: list[Result]
+    others: int | None = None
+    beaten: int | None = None
 
     @property
     def correct(self) -> int:
@@ -173,7 +182,9 @@ class DailyRooms(RoomHost):
             if not finished:
                 row = await self._end_roomless(row["day"], token_hash, now)
             if row["day"] == day:
-                raise DailyPlayed(self._daily_result(row["day"], row["points"], row["results"]))
+                raise DailyPlayed(
+                    await self._daily_result(row["day"], token_hash, row["points"], row["results"])
+                )
         return None
 
     async def _end_roomless(self, day: date, token_hash: str, now: datetime) -> asyncpg.Record:
@@ -204,13 +215,28 @@ class DailyRooms(RoomHost):
             return None
         if row["finished_at"] is None:
             row = await self._end_roomless(day, token_hash, now)
-        return self._daily_result(day, row["points"], row["results"])
+        return await self._daily_result(day, token_hash, row["points"], row["results"])
 
-    def _daily_result(self, day: date, points: int, results: Sequence[str]) -> DailyResult:
+    async def _daily_result(
+        self, day: date, token_hash: str, points: int, results: Sequence[str]
+    ) -> DailyResult:
         number = number_of(day, self.settings.daily_first_day)
         # An attempt whose room went mid-game missed what it never reached.
         played = cast(list[Result], list(results))
-        return DailyResult(day, number, points, played + ["missed"] * (SET_SIZE - len(played)))
+        filled = played + ["missed"] * (SET_SIZE - len(played))
+        pool = await self._pool()
+        # Asked afresh on every visit: the day's share grows as more players finish.
+        row = await pool.fetchrow(
+            "select count(*)::int as others, count(*) filter (where points < $3)::int as beaten"
+            " from daily_attempts"
+            " where day = $1 and token_hash <> $2 and finished_at is not null",
+            day,
+            token_hash,
+            points,
+        )
+        if row["others"] < COMPARE_MIN:
+            return DailyResult(day, number, points, filled)
+        return DailyResult(day, number, points, filled, row["others"], row["beaten"])
 
     async def _rotate_daily_session(self, code: str) -> tuple[str, str]:
         """A new session for a daily room's player; the old one stops working."""

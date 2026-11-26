@@ -542,6 +542,8 @@ describe('the daily', () => {
     points: 7420,
     correct: 7,
     results: Array<'right'>(10).fill('right'),
+    others: null,
+    beaten: null,
   }
 
   it("offers today's daily to a new browser, and links to it", async () => {

@@ -32,6 +32,8 @@ const RESULT: DailyResult = {
   number: 12,
   points: 7420,
   correct: 7,
+  others: null,
+  beaten: null,
   results: [
     'right',
     'right',

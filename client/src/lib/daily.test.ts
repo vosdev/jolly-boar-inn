@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import {
+  beatenShare,
   dailyScores,
   dailyToken,
   lastDaily,
@@ -9,7 +10,9 @@ import {
   resumes,
   saveScore,
   shareText,
+  streak,
   type DailyResult,
+  type DailyScore,
 } from './daily'
 
 beforeEach(() => localStorage.clear())
@@ -50,6 +53,8 @@ describe('the share text', () => {
     number: 12,
     points: 7420,
     correct: 7,
+    others: null,
+    beaten: null,
     results: [
       'right',
       'right',
@@ -88,6 +93,8 @@ describe('the scores kept here', () => {
     number: 12,
     points: 7420,
     correct: 7,
+    others: null,
+    beaten: null,
     results: Array<'right'>(10).fill('right'),
   }
   const on = (day: string, number: number): DailyResult => ({ ...RESULT, day, number })
@@ -140,5 +147,48 @@ describe('numberOn', () => {
     const today = { day: '2026-10-31', number: 12 }
     expect(numberOn('2026-10-31', today)).toBe(12)
     expect(numberOn('2026-10-30', today)).toBe(11)
+  })
+})
+
+describe('the streak', () => {
+  const kept = (...days: string[]): DailyScore[] =>
+    days.map((day, index) => ({ day, number: index + 1, points: 1, correct: 1, total: 10 }))
+
+  it('counts n days played in a row as n', () => {
+    const scores = kept('2026-10-27', '2026-10-28', '2026-10-29', '2026-10-30', '2026-10-31')
+    expect(streak(scores, '2026-10-31')).toBe(5)
+  })
+
+  it('counts across a month', () => {
+    expect(streak(kept('2026-10-31', '2026-11-01'), '2026-11-01')).toBe(2)
+  })
+
+  it('stops at a gap of a day', () => {
+    expect(streak(kept('2026-10-28', '2026-10-30', '2026-10-31'), '2026-10-31')).toBe(2)
+  })
+
+  it('is 0 on a day not played', () => {
+    expect(streak(kept('2026-10-29', '2026-10-30'), '2026-11-01')).toBe(0)
+  })
+})
+
+describe('the share beaten', () => {
+  const RESULT: DailyResult = {
+    day: '2026-11-11',
+    number: 12,
+    points: 7420,
+    correct: 7,
+    results: Array<'right'>(10).fill('right'),
+    others: 148,
+    beaten: 92,
+  }
+
+  it('is a whole percent, rounded down', () => {
+    expect(beatenShare(RESULT)).toBe(62)
+    expect(beatenShare({ ...RESULT, others: 200, beaten: 199 })).toBe(99)
+  })
+
+  it('is absent when the server leaves it out', () => {
+    expect(beatenShare({ ...RESULT, others: null, beaten: null })).toBeNull()
   })
 })
