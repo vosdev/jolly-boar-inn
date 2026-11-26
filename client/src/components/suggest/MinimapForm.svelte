@@ -13,6 +13,7 @@
     onSurface,
     wrapAngle,
   } from '../../lib/minimap'
+  import { placedAreas } from '../../lib/mapBox'
   import { boundsOf, type PinTarget } from '../../lib/pins'
   import { placeProblem, questionPreview, type QuestionContent } from '../../lib/suggestions'
   import Minimap from '../map/Minimap.svelte'
@@ -23,6 +24,7 @@
     id,
     choice,
     content,
+    placed,
     saveLabel,
     stepQuestion,
     stepDifficulty,
@@ -57,6 +59,7 @@
   let attempted = $state(false)
   // Off by default, so the picker shows the map as players get it: icons, no place names.
   let named = $state(false)
+  let showPlaced = $state(false)
 
   const closeOn = (at: WorldPoint): MapBounds => around([at], CLOSE_MARGIN)
   let frame = $state<MapBounds | null>(startSpot === undefined ? null : closeOn(startSpot))
@@ -85,11 +88,12 @@
       ...(explained === '' ? {} : { explanation: explained }),
     },
   })
-  const areas = $derived<MapArea[]>(
-    target === null
+  const areas = $derived<MapArea[]>([
+    ...(target === null
       ? []
-      : [{ box: boundsOf(target), name: name.trim() || 'This spot', round: true }],
-  )
+      : [{ box: boundsOf(target), name: name.trim() || 'This spot', round: true }]),
+    ...(showPlaced ? placedAreas(placed) : []),
+  ])
   const grips = $derived<MapGrip[]>(
     spot === null ? [] : [{ id: SPOT, at: spot, middle: true, title: 'Drag to move' }],
   )
@@ -169,7 +173,11 @@
     <label class="check marks">
       <input type="checkbox" bind:checked={named} /> Show place names
     </label>
-    <p class="note hint">Minimap Guesser plays without them.</p>
+    {#if placed.length > 0}
+      <label class="check">
+        <input type="checkbox" bind:checked={showPlaced} /> Show spots already in the game
+      </label>
+    {/if}
   </div>
   {#if spot !== null}
     <div class="tune">

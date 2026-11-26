@@ -85,6 +85,8 @@
     reach?: number
     /** The circle inside the square box, not the box. */
     round?: boolean
+    /** Drawn quieter, for places beside the one that matters, such as those already asked. */
+    faint?: boolean
   }
 
   export interface MapGrip {
@@ -315,7 +317,8 @@
         interactive: false,
       }).addTo(drawing)
     }
-    marks = areas.map(({ box, name, reach, round }) => {
+    marks = areas.map(({ box, name, reach, round, faint }) => {
+      const ringClass = faint === true ? 'map-ring faint' : 'map-ring'
       const whole = { ...box, maxX: box.maxX + 1, maxY: box.maxY + 1 }
       const edges = corners(whole)
       const middle = L.latLngBounds(edges).getCenter()
@@ -332,17 +335,17 @@
         L.polygon(line, { className: 'map-reach', interactive: false }).addTo(drawing)
       }
       if (round === true) {
-        L.circle(middle, { radius, className: 'map-ring', interactive: false }).addTo(drawing)
+        L.circle(middle, { radius, className: ringClass, interactive: false }).addTo(drawing)
       } else {
-        L.rectangle(edges, { className: 'map-ring', interactive: false }).addTo(drawing)
+        L.rectangle(edges, { className: ringClass, interactive: false }).addTo(drawing)
       }
       const ring = L.circleMarker(middle, {
-        className: 'map-ring',
+        className: ringClass,
         radius: SMALLEST_RING,
         interactive: false,
       }).addTo(drawing)
       const tag = document.createElement('span')
-      tag.className = 'map-name'
+      tag.className = faint === true ? 'map-name faint' : 'map-name'
       tag.textContent = name
       L.marker(middle, {
         icon: L.divIcon({ className: 'pin-host', html: tag, iconSize: [0, 0] }),
@@ -909,6 +912,12 @@
     stroke-width: 2.5;
   }
 
+  .map :global(.map-ring.faint) {
+    fill-opacity: 0.12;
+    stroke-width: 1.5;
+    stroke-opacity: 0.8;
+  }
+
   .map :global(.map-ring.gone) {
     display: none;
   }
@@ -983,5 +992,12 @@
     font-size: 1.1rem;
     font-weight: 700;
     white-space: nowrap;
+  }
+
+  .map :global(.map-name.faint) {
+    padding: 0 5px 1px;
+    border-width: 1px;
+    font-size: 0.85rem;
+    opacity: 0.85;
   }
 </style>

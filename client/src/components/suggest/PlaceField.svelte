@@ -15,16 +15,19 @@
     middleOf,
     moveBox,
     PLACE_REACH,
+    placedAreas,
     pullCorner,
     reachPoints,
     START_BOX,
   } from '../../lib/mapBox'
+  import type { PinTarget } from '../../lib/pins'
   import MapView, { type MapArea, type MapGrip } from '../map/MapView.svelte'
 
   let {
     box,
     reach,
     name,
+    placed = [],
     onbox,
     onreach,
   }: {
@@ -32,6 +35,8 @@
     reach: number
     /** Labels the box on the map. */
     name: string
+    /** The round's places already in the game, which a box shows on request. */
+    placed?: readonly PinTarget[]
     onbox: (box: MapBounds) => void
     onreach: (reach: number) => void
   } = $props()
@@ -53,9 +58,12 @@
   // svelte-ignore state_referenced_locally
   let frame = $state<MapBounds | null>(box === null ? null : closeOn(box))
 
-  const areas = $derived<MapArea[]>(
-    box === null ? [] : [{ box, name: name.trim() || 'This place', reach }],
-  )
+  let showPlaced = $state(false)
+
+  const areas = $derived<MapArea[]>([
+    ...(box === null ? [] : [{ box, name: name.trim() || 'This place', reach }]),
+    ...(showPlaced ? placedAreas(placed) : []),
+  ])
   const grips = $derived<MapGrip[]>(
     box === null
       ? []
@@ -94,6 +102,11 @@
       ? 'Find the place and tap it.'
       : 'Drag the corners round the whole place. Drag the middle, or tap, to move it.'}
   </p>
+  {#if placed.length > 0}
+    <label class="check">
+      <input type="checkbox" bind:checked={showPlaced} /> Show places already in the game
+    </label>
+  {/if}
 </div>
 <div class="field">
   <label for="{id}-reach">Points run out {reach} tiles from the box</label>

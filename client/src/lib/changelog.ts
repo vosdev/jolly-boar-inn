@@ -46,7 +46,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.288.0',
     date: '2026-11-26',
-    text: 'See every place a map round already asks on one map, under Already in the game on the Suggest page.',
+    text: 'Suggesting a map place? Tick Show places already in the game to see every spot the round asks.',
   },
   {
     version: '0.287.0',

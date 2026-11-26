@@ -11,6 +11,7 @@
 
 import type { Component, Snippet } from 'svelte'
 
+import type { PinTarget } from '../../lib/pins'
 import type { OpenQuestion } from '../../lib/protocol'
 import type {
   Choice,
@@ -47,6 +48,8 @@ export interface SuggestionFormProps {
   picture?: string | null
   /** The names a shadow may not give: the game asks about them already. */
   asked: readonly string[]
+  /** A map round's places already in the game, which its picker can show. */
+  placed: readonly PinTarget[]
   /** Every type the round offers, and what to do with one another form writes. */
   picker:
     { options: { value: string; label: string }[]; onpick: (type: string) => void } | undefined

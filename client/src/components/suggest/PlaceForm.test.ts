@@ -107,6 +107,35 @@ describe('PlaceForm, described', () => {
     })
   })
 
+  it('shows the places already in the game only once asked, beside the new box', async () => {
+    vi.mocked(api.getReportChoices).mockResolvedValue({
+      by: 'question',
+      choices: [
+        {
+          id: 'a',
+          label: 'Big white walls.',
+          places: [{ name: 'Falador', min_x: 2935, max_x: 3066, min_y: 3309, max_y: 3395 }],
+        },
+      ],
+    })
+    await open()
+    await type(/^Place/, 'Catherby')
+    await tapMap()
+    const field = screen.getByText('Where it is').closest('.field')!
+    const box = await screen.findByLabelText('Show places already in the game')
+    const names = (): string[] =>
+      [...field.querySelectorAll('.map-name')].map((tag) => `${tag.className}:${tag.textContent}`)
+    await waitFor(() => expect(names()).toEqual(['map-name:Catherby']))
+    await fireEvent.click(box)
+    await waitFor(() => expect(names()).toEqual(['map-name:Catherby', 'map-name faint:Falador']))
+  })
+
+  it('offers no places when the round has none yet', async () => {
+    await open()
+    await waitFor(() => expect(api.getReportChoices).toHaveBeenCalled())
+    expect(screen.queryByLabelText('Show places already in the game')).toBeNull()
+  })
+
   it('refuses a description naming the place, and one with no explanation', async () => {
     await open()
     await type(/^Place/, 'Falador')

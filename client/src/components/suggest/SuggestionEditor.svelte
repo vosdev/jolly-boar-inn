@@ -23,6 +23,7 @@
   import { NAME_MAX } from '../../lib/names'
   import type { MatchingQuestion } from '../../lib/matching'
   import type { OrderingQuestion } from '../../lib/ordering'
+  import type { PinTarget } from '../../lib/pins'
   import { profile } from '../../lib/profile'
   import type { OpenQuestion } from '../../lib/protocol'
   import type { Snippet } from 'svelte'
@@ -62,6 +63,7 @@
     choice,
     initial = undefined,
     asked = [],
+    placed = [],
     saveLabel = 'Send to Reldo',
     hero = null,
     picture = null,
@@ -77,6 +79,8 @@
      * Without them only the server refuses one.
      */
     asked?: readonly string[]
+    /** A map round's places already in the game, which its picker can show. */
+    placed?: readonly PinTarget[]
     saveLabel?: string
     /** The selfhoster's hero, who stands on the preview's stage when the host asks. */
     hero?: string | null
@@ -447,6 +451,7 @@
         {picture}
         bind:name={subjectName}
         {asked}
+        {placed}
         {picker}
         {saveLabel}
         stepQuestion={stepQuestionCard}
