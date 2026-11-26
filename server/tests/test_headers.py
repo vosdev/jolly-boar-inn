@@ -26,6 +26,8 @@ def test_headers_on_every_response(settings: Settings, dist: Path) -> None:
         assert "frame-ancestors 'none'" in csp
         # Sound files are the client's own, never another origin's.
         assert "media-src 'self';" in csp
+        # A phone fetches the web manifest to add the game to its Home Screen.
+        assert "manifest-src 'self';" in csp
         # The built client has no inline script or style, so nothing needs a bypass.
         assert "unsafe-inline" not in csp
         assert "unsafe-eval" not in csp

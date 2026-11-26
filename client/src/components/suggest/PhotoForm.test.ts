@@ -67,6 +67,28 @@ async function attach(): Promise<void> {
 }
 
 describe('PhotoForm', () => {
+  it('offers the photos’ places on the picker once the round has some, and a full screen map', async () => {
+    render(Suggest, { navigate: vi.fn() })
+    await fireEvent.click(await screen.findByRole('button', { name: /KGP Recon/ }))
+    expect(screen.getByRole('button', { name: 'Full screen map' })).toBeTruthy()
+    expect(screen.queryByLabelText('Show places already in the game')).toBeNull()
+    cleanup()
+    vi.mocked(api.getReportChoices).mockResolvedValue({
+      by: 'question',
+      choices: [
+        {
+          id: 'a',
+          label: 'Where was this photo taken?',
+          picture: 'a1b2c3d4e5f60718.webp',
+          places: [{ name: 'Varrock', min_x: 3200, max_x: 3210, min_y: 3400, max_y: 3410 }],
+        },
+      ],
+    })
+    render(Suggest, { navigate: vi.fn() })
+    await fireEvent.click(await screen.findByRole('button', { name: /KGP Recon/ }))
+    expect(await screen.findByLabelText('Show places already in the game')).toBeTruthy()
+  })
+
   it('asks for both ticks before the upload', async () => {
     render(Suggest, { navigate: vi.fn() })
     await fireEvent.click(await screen.findByRole('button', { name: /KGP Recon/ }))

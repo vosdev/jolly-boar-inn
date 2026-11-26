@@ -98,11 +98,11 @@ describe('TryPreview', () => {
     expect(screen.getByText('+1,000')).toBeTruthy()
   })
 
-  it('reveals with no answer when none was given', async () => {
+  it('reveals no answer as a bare +0, since the preview box is too narrow for the words', async () => {
     show()
     await settle()
     await fireEvent.click(revealSide())
-    expect(screen.getByText('No answer · +0')).toBeTruthy()
+    expect(document.querySelector('.bubble .slot .earned')?.textContent?.trim()).toBe('+0')
   })
 
   it('drops the answer and goes back to the question when the question changes', async () => {

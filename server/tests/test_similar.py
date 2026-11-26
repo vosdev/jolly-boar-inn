@@ -411,3 +411,28 @@ def test_a_place_is_flagged_by_its_name_or_its_box_and_only_in_its_round() -> No
     assert _score(place("Falador", box), place("White Knights' Castle", box)) == 100
     assert _score(place("Falador", box), place("Lumbridge", far)) < 60
     assert _score(place("Falador", box), place("White Knights' Castle", box, "other")) < 60
+
+
+def test_a_place_in_two_map_rounds_is_two_questions() -> None:
+    square = {"name": "Varrock Square", "min_x": 3200, "max_x": 3230, "min_y": 3420, "max_y": 3440}
+    marked = {
+        "type": "map_pin",
+        "mode": "mark_the_map",
+        "payload": {"prompt": "Where is Varrock Square?", "targets": [square]},
+    }
+    minimap = {
+        "type": "map_pin",
+        "mode": "minimap_guesser",
+        "payload": {
+            "prompt": "Where is this?",
+            "targets": [square],
+            "minimap": {"x": 3215, "y": 3430, "angle": 0},
+        },
+    }
+    photo = _with(marked, prompt="Where was this photo taken?")
+    photo["mode"] = "kgp_recon"
+
+    assert _score(marked, minimap) == 0
+    assert _score(minimap, marked) == 0
+    assert _score(_with(marked, prompt="Where is this?"), minimap) == 0
+    assert _score(marked, photo) == 0

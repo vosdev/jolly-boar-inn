@@ -116,6 +116,25 @@ describe('MapView', () => {
     await waitFor(() => expect(container.querySelector('.map-reach')).not.toBeNull())
   })
 
+  it('hides a place’s name that would cover an earlier one', async () => {
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      const left = this.textContent === 'Far' ? 500 : 100
+      return new DOMRect(left, 100, 80, 20)
+    })
+    const box = { minX: 2840, maxX: 2860, minY: 3140, maxY: 3160 }
+    const { container } = render(MapView, {
+      bounds: REGION,
+      areas: ['Near', 'Nearby', 'Far'].map((name) => ({ box, name })),
+    })
+    await waitFor(() => expect(container.querySelectorAll('.map-name')).toHaveLength(3))
+    const hidden = [...container.querySelectorAll<HTMLElement>('.map-name')].map(
+      (tag) => tag.hidden,
+    )
+    expect(hidden).toEqual([false, true, false])
+  })
+
   describe('built on a stage that then grows', () => {
     let height = 600
     const grown: (() => void)[] = []

@@ -1,11 +1,11 @@
 """``GET /api/questions``: what Report and Suggest list; ``/api/admin/questions``: whole ones.
 
-The player's list names each question without its answer (``reports.label``), or lists
-the roster's items for a price mode. The packs are public in the repository, so the list
-gives nothing away that a reveal would not. The admin routes return pack questions whole,
-answers included, with how players score on each (``app/question_stats.py``), and queue
-the operator's edits of them (``app/question_edits.py``), behind ``ADMIN_TOKEN`` like the
-rest of ``/api/admin``.
+The player's list names each question without its answer (``reports.label``), but for a
+map round's places, or lists the roster's items for a price mode. The packs are public in
+the repository, so the list gives nothing away that a reveal would not. The admin routes
+return pack questions whole, answers included, with how players score on each
+(``app/question_stats.py``), and queue the operator's edits of them
+(``app/question_edits.py``), behind ``ADMIN_TOKEN`` like the rest of ``/api/admin``.
 """
 
 from datetime import UTC, datetime

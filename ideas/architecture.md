@@ -862,7 +862,7 @@ Limits:
 
 `http/headers.py` sets `Referrer-Policy: no-referrer`, `nosniff`, `X-Frame-Options: DENY`,
 `Cache-Control: no-store` and `X-App-Version` on `/api/*`, and a CSP of `default-src 'none'` widened to `'self'` per
-directive plus `img-src data:`, with `base-uri`, `form-action` and `frame-ancestors` at `'none'`.
+directive (`manifest-src` too) plus `img-src data:`, with `base-uri`, `form-action` and `frame-ancestors` at `'none'`.
 The build has no inline script or style. The access log drops query strings. There is no HSTS: TLS
 ends at the proxy, and HSTS would lock out a LAN selfhoster on plain HTTP.
 
@@ -962,7 +962,7 @@ key into them, so cleanup leaves it.
 - `app/similar.py` scores a question against another, 0–100: 0.7 × the trigram Dice of the
   normalised prompts (with quote) + 0.3 × the answers' (1 when equal; any accepted free-text
   spelling); prompts alone across types; Odd One Out by option-set overlap; Who's That NPC? 100
-  for the same NPC, shadow or render, else 0; The Forgetful Bard 100 for the same item, else as usual; a `map_pin` in the same round 100 for the same name or an overlapping box, else as usual; two minimaps 100 within 19 tiles, else 0. `POST /api/suggestions/similar` takes a question as `POST
+  for the same NPC, shadow or render, else 0; The Forgetful Bard 100 for the same item, else as usual; a `map_pin` in the same round 100 for the same name or an overlapping box, else as usual, and in another round 0; two minimaps 100 within 19 tiles, else 0. `POST /api/suggestions/similar` takes a question as `POST
   /api/suggestions` does, minus the link, and returns up to 3 pack questions (every pack mode but
   the price ones) at 60 or more as `{mode, label, score}`, never a suggestion; 120 an hour per
   address (`SIMILAR_PER_HOUR`). `/suggest` asks 800 ms after the prompt or answer changes.
@@ -980,8 +980,8 @@ key into them, so cleanup leaves it.
   id or null, a snapshot (the question whole, a price mode's roster item, or null for "something
   else"), up to 500 characters of text, open or closed. Closed ones are kept. It and `/suggest`
   list `GET /api/questions?mode=…`, `{id, label}` (`reports.label`: no answer but Who's That NPC?'s,
-  plus a shadow's `npc`, `random_event`, or a screenshot's `picture`, which a round of them is picked
-  by); 3 an hour per address. `/api/admin/reports` lists and closes them; `/api/admin/questions?mode=…`
+  plus a shadow's `npc`, `random_event`, a screenshot's `picture`, or a map round's `places`, its
+  targets, which /suggest draws); 3 an hour per address. `/api/admin/reports` lists and closes them; `/api/admin/questions?mode=…`
   returns a mode's pack questions whole, and `/pictures` each screenshot's file, drawn with its answer.
 - `question_edits` holds the operator's pending edits and deletes of hand-written pack questions
   (`app/question_edits.py`), one per question, keyed by its id in the packs as they are; a second

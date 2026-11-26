@@ -19,6 +19,7 @@
   import { tilesLoad } from '../lib/map'
   import { HOUSE } from '../lib/modes'
   import { npcArt } from '../lib/npcs'
+  import type { PinTarget } from '../lib/pins'
   import {
     CHOICES,
     existingMode,
@@ -41,12 +42,14 @@
   let choice = $state<Choice | null>(null)
   let retryAt = $state<string | null>(null)
   let failure = $state<string | null>(null)
-  /** Remounts the editor for a fresh form after "Suggest another". */
+  /** Remounts the editor for a fresh form of the same kind after "Suggest another". */
   let round = $state(0)
   /** Who asks the random event being written, so the list starts with theirs. */
   let asker = $state('')
   /** The shadows' labels in Who's That NPC?: the NPCs on the list, already asked about. */
   let asked = $state<readonly string[]>([])
+  /** A map round's places already in the game, which its picker can show. */
+  let placed = $state<readonly PinTarget[]>([])
   let mapped = $state(false)
   const offered = $derived(CHOICES.filter((option) => mapped || option.editor !== 'place'))
   const existing = $derived(choice === null ? null : existingMode(choice))
@@ -77,6 +80,7 @@
   function pick(next: Choice): void {
     choice = next
     asked = []
+    placed = []
     failure = null
     beside = typeof matchMedia === 'function' && matchMedia('(min-width: 70rem)').matches
     view = 'write'
@@ -104,9 +108,8 @@
   }
 
   async function another(): Promise<void> {
-    choice = null
     round += 1
-    if (await checkAllowance()) view = 'pick'
+    if (await checkAllowance()) view = choice === null ? 'pick' : 'write'
   }
 </script>
 
@@ -186,6 +189,7 @@
             <SuggestionEditor
               {choice}
               {asked}
+              {placed}
               hero={heroArt}
               saveLabel={view === 'sending' ? 'Sending…' : 'Send to Reldo'}
               onnpc={(npc) => (asker = npc)}
@@ -199,8 +203,10 @@
             mode={existing}
             npc={asker}
             open={beside}
-            onloaded={(rows) =>
-              (asked = rows.filter((row) => row.npc !== undefined).map((row) => row.label))}
+            onloaded={(rows) => {
+              asked = rows.filter((row) => row.npc !== undefined).map((row) => row.label)
+              placed = rows.flatMap((row) => row.places ?? [])
+            }}
           />
         {/if}
       </div>

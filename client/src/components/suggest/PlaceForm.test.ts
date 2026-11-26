@@ -1,6 +1,6 @@
 /** A place for Lost in Gielinor on `/suggest`: Hans's description, never the name, and why. */
 
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/svelte'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '../../lib/api'
@@ -105,6 +105,56 @@ describe('PlaceForm, described', () => {
       explanation: 'The White Knights guard Falador.',
       targets: [{ name: 'Falador' }],
     })
+  })
+
+  it('shows the places already in the game only once asked, beside the new box', async () => {
+    vi.mocked(api.getReportChoices).mockResolvedValue({
+      by: 'question',
+      choices: [
+        {
+          id: 'a',
+          label: 'Big white walls.',
+          places: [{ name: 'Falador', min_x: 2935, max_x: 3066, min_y: 3309, max_y: 3395 }],
+        },
+      ],
+    })
+    await open()
+    await type(/^Place/, 'Catherby')
+    await tapMap()
+    const field = screen.getByText('Where it is').closest('.field')!
+    const box = await screen.findByLabelText('Show places already in the game')
+    const names = (): string[] =>
+      [...field.querySelectorAll('.map-name')].map((tag) => `${tag.className}:${tag.textContent}`)
+    await waitFor(() => expect(names()).toEqual(['map-name:Catherby']))
+    await fireEvent.click(box)
+    await waitFor(() => expect(names()).toEqual(['map-name:Catherby', 'map-name faint:Falador']))
+  })
+
+  it('opens the picker full screen, where a tap puts the box down as on the small map', async () => {
+    await open()
+    await type(/^Place/, 'Catherby')
+    await fireEvent.click(await screen.findByRole('button', { name: 'Full screen map' }))
+    const dialog = screen.getByRole('dialog', { name: 'Find it on the map' })
+    expect((dialog as HTMLDialogElement).open).toBe(true)
+    const big = await waitFor(() => {
+      const found = dialog.querySelector<HTMLElement>('.leaflet-container')
+      if (found === null) throw new Error('no map yet')
+      return found
+    })
+    expect(dialog.textContent).toContain('Find the place and tap it.')
+    await fireEvent.keyDown(big, { key: 'Enter' })
+    await waitFor(() => expect(dialog.querySelector('.map-name')?.textContent).toBe('Catherby'))
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Close' }))
+    expect((dialog as HTMLDialogElement).open).toBe(false)
+    expect(dialog.querySelector('.leaflet-container')).toBeNull()
+    const field = screen.getByText('Where it is').closest('.field')!
+    await waitFor(() => expect(field.querySelector('.map-name')?.textContent).toBe('Catherby'))
+  })
+
+  it('offers no places when the round has none yet', async () => {
+    await open()
+    await waitFor(() => expect(api.getReportChoices).toHaveBeenCalled())
+    expect(screen.queryByLabelText('Show places already in the game')).toBeNull()
   })
 
   it('refuses a description naming the place, and one with no explanation', async () => {

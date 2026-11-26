@@ -85,6 +85,8 @@
     reach?: number
     /** The circle inside the square box, not the box. */
     round?: boolean
+    /** Drawn quieter, for places beside the one that matters, such as those already asked. */
+    faint?: boolean
   }
 
   export interface MapGrip {
@@ -217,6 +219,25 @@
     if (grip !== undefined) marker.setLatLng(toLatLng(grip.at))
   }
 
+  /** Hides each area's name that would cover an earlier one, so a map of many stays readable. */
+  function hideClashingNames(): void {
+    // Measured all at once after every name is back, so the page lays out once, not per name.
+    const rects = marks.map(({ tag }) => tag.getBoundingClientRect())
+    const kept: DOMRect[] = []
+    marks.forEach(({ tag }, index) => {
+      const rect = rects[index]!
+      const clash = kept.some(
+        (other) =>
+          rect.left < other.right &&
+          other.left < rect.right &&
+          rect.top < other.bottom &&
+          other.top < rect.bottom,
+      )
+      tag.hidden = clash
+      if (!clash) kept.push(rect)
+    })
+  }
+
   /** The labels' sides for this zoom, and the rings' sizes, which a zoom changes. */
   function settle(): void {
     if (live === null) return
@@ -229,7 +250,9 @@
       const shown = Math.max(tall, wide) >= SMALLEST_RING * 2
       ring.getElement()?.classList.toggle('gone', shown)
       tag.style.setProperty('--ring', `${shown ? tall / 2 : SMALLEST_RING}px`)
+      tag.hidden = false
     }
+    hideClashingNames()
     const pins = [...host.querySelectorAll<HTMLElement>('.pin')]
     const tagged = new Map(pins.map((pin) => [pin.dataset.id ?? '', pin]))
     const size = map.getSize()
@@ -294,7 +317,8 @@
         interactive: false,
       }).addTo(drawing)
     }
-    marks = areas.map(({ box, name, reach, round }) => {
+    marks = areas.map(({ box, name, reach, round, faint }) => {
+      const ringClass = faint === true ? 'map-ring faint' : 'map-ring'
       const whole = { ...box, maxX: box.maxX + 1, maxY: box.maxY + 1 }
       const edges = corners(whole)
       const middle = L.latLngBounds(edges).getCenter()
@@ -311,17 +335,17 @@
         L.polygon(line, { className: 'map-reach', interactive: false }).addTo(drawing)
       }
       if (round === true) {
-        L.circle(middle, { radius, className: 'map-ring', interactive: false }).addTo(drawing)
+        L.circle(middle, { radius, className: ringClass, interactive: false }).addTo(drawing)
       } else {
-        L.rectangle(edges, { className: 'map-ring', interactive: false }).addTo(drawing)
+        L.rectangle(edges, { className: ringClass, interactive: false }).addTo(drawing)
       }
       const ring = L.circleMarker(middle, {
-        className: 'map-ring',
+        className: ringClass,
         radius: SMALLEST_RING,
         interactive: false,
       }).addTo(drawing)
       const tag = document.createElement('span')
-      tag.className = 'map-name'
+      tag.className = faint === true ? 'map-name faint' : 'map-name'
       tag.textContent = name
       L.marker(middle, {
         icon: L.divIcon({ className: 'pin-host', html: tag, iconSize: [0, 0] }),
@@ -888,6 +912,12 @@
     stroke-width: 2.5;
   }
 
+  .map :global(.map-ring.faint) {
+    fill-opacity: 0.12;
+    stroke-width: 1.5;
+    stroke-opacity: 0.8;
+  }
+
   .map :global(.map-ring.gone) {
     display: none;
   }
@@ -962,5 +992,12 @@
     font-size: 1.1rem;
     font-weight: 700;
     white-space: nowrap;
+  }
+
+  .map :global(.map-name.faint) {
+    padding: 0 5px 1px;
+    border-width: 1px;
+    font-size: 0.85rem;
+    opacity: 0.85;
   }
 </style>

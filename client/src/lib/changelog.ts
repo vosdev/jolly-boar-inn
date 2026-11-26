@@ -44,6 +44,41 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.289.0',
+    date: '2026-11-26',
+    text: 'Open the Suggest map full screen to find and mark a place more easily.',
+  },
+  {
+    version: '0.288.0',
+    date: '2026-11-26',
+    text: 'Suggesting a map place? Tick Show places already in the game to see every spot the round asks.',
+  },
+  {
+    version: '0.287.0',
+    date: '2026-11-26',
+    text: 'Play full screen on an iPhone: add the game to your Home Screen, as the lobby now explains.',
+  },
+  {
+    version: '0.286.4',
+    date: '2026-11-26',
+    text: 'Open a fresh form of the same kind when you pick Suggest another.',
+  },
+  {
+    version: '0.286.3',
+    date: '2026-11-26',
+    text: 'Stop flagging a place on /suggest just because another map round already asks it.',
+  },
+  {
+    version: '0.286.2',
+    date: '2026-11-26',
+    text: 'Show place names on the map while placing a Minimap Guesser spot on /suggest.',
+  },
+  {
+    version: '0.286.1',
+    date: '2026-11-26',
+    text: "Keep the host's name on one line in a suggestion's map preview when you reveal without answering.",
+  },
+  {
     version: '0.286.0',
     date: '2026-11-26',
     text: 'Jump to the Daily, How to play or all game modes from the footer on any page.',

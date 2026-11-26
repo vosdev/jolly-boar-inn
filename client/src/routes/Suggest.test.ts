@@ -151,6 +151,22 @@ describe('Suggest', () => {
     await screen.findByRole('heading', { name: /on Reldo's desk/ })
   })
 
+  it('opens a fresh form of the same kind on Suggest another', async () => {
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /A popular item/ }))
+    await type(/Item name/, 'Ancient mace')
+    await type('Your name', 'AFKFisher')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
+    await fireEvent.click(await screen.findByRole('button', { name: 'Suggest another' }))
+    const name = (await screen.findByLabelText(/Item name/, {
+      selector: FIELD,
+    })) as HTMLInputElement
+    expect(name.value).toBe('')
+    expect(screen.queryByText('What would you like to suggest?')).toBeNull()
+    expect(api.getSuggestionAllowance).toHaveBeenCalledTimes(2)
+  })
+
   it('lists the items already in the game, searchable, and refuses one of them', async () => {
     played()
     render(Suggest, { navigate })

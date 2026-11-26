@@ -35,6 +35,7 @@
     id,
     choice,
     content,
+    placed,
     picture = null,
     saveLabel,
     stepQuestion,
@@ -303,6 +304,7 @@
     {box}
     {reach}
     {name}
+    {placed}
     onbox={(next) => (box = next)}
     onreach={(next) => (reach = next)}
   />

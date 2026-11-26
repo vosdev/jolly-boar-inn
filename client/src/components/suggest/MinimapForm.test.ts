@@ -25,7 +25,20 @@ vi.mock('../../lib/map', async (importOriginal) => {
   return { ...real, tilesLoad: vi.fn(() => Promise.resolve(true)) }
 })
 
+// jsdom fetches nothing, so each layer is a sheet that is never drawn on.
+vi.mock('../../lib/mapIcons', async (original) => ({
+  ...(await original<typeof import('../../lib/mapIcons')>()),
+  loadIcons: () =>
+    Promise.resolve({ sprites: [], icons: [], sheet: document.createElement('canvas') }),
+}))
+vi.mock('../../lib/placeNames', async (original) => ({
+  ...(await original<typeof import('../../lib/placeNames')>()),
+  loadLabels: () =>
+    Promise.resolve({ fonts: [], labels: [], glyphs: document.createElement('canvas') }),
+}))
+
 const FIELD = 'textarea, input:not([type=radio])'
+const SPOT = { min_x: 3203, max_x: 3241, min_y: 3199, max_y: 3237, round: true }
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -139,5 +152,34 @@ describe('MinimapForm', () => {
     expect(new Set(turns())).toEqual(new Set(['rotate(90deg)']))
     await fireEvent.click(north)
     expect(new Set(turns())).toEqual(new Set(['rotate(0deg)']))
+  })
+  it('draws the icons on the picker, and its place names only once asked', async () => {
+    await open()
+    await tapMap()
+    const field = screen.getByText('Where it is').closest('.field')!
+    await waitFor(() => expect(field.querySelector('.map-icons')).not.toBeNull())
+    expect(document.querySelector('.map-labels')).toBeNull()
+    await fireEvent.click(screen.getByLabelText('Show place names'))
+    await waitFor(() => expect(field.querySelector('.map-labels')).not.toBeNull())
+    expect(document.querySelectorAll('.map-labels')).toHaveLength(1)
+    await fireEvent.click(screen.getByLabelText('Show place names'))
+    await waitFor(() => expect(document.querySelector('.map-labels')).toBeNull())
+  })
+
+  it('shows the spots already in the game only once asked', async () => {
+    vi.mocked(api.getReportChoices).mockResolvedValue({
+      by: 'question',
+      choices: [{ id: 'a', label: 'Where is this?', places: [{ name: 'Lumbridge', ...SPOT }] }],
+    })
+    await open()
+    const field = screen.getByText('Where it is').closest('.field')!
+    const box = await screen.findByLabelText('Show spots already in the game')
+    expect(field.querySelector('.map-name.faint')).toBeNull()
+    await fireEvent.click(box)
+    await waitFor(() =>
+      expect(field.querySelector('.map-name.faint')?.textContent).toBe('Lumbridge'),
+    )
+    await fireEvent.click(box)
+    await waitFor(() => expect(field.querySelector('.map-name.faint')).toBeNull())
   })
 })

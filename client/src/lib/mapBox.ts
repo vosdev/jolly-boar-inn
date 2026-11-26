@@ -4,6 +4,7 @@
  */
 
 import { clampTile, type MapBounds, SURFACE, type WorldPoint } from './map'
+import { boundsOf, type PinTarget } from './pins'
 
 /** `LEAST_TARGET` on the server. */
 export const LEAST_BOX = 10
@@ -85,4 +86,16 @@ export function reachPoints(reach: number): { tiles: number; points: number }[] 
     const tiles = Math.round(reach * share)
     return { tiles, points: Math.round(1000 * (1 - tiles / reach)) }
   })
+}
+
+/** A round's places already in the game as faint areas, for a picker to show beside its own. */
+export function placedAreas(
+  places: readonly PinTarget[],
+): { box: MapBounds; name: string; round?: boolean; faint: true }[] {
+  return places.map((place) => ({
+    box: boundsOf(place),
+    name: place.name,
+    round: place.round,
+    faint: true,
+  }))
 }

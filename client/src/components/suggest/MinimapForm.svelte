@@ -13,16 +13,19 @@
     onSurface,
     wrapAngle,
   } from '../../lib/minimap'
+  import { placedAreas } from '../../lib/mapBox'
   import { boundsOf, type PinTarget } from '../../lib/pins'
   import { placeProblem, questionPreview, type QuestionContent } from '../../lib/suggestions'
   import Minimap from '../map/Minimap.svelte'
-  import MapView, { type MapArea, type MapGrip } from '../map/MapView.svelte'
+  import type { MapArea, MapGrip } from '../map/MapView.svelte'
   import type { SuggestionFormProps } from './forms'
+  import PickerMap from './PickerMap.svelte'
 
   let {
     id,
     choice,
     content,
+    placed,
     saveLabel,
     stepQuestion,
     stepDifficulty,
@@ -55,6 +58,9 @@
   let spot = $state<MinimapSpot | null>(startSpot === undefined ? null : { ...startSpot })
   let explanation = $state((start?.explanation as string | undefined) ?? '')
   let attempted = $state(false)
+  // Off by default, so the picker shows the map as players get it: icons, no place names.
+  let named = $state(false)
+  let showPlaced = $state(false)
 
   const closeOn = (at: WorldPoint): MapBounds => around([at], CLOSE_MARGIN)
   let frame = $state<MapBounds | null>(startSpot === undefined ? null : closeOn(startSpot))
@@ -83,11 +89,12 @@
       ...(explained === '' ? {} : { explanation: explained }),
     },
   })
-  const areas = $derived<MapArea[]>(
-    target === null
+  const areas = $derived<MapArea[]>([
+    ...(target === null
       ? []
-      : [{ box: boundsOf(target), name: name.trim() || 'This spot', round: true }],
-  )
+      : [{ box: boundsOf(target), name: name.trim() || 'This spot', round: true }]),
+    ...(showPlaced ? placedAreas(placed) : []),
+  ])
   const grips = $derived<MapGrip[]>(
     spot === null ? [] : [{ id: SPOT, at: spot, middle: true, title: 'Drag to move' }],
   )
@@ -147,14 +154,32 @@
   </div>
   <div class="field">
     <p class="label">Where it is</p>
-    <div class="map">
-      <MapView {areas} {grips} {frame} onpick={place} ongrip={(_, tile) => place(tile)} />
-    </div>
-    <p class="note hint">
-      {spot === null
-        ? 'Find the spot and tap it.'
-        : 'Tap or drag to move it; the arrows move it one tile.'}
-    </p>
+    <PickerMap
+      {areas}
+      {grips}
+      {frame}
+      focus={spot === null ? null : closeOn(spot)}
+      icons
+      labels={named}
+      onpick={place}
+      ongrip={(_, tile) => place(tile)}
+    >
+      {#snippet controls()}
+        <p class="note hint">
+          {spot === null
+            ? 'Find the spot and tap it.'
+            : 'Tap or drag to move it; the arrows move it one tile.'}
+        </p>
+        <label class="check marks">
+          <input type="checkbox" bind:checked={named} /> Show place names
+        </label>
+        {#if placed.length > 0}
+          <label class="check">
+            <input type="checkbox" bind:checked={showPlaced} /> Show spots already in the game
+          </label>
+        {/if}
+      {/snippet}
+    </PickerMap>
     {@render problem(spotError, attempted)}
   </div>
   {#if spot !== null}
@@ -266,15 +291,12 @@
     margin: 0 0 0.3rem;
   }
 
-  .map {
-    height: min(24rem, 60vh);
-    border: var(--border-width) solid var(--line);
-    border-radius: min(var(--radius), 8px);
-    overflow: hidden;
-  }
-
   .hint {
     margin: 0.3rem 0 0;
+  }
+
+  .marks {
+    margin-top: 0.5rem;
   }
 
   .tune {

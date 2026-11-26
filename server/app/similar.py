@@ -13,9 +13,11 @@ the question, compared as a set so a shuffle is no disguise. Who's That NPC? ask
 too, and its NPC is the whole question: the same NPC is 100, another 0. The Forgetful Bard's
 verses differ, but an item with a verse is worth flagging, so the same item is 100 and two
 items compare as any question does. A place in a map round is 100 for the same name or a box
-that overlaps, since a place asked twice under two names is still one place. Two minimaps are
-100 when their spots lie within the minimap's radius of each other, else 0. A pack question
-names its answer by ``answer_id``; a suggestion only by name until the import finds its id.
+that overlaps, since a place asked twice under two names is still one place. Two map rounds
+are 0: a name, a photo, a minimap and a description of one place are different questions.
+Two minimaps are 100 when their spots lie within the minimap's radius of each other, else 0.
+A pack question names its answer by ``answer_id``; a suggestion only by name until the import
+finds its id.
 
 Questions of different types share nothing but the prompt, so it alone decides.
 """
@@ -159,6 +161,8 @@ def score(a: Features, b: Features) -> int:
         return 100 if _same_subject(a.subject, b.subject) else 0
     if compare == "item" and _same_subject(a.subject, b.subject):
         return 100
+    if a.type == b.type == MAP_TYPE and None not in (a.mode, b.mode) and a.mode != b.mode:
+        return 0
     # Every minimap asks the same, and a name says less than the ground the picture shows.
     if a.spot is not None and b.spot is not None:
         return 100 if math.dist(a.spot, b.spot) <= MINIMAP_RADIUS else 0

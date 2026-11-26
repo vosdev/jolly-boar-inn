@@ -113,6 +113,7 @@
         results={given === null ? {} : { [PREVIEW_ID]: given.result }}
         onAnswer={() => {}}
         {hero}
+        narrow
       />
     {/key}
   {:else}

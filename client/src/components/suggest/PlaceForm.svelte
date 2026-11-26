@@ -23,6 +23,7 @@
     id,
     choice,
     content,
+    placed,
     saveLabel,
     stepQuestion,
     stepDifficulty,
@@ -150,6 +151,7 @@
     {box}
     {reach}
     {name}
+    {placed}
     onbox={(next) => (box = next)}
     onreach={(next) => (reach = next)}
   />

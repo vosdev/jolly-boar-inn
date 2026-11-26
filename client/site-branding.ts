@@ -118,6 +118,8 @@ export function themeColours(css = readFileSync(APP_CSS, 'utf8')): Record<string
 
 /** The touch icon as it is served: always this name, which phones also look for unasked. */
 const TOUCH_ICON = 'apple-touch-icon.png'
+/** The web manifest as it is served, built only: the dev server has no file to answer it with. */
+export const WEB_MANIFEST = 'manifest.webmanifest'
 /** The share card as it is served. */
 const CARD = 'og-card.png'
 
@@ -343,6 +345,22 @@ export function seoManifest(branding: Branding, modes: readonly SeoMode[]): SeoM
   }
 }
 
+/**
+ * What a phone's Home Screen opens: the game on its own, from Home, since a Home Screen app keeps
+ * its own storage and so no seat in the room it was added from.
+ */
+export function webManifest(branding: Branding): Record<string, unknown> {
+  return {
+    name: branding.name,
+    short_name: branding.name,
+    start_url: '/',
+    display: 'standalone',
+    ...(branding.touchIcon === null
+      ? {}
+      : { icons: [{ src: `/${TOUCH_ICON}`, type: 'image/png' }] }),
+  }
+}
+
 /** `index.html` with `title` as its document title. */
 export function retitle(html: string, title: string): string {
   return html.replace(/<title>[^<]*<\/title>/, `<title>${escapeXml(title)}</title>`)
@@ -382,6 +400,11 @@ export function siteBranding(): Plugin {
         if (image !== null)
           this.emitFile({ type: 'asset', fileName, source: readFileSync(image.file) })
       }
+      this.emitFile({
+        type: 'asset',
+        fileName: WEB_MANIFEST,
+        source: `${JSON.stringify(webManifest(branding), null, 2)}\n`,
+      })
       const manifest = seoManifest(branding, await loadSeoModes())
       this.emitFile({
         type: 'asset',
@@ -444,6 +467,13 @@ export function siteBranding(): Plugin {
         tags.push({
           tag: 'link',
           attrs: { rel: 'apple-touch-icon', href: iconHref(touch) },
+          injectTo: 'head',
+        })
+      }
+      if (!serving) {
+        tags.push({
+          tag: 'link',
+          attrs: { rel: 'manifest', href: `/${WEB_MANIFEST}` },
           injectTo: 'head',
         })
       }

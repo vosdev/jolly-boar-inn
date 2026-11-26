@@ -14,6 +14,7 @@
 import { answerLine as matchingLine } from './matching'
 import { MODE_RULES, rulesOf } from './modeRules'
 import { MODES } from './modes'
+import type { PinTarget } from './pins'
 import type { QuestionDifficulty } from './suggestions'
 
 /** `TEXT_MAX` on the server, counted in characters. */
@@ -34,6 +35,8 @@ export interface ReportChoice {
   random_event?: string
   /** A question on a screenshot's: the photo players saw, under `/pictures/`. */
   picture?: string
+  /** A map round's: the places it asks for, its answer, which /suggest draws on a map. */
+  places?: PinTarget[]
 }
 
 /** Whether every choice is a photo, so a picture tells them apart where the label can't. */
