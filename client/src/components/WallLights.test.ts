@@ -2,7 +2,7 @@
  * The wall lights hang while a theme that has them is on, and only then, following
  * `data-theme` on <html> as the menu changes it: the inn's lanterns under Jolly, torches
  * under the Wilderness, sulphur vents under Toktz, a clan's symbols under Prifddinas, a
- * fairy ring in their place under Zanaris.
+ * fairy ring in their place under Zanaris. On a phone, only the left one, in a game.
  */
 
 import { render } from '@testing-library/svelte'
@@ -85,12 +85,46 @@ describe('WallLights', () => {
     expect(source).toMatch(/\[data-lights='zanaris'\] \.light \{\s*display: none;/)
   })
 
-  it('keeps the left fairy ring on a phone, in the bottom corner, and only under Zanaris', () => {
-    const phone = /@media \(max-width: 49\.99rem\) \{([\s\S]*?)\n {2}\}/.exec(source)?.[1] ?? ''
-    expect(phone).toMatch(/\.wall-lights\[data-lights='zanaris'\] \{\s*display: block;/)
+  const phoneRules = (): string =>
+    /@media \(max-width: 49\.99rem\) \{([\s\S]*?)\n {2}\}/.exec(source)?.[1] ?? ''
+
+  it.each(['jolly', 'wilderness', 'tzhaar', 'prifddinas', 'zanaris'])(
+    'keeps the left light on a phone under %s, in the bottom corner, only in a game',
+    async (theme) => {
+      document.documentElement.dataset.theme = theme
+      const { container } = render(WallLights, { corner: true })
+      await tick()
+      const wall = container.querySelector('.wall-lights')
+      expect(wall?.classList.contains('corner')).toBe(true)
+      expect(wall?.getAttribute('data-lights')).toBe(theme)
+      const phone = phoneRules()
+      expect(phone).toMatch(/\.wall-lights\.corner \{[^}]*display: block;/)
+      expect(phone).toMatch(/\.wall-lights\.corner \{[^}]*--fitting-y: calc\(100% - [\d.]+rem\);/)
+      expect(phone).toMatch(/(^|\n)\s*\.right \{\s*display: none;/)
+    },
+  )
+
+  it('gives a phone’s light a shorter reach than a desktop’s, and the vent its small glow', () => {
+    const phone = phoneRules()
+    const reach =
+      /\.wall-lights\.corner \{[^}]*--light-reach: calc\(var\(--fitting-width\) \* ([\d.]+)\);/
+    expect(Number(reach.exec(phone)?.[1])).toBeLessThan(7)
+    expect(phone).toMatch(
+      /\.wall-lights\.corner\[data-lights='tzhaar'\] \{\s*--light-reach: calc\(var\(--fitting-width\) \* 2\.6\);/,
+    )
+  })
+
+  it('lays the fairy ring flat in a phone’s corner at its own size', () => {
+    const phone = phoneRules()
+    expect(phone).toMatch(
+      /\.wall-lights\.corner\[data-lights='zanaris'\] \{\s*--fitting-width: 250px;/,
+    )
     expect(phone).toMatch(/\[data-lights='zanaris'\] \.fitting\.left \{[^}]*bottom: 0;/)
-    expect(phone).toMatch(/\[data-lights='zanaris'\] \.fitting\.right \{\s*display: none;/)
-    expect(phone).not.toMatch(/data-lights='(jolly|prifddinas)'/)
+  })
+
+  it('leaves the corner bare where a footer covers that floor', async () => {
+    const container = await shown('jolly')
+    expect(container.querySelector('.wall-lights')?.classList.contains('corner')).toBe(false)
   })
 
   it('gives each lantern its own glass, so the two drawings never share an id', async () => {
@@ -123,13 +157,13 @@ describe('WallLights', () => {
     expect(container.querySelector('.wall-lights')).toBeNull()
   })
 
-  it('hides the lights below 800px, where the stage fills the window, all but Zanaris', () => {
+  it('hides the lights below 800px, where the stage fills the window, but a game’s corner', () => {
     const style = source.slice(source.indexOf('<style>')).replace(/\/\*[\s\S]*?\*\//g, '')
     expect(style).toMatch(/\.wall-lights \{[^}]*display: none;/)
     const shown = [...style.matchAll(/([^{}]+)\{\s*display: block;/g)].map((rule) =>
       rule[1]!.trim(),
     )
-    expect(shown).toEqual(['.wall-lights', '.ring', ".wall-lights[data-lights='zanaris']"])
+    expect(shown).toEqual(['.wall-lights', '.ring', '.wall-lights.corner'])
     expect(style).toMatch(
       /@media \(min-width: 50rem\) \{\s*\.wall-lights \{\s*display: block;\s*\}/,
     )

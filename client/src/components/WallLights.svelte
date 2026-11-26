@@ -4,11 +4,12 @@
    * hang one: the inn's candle lanterns, the Wilderness's torches, TzHaar's sulphur vents,
    * and the inn's. Prifddinas hangs no light but an elven clan's symbol, the same clan either
    * side and chosen once per page load; Zanaris has no lights, only a fairy ring on the floor
-   * in their place, and keeps the left one on a phone.
+   * in their place.
    *
-   * Drawn only on a window wide enough to leave them room beside the stage: on a phone the
-   * sheet and its host stand where they would hang. The right one is the left one mirrored,
-   * so both turn the same face toward the page. Nor behind a TV's stage, which is scaled
+   * Drawn either side only on a window wide enough to leave them room beside the stage: on a
+   * phone the sheet and its host stand where they would hang, so only the left one shows, in
+   * the bottom corner, and only in a game (`corner`), where no footer covers that floor. The
+   * right one is the left one mirrored, so both turn the same face toward the page. Nor behind a TV's stage, which is scaled
    * over the room they would hang in (`tvFit`).
    *
    * Beside a room laid out for a desktop (`roomShown`) they stand on the floor its frame
@@ -26,6 +27,9 @@
   import InnLantern from './InnLantern.svelte'
   import SulphurVent from './SulphurVent.svelte'
   import WildernessTorch from './WildernessTorch.svelte'
+
+  /** Whether a phone shows the left light in its bottom corner: true while a game is played. */
+  let { corner = false }: { corner?: boolean } = $props()
 
   const LIT = ['jolly', 'wilderness', 'tzhaar', 'prifddinas', 'zanaris'] as const
   type Lit = (typeof LIT)[number]
@@ -53,6 +57,7 @@
     class="wall-lights"
     class:beside-room={floor !== null}
     class:no-floor={floor !== null && floor < LEAST_FLOOR}
+    class:corner
     style:--room-floor={floor === null ? null : `${floor}px`}
     data-lights={lit}
     aria-hidden="true"
@@ -239,11 +244,28 @@
     image-rendering: pixelated;
   }
 
-  /* On a phone the stage fills the window, so only the left ring shows, in the page's
-     bottom corner and partly off it, behind the page. */
+  /* On a phone the stage fills the window, so only the left light shows, in the page's
+     bottom corner and partly off it, behind the page, smaller and with less reach. A fairy
+     ring keeps its own size and lies flat in the corner. */
   @media (max-width: 49.99rem) {
-    .wall-lights[data-lights='zanaris'] {
+    .wall-lights.corner {
       display: block;
+      --fitting-width: 4.5rem;
+      --light-reach: calc(var(--fitting-width) * 5);
+      --fitting-x: 2.75rem;
+      --fitting-y: calc(100% - 5.5rem);
+    }
+
+    .wall-lights.corner[data-lights='tzhaar'] {
+      --light-reach: calc(var(--fitting-width) * 2.6);
+    }
+
+    .wall-lights.corner[data-lights='zanaris'] {
+      --fitting-width: 250px;
+    }
+
+    .right {
+      display: none;
     }
 
     [data-lights='zanaris'] .fitting.left {
@@ -251,10 +273,6 @@
       bottom: 0;
       left: -40px;
       transform: none;
-    }
-
-    [data-lights='zanaris'] .fitting.right {
-      display: none;
     }
   }
 

@@ -30,9 +30,9 @@ A theme is a palette the player picks, kept in `localStorage["jbi:theme"]`, neve
   side, level with Broav, the right one mirrored (`WallLights.svelte`): `jolly` a flickering candle
   lantern, `wilderness` the game's wall torch turned to face the page, `tzhaar` a sulphur vent whose
   small red glow rises only from its lava, `prifddinas` an elven clan's symbol, glowing and unmirrored, the same
-  clan either side, picked each page load. Only from 800px wide, shrinking
-  as the room beside the sheet narrows, so never on a phone. `zanaris` lays a fairy ring there instead,
-  at its own size and unlit, and keeps the left one in a phone's bottom corner.
+  clan either side, picked each page load. From 800px wide, shrinking as the room beside
+  the sheet narrows. `zanaris` lays a fairy ring there instead, at its own size and unlit. A phone
+  keeps only the left one, smaller, in its bottom corner, and only in a game, where no footer covers it.
 
 ## 2. Colour: the token contract
 
