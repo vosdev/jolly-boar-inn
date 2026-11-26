@@ -34,6 +34,30 @@ export interface SeoMode {
   label: string
   hint: string
   blurb: string
+  host: { name: string }
+}
+
+/** A link in a page's crawlable copy. */
+export interface SeoLink {
+  path: string
+  label: string
+  note?: string
+}
+
+/**
+ * What a page says before its script runs: the server writes it into the page for crawlers
+ * and visitors without JavaScript, and the app replaces it when it mounts.
+ */
+export interface SeoCopy {
+  heading: string
+  paragraphs: string[]
+  links: SeoLink[]
+}
+
+/** Words How to play shows that live outside a mode's file, passed in by the build. */
+export interface SeoExtras {
+  ways: readonly { title: string; text: string }[]
+  events: readonly { name: string; theme: string }[]
 }
 
 export interface SeoRoute {
@@ -44,6 +68,7 @@ export interface SeoRoute {
   noindex?: boolean
   /** Mode or view label for `BreadcrumbList` JSON-LD under `/how-to-play/*`. */
   breadcrumb?: string
+  copy?: SeoCopy
 }
 
 export interface SeoManifest {
@@ -64,32 +89,74 @@ export function joinDescription(siteName: string): string {
   return `Join an OSRS multiplayer trivia game at ${siteName}. Pick your display name and pet to enter the lobby.`
 }
 
+export const DAILY_INTRO = 'Ten questions, the same for everyone today. You only get one shot!'
+export const EVENTS_INTRO =
+  'When creating a room, the host chooses how often random events appear, and can even write custom questions for specific NPCs to ask.'
+export const EVENTS_HINT = 'NPCs who drop in mid-round with a bonus question.'
+
+const DAILY_LINK: SeoLink = { path: '/daily', label: 'Daily OSRS quiz' }
+const CREATE_LINK: SeoLink = { path: '/create', label: 'Create a room' }
+const HOW_TO_LINK: SeoLink = { path: HOW_TO_PATH, label: 'How to play' }
+const ALL_MODES_LINK: SeoLink = { path: HOW_TO_PATH, label: 'All game modes' }
+
 /** Static routes and every built mode's How to play page, in sitemap order. */
-export function seoRoutes(siteName: string, modes: readonly SeoMode[]): SeoRoute[] {
+export function seoRoutes(
+  siteName: string,
+  modes: readonly SeoMode[],
+  extras: SeoExtras = { ways: [], events: [] },
+): SeoRoute[] {
+  const modeLinks = modes.map((mode) => ({
+    path: `${HOW_TO_PATH}/${slugOf(mode.label)}`,
+    label: mode.label,
+    note: mode.hint,
+  }))
+  const eventsLink = {
+    path: `${HOW_TO_PATH}/${EVENTS_SLUG}`,
+    label: 'Random events',
+    note: EVENTS_HINT,
+  }
   return [
     {
       path: '/',
       title: homeTitle(siteName),
       description: HOME_DESCRIPTION,
       sitemap: true,
+      copy: {
+        heading: siteName,
+        paragraphs: [HOME_DESCRIPTION],
+        links: [DAILY_LINK, CREATE_LINK, HOW_TO_LINK],
+      },
     },
     {
       path: '/daily',
       title: pageTitle('Daily OSRS Quiz', siteName),
       description: `Play today's solo Old School RuneScape trivia challenge at ${siteName}. A fresh set of OSRS questions every day.`,
       sitemap: true,
+      copy: { heading: 'Daily', paragraphs: [DAILY_INTRO], links: [HOW_TO_LINK, CREATE_LINK] },
     },
     {
       path: '/create',
       title: pageTitle('Create a Room', siteName),
       description: `Set up a custom OSRS multiplayer trivia lobby at ${siteName}. Pick game modes, configure teams or free-for-all, and invite your friends or clan.`,
       sitemap: true,
+      copy: {
+        heading: 'Create a room',
+        paragraphs: [
+          `Set up a custom OSRS multiplayer trivia lobby at ${siteName}. Pick game modes, configure teams or free-for-all, and invite your friends or clan.`,
+        ],
+        links: [HOW_TO_LINK, DAILY_LINK],
+      },
     },
     {
       path: HOW_TO_PATH,
       title: pageTitle('How to Play', siteName),
       description: `Learn how to host and play OSRS trivia at ${siteName}: 20+ game modes, eight question types, teams, TV sofa mode, Mystery Boxes, and random events.`,
       sitemap: true,
+      copy: {
+        heading: 'How to play',
+        paragraphs: extras.ways.map((way) => `${way.title}: ${way.text}`),
+        links: [...modeLinks, eventsLink],
+      },
     },
     {
       path: `${HOW_TO_PATH}/${EVENTS_SLUG}`,
@@ -97,6 +164,11 @@ export function seoRoutes(siteName: string, modes: readonly SeoMode[]): SeoRoute
       description: `Every now and then, an OSRS NPC drops in mid-round with a surprise question. Learn how random events work at ${siteName}.`,
       sitemap: true,
       breadcrumb: 'Random Events',
+      copy: {
+        heading: 'Random events',
+        paragraphs: [EVENTS_INTRO, ...extras.events.map((npc) => `${npc.name}: ${npc.theme}`)],
+        links: [ALL_MODES_LINK, CREATE_LINK],
+      },
     },
     ...modes.map((mode) => ({
       path: `${HOW_TO_PATH}/${slugOf(mode.label)}`,
@@ -104,12 +176,24 @@ export function seoRoutes(siteName: string, modes: readonly SeoMode[]): SeoRoute
       description: mode.blurb || mode.hint,
       sitemap: true,
       breadcrumb: mode.label,
+      copy: {
+        heading: mode.label,
+        paragraphs: [`Hosted by ${mode.host.name}`, mode.hint, ...(mode.blurb ? [mode.blurb] : [])],
+        links: [ALL_MODES_LINK, CREATE_LINK],
+      },
     })),
     {
       path: '/suggest',
       title: pageTitle('Suggest a Question', siteName),
       description: `Submit your own Old School RuneScape trivia question to be added to ${siteName}.`,
       sitemap: false,
+      copy: {
+        heading: 'Suggest a question',
+        paragraphs: [
+          `Submit your own Old School RuneScape trivia question to be added to ${siteName}.`,
+        ],
+        links: [HOW_TO_LINK],
+      },
     },
     {
       path: '/report',

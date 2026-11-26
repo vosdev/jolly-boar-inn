@@ -1046,6 +1046,12 @@ body {
   isolation: isolate;
 }
 
+/* The server's copy for crawlers, which the app replaces as it mounts; `prerender.css` shows
+   it when scripts are off. */
+.prerender {
+  display: none;
+}
+
 /* Every screen puts its text on a panel, since no one ink reads on every floor. The page
    inks are the fallback for anything that still lands on the bare page. */
 main {

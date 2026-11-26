@@ -20,9 +20,10 @@ listenForNewVersion()
 // Before the first screen, so the first tap on it already counts.
 listenForUnlock()
 
-const app = mount(App, {
-  target: document.getElementById('app')!,
-})
+const target = document.getElementById('app')!
+// The server's copy for crawlers (`server/app/static.py`); mount would add the app after it.
+target.replaceChildren()
+const app = mount(App, { target })
 
 // After the first screen is up, so the pictures never compete with it.
 addEventListener('load', () => preloadPictures())

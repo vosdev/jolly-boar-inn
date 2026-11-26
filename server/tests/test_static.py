@@ -327,6 +327,74 @@ def test_seo_manifest_drives_sitemap_per_route_head_and_json_ld(
             assert 'rel="canonical"' not in resp.text, private
 
 
+def _copy_dist(dist: Path) -> None:
+    (dist / "index.html").write_text(
+        "<!doctype html><html><head><title>x</title></head>"
+        '<body><div id="app"></div></body></html>',
+        encoding="utf-8",
+    )
+    copy = {
+        "heading": "More or Less",
+        "paragraphs": ["Hosted by Ali Morrisane", "Prices <rise> & fall."],
+        "links": [
+            {"path": "/how-to-play", "label": "All game modes"},
+            {"path": "/create", "label": "Create a room", "note": 'Pick "modes".'},
+        ],
+    }
+    (dist / SEO_MANIFEST).write_text(
+        json.dumps(
+            {
+                "site_name": "The Jolly Boar Inn",
+                "has_card": False,
+                "routes": [
+                    {
+                        "path": "/how-to-play/more-or-less",
+                        "title": "More or Less",
+                        "description": "d",
+                        "sitemap": True,
+                        "copy": copy,
+                    },
+                    {"path": "/create", "title": "Create", "description": "d", "sitemap": True},
+                    {
+                        "path": "/report",
+                        "title": "Report",
+                        "description": "d",
+                        "noindex": True,
+                        "copy": copy,
+                    },
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+
+def test_a_page_with_copy_is_served_with_its_heading_text_and_links(
+    settings: Settings, dist: Path
+) -> None:
+    _copy_dist(dist)
+    with TestClient(create_app(settings, dist)) as client:
+        html = client.get("/how-to-play/more-or-less").text
+    assert (
+        '<div id="app"><div class="prerender"><h1>More or Less</h1>'
+        "<p>Hosted by Ali Morrisane</p><p>Prices &lt;rise&gt; &amp; fall.</p>"
+        '<ul><li><a href="/how-to-play">All game modes</a></li>'
+        '<li><a href="/create">Create a room</a> — Pick &quot;modes&quot;.</li></ul>'
+        "</div></div>"
+    ) in html
+
+
+def test_pages_without_copy_or_kept_from_search_leave_the_app_root_empty(
+    settings: Settings, dist: Path
+) -> None:
+    _copy_dist(dist)
+    with TestClient(create_app(settings, dist)) as client:
+        for path in ("/create", "/report", "/r/ABC", "/nowhere"):
+            html = client.get(path).text
+            assert '<div id="app"></div>' in html, path
+            assert "prerender" not in html, path
+
+
 def test_json_ld_escapes_script_closing_tags(settings: Settings, dist: Path) -> None:
     (dist / "index.html").write_text("<!doctype html><html><head></head></html>", encoding="utf-8")
     configured = settings.model_copy(

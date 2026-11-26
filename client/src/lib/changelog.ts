@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.286.0',
+    date: '2026-11-26',
+    text: 'Jump to the Daily, How to play or all game modes from the footer on any page.',
+  },
+  {
     version: '0.285.0',
     date: '2026-11-26',
     text: "Show your theme's wall light in your phone's bottom corner during a game.",

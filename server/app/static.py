@@ -51,6 +51,23 @@ _TITLE_TAG = re.compile(r"<title>[^<]*</title>")
 _DESCRIPTION_TAG = re.compile(r'<meta\s+name="description"\s+content="[^"]*"\s*/?>')
 _OG_TITLE_TAG = re.compile(r'<meta\s+property="og:title"\s+content="[^"]*"\s*/?>')
 _OG_DESCRIPTION_TAG = re.compile(r'<meta\s+property="og:description"\s+content="[^"]*"\s*/?>')
+_APP_ROOT = '<div id="app"></div>'
+
+
+@dataclass(frozen=True)
+class PageLink:
+    path: str
+    label: str
+    note: str | None = None
+
+
+@dataclass(frozen=True)
+class PageCopy:
+    """What a page says before its script runs, for crawlers and visitors without JavaScript."""
+
+    heading: str
+    paragraphs: tuple[str, ...]
+    links: tuple[PageLink, ...]
 
 
 @dataclass(frozen=True)
@@ -61,6 +78,7 @@ class PageMeta:
     sitemap: bool = False
     noindex: bool = False
     breadcrumb: str | None = None
+    copy: PageCopy | None = None
 
 
 @dataclass(frozen=True)
@@ -137,6 +155,23 @@ def _default_routes(site_name: str) -> list[PageMeta]:
     ]
 
 
+def _load_copy(raw: object) -> PageCopy | None:
+    if not isinstance(raw, dict):
+        return None
+    return PageCopy(
+        heading=str(raw["heading"]),
+        paragraphs=tuple(str(text) for text in raw.get("paragraphs", [])),
+        links=tuple(
+            PageLink(
+                path=str(link["path"]),
+                label=str(link["label"]),
+                note=str(link["note"]) if link.get("note") else None,
+            )
+            for link in raw.get("links", [])
+        ),
+    )
+
+
 def _load_seo(dist: Path) -> SeoConfig:
     manifest = dist / SEO_MANIFEST
     if manifest.is_file():
@@ -151,6 +186,7 @@ def _load_seo(dist: Path) -> SeoConfig:
                 sitemap=bool(item.get("sitemap", False)),
                 noindex=bool(item.get("noindex", False)),
                 breadcrumb=str(item["breadcrumb"]) if item.get("breadcrumb") else None,
+                copy=_load_copy(item.get("copy")),
             )
             for item in raw.get("routes", [])
         ]
@@ -274,6 +310,20 @@ def _json_ld(page: PageMeta, seo: SeoConfig, root: str) -> str | None:
     return None
 
 
+def _copy_html(copy: PageCopy) -> str:
+    parts = [f"<h1>{escape(copy.heading)}</h1>"]
+    parts.extend(f"<p>{escape(text)}</p>" for text in copy.paragraphs)
+    if copy.links:
+        items = "".join(
+            f'<li><a href="{escape(link.path)}">{escape(link.label)}</a>'
+            + (f" — {escape(link.note)}" if link.note else "")
+            + "</li>"
+            for link in copy.links
+        )
+        parts.append(f"<ul>{items}</ul>")
+    return f'<div class="prerender">{"".join(parts)}</div>'
+
+
 def _render_page(
     template: str, page: PageMeta, seo: SeoConfig, root: str, address: str, collector: str
 ) -> str:
@@ -290,6 +340,9 @@ def _render_page(
     html = _OG_DESCRIPTION_TAG.sub(
         lambda _: f'<meta property="og:description" content="{description}">', html, count=1
     )
+    if page.copy is not None and not page.noindex:
+        body = _copy_html(page.copy)
+        html = html.replace(_APP_ROOT, f'<div id="app">{body}</div>', 1)
     extra: list[str] = []
     if page.noindex:
         extra.append('<meta name="robots" content="noindex">')
