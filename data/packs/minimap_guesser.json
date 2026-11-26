@@ -280,6 +280,554 @@
       },
       "wiki": "https://oldschool.runescape.wiki/w/Lighthouse",
       "difficulty": "hard"
+    },
+    {
+      "id": "q_109f69440c408090",
+      "type": "map_pin",
+      "mode": "minimap_guesser",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Prifddinas",
+      "difficulty": "hard",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Where is this?",
+        "minimap": {
+          "x": 2240,
+          "y": 3269,
+          "angle": 0
+        },
+        "targets": [
+          {
+            "name": "Prifddinas",
+            "max_x": 2259,
+            "max_y": 3288,
+            "min_x": 2221,
+            "min_y": 3250,
+            "round": true
+          }
+        ],
+        "explanation": "This is right above the entrance to the city of the elves!"
+      }
+    },
+    {
+      "id": "q_41dd3a5fd6ad7893",
+      "type": "map_pin",
+      "mode": "minimap_guesser",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Castle_Wars",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Where is this?",
+        "minimap": {
+          "x": 2400,
+          "y": 3103,
+          "angle": 0
+        },
+        "targets": [
+          {
+            "name": "Castle Wars",
+            "max_x": 2419,
+            "max_y": 3122,
+            "min_x": 2381,
+            "min_y": 3084,
+            "round": true
+          }
+        ],
+        "explanation": "This is just above the Castle Wars arena."
+      }
+    },
+    {
+      "id": "q_2f97a8e0901a4ef4",
+      "type": "map_pin",
+      "mode": "minimap_guesser",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Ritual_Site",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Where is this?",
+        "minimap": {
+          "x": 1122,
+          "y": 3425,
+          "angle": 0
+        },
+        "targets": [
+          {
+            "name": "Stranglewood",
+            "max_x": 1141,
+            "max_y": 3444,
+            "min_x": 1103,
+            "min_y": 3406,
+            "round": true
+          }
+        ],
+        "explanation": "The ritual site in the Stranglewoods where that scary Vardorvis lives"
+      }
+    },
+    {
+      "id": "q_dcb433888cde737d",
+      "type": "map_pin",
+      "mode": "minimap_guesser",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Bazaar",
+      "difficulty": "easy",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Where is this?",
+        "minimap": {
+          "x": 1681,
+          "y": 3106,
+          "angle": 229
+        },
+        "targets": [
+          {
+            "name": "Bazaar (Civitas illa Fortis)",
+            "max_x": 1700,
+            "max_y": 3125,
+            "min_x": 1662,
+            "min_y": 3087,
+            "round": true
+          }
+        ],
+        "explanation": "This is the marketplace in the centre of Civitas illa Fortis"
+      }
+    },
+    {
+      "id": "q_f9660f6e2282a406",
+      "type": "map_pin",
+      "mode": "minimap_guesser",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Mess",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Where is this?",
+        "minimap": {
+          "x": 1641,
+          "y": 3626,
+          "angle": 270
+        },
+        "targets": [
+          {
+            "name": "Mess (Hosidius)",
+            "max_x": 1660,
+            "max_y": 3645,
+            "min_x": 1622,
+            "min_y": 3607,
+            "round": true
+          }
+        ],
+        "explanation": "We are right above the mess hall in Hosidius"
+      }
+    },
+    {
+      "id": "q_3d6a29e5cf0a865a",
+      "type": "map_pin",
+      "mode": "minimap_guesser",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Jatizso",
+      "difficulty": "hard",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Where is this?",
+        "minimap": {
+          "x": 2399,
+          "y": 3802,
+          "angle": 0
+        },
+        "targets": [
+          {
+            "name": "Jatizso",
+            "max_x": 2418,
+            "max_y": 3821,
+            "min_x": 2380,
+            "min_y": 3783,
+            "round": true
+          }
+        ],
+        "explanation": "The dark stones are part of Jatizso"
+      }
+    },
+    {
+      "id": "q_cf458e08879e9d87",
+      "type": "map_pin",
+      "mode": "minimap_guesser",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Mount_Quidamortem",
+      "difficulty": "easy",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Where is this?",
+        "minimap": {
+          "x": 1249,
+          "y": 3562,
+          "angle": 180
+        },
+        "targets": [
+          {
+            "name": "Mount Quidamortem",
+            "max_x": 1268,
+            "max_y": 3581,
+            "min_x": 1230,
+            "min_y": 3543,
+            "round": true
+          }
+        ],
+        "explanation": "The magical signs are found on Mount Quidamortem"
+      }
+    },
+    {
+      "id": "q_ccf9250da76568c3",
+      "type": "map_pin",
+      "mode": "minimap_guesser",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Karamja_Volcano",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Where is this?",
+        "minimap": {
+          "x": 2853,
+          "y": 3171,
+          "angle": 270
+        },
+        "targets": [
+          {
+            "name": "Karamja Volcano",
+            "max_x": 2872,
+            "max_y": 3190,
+            "min_x": 2834,
+            "min_y": 3152,
+            "round": true
+          }
+        ],
+        "explanation": "The biggest volcano in Gielinor can be found on Karamja"
+      }
+    },
+    {
+      "id": "q_08108f1aadbe5e1e",
+      "type": "map_pin",
+      "mode": "minimap_guesser",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Deserted_Keep",
+      "difficulty": "easy",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Where is this?",
+        "minimap": {
+          "x": 3155,
+          "y": 3924,
+          "angle": 0
+        },
+        "targets": [
+          {
+            "name": "Deserted Keep",
+            "max_x": 3174,
+            "max_y": 3943,
+            "min_x": 3136,
+            "min_y": 3905,
+            "round": true
+          }
+        ],
+        "explanation": "One of the most used entrances to deep wilderness."
+      }
+    },
+    {
+      "id": "q_37ca02c0bda88241",
+      "type": "map_pin",
+      "mode": "minimap_guesser",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Dark_Warriors'_Fortress",
+      "difficulty": "easy",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Where is this?",
+        "minimap": {
+          "x": 3019,
+          "y": 3632,
+          "angle": 66
+        },
+        "targets": [
+          {
+            "name": "Dark Warriors' Fortress",
+            "max_x": 3038,
+            "max_y": 3651,
+            "min_x": 3000,
+            "min_y": 3613,
+            "round": true
+          }
+        ],
+        "explanation": "A well known location inside the wilderness"
+      }
+    },
+    {
+      "id": "q_b9ab64935b97b985",
+      "type": "map_pin",
+      "mode": "minimap_guesser",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Tutorial_Island",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Where is this?",
+        "minimap": {
+          "x": 3094,
+          "y": 3107,
+          "angle": 0
+        },
+        "targets": [
+          {
+            "name": "Tutorial Island",
+            "max_x": 3113,
+            "max_y": 3126,
+            "min_x": 3075,
+            "min_y": 3088,
+            "round": true
+          }
+        ],
+        "explanation": "You've all been there, it's the starting house on Tutorial Island"
+      }
+    },
+    {
+      "id": "q_eec4e1b0c90390ba",
+      "type": "map_pin",
+      "mode": "minimap_guesser",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Astral_Altar",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Where is this?",
+        "minimap": {
+          "x": 2157,
+          "y": 3863,
+          "angle": 60
+        },
+        "targets": [
+          {
+            "name": "Astral Altar",
+            "max_x": 2176,
+            "max_y": 3882,
+            "min_x": 2138,
+            "min_y": 3844,
+            "round": true
+          }
+        ],
+        "explanation": "The Astral Altar can be found on the southern point on Lunar Isle"
+      }
+    },
+    {
+      "id": "q_a1370213fce9f1f4",
+      "type": "map_pin",
+      "mode": "minimap_guesser",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Doric's_hut",
+      "difficulty": "easy",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Where is this?",
+        "minimap": {
+          "x": 2951,
+          "y": 3450,
+          "angle": 0
+        },
+        "targets": [
+          {
+            "name": "Doric's hut",
+            "max_x": 2970,
+            "max_y": 3469,
+            "min_x": 2932,
+            "min_y": 3431,
+            "round": true
+          }
+        ],
+        "explanation": "Just across Taverly gate sits Dorics' Hut"
+      }
+    },
+    {
+      "id": "q_c5203d1254da9f2c",
+      "type": "map_pin",
+      "mode": "minimap_guesser",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Myths'_Guild",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Where is this?",
+        "minimap": {
+          "x": 2458,
+          "y": 2857,
+          "angle": 0
+        },
+        "targets": [
+          {
+            "name": "Myths' Guild",
+            "max_x": 2477,
+            "max_y": 2876,
+            "min_x": 2439,
+            "min_y": 2838,
+            "round": true
+          }
+        ],
+        "explanation": "Only recognized by the most seasoned of adventurers"
+      }
+    },
+    {
+      "id": "q_ea4ba72b12a192eb",
+      "type": "map_pin",
+      "mode": "minimap_guesser",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Zul-Andra",
+      "difficulty": "easy",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Where is this?",
+        "minimap": {
+          "x": 2205,
+          "y": 3057,
+          "angle": 0
+        },
+        "targets": [
+          {
+            "name": "Zul-Andra",
+            "max_x": 2224,
+            "max_y": 3076,
+            "min_x": 2186,
+            "min_y": 3038,
+            "round": true
+          }
+        ],
+        "explanation": "The place where my fellow gnomes fight the mighty Zulrah"
+      }
+    },
+    {
+      "id": "q_62412835a82fa014",
+      "type": "map_pin",
+      "mode": "minimap_guesser",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Soul_Wars_Arena",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Where is this?",
+        "minimap": {
+          "x": 2170,
+          "y": 2908,
+          "angle": 0
+        },
+        "targets": [
+          {
+            "name": "Soul Wars Arena",
+            "max_x": 2189,
+            "max_y": 2927,
+            "min_x": 2151,
+            "min_y": 2889,
+            "round": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "q_1a1fdfc7115f7026",
+      "type": "map_pin",
+      "mode": "minimap_guesser",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Chaos_Temple",
+      "difficulty": "easy",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Where is this?",
+        "minimap": {
+          "x": 3237,
+          "y": 3615,
+          "angle": 0
+        },
+        "targets": [
+          {
+            "name": "Chaos Temple",
+            "max_x": 3256,
+            "max_y": 3634,
+            "min_x": 3218,
+            "min_y": 3596,
+            "round": true
+          }
+        ],
+        "explanation": "The lava and darkness is a clear tell of the wilderness"
+      }
+    },
+    {
+      "id": "q_328ca060fdae9ddb",
+      "type": "map_pin",
+      "mode": "minimap_guesser",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Lletya",
+      "difficulty": "easy",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Where is this?",
+        "minimap": {
+          "x": 2352,
+          "y": 3163,
+          "angle": 0
+        },
+        "targets": [
+          {
+            "name": "Lletya",
+            "max_x": 2371,
+            "max_y": 3182,
+            "min_x": 2333,
+            "min_y": 3144,
+            "round": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "q_d00c32efac3ecf6b",
+      "type": "map_pin",
+      "mode": "minimap_guesser",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Battlefield",
+      "difficulty": "easy",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Where is this?",
+        "minimap": {
+          "x": 2512,
+          "y": 3249,
+          "angle": 180
+        },
+        "targets": [
+          {
+            "name": "Battlefield",
+            "max_x": 2531,
+            "max_y": 3268,
+            "min_x": 2493,
+            "min_y": 3230,
+            "round": true
+          }
+        ]
+      }
     }
   ]
 }

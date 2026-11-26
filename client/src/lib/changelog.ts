@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.290.1',
+    date: '2026-11-26',
+    text: 'Added 19 additional locations for Minimap Guesser',
+  },
+  {
     version: '0.290.0',
     date: '2026-11-26',
     text: 'Give each Suggest card its own link, so Back returns to the cards and a card can be shared.',
