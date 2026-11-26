@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.286.3',
+    date: '2026-11-26',
+    text: 'Stop flagging a place on /suggest just because another map round already asks it.',
+  },
+  {
     version: '0.286.2',
     date: '2026-11-26',
     text: 'Show place names on the map while placing a Minimap Guesser spot on /suggest.',

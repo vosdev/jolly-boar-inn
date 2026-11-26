@@ -962,7 +962,7 @@ key into them, so cleanup leaves it.
 - `app/similar.py` scores a question against another, 0–100: 0.7 × the trigram Dice of the
   normalised prompts (with quote) + 0.3 × the answers' (1 when equal; any accepted free-text
   spelling); prompts alone across types; Odd One Out by option-set overlap; Who's That NPC? 100
-  for the same NPC, shadow or render, else 0; The Forgetful Bard 100 for the same item, else as usual; a `map_pin` in the same round 100 for the same name or an overlapping box, else as usual; two minimaps 100 within 19 tiles, else 0. `POST /api/suggestions/similar` takes a question as `POST
+  for the same NPC, shadow or render, else 0; The Forgetful Bard 100 for the same item, else as usual; a `map_pin` in the same round 100 for the same name or an overlapping box, else as usual, and in another round 0; two minimaps 100 within 19 tiles, else 0. `POST /api/suggestions/similar` takes a question as `POST
   /api/suggestions` does, minus the link, and returns up to 3 pack questions (every pack mode but
   the price ones) at 60 or more as `{mode, label, score}`, never a suggestion; 120 an hour per
   address (`SIMILAR_PER_HOUR`). `/suggest` asks 800 ms after the prompt or answer changes.
