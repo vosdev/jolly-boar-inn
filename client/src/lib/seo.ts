@@ -13,6 +13,8 @@ export const HOME_DESCRIPTION =
 /** The How to play page's address; its views sit under it. */
 export const HOW_TO_PATH = '/how-to-play'
 export const EVENTS_SLUG = 'random-events'
+/** The OSRS trivia questions page's address, worded as people search for it. */
+export const TRIVIA_PATH = '/osrs-trivia-questions'
 
 /** Built modes that never appear as a public How to play page or showcase slide. */
 export const NOT_SHOWN_MODES: ReadonlySet<string> = new Set([
@@ -28,6 +30,8 @@ export function slugOf(label: string): string {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
 }
+
+import type { TriviaQuestion } from './triviaQuestions.ts'
 
 export interface SeoMode {
   id: string
@@ -54,10 +58,28 @@ export interface SeoCopy {
   links: SeoLink[]
 }
 
-/** Words How to play shows that live outside a mode's file, passed in by the build. */
+/** Words the pages show that live outside a mode's file, passed in by the build. */
 export interface SeoExtras {
   ways: readonly { title: string; text: string }[]
   events: readonly { name: string; theme: string }[]
+  questions: readonly TriviaQuestion[]
+}
+
+export function triviaIntro(siteName: string): string {
+  return `Free OSRS trivia questions with answers, one from each game mode at ${siteName}. Use them for a clan quiz night, or create a room and play them live.`
+}
+
+/** A question as the served copy says it: what is asked, then the answer. */
+function triviaParagraphs(question: TriviaQuestion): string[] {
+  const asked = [
+    `${question.label}: ${question.question}`,
+    question.subject,
+    question.quote === undefined ? undefined : `“${question.quote}”`,
+    ...(question.clues ?? []),
+    question.options === undefined ? undefined : `Options: ${question.options.join(', ')}.`,
+  ].filter((line) => line !== undefined)
+  const answer = [`Answer: ${question.answer}.`, question.detail].filter(Boolean).join(' ')
+  return [asked.join(' '), answer]
 }
 
 export interface SeoRoute {
@@ -103,7 +125,7 @@ const ALL_MODES_LINK: SeoLink = { path: HOW_TO_PATH, label: 'All game modes' }
 export function seoRoutes(
   siteName: string,
   modes: readonly SeoMode[],
-  extras: SeoExtras = { ways: [], events: [] },
+  extras: SeoExtras = { ways: [], events: [], questions: [] },
 ): SeoRoute[] {
   const modeLinks = modes.map((mode) => ({
     path: `${HOW_TO_PATH}/${slugOf(mode.label)}`,
@@ -182,6 +204,20 @@ export function seoRoutes(
         links: [ALL_MODES_LINK, CREATE_LINK],
       },
     })),
+    {
+      path: TRIVIA_PATH,
+      title: pageTitle('OSRS Trivia Questions and Answers', siteName),
+      description: `Free Old School RuneScape trivia questions with answers, one from each game mode at ${siteName}. Ready for a clan quiz night.`,
+      sitemap: true,
+      copy: {
+        heading: 'OSRS trivia questions',
+        paragraphs: [triviaIntro(siteName), ...extras.questions.flatMap(triviaParagraphs)],
+        links: [
+          ...extras.questions.map((question) => ({ path: question.path, label: question.label })),
+          CREATE_LINK,
+        ],
+      },
+    },
     {
       path: '/suggest',
       title: pageTitle('Suggest a Question', siteName),

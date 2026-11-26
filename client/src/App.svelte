@@ -51,6 +51,7 @@
     HOW_TO_PATH,
     joinDescription,
     pageTitle,
+    TRIVIA_PATH,
     seoRoutes,
     slugOf,
   } from './lib/seo'
@@ -71,6 +72,7 @@
     | { name: 'history'; code: string; stamp: string }
     | { name: 'admin'; tab: AdminTab }
     | { name: 'suggest' }
+    | { name: 'trivia' }
     | { name: 'report' }
     | { name: 'daily' }
     | { name: 'dev-map' }
@@ -89,6 +91,7 @@
     const tab = adminTabOf(path)
     if (tab !== null) return { name: 'admin', tab }
     if (path === '/suggest') return { name: 'suggest' }
+    if (path === TRIVIA_PATH) return { name: 'trivia' }
     if (path === '/report') return { name: 'report' }
     if (path === '/daily') return { name: 'daily' }
     if (import.meta.env.DEV && path === '/dev/map') return { name: 'dev-map' }
@@ -117,6 +120,7 @@
       route.name === 'how-to' ||
       route.name === 'admin' ||
       route.name === 'suggest' ||
+      route.name === 'trivia' ||
       route.name === 'daily',
   )
 
@@ -153,6 +157,10 @@
       case 'home': {
         const entry = SEO_BY_PATH.get('/')!
         return { title: entry.title, description: entry.description, canonicalPath: '/' }
+      }
+      case 'trivia': {
+        const entry = SEO_BY_PATH.get(TRIVIA_PATH)!
+        return { title: entry.title, description: entry.description, canonicalPath: TRIVIA_PATH }
       }
       case 'daily':
       case 'create':
@@ -241,6 +249,7 @@
       route.name !== 'history' &&
       route.name !== 'admin' &&
       route.name !== 'suggest' &&
+      route.name !== 'trivia' &&
       route.name !== 'report' &&
       route.name !== 'how-to' &&
       route.name !== 'daily' &&
@@ -304,6 +313,12 @@
         <LazyRoute load={() => import('./routes/Admin.svelte')}>
           {#snippet children({ default: Admin })}
             <Admin {tab} {navigate} />
+          {/snippet}
+        </LazyRoute>
+      {:else if route.name === 'trivia'}
+        <LazyRoute load={() => import('./routes/TriviaQuestions.svelte')}>
+          {#snippet children({ default: TriviaQuestions })}
+            <TriviaQuestions {navigate} />
           {/snippet}
         </LazyRoute>
       {:else if route.name === 'suggest'}

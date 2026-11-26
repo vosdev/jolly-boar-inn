@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.287.0',
+    date: '2026-11-26',
+    text: 'Browse OSRS trivia questions with answers, one from each game mode, for your next clan quiz night.',
+  },
+  {
     version: '0.286.0',
     date: '2026-11-26',
     text: 'Jump to the Daily, How to play or all game modes from the footer on any page.',

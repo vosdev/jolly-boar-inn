@@ -41,6 +41,7 @@ describe('Footer', () => {
       ['Daily OSRS quiz', '/daily'],
       ['How to play', '/how-to-play'],
       ['All game modes', '/how-to-play#how-modes'],
+      ['OSRS trivia questions', '/osrs-trivia-questions'],
     ])
   })
 

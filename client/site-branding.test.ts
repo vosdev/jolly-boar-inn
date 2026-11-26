@@ -17,6 +17,7 @@ import {
   definedThemes,
   favicons,
   loadSeoModes,
+  loadTriviaQuestions,
   readBranding,
   retitle,
   seoManifest,
@@ -25,7 +26,13 @@ import {
   themeColours,
 } from './site-branding.ts'
 import { RANDOM_EVENTS } from './src/lib/randomEvents.ts'
-import { DAILY_INTRO, EVENTS_INTRO, HOME_DESCRIPTION, NOT_SHOWN_MODES } from './src/lib/seo.ts'
+import {
+  DAILY_INTRO,
+  EVENTS_INTRO,
+  HOME_DESCRIPTION,
+  NOT_SHOWN_MODES,
+  TRIVIA_PATH,
+} from './src/lib/seo.ts'
 import { WAYS_TO_PLAY } from './src/lib/waysToPlay.ts'
 
 let root: string
@@ -300,6 +307,21 @@ describe('SEO manifest copy', () => {
     const moreLess = byPath.get('/how-to-play/more-or-less')?.copy
     expect(moreLess?.heading).toBe('More or Less')
     expect(moreLess?.paragraphs[0]).toBe('Hosted by Ali Morrisane')
+  })
+
+  it('lists the trivia questions page with every question and answer in its copy', async () => {
+    const questions = await loadTriviaQuestions()
+    expect(questions.length).toBeGreaterThanOrEqual(15)
+    const manifest = seoManifest(readBranding(BOAR, root), await loadSeoModes(), questions)
+    const trivia = manifest.routes.find((route) => route.path === TRIVIA_PATH)!
+    expect(trivia.sitemap).toBe(true)
+    const words = trivia.copy!.paragraphs.join('\n')
+    for (const question of questions) {
+      expect(words).toContain(`${question.label}: ${question.question}`)
+      expect(words).toContain(`Answer: ${question.answer}.`)
+    }
+    expect(trivia.copy!.links.map((link) => link.path)).toContain('/how-to-play/bestiary')
+    expect(questions.some((question) => question.mode === 'pixel_hunt')).toBe(false)
   })
 
   it('shows the copy only with scripts off', () => {

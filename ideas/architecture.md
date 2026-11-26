@@ -52,7 +52,7 @@ Routes: `/`, `/create`, `/r/:code` (the room with a session, Join without), `/r/
 `YYMMDDHHMM`), `/admin` and its tabs `/admin/suggestions`, `/reports`, `/questions` and `/roster` (the
 operator's view, section 10), linked from Reldo's box on Home once this
 browser holds the admin token, `/suggest` and `/report` (section 11), linked once it has finished a game, and `/daily` (section 7). `/dev/map` plays `map_pin` on made-up players under `pnpm dev` only. The credits are a sheet from the footer.
-`/how-to-play` and `/how-to-play/:view` (a mode's name as a slug, or `random-events`) are drawn by Home.
+`/how-to-play` and `/how-to-play/:view` (a mode's name as a slug, or `random-events`) are drawn by Home. `/osrs-trivia-questions` writes out every unpictured mode's How to play sample with its answer.
 The retired `/r/:code/admin` resolves like `/r/:code`, because whoever holds that link knows the code.
 
 ## 2. Room state

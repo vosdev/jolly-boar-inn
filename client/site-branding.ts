@@ -38,6 +38,11 @@ import {
   type SeoMode,
 } from './src/lib/seo.ts'
 import { RANDOM_EVENTS } from './src/lib/randomEvents.ts'
+import {
+  triviaQuestions,
+  type TriviaQuestion,
+  type TriviaSample,
+} from './src/lib/triviaQuestions.ts'
 import { WAYS_TO_PLAY } from './src/lib/waysToPlay.ts'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
@@ -311,35 +316,68 @@ export function shareTags(branding: Branding): HtmlTagDescriptor[] {
   ]
 }
 
-/** Built modes shown in How to play, in `schema/modes.json` order. */
-export async function loadSeoModes(root = ROOT): Promise<SeoMode[]> {
+/** Built, shown modes' files with their registry entry, in `schema/modes.json` order. */
+async function loadModeFiles(
+  root: string,
+): Promise<{ pictured: boolean; mode: SeoMode & { ask: string[] }; sample?: TriviaSample }[]> {
   const schema = JSON.parse(readFileSync(join(root, 'schema/modes.json'), 'utf8')) as {
-    modes: { id: string }[]
+    modes: { id: string; pictured?: boolean }[]
   }
-  const modes: SeoMode[] = []
+  const found = []
   for (const entry of schema.modes) {
     if (NOT_SHOWN_MODES.has(entry.id)) continue
     const file = join(root, 'client/src/lib/modes', `${entry.id}.ts`)
     if (!existsSync(file)) continue
-    const loaded = (await import(pathToFileURL(file).href)) as { mode?: SeoMode }
+    const loaded = (await import(pathToFileURL(file).href)) as {
+      mode?: SeoMode & { ask: string[] }
+      sample?: TriviaSample
+    }
     if (loaded.mode === undefined) continue
-    modes.push({
-      id: loaded.mode.id,
-      label: loaded.mode.label,
-      hint: loaded.mode.hint,
-      blurb: loaded.mode.blurb,
-      host: { name: loaded.mode.host.name },
-    })
+    found.push({ pictured: entry.pictured === true, mode: loaded.mode, sample: loaded.sample })
   }
-  return modes
+  return found
+}
+
+/** Built modes shown in How to play, in `schema/modes.json` order. */
+export async function loadSeoModes(root = ROOT): Promise<SeoMode[]> {
+  return (await loadModeFiles(root)).map(({ mode }) => ({
+    id: mode.id,
+    label: mode.label,
+    hint: mode.hint,
+    blurb: mode.blurb,
+    host: { name: mode.host.name },
+  }))
+}
+
+/** The trivia questions page's questions, from the same mode files. */
+export async function loadTriviaQuestions(root = ROOT): Promise<TriviaQuestion[]> {
+  const files = await loadModeFiles(root)
+  return triviaQuestions(
+    files.map(({ pictured, mode, sample }) => ({
+      id: mode.id,
+      label: mode.label,
+      hint: mode.hint,
+      ask: mode.ask[0] ?? mode.hint,
+      pictured,
+      ...(sample === undefined ? {} : { sample }),
+    })),
+  )
 }
 
 /** The route manifest emitted into `client/dist/` for `server/app/static.py`. */
-export function seoManifest(branding: Branding, modes: readonly SeoMode[]): SeoManifest {
+export function seoManifest(
+  branding: Branding,
+  modes: readonly SeoMode[],
+  questions: readonly TriviaQuestion[] = [],
+): SeoManifest {
   return {
     site_name: branding.name,
     has_card: branding.card !== null,
-    routes: seoRoutes(branding.name, modes, { ways: WAYS_TO_PLAY, events: RANDOM_EVENTS }),
+    routes: seoRoutes(branding.name, modes, {
+      ways: WAYS_TO_PLAY,
+      events: RANDOM_EVENTS,
+      questions,
+    }),
   }
 }
 
@@ -382,7 +420,7 @@ export function siteBranding(): Plugin {
         if (image !== null)
           this.emitFile({ type: 'asset', fileName, source: readFileSync(image.file) })
       }
-      const manifest = seoManifest(branding, await loadSeoModes())
+      const manifest = seoManifest(branding, await loadSeoModes(), await loadTriviaQuestions())
       this.emitFile({
         type: 'asset',
         fileName: SEO_MANIFEST,

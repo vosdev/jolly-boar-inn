@@ -16,7 +16,7 @@
   import QuestionCounts from './QuestionCounts.svelte'
   import { asOfDate } from '../lib/dates'
   import { DISCORD_URL, LICENSE_URL, REPO_URL, VERSION_LABEL, WIKI_URL } from '../lib/links'
-  import { HOW_TO_PATH } from '../lib/seo'
+  import { HOW_TO_PATH, TRIVIA_PATH } from '../lib/seo'
   import { loadPricesAsOf, newestAsOf, pricesAsOf } from '../lib/pricesAsOf.svelte'
   import {
     formatCount,
@@ -40,6 +40,7 @@
     { href: '/daily', label: 'Daily OSRS quiz' },
     { href: HOW_TO_PATH, label: 'How to play' },
     { href: `${HOW_TO_PATH}#${MODES_ANCHOR}`, label: 'All game modes' },
+    { href: TRIVIA_PATH, label: 'OSRS trivia questions' },
   ]
 
   async function go(event: MouseEvent, href: string): Promise<void> {
