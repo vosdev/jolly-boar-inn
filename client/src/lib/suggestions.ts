@@ -31,6 +31,8 @@ import type { PinTarget } from './pins'
 import type { OpenQuestion, PlayerResult } from './protocol'
 import { codePoints, definition, envelopeProperty, field, limit } from './questionSchema'
 import { RANDOM_EVENTS } from './randomEvents'
+import { slugOf } from './seo'
+import { SUGGEST_PATH } from './suggestPath'
 import type { ReportChoice } from './reports'
 import { fold, words, type VocabEntry } from './vocab'
 
@@ -392,6 +394,24 @@ export function stageMode(choiceId: string): string {
 export function choiceOf(kind: SuggestionKind, content: SuggestionContent): Choice | undefined {
   const id = kind === 'question' ? ((content as QuestionContent).mode ?? NO_ROUND) : kind
   return CHOICES.find((choice) => choice.id === id)
+}
+
+const NO_ROUND_SLUG = 'any'
+
+/** A card's part of the address: its round's name as How to play spells it, else its kind. */
+export function choiceSlug(choice: Choice): string {
+  if (choice.kind === 'item') return choice.id
+  return choice.id === NO_ROUND ? NO_ROUND_SLUG : slugOf(modeName(choice.id))
+}
+
+/** The address a card's editor opens at. */
+export function choicePath(choice: Choice): string {
+  return `${SUGGEST_PATH}/${choiceSlug(choice)}`
+}
+
+/** The card a slug names among `offered`, null for a slug none of them has. */
+export function choiceAt(slug: string | null, offered: readonly Choice[]): Choice | null {
+  return slug === null ? null : (offered.find((choice) => choiceSlug(choice) === slug) ?? null)
 }
 
 /** Whether a question has its round, without which it can't be approved. */

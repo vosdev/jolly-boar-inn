@@ -1,7 +1,8 @@
 <script lang="ts">
   /**
    * `/suggest`: a question, an examine line or an item for the packs, sent to the
-   * operator's queue (`lib/suggestions.ts`).
+   * operator's queue (`lib/suggestions.ts`). Each card's editor has an address of its own,
+   * so the browser's Back returns to the cards.
    *
    * Only for a browser that has finished a game, as Home's link is. Before any field the
    * page asks the server how many suggestions this address has left this hour, so a
@@ -10,7 +11,7 @@
    * pack's questions for the card stand open beside the editor there, and wait folded up
    * under it on a phone. A place on the map is offered only once this server's map has loaded.
    */
-  import { onMount } from 'svelte'
+  import { onMount, untrack } from 'svelte'
   import { hero, heroes } from 'virtual:branding'
 
   import ExistingQuestions from '../components/suggest/ExistingQuestions.svelte'
@@ -22,6 +23,8 @@
   import type { PinTarget } from '../lib/pins'
   import {
     CHOICES,
+    choiceAt,
+    choicePath,
     existingMode,
     maySuggest,
     retryIn,
@@ -29,9 +32,17 @@
     type SuggestionBody,
   } from '../lib/suggestions'
   import { routeIn, routeOut } from '../lib/routeFade'
+  import { SUGGEST_PATH } from '../lib/suggestPath'
   import { watchTheme } from '../lib/theme'
 
-  let { navigate }: { navigate: (to: string) => void } = $props()
+  let {
+    card,
+    navigate,
+  }: {
+    /** The slug of the card whose editor the address opens, null on the cards. */
+    card: string | null
+    navigate: (to: string) => void
+  } = $props()
 
   const allowed = maySuggest()
   // The card for the inn's own host shows the selfhoster's hero, as Home does, else the boar.
@@ -39,7 +50,6 @@
   const heroArt = $derived(heroes[theme] ?? hero)
   onMount(() => watchTheme((current) => (theme = current)))
   let view = $state<'checking' | 'pick' | 'write' | 'sending' | 'sent' | 'limited'>('checking')
-  let choice = $state<Choice | null>(null)
   let retryAt = $state<string | null>(null)
   let failure = $state<string | null>(null)
   /** Remounts the editor for a fresh form of the same kind after "Suggest another". */
@@ -52,6 +62,7 @@
   let placed = $state<readonly PinTarget[]>([])
   let mapped = $state(false)
   const offered = $derived(CHOICES.filter((option) => mapped || option.editor !== 'place'))
+  const choice = $derived(choiceAt(card, offered))
   const existing = $derived(choice === null ? null : existingMode(choice))
   /** Whether the list starts open: beside the editor, at the width `.writing` sets it there. */
   let beside = $state(false)
@@ -71,19 +82,34 @@
 
   onMount(() => {
     if (!allowed) return
-    void tilesLoad().then((found) => (mapped = found))
-    void checkAllowance().then((ok) => {
-      if (ok) view = 'pick'
+    const tiles = tilesLoad().then((found) => (mapped = found))
+    // A link to a map round waits for the map, or it would open on the cards and then jump.
+    const placeLink = choiceAt(card, CHOICES)?.editor === 'place'
+    void Promise.all([checkAllowance(), placeLink ? tiles : null]).then(([ok]) => {
+      if (ok) view = choice === null ? 'pick' : 'write'
+    })
+  })
+
+  // Back and Forward change the card as well as the cards do, so each card starts afresh here.
+  $effect.pre(() => {
+    const opened = choice
+    untrack(() => {
+      asked = []
+      placed = []
+      failure = null
+      beside = typeof matchMedia === 'function' && matchMedia('(min-width: 70rem)').matches
+      if (view === 'pick' || view === 'write' || view === 'sent') {
+        view = opened === null ? 'pick' : 'write'
+      }
     })
   })
 
   function pick(next: Choice): void {
-    choice = next
-    asked = []
-    placed = []
-    failure = null
-    beside = typeof matchMedia === 'function' && matchMedia('(min-width: 70rem)').matches
-    view = 'write'
+    navigate(choicePath(next))
+  }
+
+  function toCards(): void {
+    navigate(SUGGEST_PATH)
   }
 
   async function send(body: SuggestionBody): Promise<void> {
@@ -181,11 +207,9 @@
       <div class="writing" class:aside={existing !== null} in:routeIn out:routeOut>
         <section class="panel">
           <p class="back">
-            <button type="button" class="link" onclick={() => (choice = null)}>
-              ← All suggestion types
-            </button>
+            <button type="button" class="link" onclick={toCards}> ← All suggestion types </button>
           </p>
-          {#key round}
+          {#key `${choice.id}:${round}`}
             <SuggestionEditor
               {choice}
               {asked}
@@ -194,7 +218,7 @@
               saveLabel={view === 'sending' ? 'Sending…' : 'Send to Reldo'}
               onnpc={(npc) => (asker = npc)}
               onsave={(body) => void send(body)}
-              oncancel={() => (choice = null)}
+              oncancel={toCards}
             />
           {/key}
         </section>

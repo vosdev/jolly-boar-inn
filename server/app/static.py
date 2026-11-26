@@ -46,6 +46,7 @@ SECURITY_TXT_LIFETIME = timedelta(days=180)
 _ROOM_PATH = re.compile(r"^/r/([A-Za-z0-9]{1,32})(?:/(admin|create))?$")
 _HISTORY_PATH = re.compile(r"^/history/([A-Za-z0-9]{1,32})/(\d{10})$")
 _ADMIN_TABS = frozenset(("suggestions", "reports", "questions", "roster"))
+_SUGGEST_CARD = re.compile(r"^/suggest/[a-z0-9-]{1,64}$")
 
 _TITLE_TAG = re.compile(r"<title>[^<]*</title>")
 _DESCRIPTION_TAG = re.compile(r'<meta\s+name="description"\s+content="[^"]*"\s*/?>')
@@ -205,6 +206,10 @@ def _load_seo(dist: Path) -> SeoConfig:
 def _resolve_page(normalized: str, seo: SeoConfig) -> tuple[PageMeta, int]:
     if normalized in seo.routes:
         return seo.routes[normalized], 200
+    # A card's editor is the same page: the client names the cards and opens the picker
+    # for a slug it does not know, so any slug is answered as `/suggest` is.
+    if _SUGGEST_CARD.match(normalized) is not None and "/suggest" in seo.routes:
+        return seo.routes["/suggest"], 200
     room_match = _ROOM_PATH.match(normalized)
     if room_match is not None:
         if room_match.group(2) == "create":

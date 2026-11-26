@@ -88,6 +88,19 @@ def test_unknown_paths_answer_404_with_noindex_spa_page(settings: Settings, dist
             assert response.headers["cache-control"] == "no-cache", path
 
 
+def test_a_suggest_card_is_served_as_suggest(settings: Settings, dist: Path) -> None:
+    """Each card's editor has its own address; the server answers any as ``/suggest``."""
+    with TestClient(create_app(settings, dist)) as client:
+        picker = client.get("/suggest")
+        for path in ("/suggest/kgp-recon", "/suggest/item", "/suggest/no-such-card"):
+            response = client.get(path)
+            assert response.status_code == 200, path
+            assert response.text == picker.text, path
+        assert client.get("/suggest/Not_A_Slug").status_code == 404
+        assert client.get("/suggest/item/more").status_code == 404
+        assert "/suggest" not in client.get("/sitemap.xml").text
+
+
 def test_unknown_api_path_is_404_not_index(settings: Settings, dist: Path) -> None:
     with TestClient(create_app(settings, dist)) as client:
         assert client.get("/api/nope").status_code == 404
