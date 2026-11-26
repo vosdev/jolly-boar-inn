@@ -1,6 +1,7 @@
 <script lang="ts">
   /**
-   * A quiet band under every screen, the top bar's twin: the trademark notice, what is and
+   * A quiet band under every screen, the top bar's twin: links into the public pages, which
+   * crawlers follow too, the trademark notice, what is and
    * is not collected, the way to the source, the licence, where the data comes from and how
    * old its prices are, how many questions there are, the credits and the version, which
    * opens what's new.
@@ -8,11 +9,14 @@
    * It sits in the page's flow, never fixed, so on a long screen it is below the last
    * answer rather than over it, and on a short one the shell pushes it to the bottom.
    */
+  import { tick } from 'svelte'
+
   import Credits from './Credits.svelte'
   import Icon from './Icon.svelte'
   import QuestionCounts from './QuestionCounts.svelte'
   import { asOfDate } from '../lib/dates'
   import { DISCORD_URL, LICENSE_URL, REPO_URL, VERSION_LABEL, WIKI_URL } from '../lib/links'
+  import { HOW_TO_PATH } from '../lib/seo'
   import { loadPricesAsOf, newestAsOf, pricesAsOf } from '../lib/pricesAsOf.svelte'
   import {
     formatCount,
@@ -23,10 +27,35 @@
 
   let {
     wide = false,
+    navigate,
   }: {
     /** The screen above uses the wide page, so the footer's text follows it. */
     wide?: boolean
+    /** The app's router; without it a link loads its page. */
+    navigate?: (to: string) => void
   } = $props()
+
+  const MODES_ANCHOR = 'how-modes'
+  const EXPLORE = [
+    { href: '/daily', label: 'Daily OSRS quiz' },
+    { href: HOW_TO_PATH, label: 'How to play' },
+    { href: `${HOW_TO_PATH}#${MODES_ANCHOR}`, label: 'All game modes' },
+  ]
+
+  async function go(event: MouseEvent, href: string): Promise<void> {
+    if (navigate === undefined) return
+    // A modified click is somebody asking for a new tab; let the browser have it.
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+      return
+    }
+    event.preventDefault()
+    navigate(href)
+    await tick()
+    // A screen that swaps in its view later scrolls to the anchor itself (Home).
+    const anchor = href.split('#')[1]
+    if (anchor === undefined) scrollTo(0, 0)
+    else document.getElementById(anchor)?.scrollIntoView()
+  }
 
   let Changelog = $state<(typeof import('./Changelog.svelte'))['default'] | null>(null)
   let changelogFailed = $state(false)
@@ -53,6 +82,15 @@
 
 <footer class="footer">
   <div class="inner" class:wide>
+    <nav aria-label="Explore">
+      <ul>
+        {#each EXPLORE as link (link.href)}
+          <li>
+            <a href={link.href} onclick={(event) => void go(event, link.href)}>{link.label}</a>
+          </li>
+        {/each}
+      </ul>
+    </nav>
     <p>RuneScape and RuneScape Old School are the trademarks of Jagex Limited.</p>
     <p>We only count games and rounds played per day. No cookies, no personal data.</p>
     <ul>
@@ -121,6 +159,10 @@
 
   p {
     margin: 0 0 0.25rem;
+  }
+
+  nav {
+    margin-bottom: 0.5rem;
   }
 
   ul {

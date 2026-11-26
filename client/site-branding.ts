@@ -37,6 +37,8 @@ import {
   type SeoManifest,
   type SeoMode,
 } from './src/lib/seo.ts'
+import { RANDOM_EVENTS } from './src/lib/randomEvents.ts'
+import { WAYS_TO_PLAY } from './src/lib/waysToPlay.ts'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(HERE, '..')
@@ -326,6 +328,7 @@ export async function loadSeoModes(root = ROOT): Promise<SeoMode[]> {
       label: loaded.mode.label,
       hint: loaded.mode.hint,
       blurb: loaded.mode.blurb,
+      host: { name: loaded.mode.host.name },
     })
   }
   return modes
@@ -336,7 +339,7 @@ export function seoManifest(branding: Branding, modes: readonly SeoMode[]): SeoM
   return {
     site_name: branding.name,
     has_card: branding.card !== null,
-    routes: seoRoutes(branding.name, modes),
+    routes: seoRoutes(branding.name, modes, { ways: WAYS_TO_PLAY, events: RANDOM_EVENTS }),
   }
 }
 

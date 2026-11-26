@@ -24,7 +24,9 @@ import {
   signSvg,
   themeColours,
 } from './site-branding.ts'
-import { HOME_DESCRIPTION, NOT_SHOWN_MODES } from './src/lib/seo.ts'
+import { RANDOM_EVENTS } from './src/lib/randomEvents.ts'
+import { DAILY_INTRO, EVENTS_INTRO, HOME_DESCRIPTION, NOT_SHOWN_MODES } from './src/lib/seo.ts'
+import { WAYS_TO_PLAY } from './src/lib/waysToPlay.ts'
 
 let root: string
 
@@ -265,6 +267,48 @@ describe('SEO manifest', () => {
     expect(sitemapPaths).not.toContain('/suggest')
     expect(sitemapPaths).not.toContain('/report')
     expect(manifest.routes.find((route) => route.path === '/report')?.noindex).toBe(true)
+  })
+})
+
+describe('SEO manifest copy', () => {
+  it('gives every indexable page a heading, its words and links a crawler can follow', async () => {
+    const modes = await loadSeoModes()
+    const manifest = seoManifest(readBranding(BOAR, root), modes)
+    const byPath = new Map(manifest.routes.map((route) => [route.path, route]))
+    for (const route of manifest.routes) {
+      if (route.noindex) expect(route.copy, route.path).toBeUndefined()
+      else expect(route.copy?.heading, route.path).toBeTruthy()
+    }
+    expect(byPath.get('/')?.copy?.links.map((link) => link.path)).toEqual([
+      '/daily',
+      '/create',
+      '/how-to-play',
+    ])
+    expect(byPath.get('/daily')?.copy?.paragraphs).toEqual([DAILY_INTRO])
+
+    const howTo = byPath.get('/how-to-play')?.copy
+    expect(howTo?.paragraphs).toEqual(WAYS_TO_PLAY.map((way) => `${way.title}: ${way.text}`))
+    const modePaths = manifest.routes
+      .filter((route) => route.breadcrumb !== undefined)
+      .map((route) => route.path)
+    expect(howTo?.links.map((link) => link.path).sort()).toEqual(modePaths.sort())
+
+    const events = byPath.get('/how-to-play/random-events')?.copy
+    expect(events?.paragraphs).toContain(EVENTS_INTRO)
+    expect(events?.paragraphs).toContain(`${RANDOM_EVENTS[0]!.name}: ${RANDOM_EVENTS[0]!.theme}`)
+
+    const moreLess = byPath.get('/how-to-play/more-or-less')?.copy
+    expect(moreLess?.heading).toBe('More or Less')
+    expect(moreLess?.paragraphs[0]).toBe('Hosted by Ali Morrisane')
+  })
+
+  it('shows the copy only with scripts off', () => {
+    const html = readFileSync(join(import.meta.dirname, 'index.html'), 'utf-8')
+    expect(html).toContain('<noscript><link rel="stylesheet" href="/prerender.css" /></noscript>')
+    const css = readFileSync(join(import.meta.dirname, 'public/prerender.css'), 'utf-8')
+    expect(css).toMatch(/html \.prerender \{[^}]*display: block/)
+    const app = readFileSync(join(import.meta.dirname, 'src/app.css'), 'utf-8')
+    expect(app).toMatch(/\.prerender \{\s*display: none;/)
   })
 })
 

@@ -145,21 +145,33 @@
     scrollTo(0, 0)
   }
 
+  /** The view's top, or the part of it the address names, as the footer's All game modes does. */
+  function scrollIntoPlace(): void {
+    const named = location.hash.length > 1 ? document.getElementById(location.hash.slice(1)) : null
+    if (named !== null) named.scrollIntoView()
+    else scrollTo(0, 0)
+  }
+
+  onMount(() => {
+    if (location.hash.length > 1) scrollIntoPlace()
+  })
+
   async function show(next: HowToView | null): Promise<void> {
     if (next === shown) return
     trying = null
     const mine = ++swap
     if (cuts()) {
       shown = next
-      scrollTo(0, 0)
+      await tick()
+      scrollIntoPlace()
       return
     }
     fading = true
     await new Promise((done) => setTimeout(done, OUT_MS))
     if (mine !== swap) return
     shown = next
-    scrollTo(0, 0)
     await tick()
+    scrollIntoPlace()
     // A frame at opacity 0 first, or the new view would not fade in.
     requestAnimationFrame(() => requestAnimationFrame(() => mine === swap && (fading = false)))
   }

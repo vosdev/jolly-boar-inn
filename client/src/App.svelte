@@ -226,7 +226,7 @@
 
   /** `state` rides along in `history.state`, for the screen at `to` to read. */
   function navigate(to: string, state: unknown = null): void {
-    if (to !== location.pathname) history.pushState(state, '', to)
+    if (to !== location.pathname + location.hash) history.pushState(state, '', to)
     if (reloadIfNewer()) return
     route = resolve(currentPath())
   }
@@ -350,7 +350,7 @@
   {/key}
 </main>
 
-{#if footer}<Footer wide={wide || inRoom} />{/if}
+{#if footer}<Footer wide={wide || inRoom} {navigate} />{/if}
 
 <style>
   main {

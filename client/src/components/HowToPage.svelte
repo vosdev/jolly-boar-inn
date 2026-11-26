@@ -21,6 +21,7 @@
   import { npcArt } from '../lib/npcs'
   import { RANDOM_EVENTS, STRANGER } from '../lib/randomEvents'
   import { SAMPLES } from '../lib/samples'
+  import { EVENTS_HINT, EVENTS_INTRO } from '../lib/seo'
   import { sheetFor } from '../lib/sheet'
   import { watchTheme } from '../lib/theme'
   import AnswerRows from './AnswerRows.svelte'
@@ -122,7 +123,7 @@
             <img class="face {strangerArt.cut}" src={strangerArt.url} alt="" draggable="false" />
             <span>
               <strong>Random events</strong>
-              <span class="note">NPCs who drop in mid-round with a bonus question.</span>
+              <span class="note">{EVENTS_HINT}</span>
             </span>
           </button>
         </li>
@@ -135,10 +136,7 @@
       <button type="button" class="link" onclick={onall}>← All game modes</button>
     </p>
     <h1 tabindex="-1" bind:this={heading}>Random events</h1>
-    <p>
-      When creating a room, the host chooses how often random events appear, and can even write
-      custom questions for specific NPCs to ask.
-    </p>
+    <p>{EVENTS_INTRO}</p>
     <ul class="visitors">
       {#each RANDOM_EVENTS as npc (npc.id)}
         <li>

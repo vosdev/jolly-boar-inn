@@ -27,6 +27,7 @@
   } from '../lib/daily'
   import { generateName } from '../lib/names'
   import { profile } from '../lib/profile'
+  import { DAILY_INTRO } from '../lib/seo'
   import { setSession } from '../lib/session'
   import { room } from '../lib/stores'
   import Room from './Room.svelte'
@@ -128,7 +129,7 @@
       <p class="note">Loading daily challenge…</p>
     {:else if view.name === 'intro'}
       <h1>Daily #{view.today.number}</h1>
-      <p>Ten questions, the same for everyone today. You only get one shot!</p>
+      <p>{DAILY_INTRO}</p>
       <div class="row">
         <button
           type="button"

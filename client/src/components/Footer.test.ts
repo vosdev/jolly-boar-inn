@@ -30,6 +30,32 @@ function firstControl(dialog: HTMLElement): Element | null {
 }
 
 describe('Footer', () => {
+  it('links the public pages with addresses a crawler can follow', () => {
+    render(Footer)
+    const explore = screen.getByRole('navigation', { name: 'Explore' })
+    const links = [...explore.querySelectorAll('a')].map((a) => [
+      a.textContent,
+      a.getAttribute('href'),
+    ])
+    expect(links).toEqual([
+      ['Daily OSRS quiz', '/daily'],
+      ['How to play', '/how-to-play'],
+      ['All game modes', '/how-to-play#how-modes'],
+    ])
+  })
+
+  it('opens a page through the router, and leaves a modified click to the browser', async () => {
+    const navigate = vi.fn()
+    render(Footer, { props: { navigate } })
+    const daily = screen.getByRole('link', { name: 'Daily OSRS quiz' })
+    await fireEvent.click(daily, { ctrlKey: true })
+    expect(navigate).not.toHaveBeenCalled()
+    await fireEvent.click(daily)
+    expect(navigate).toHaveBeenCalledWith('/daily')
+    await fireEvent.click(screen.getByRole('link', { name: 'All game modes' }))
+    expect(navigate).toHaveBeenLastCalledWith('/how-to-play#how-modes')
+  })
+
   it('says what is counted and that no cookies are used', () => {
     render(Footer)
     expect(

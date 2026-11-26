@@ -1,0 +1,6 @@
+/* Only loaded with scripts off, where the server's copy is all the page has. */
+html .prerender {
+  display: block;
+  width: min(40rem, 100% - 2rem);
+  margin: 2rem auto;
+}
