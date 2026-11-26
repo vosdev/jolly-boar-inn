@@ -21,7 +21,8 @@
     START_BOX,
   } from '../../lib/mapBox'
   import type { PinTarget } from '../../lib/pins'
-  import MapView, { type MapArea, type MapGrip } from '../map/MapView.svelte'
+  import type { MapArea, MapGrip } from '../map/MapView.svelte'
+  import PickerMap from './PickerMap.svelte'
 
   let {
     box,
@@ -94,19 +95,27 @@
 
 <div class="field">
   <p class="label">Where it is</p>
-  <div class="map">
-    <MapView {areas} {grips} {frame} onpick={pick} ongrip={grip} />
-  </div>
-  <p class="note hint">
-    {box === null
-      ? 'Find the place and tap it.'
-      : 'Drag the corners round the whole place. Drag the middle, or tap, to move it.'}
-  </p>
-  {#if placed.length > 0}
-    <label class="check">
-      <input type="checkbox" bind:checked={showPlaced} /> Show places already in the game
-    </label>
-  {/if}
+  <PickerMap
+    {areas}
+    {grips}
+    {frame}
+    focus={box === null ? null : closeOn(box)}
+    onpick={pick}
+    ongrip={grip}
+  >
+    {#snippet controls()}
+      <p class="note hint">
+        {box === null
+          ? 'Find the place and tap it.'
+          : 'Drag the corners round the whole place. Drag the middle, or tap, to move it.'}
+      </p>
+      {#if placed.length > 0}
+        <label class="check">
+          <input type="checkbox" bind:checked={showPlaced} /> Show places already in the game
+        </label>
+      {/if}
+    {/snippet}
+  </PickerMap>
 </div>
 <div class="field">
   <label for="{id}-reach">Points run out {reach} tiles from the box</label>
@@ -136,13 +145,6 @@
 <style>
   .label {
     margin: 0 0 0.3rem;
-  }
-
-  .map {
-    height: min(24rem, 60vh);
-    border: var(--border-width) solid var(--line);
-    border-radius: min(var(--radius), 8px);
-    overflow: hidden;
   }
 
   .hint {

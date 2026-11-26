@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.289.0',
+    date: '2026-11-26',
+    text: 'Open the Suggest map full screen to find and mark a place more easily.',
+  },
+  {
     version: '0.288.0',
     date: '2026-11-26',
     text: 'Suggesting a map place? Tick Show places already in the game to see every spot the round asks.',

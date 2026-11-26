@@ -14,6 +14,7 @@
       | 'chevron-up'
       | 'close'
       | 'person'
+      | 'expand'
   } = $props()
 </script>
 
@@ -38,6 +39,8 @@
       <path d="M6 6l12 12M18 6L6 18" />
     {:else if name === 'person'}
       <path d="M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM4 21c1-5 4-7 8-7s7 2 8 7" />
+    {:else if name === 'expand'}
+      <path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" />
     {:else if name === 'more'}
       <path d="M5 12h.01M12 12h.01M19 12h.01" class="dots" />
     {:else}

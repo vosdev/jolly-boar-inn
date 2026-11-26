@@ -17,8 +17,9 @@
   import { boundsOf, type PinTarget } from '../../lib/pins'
   import { placeProblem, questionPreview, type QuestionContent } from '../../lib/suggestions'
   import Minimap from '../map/Minimap.svelte'
-  import MapView, { type MapArea, type MapGrip } from '../map/MapView.svelte'
+  import type { MapArea, MapGrip } from '../map/MapView.svelte'
   import type { SuggestionFormProps } from './forms'
+  import PickerMap from './PickerMap.svelte'
 
   let {
     id,
@@ -153,31 +154,33 @@
   </div>
   <div class="field">
     <p class="label">Where it is</p>
-    <div class="map">
-      <MapView
-        {areas}
-        {grips}
-        {frame}
-        icons
-        labels={named}
-        onpick={place}
-        ongrip={(_, tile) => place(tile)}
-      />
-    </div>
-    <p class="note hint">
-      {spot === null
-        ? 'Find the spot and tap it.'
-        : 'Tap or drag to move it; the arrows move it one tile.'}
-    </p>
+    <PickerMap
+      {areas}
+      {grips}
+      {frame}
+      focus={spot === null ? null : closeOn(spot)}
+      icons
+      labels={named}
+      onpick={place}
+      ongrip={(_, tile) => place(tile)}
+    >
+      {#snippet controls()}
+        <p class="note hint">
+          {spot === null
+            ? 'Find the spot and tap it.'
+            : 'Tap or drag to move it; the arrows move it one tile.'}
+        </p>
+        <label class="check marks">
+          <input type="checkbox" bind:checked={named} /> Show place names
+        </label>
+        {#if placed.length > 0}
+          <label class="check">
+            <input type="checkbox" bind:checked={showPlaced} /> Show spots already in the game
+          </label>
+        {/if}
+      {/snippet}
+    </PickerMap>
     {@render problem(spotError, attempted)}
-    <label class="check marks">
-      <input type="checkbox" bind:checked={named} /> Show place names
-    </label>
-    {#if placed.length > 0}
-      <label class="check">
-        <input type="checkbox" bind:checked={showPlaced} /> Show spots already in the game
-      </label>
-    {/if}
   </div>
   {#if spot !== null}
     <div class="tune">
@@ -286,13 +289,6 @@
 
   .label {
     margin: 0 0 0.3rem;
-  }
-
-  .map {
-    height: min(24rem, 60vh);
-    border: var(--border-width) solid var(--line);
-    border-radius: min(var(--radius), 8px);
-    overflow: hidden;
   }
 
   .hint {

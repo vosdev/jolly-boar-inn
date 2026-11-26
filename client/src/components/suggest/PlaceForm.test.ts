@@ -1,6 +1,6 @@
 /** A place for Lost in Gielinor on `/suggest`: Hans's description, never the name, and why. */
 
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/svelte'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '../../lib/api'
@@ -128,6 +128,27 @@ describe('PlaceForm, described', () => {
     await waitFor(() => expect(names()).toEqual(['map-name:Catherby']))
     await fireEvent.click(box)
     await waitFor(() => expect(names()).toEqual(['map-name:Catherby', 'map-name faint:Falador']))
+  })
+
+  it('opens the picker full screen, where a tap puts the box down as on the small map', async () => {
+    await open()
+    await type(/^Place/, 'Catherby')
+    await fireEvent.click(await screen.findByRole('button', { name: 'Full screen map' }))
+    const dialog = screen.getByRole('dialog', { name: 'Find it on the map' })
+    expect((dialog as HTMLDialogElement).open).toBe(true)
+    const big = await waitFor(() => {
+      const found = dialog.querySelector<HTMLElement>('.leaflet-container')
+      if (found === null) throw new Error('no map yet')
+      return found
+    })
+    expect(dialog.textContent).toContain('Find the place and tap it.')
+    await fireEvent.keyDown(big, { key: 'Enter' })
+    await waitFor(() => expect(dialog.querySelector('.map-name')?.textContent).toBe('Catherby'))
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Close' }))
+    expect((dialog as HTMLDialogElement).open).toBe(false)
+    expect(dialog.querySelector('.leaflet-container')).toBeNull()
+    const field = screen.getByText('Where it is').closest('.field')!
+    await waitFor(() => expect(field.querySelector('.map-name')?.textContent).toBe('Catherby'))
   })
 
   it('offers no places when the round has none yet', async () => {
