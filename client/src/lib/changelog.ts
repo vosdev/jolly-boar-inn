@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.286.1',
+    date: '2026-11-26',
+    text: "Keep the host's name on one line in a suggestion's map preview when you reveal without answering.",
+  },
+  {
     version: '0.286.0',
     date: '2026-11-26',
     text: 'Jump to the Daily, How to play or all game modes from the footer on any page.',

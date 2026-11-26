@@ -55,6 +55,17 @@ describe('PointsSlot', () => {
     expect(container.querySelector('.slot')?.classList.contains('none')).toBe(true)
   })
 
+  it('shows a timeout as a bare +0 in a narrow box, still saying "No answer" to a screen reader', () => {
+    const { container } = render(PointsSlot, {
+      result: null,
+      canAnswer: true,
+      chip: true,
+      narrow: true,
+    })
+    expect(earned(container)).toBe('+0')
+    expect(container.querySelector('.sr')?.textContent).toBe('No answer, no points')
+  })
+
   it('lets a graded guess be its number', () => {
     const { container } = render(PointsSlot, {
       result: {

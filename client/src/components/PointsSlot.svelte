@@ -71,6 +71,7 @@
     total = null,
     chip = false,
     item = null,
+    narrow = false,
   }: {
     /** Our row of `question_closed.results`; null if we did not answer. */
     result: PlayerResult | null
@@ -82,6 +83,8 @@
     chip?: boolean
     /** What your item added on this close; null when it added nothing. */
     item?: ItemPoints | null
+    /** For a box too narrow for the words: no answer shows as `+0`, the host's line says why. */
+    narrow?: boolean
   } = $props()
 
   const outcome = $derived(outcomeOf(result, canAnswer))
@@ -89,10 +92,12 @@
   const spoken = $derived(verdictSentence(result, canAnswer, total, item))
 </script>
 
-<div class="slot {outcome}" class:surface={!chip} class:plaque={!chip} class:chip>
+<div class="slot {outcome}" class:surface={!chip} class:plaque={!chip} class:chip class:narrow>
   <span class="sr">{spoken}</span>
   <p class="earned" aria-hidden="true">
-    {#if outcome === 'none'}
+    {#if outcome === 'none' && narrow}
+      +0
+    {:else if outcome === 'none'}
       No answer · +0
     {:else if outcome === 'unscored'}
       Not scored
@@ -174,7 +179,7 @@
     line-height: 1;
   }
 
-  .chip.none .earned {
+  .chip.none:not(.narrow) .earned {
     font-size: 0.9rem;
   }
 

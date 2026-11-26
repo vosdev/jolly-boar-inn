@@ -80,6 +80,7 @@
     answersOnly = false,
     tv = false,
     hero = null,
+    narrow = false,
     children,
   }: {
     /** The question as it was sent open, which still picks the view once it has closed. */
@@ -105,6 +106,8 @@
     tv?: boolean
     /** A picture to stand in the host's place; other hosts keep their own. */
     hero?: string | null
+    /** A preview's box, too narrow for the chip's "No answer". */
+    narrow?: boolean
     children?: Snippet
   } = $props()
 
@@ -225,7 +228,7 @@
 {/snippet}
 
 {#snippet points()}
-  <PointsSlot {result} {item} canAnswer chip />
+  <PointsSlot {result} {item} canAnswer chip {narrow} />
 {/snippet}
 
 {#snippet unheard()}
