@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.286.4',
+    date: '2026-11-26',
+    text: 'Open a fresh form of the same kind when you pick Suggest another.',
+  },
+  {
     version: '0.286.3',
     date: '2026-11-26',
     text: 'Stop flagging a place on /suggest just because another map round already asks it.',

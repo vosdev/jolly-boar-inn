@@ -41,7 +41,7 @@
   let choice = $state<Choice | null>(null)
   let retryAt = $state<string | null>(null)
   let failure = $state<string | null>(null)
-  /** Remounts the editor for a fresh form after "Suggest another". */
+  /** Remounts the editor for a fresh form of the same kind after "Suggest another". */
   let round = $state(0)
   /** Who asks the random event being written, so the list starts with theirs. */
   let asker = $state('')
@@ -104,9 +104,8 @@
   }
 
   async function another(): Promise<void> {
-    choice = null
     round += 1
-    if (await checkAllowance()) view = 'pick'
+    if (await checkAllowance()) view = choice === null ? 'pick' : 'write'
   }
 </script>
 
