@@ -45,13 +45,11 @@ afterEach(() => {
 })
 
 describe('HomeScreenHint', () => {
-  it('points an iPhone to the Home Screen, and says the app there starts fresh', () => {
+  it('points an iPhone to the Home Screen', () => {
     device({ agent: IPHONE })
     render(HomeScreenHint)
     expect(summary()).not.toBeNull()
-    expect(screen.getByText(/Tap Share, then Add to Home Screen/).textContent).toMatch(
-      /starts fresh: rejoin\s+with the room code/,
-    )
+    expect(screen.getByText(/Tap Share, then Add to Home Screen/)).toBeTruthy()
   })
 
   it('is not there where full screen works, or off an iPhone', () => {

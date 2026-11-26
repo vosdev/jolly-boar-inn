@@ -2,9 +2,8 @@
   /**
    * Where an iPhone gets no Full screen switch (WebKit offers the API on video only), a line
    * pointing to the Home Screen, where the game does run full screen (the web manifest from
-   * `site-branding.ts`). It opens a short how-to, which warns that the Home Screen app starts
-   * fresh: iOS gives it storage of its own, so no name, pet or seat comes along. Gone once the
-   * page runs from the Home Screen, or for good once dismissed.
+   * `site-branding.ts`). It opens a short how-to. Gone once the page runs from
+   * the Home Screen, or for good once dismissed.
    */
   import { onMount } from 'svelte'
 
@@ -33,10 +32,7 @@
   <div class="hint">
     <details>
       <summary>Full screen: add to Home Screen</summary>
-      <p>
-        Tap Share, then Add to Home Screen, and open the game from there. It starts fresh: rejoin
-        with the room code.
-      </p>
+      <p>Tap Share, then Add to Home Screen, and open the game from there.</p>
     </details>
     <button type="button" class="link" aria-label="Don't show this again" onclick={dismiss}>
       ×
