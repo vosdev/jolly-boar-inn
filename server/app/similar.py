@@ -15,8 +15,9 @@ verses differ, but an item with a verse is worth flagging, so the same item is 1
 items compare as any question does. A place in a map round is 100 for the same name or a box
 that overlaps, since a place asked twice under two names is still one place. Two map rounds
 are 0: a name, a photo, a minimap and a description of one place are different questions.
-Two minimaps are 100 when their spots lie within the minimap's radius of each other, else 0. A pack question
-names its answer by ``answer_id``; a suggestion only by name until the import finds its id.
+Two minimaps are 100 when their spots lie within the minimap's radius of each other, else 0.
+A pack question names its answer by ``answer_id``; a suggestion only by name until the import
+finds its id.
 
 Questions of different types share nothing but the prompt, so it alone decides.
 """
