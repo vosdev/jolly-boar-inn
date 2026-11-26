@@ -263,7 +263,7 @@
      profile. `you` outlives the Room screen until the next one resets it, so the route
      decides which, not the store. -->
 <Floor />
-<WallLights />
+<WallLights corner={!footer} />
 
 <TopBar
   {navigate}

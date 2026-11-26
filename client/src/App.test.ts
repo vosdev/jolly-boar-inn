@@ -285,6 +285,24 @@ describe('App', () => {
     expect(bar().querySelector('.where')).toBeNull()
   })
 
+  it('lights a phone’s corner under a live question, where there is no footer', async () => {
+    document.documentElement.dataset.theme = 'jolly'
+    await inRoom(LIVE)
+    applyServerMessage({ t: 'question_open', question: QUESTION })
+    await screen.findByText('Dragon bones')
+    await waitFor(() =>
+      expect(document.querySelector('.wall-lights')?.classList.contains('corner')).toBe(true),
+    )
+  })
+
+  it('leaves a phone’s corner bare under the lobby’s footer', async () => {
+    document.documentElement.dataset.theme = 'jolly'
+    await inRoom({ ...LIVE, status: 'lobby', phase: 'idle', current_index: null, segment: null })
+    await screen.findByRole('heading', { level: 1, name: 'Lobby' })
+    await waitFor(() => expect(document.querySelector('.wall-lights')).not.toBeNull())
+    expect(document.querySelector('.wall-lights')!.classList.contains('corner')).toBe(false)
+  })
+
   it('puts the footer under the lobby, and says Lobby in the bar', async () => {
     await inRoom({ ...LIVE, status: 'lobby', phase: 'idle', current_index: null, segment: null })
     await screen.findByRole('heading', { level: 1, name: 'Lobby' })

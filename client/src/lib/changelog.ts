@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.285.0',
+    date: '2026-11-26',
+    text: "Show your theme's wall light in your phone's bottom corner during a game.",
+  },
+  {
     version: '0.284.0',
     date: '2026-11-25',
     text: 'Write place names on the map as the game does, in KGP Recon and on every map reveal.',
