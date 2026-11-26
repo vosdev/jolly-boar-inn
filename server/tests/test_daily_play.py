@@ -485,6 +485,50 @@ def test_the_result_of_a_finished_attempt_starts_nothing(
     assert len(db("select 1 from daily_attempts")) == 1
 
 
+def attempt(db, day, name: str, points: int, finished: bool = True, results=("right",)) -> None:
+    """Another browser's attempt on ``day``, written straight to the table."""
+    db(
+        "insert into daily_attempts (day, token_hash, finished_at, points, results)"
+        " values ($1, $2, $3, $4, $5)",
+        day,
+        name * 32,
+        datetime.now(UTC) if finished else None,
+        points,
+        list(results),
+    )
+
+
+def test_the_result_counts_the_other_finished_attempts_it_beat(
+    quick: FastAPI, client: TestClient, db
+) -> None:
+    played(client)
+    day = day_of(datetime.now(UTC))
+    mine = db("select points from daily_attempts")[0]["points"]
+    attempt(db, day, "c", 0)
+    attempt(db, day, "d", mine - 1, results=["right", "missed"])
+    attempt(db, day, "e", mine)
+    attempt(db, day, "f", mine + 1)
+    attempt(db, day, "g", 0, finished=False)
+    attempt(db, day - timedelta(days=1), "h", 0)
+    body = client.post("/api/daily/result", json={"token": TOKEN, "day": day.isoformat()}).json()
+    assert (body["others"], body["beaten"]) == (4, 2)
+    assert start(client).json()["result"] == body
+
+
+def test_fewer_than_three_others_leave_the_comparison_out(
+    quick: FastAPI, client: TestClient, db
+) -> None:
+    played(client)
+    day = day_of(datetime.now(UTC))
+    attempt(db, day, "c", 0)
+    attempt(db, day, "d", 0)
+    body = client.post("/api/daily/result", json={"token": TOKEN, "day": day.isoformat()}).json()
+    assert (body["others"], body["beaten"]) == (None, None)
+    attempt(db, day, "e", 0)
+    body = client.post("/api/daily/result", json={"token": TOKEN, "day": day.isoformat()}).json()
+    assert (body["others"], body["beaten"]) == (3, 3)
+
+
 def test_a_finished_daily_room_cannot_rematch(quick: FastAPI, client: TestClient) -> None:
     code = played(client)
     room = room_of(client, code)

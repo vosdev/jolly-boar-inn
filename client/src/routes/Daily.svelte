@@ -18,11 +18,13 @@
   import DailyResultScreen from '../components/DailyResult.svelte'
   import { ApiFailure, getDaily, getDailyResult, startDaily, type DailyToday } from '../lib/api'
   import {
+    dailyScores,
     dailyToken,
     lastDaily,
     noteDaily,
     resumes,
     saveScore,
+    streak,
     type DailyResult,
   } from '../lib/daily'
   import { generateName } from '../lib/names'
@@ -38,7 +40,7 @@
     | { name: 'loading' }
     | { name: 'intro'; today: DailyToday }
     | { name: 'playing'; code: string }
-    | { name: 'result'; result: DailyResult }
+    | { name: 'result'; result: DailyResult; streak: number }
     | { name: 'error'; message: string }
 
   let view = $state<View>({ name: 'loading' })
@@ -96,7 +98,7 @@
   function show(result: DailyResult): void {
     noteDaily({ day: result.day, finished: true })
     saveScore(result)
-    view = { name: 'result', result }
+    view = { name: 'result', result, streak: streak(dailyScores(), result.day) }
   }
 
   async function showResult(day: string): Promise<void> {
@@ -122,7 +124,7 @@
     <Room code={view.code} {navigate} />
   {/key}
 {:else if view.name === 'result'}
-  <DailyResultScreen result={view.result} onHome={() => navigate('/')} />
+  <DailyResultScreen result={view.result} streak={view.streak} onHome={() => navigate('/')} />
 {:else}
   <section class="panel daily">
     {#if view.name === 'loading'}

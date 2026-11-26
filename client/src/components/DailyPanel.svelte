@@ -4,10 +4,11 @@
    * the earlier days this browser finished (`lib/daily.ts`). `today` is null when the server
    * did not answer, and then only the list is left.
    *
-   * Today's score sits at the top, so the list starts at the day before.
+   * Today's score sits at the top, so the list starts at the day before. The streak pill is
+   * filled once today is played and an outline while yesterday's run can still go on.
    */
   import type { DailyToday } from '../lib/api'
-  import { lastDaily, numberOn, type DailyScore } from '../lib/daily'
+  import { dayBefore, inARow, lastDaily, numberOn, streak, type DailyScore } from '../lib/daily'
   import { dailyDate, expiresIn } from '../lib/dates'
   import Icon from './Icon.svelte'
   import ScoreRing from './ScoreRing.svelte'
@@ -31,6 +32,11 @@
 
   const score = $derived(scores.find((one) => one.day === today?.day) ?? null)
   const earlier = $derived(scores.filter((one) => one !== score))
+  const run = $derived.by(() => {
+    if (today === null || running !== null) return 0
+    if (score !== null) return streak(scores, today.day)
+    return streak(scores, dayBefore(today.day))
+  })
   let page = $state(0)
   const pages = $derived(Math.ceil(earlier.length / PAGE))
   const shown = $derived(earlier.slice(page * PAGE, (page + 1) * PAGE))
@@ -46,7 +52,12 @@
       <ScoreRing correct={score.correct} total={score.total} />
     {/if}
     <div class="what">
-      <h2 id="daily-heading">Daily challenge</h2>
+      <div class="heading">
+        <h2 id="daily-heading">Daily challenge</h2>
+        {#if run > 0}
+          <span class="streak" class:kept={score !== null}>{inARow(run)}</span>
+        {/if}
+      </div>
       {#if today !== null}
         {#if running !== null}
           <p>You still have a daily in progress.</p>
@@ -61,6 +72,9 @@
             <li>10 questions</li>
             <li>One try</li>
           </ul>
+          {#if run > 0}
+            <p>Play today to make it {run + 1}.</p>
+          {/if}
         {/if}
       {/if}
     </div>
@@ -129,6 +143,28 @@
 
   h2 {
     margin: 0;
+  }
+
+  .heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.3rem 0.5rem;
+  }
+
+  .streak {
+    padding: 0.1rem 0.5rem;
+    border: var(--border-width) solid var(--ok);
+    border-radius: 999px;
+    color: var(--ok);
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .streak.kept {
+    background: var(--ok);
+    color: var(--ok-ink);
   }
 
   .what p {

@@ -47,6 +47,8 @@ def result_view(result: DailyResult) -> dict[str, Any]:
         "points": result.points,
         "correct": result.correct,
         "results": result.results,
+        "others": result.others,
+        "beaten": result.beaten,
     }
 
 

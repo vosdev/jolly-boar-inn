@@ -537,12 +537,16 @@ one question a round, with one `player` and settings `run`, early close, no name
 - `POST /api/daily {token, display_name, avatar?}` → `{code, session}`. The token is the browser's
   (`jbi:daily:token`), stored as sha256 in `daily_attempts` under the attempt's day, once per day.
   An unfinished attempt resumes, whatever its day, with a new session; a finished one today is
-  409 `daily_played` with its `result` `{day, number, points, correct, results}`. A gone room ends
+  409 `daily_played` with its `result` `{day, number, points, correct, results, others, beaten}`. A gone room ends
   its attempt there, as does asking for its result. `GET /api/daily` → `{day, number, next_at}`, `next_at` when the next day opens. `POST /api/daily/result {token, day}`
   returns a finished attempt's `result`, or 404, and starts nothing; `/daily` asks it first for an
-  attempt left unfinished, which may have run out.
+  attempt left unfinished, which may have run out. Every `result` also carries `others`, the day's
+  other attempts with `finished_at` set, and `beaten`, those scoring strictly less, asked afresh;
+  both null below 3 others.
 - Home's Daily challenge panel offers the day's daily, or its score and `next_at`, and lists earlier
   days from `jbi:daily:scores`: every result `/daily` showed, in this browser only, never trimmed.
+  The streak, days in a row in those scores, is a pill there (an outline while yesterday's run can
+  go on) and a tile on the result beside the share beaten, which drops out while `others` is null.
 - The end screen, and `/daily` after playing, shows the result and copies a share text without
   answers: `I scored 7,420 on daily challenge #12 at <site>. Think you can do better?`, a row of 🟩 full,
   🟨 partial, 🟥 none, and `location.origin/daily`.
