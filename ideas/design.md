@@ -410,7 +410,9 @@ chrome or circle around them), on in `--ok`, in lobby and splash;
   where it cannot be taken back (the splash allows one take-back) it sits disabled, on. On touch
   devices, and in a room drawn below scale 1 (§8), a smaller "Full screen" switch of the same look
   sits beside it and follows the browser's state; below scale 1 a line adds "Short on room? Full
-  screen shows the whole question." It is absent where the browser lacks the API (iPhone, #319).
+  screen shows the whole question." Where the browser lacks the API (iPhone), the lobby has a
+  line "Full screen: add to Home Screen" instead, opening how to and that the app there starts
+  fresh; an × hides it for good, and it is gone in the Home Screen app (manifest, start `/`).
 - **Splash.** The host's greeting and blurb in the bubble. The scroll, centred: the mode's name,
   its Create hint alone, then small "Round 4 of 10, 5 questions" and a price round's date. Under it,
   "Tonight", only the row, centred: a host per round, past ones faded, the current one large and

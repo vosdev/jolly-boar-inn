@@ -23,6 +23,7 @@ import {
   shareTags,
   signSvg,
   themeColours,
+  webManifest,
 } from './site-branding.ts'
 import { RANDOM_EVENTS } from './src/lib/randomEvents.ts'
 import { DAILY_INTRO, EVENTS_INTRO, HOME_DESCRIPTION, NOT_SHOWN_MODES } from './src/lib/seo.ts'
@@ -238,6 +239,20 @@ describe('a shared link', () => {
     expect(tags['og:image:width']).toBe('1200')
     expect(tags['og:image:height']).toBe('630')
     expect(tags['twitter:card']).toBe('summary_large_image')
+  })
+})
+
+describe('the web manifest', () => {
+  it('opens the game alone from Home, under the site’s name, with the touch icon when there is one', () => {
+    expect(webManifest(readBranding({ PUBLIC_SITE_NAME: 'The Dancing Donkey' }, root))).toEqual({
+      name: 'The Dancing Donkey',
+      short_name: 'The Dancing Donkey',
+      start_url: '/',
+      display: 'standalone',
+    })
+    expect(webManifest(readBranding(BOAR, root)).icons).toEqual([
+      { src: '/apple-touch-icon.png', type: 'image/png' },
+    ])
   })
 })
 

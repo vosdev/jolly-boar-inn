@@ -862,7 +862,7 @@ Limits:
 
 `http/headers.py` sets `Referrer-Policy: no-referrer`, `nosniff`, `X-Frame-Options: DENY`,
 `Cache-Control: no-store` and `X-App-Version` on `/api/*`, and a CSP of `default-src 'none'` widened to `'self'` per
-directive plus `img-src data:`, with `base-uri`, `form-action` and `frame-ancestors` at `'none'`.
+directive (`manifest-src` too) plus `img-src data:`, with `base-uri`, `form-action` and `frame-ancestors` at `'none'`.
 The build has no inline script or style. The access log drops query strings. There is no HSTS: TLS
 ends at the proxy, and HSTS would lock out a LAN selfhoster on plain HTTP.
 

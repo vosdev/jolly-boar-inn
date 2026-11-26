@@ -62,6 +62,7 @@
   import ErrorBanner from './ErrorBanner.svelte'
   import EmoteButton from './EmoteButton.svelte'
   import FullScreenSwitch from './FullScreenSwitch.svelte'
+  import HomeScreenHint from './HomeScreenHint.svelte'
   import Switch from './Switch.svelte'
   import HowToPlay from './HowToPlay.svelte'
   import Icon from './Icon.svelte'
@@ -431,6 +432,7 @@
             <FullScreenSwitch short={squeezed} />
             {#if !isTV}
               <EmoteButton send={(emote) => socket.send({ t: 'emote', emote })} />
+              <HomeScreenHint />
             {/if}
           </div>
           {#if needTeam}

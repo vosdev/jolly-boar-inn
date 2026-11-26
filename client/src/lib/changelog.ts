@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.287.0',
+    date: '2026-11-26',
+    text: 'Play full screen on an iPhone: add the game to your Home Screen, as the lobby now explains.',
+  },
+  {
     version: '0.286.4',
     date: '2026-11-26',
     text: 'Open a fresh form of the same kind when you pick Suggest another.',
