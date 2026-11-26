@@ -142,10 +142,13 @@ def test_the_question_list_never_carries_an_answer(offline: TestClient, mode: st
     extra = {
         "whos_that_npc": {"npc"},
         "random_event": {"random_event"},
-        "minimap_guesser": {"picture"},
+        "minimap_guesser": {"picture", "places"},
+        "mark_the_map": {"places"},
+        "lost_in_gielinor": {"places"},
     }.get(mode, set())
     for choice in body["choices"]:
         assert choice.keys() in ({"id", "label"} | extra, {"id", "label"}), mode
+        choice.pop("places", None)
     if body["by"] == "question":
         ids = [choice["id"] for choice in body["choices"]]
         assert ids == [q["id"] for q in mode_questions(PACKS, mode)]
@@ -255,7 +258,7 @@ def test_a_quote_is_named_after_its_prompt(offline: TestClient) -> None:
     assert body["choices"][0]["label"] == f"{payload['prompt']} “{payload['quote']}”"
 
 
-def test_a_screenshot_choice_carries_its_picture_and_never_its_place(
+def test_a_screenshot_choice_carries_its_picture_and_its_place(
     offline: TestClient,
 ) -> None:
     state = offline.app.state
@@ -263,12 +266,28 @@ def test_a_screenshot_choice_carries_its_picture_and_never_its_place(
     state.rooms.pictures.update(dict(zip(SHOTS, FILES, strict=True)))
     body = offline.get("/api/questions?mode=kgp_recon").json()
     assert body["choices"] == [
-        {"id": f"kgp{index}", "label": "Where was this photo taken?", "picture": file}
-        for index, file in enumerate(FILES)
+        {
+            "id": f"kgp{index}",
+            "label": "Where was this photo taken?",
+            "picture": file,
+            "places": [{"name": place, **BOX}],
+        }
+        for index, (file, place) in enumerate(zip(FILES, ("Varrock", "Lumbridge"), strict=True))
     ]
-    flat = json.dumps(body)
-    for secret in ("Varrock", "Lumbridge", "screenshot:", "targets", "min_x"):
-        assert secret not in flat
+    assert "screenshot:" not in json.dumps(body)
+
+
+@pytest.mark.parametrize("mode", ["mark_the_map", "minimap_guesser", "lost_in_gielinor"])
+def test_a_map_choice_carries_its_places(offline: TestClient, mode: str) -> None:
+    body = offline.get(f"/api/questions?mode={mode}").json()
+    places = [choice["places"] for choice in body["choices"]]
+    assert places == [q["payload"]["targets"] for q in mode_questions(PACKS, mode)]
+
+
+def test_only_a_map_choice_carries_places(offline: TestClient) -> None:
+    for mode in ("guess_examine", "whos_that_npc", "who_said_that"):
+        body = offline.get(f"/api/questions?mode={mode}").json()
+        assert all("places" not in choice for choice in body["choices"]), mode
 
 
 def test_a_choice_whose_screenshot_this_build_lacks_has_no_picture() -> None:

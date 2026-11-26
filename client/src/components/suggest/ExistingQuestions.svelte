@@ -6,6 +6,8 @@
    * Each row is what players read while the question is open (`reports.label` on the
    * server), never its answer. A random event's row shows who asks it, the NPC the player
    * picked first. A round on screenshots asks the same of every photo, so it shows the photos.
+   * A map round's can be drawn instead, every place on one map, so a suggester sees what is
+   * covered and picks somewhere new.
    * Pending and approved suggestions are not in the packs, so never here.
    * A mode with nothing to list, whether it is not built, not offered here or the fetch
    * failed, gets one line: the list is help, never worth an error.
@@ -14,11 +16,14 @@
 
   import { getReportChoices } from '../../lib/api'
   import { pictureUrl } from '../../lib/pictures'
+  import { boundsOf } from '../../lib/pins'
   import { randomEventFor } from '../../lib/randomEvents'
   import { allPictured, type ReportChoice } from '../../lib/reports'
   import { inGameOrder } from '../../lib/suggestions'
   import { matches, SHOWN_MAX, words } from '../../lib/vocab'
+  import MapView, { type MapArea } from '../map/MapView.svelte'
   import NpcFace from '../NpcFace.svelte'
+  import Segmented from '../Segmented.svelte'
 
   let {
     mode,
@@ -40,6 +45,7 @@
   let photos = $state(PAGE)
   let rows = $state<readonly ReportChoice[] | 'loading' | 'none'>('loading')
   let query = $state('')
+  let shown = $state<'list' | 'map'>('list')
 
   onMount(() => {
     getReportChoices(mode).then(
@@ -61,6 +67,17 @@
           asker: row.random_event === undefined ? [] : words(randomEventFor(row.random_event).name),
         })),
   )
+  const areas = $derived<MapArea[]>(
+    typeof rows === 'string'
+      ? []
+      : rows.flatMap((row) =>
+          (row.places ?? []).map((place) => ({
+            box: boundsOf(place),
+            name: place.name,
+            round: place.round,
+          })),
+        ),
+  )
   const found = $derived.by(() => {
     const wanted = words(query)
     const hits = indexed
@@ -76,6 +93,27 @@
     <p class="note">Fetching the list…</p>
   {:else if rows === 'none'}
     <p class="note">The game has no questions here yet.</p>
+  {:else}
+    {#if areas.length > 0}
+      <div class="switch">
+        <Segmented
+          legend="Show them as"
+          hideLegend
+          options={[
+            { value: 'list', label: 'List' },
+            { value: 'map', label: 'Map' },
+          ]}
+          bind:value={shown}
+        />
+      </div>
+    {/if}
+    {@render listed(rows)}
+  {/if}
+</details>
+
+{#snippet listed(rows: readonly ReportChoice[])}
+  {#if shown === 'map' && areas.length > 0}
+    <div class="map"><MapView {areas} /></div>
   {:else if allPictured(rows)}
     <ul class="photos" aria-labelledby="{uid}-title">
       {#each rows.slice(0, photos) as row, index (row.id)}
@@ -117,7 +155,7 @@
       {/if}
     {/if}
   {/if}
-</details>
+{/snippet}
 
 <style>
   summary {
@@ -181,6 +219,17 @@
 
   .note {
     margin: 0.5rem 0 0;
+  }
+
+  .switch {
+    margin-bottom: 0.5rem;
+  }
+
+  .map {
+    height: min(32rem, 60vh);
+    border: var(--border-width) solid var(--line);
+    border-radius: min(var(--radius), 8px);
+    overflow: hidden;
   }
 
   ul.photos {

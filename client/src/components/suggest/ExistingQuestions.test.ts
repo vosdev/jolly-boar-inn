@@ -12,6 +12,13 @@ vi.mock('../../lib/api', async (importOriginal) => {
   return { ...real, getReportChoices: vi.fn() }
 })
 
+vi.mock('../../lib/map', async (importOriginal) => {
+  const real = await importOriginal<typeof import('../../lib/map')>()
+  return { ...real, tilesLoad: vi.fn(() => Promise.resolve(true)) }
+})
+
+const BOX = { min_x: 3200, max_x: 3240, min_y: 3200, max_y: 3240 }
+
 function panel(): HTMLElement {
   return screen.getByRole('group', { name: 'Already in the game' })
 }
@@ -29,6 +36,41 @@ beforeEach(() => {
 afterEach(cleanup)
 
 describe('ExistingQuestions', () => {
+  it('draws a map round’s places on a map when the switch says Map', async () => {
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(800)
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(600)
+    vi.mocked(api.getReportChoices).mockResolvedValue({
+      by: 'question',
+      choices: [
+        { id: 'a', label: 'Where is Varrock?', places: [{ name: 'Varrock', ...BOX }] },
+        { id: 'b', label: 'Where is Lumbridge?', places: [{ name: 'Lumbridge', ...BOX }] },
+      ],
+    })
+    render(ExistingQuestions, { mode: 'mark_the_map', open: true })
+    await waitFor(() => expect(rows()).toHaveLength(2))
+    expect(panel().querySelector('.leaflet-container')).toBeNull()
+    await fireEvent.click(screen.getByRole('radio', { name: 'Map' }))
+    const names = await waitFor(() => {
+      const found = [...panel().querySelectorAll('.map-name')]
+      if (found.length === 0) throw new Error('no map yet')
+      return found.map((tag) => tag.textContent)
+    })
+    expect(names).toEqual(['Varrock', 'Lumbridge'])
+    expect(rows()).toEqual([])
+    await fireEvent.click(screen.getByRole('radio', { name: 'List' }))
+    expect(rows()).toHaveLength(2)
+  })
+
+  it('offers no map for a round without places', async () => {
+    vi.mocked(api.getReportChoices).mockResolvedValue({
+      by: 'question',
+      choices: [{ id: 'a', label: 'Which boss drops the Abyssal whip?' }],
+    })
+    render(ExistingQuestions, { mode: 'bestiary', open: true })
+    await waitFor(() => expect(rows()).toHaveLength(1))
+    expect(screen.queryByRole('radio', { name: 'Map' })).toBeNull()
+  })
+
   it('shows a round on screenshots by its photos, since every one asks the same', async () => {
     const label = 'Where was this photo taken?'
     vi.mocked(api.getReportChoices).mockResolvedValue({

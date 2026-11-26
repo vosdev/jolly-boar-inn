@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.288.0',
+    date: '2026-11-26',
+    text: 'See every place a map round already asks on one map, under Already in the game on the Suggest page.',
+  },
+  {
     version: '0.287.0',
     date: '2026-11-26',
     text: 'Play full screen on an iPhone: add the game to your Home Screen, as the lobby now explains.',

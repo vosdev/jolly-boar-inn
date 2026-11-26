@@ -217,6 +217,25 @@
     if (grip !== undefined) marker.setLatLng(toLatLng(grip.at))
   }
 
+  /** Hides each area's name that would cover an earlier one, so a map of many stays readable. */
+  function hideClashingNames(): void {
+    // Measured all at once after every name is back, so the page lays out once, not per name.
+    const rects = marks.map(({ tag }) => tag.getBoundingClientRect())
+    const kept: DOMRect[] = []
+    marks.forEach(({ tag }, index) => {
+      const rect = rects[index]!
+      const clash = kept.some(
+        (other) =>
+          rect.left < other.right &&
+          other.left < rect.right &&
+          rect.top < other.bottom &&
+          other.top < rect.bottom,
+      )
+      tag.hidden = clash
+      if (!clash) kept.push(rect)
+    })
+  }
+
   /** The labels' sides for this zoom, and the rings' sizes, which a zoom changes. */
   function settle(): void {
     if (live === null) return
@@ -229,7 +248,9 @@
       const shown = Math.max(tall, wide) >= SMALLEST_RING * 2
       ring.getElement()?.classList.toggle('gone', shown)
       tag.style.setProperty('--ring', `${shown ? tall / 2 : SMALLEST_RING}px`)
+      tag.hidden = false
     }
+    hideClashingNames()
     const pins = [...host.querySelectorAll<HTMLElement>('.pin')]
     const tagged = new Map(pins.map((pin) => [pin.dataset.id ?? '', pin]))
     const size = map.getSize()

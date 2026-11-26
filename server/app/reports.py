@@ -17,7 +17,8 @@ is the options in pack order, which says which question it is but not which opti
 the odd one. Who's That NPC? and Pixel Hunt ask the same too, and the picture is the
 question, so a list pick's label is the name it answers to: the one answer a label gives.
 A round on a screenshot asks the same of every photo, so its choice also names the picture,
-by the random file name an open question carries: what players saw, never where it is.
+by the random file name an open question carries. A map round's choice carries its targets
+as ``places``, for /suggest's map of what is covered; the packs are public anyway.
 """
 
 from collections.abc import Collection, Mapping
@@ -117,6 +118,8 @@ def _choice(question: dict[str, Any], pictures: Mapping[str, str]) -> dict[str, 
         choice["npc"] = question["payload"]["answer_id"]
     if question["mode"] == EVENT_MODE:
         choice["random_event"] = question["random_event"]
+    if question["type"] == "map_pin":
+        choice["places"] = question["payload"]["targets"]
     return choice
 
 

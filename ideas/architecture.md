@@ -980,8 +980,8 @@ key into them, so cleanup leaves it.
   id or null, a snapshot (the question whole, a price mode's roster item, or null for "something
   else"), up to 500 characters of text, open or closed. Closed ones are kept. It and `/suggest`
   list `GET /api/questions?mode=…`, `{id, label}` (`reports.label`: no answer but Who's That NPC?'s,
-  plus a shadow's `npc`, `random_event`, or a screenshot's `picture`, which a round of them is picked
-  by); 3 an hour per address. `/api/admin/reports` lists and closes them; `/api/admin/questions?mode=…`
+  plus a shadow's `npc`, `random_event`, a screenshot's `picture`, or a map round's `places`, its
+  targets, which /suggest draws); 3 an hour per address. `/api/admin/reports` lists and closes them; `/api/admin/questions?mode=…`
   returns a mode's pack questions whole, and `/pictures` each screenshot's file, drawn with its answer.
 - `question_edits` holds the operator's pending edits and deletes of hand-written pack questions
   (`app/question_edits.py`), one per question, keyed by its id in the packs as they are; a second
