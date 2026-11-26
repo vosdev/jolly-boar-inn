@@ -5,7 +5,7 @@
  * takes by the end of the turn is removed.
  */
 
-import type { LayerGroup, Map as LeafletMap, Polygon, TileLayer } from 'leaflet'
+import type { GridLayer, LayerGroup, Map as LeafletMap, Polygon, TileLayer } from 'leaflet'
 
 /** A map and what it was built with. */
 export interface Held {
@@ -14,6 +14,10 @@ export interface Held {
   /** The element Leaflet draws in, which moves from one view to the next. */
   canvas: HTMLDivElement
   tiles: TileLayer
+  /** The map icons, once a view has shown them: on the map only while one does. */
+  icons: GridLayer | null
+  /** The place names, likewise. */
+  labels: GridLayer | null
   outside: Polygon | null
   /** The `bounds` its limits were set for, as a key. */
   limits: string

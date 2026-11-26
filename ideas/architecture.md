@@ -86,7 +86,7 @@ A **type** is an answer shape: what a player sends, how it is checked, how it ea
 planned modes share `multiple_choice`; as five types they would be five copies of `grade`.
 
 `Mode(id, types, is_round=True, questions=None, pool=None, setting=None, options=None,
-steps=None, clues=0, described=False, pictured=False, picture_at_reveal=False, extra_answer=0, stem="text",
+steps=None, clues=0, described=False, pictured=False, picture_at_reveal=False, map_icons=False, map_labels=False, extra_answer=0, stem="text",
 hold_counts_prompt=False, suggest=None, report="question", compare="question")` in `modes/`,
 registered in `MODES` in the create form's order. A mode's rules are its entry's alone: no other
 module lists mode ids, which a test greps for.
@@ -112,7 +112,7 @@ module lists mode ids, which a test greps for.
   the `Settings` flag that offers the mode; off, or with an empty pool, `/api/modes` omits it and
   `POST /api/rooms` is a 403 `mode_not_offered`. A stored room keeps playing it. `options` holds a
   round's `multiple_choice` questions to fewer options than the schema's two to six; `mode_errors`
-  refuses the rest. `steps` is Pixel Hunt's and `pictured` Pixel Hunt's and Who's That NPC?'s (sections 8 and 12); `BUILT_UP` in `random_events.py` gives Certer both. `clues` is how many `clues` each question carries, one a step, so `steps.count` equals it; every other mode's carry none. `described` makes the prompt a description of one place, explained, that `mode_errors` refuses when it holds a word of the place's name, but for the, of, a, an, and, in, on, at and to. `picture_at_reveal` keeps a question's `picture` off the open view. `extra_answer` adds seconds to a question's answer time, before the pace, for a round that takes longer to read.
+  refuses the rest. `steps` is Pixel Hunt's and `pictured` Pixel Hunt's and Who's That NPC?'s (sections 8 and 12); `BUILT_UP` in `random_events.py` gives Certer both. `clues` is how many `clues` each question carries, one a step, so `steps.count` equals it; every other mode's carry none. `described` makes the prompt a description of one place, explained, that `mode_errors` refuses when it holds a word of the place's name, but for the, of, a, an, and, in, on, at and to. `picture_at_reveal` keeps a question's `picture` off the open view. `map_icons` draws the game's map icons on a `map_pin` map while open, as every map does at the reveal and on the TV; KGP Recon and Minimap Guesser set it. `map_labels` does the same with place names, which can be the answer; KGP Recon alone sets it. `extra_answer` adds seconds to a question's answer time, before the pace, for a round that takes longer to read.
 
 Each module in `questions/types/` exports:
 
@@ -1050,13 +1050,19 @@ Right until it does (More/Less keeps `sample.json`'s five, which `live_packs` dr
   never a picture's file, whose bytes would match the icon bundled under the item's id.
   Questions from the wiki keep its CC BY-NC-SA notice, which the README (#98) carries.
 - `make gen-map` renders the surface into `client/public/map/<cache_id>/clean/{z}/0_{x}_{y}.png`,
-  git-ignored, the wiki's grid with rows counting north. `data/map.json` pins an OpenRS2 cache and
+  git-ignored, the wiki's grid with rows counting north, and exports its map icons and labels beside it. `data/map.json` pins an OpenRS2 cache and
   its `disk.zip`'s hash: OpenRS2 keeps every cache, while the wiki retires a tileset weeks after the
   next. To update the map, take the newest `oldschool` cache from its `caches.json` and hash its zip.
   RuneLite's `MapImageDumper` (`scripts/map_render/`) draws each map square at 4 px per game tile,
   zoom 2, without icons or labels; Pillow halves them down to zoom −3 and drops all-black tiles.
   It is built in `.map/` and moved in whole with its `manifest.json`, whose presence is
   `app.map.has_tiles()`, so a stopped run serves nothing and a complete tileset sends no request.
+  `Icons.java` gathers the icons as the wiki's `MapExport` does, every plane's on the surface, and
+  `icons/` holds `icons.json` and one sprite sheet, made on its own when only it is missing.
+  `lib/mapIcons.ts` draws them as the wiki does: the sprite's own size from zoom 0, none below.
+  `Labels.java` takes each named world map element and the glyphs of the game's three Verdana
+  fonts into `labels/`; `lib/placeNames.ts` writes them as `MapImageDumper.drawMapLabels` does,
+  large from zoom −2, medium from −1, small from 0. Both layers show one zoom (`lib/mapOverlay.ts`).
   `/map/` is immutable because a new cache is a new URL. The client enlarges zoom 2 up to zoom 5.
 - `scripts/gen_locations.py` drafted Mark the Map's pack once from the infobox maps of the pages in
   `Category:Locations`, and refuses to overwrite it: the owner edits it by hand since.
