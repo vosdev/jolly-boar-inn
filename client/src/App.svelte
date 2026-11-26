@@ -11,7 +11,8 @@
    *   /history/:code/:stamp  A finished game from this browser's history
    *   /admin           The operator's view, linked from Home once this browser has its token,
    *   /admin/:tab      on its overview, or on its suggestions, reports or questions tab
-   *   /suggest         A question for the packs, linked from Home once this browser has played
+   *   /suggest         A question for the packs, linked from Home once this browser has played,
+   *   /suggest/:card   on one card's editor (`/suggest/kgp-recon`, `/suggest/item`, `/suggest/any`)
    *   /report          A problem with a pack question, linked from the same place
    *   /daily           The day's set, played alone and once
    *   /dev/map         The world map on its own, under `pnpm dev` only
@@ -45,6 +46,7 @@
   import { routeIn, routeOut } from './lib/routeFade'
   import { adminTabOf, type AdminTab } from './lib/admin'
   import { keyFromHash } from './lib/invite'
+  import { cardInPath } from './lib/suggestPath'
   import { getSession, normalizeCode } from './lib/session'
   import {
     EVENTS_SLUG,
@@ -70,7 +72,7 @@
     | { name: 'room'; code: string }
     | { name: 'history'; code: string; stamp: string }
     | { name: 'admin'; tab: AdminTab }
-    | { name: 'suggest' }
+    | { name: 'suggest'; card: string | null }
     | { name: 'report' }
     | { name: 'daily' }
     | { name: 'dev-map' }
@@ -88,7 +90,8 @@
     if (path === '/create') return { name: 'create' }
     const tab = adminTabOf(path)
     if (tab !== null) return { name: 'admin', tab }
-    if (path === '/suggest') return { name: 'suggest' }
+    const card = cardInPath(path)
+    if (card !== undefined) return { name: 'suggest', card }
     if (path === '/report') return { name: 'report' }
     if (path === '/daily') return { name: 'daily' }
     if (import.meta.env.DEV && path === '/dev/map') return { name: 'dev-map' }
@@ -105,10 +108,11 @@
   }
 
   let route = $state<Route>(resolve(currentPath()))
-  // Create and its lobby are different screens, so they fade; Admin's tabs are one, and
-  // so are Home and How to play, which keep the dialogue box and fade what is under it.
+  // Create and its lobby are different screens, so they fade; Admin's tabs are one, and so
+  // are Suggest's cards, which keep its allowance check, and Home and How to play, which
+  // keep the dialogue box and fade what is under it.
   const routeKey = $derived.by(() => {
-    if (route.name === 'admin') return 'admin'
+    if (route.name === 'admin' || route.name === 'suggest') return route.name
     if (route.name === 'home' || route.name === 'how-to') return 'home'
     return JSON.stringify(route)
   })
@@ -307,9 +311,10 @@
           {/snippet}
         </LazyRoute>
       {:else if route.name === 'suggest'}
+        {@const card = route.card}
         <LazyRoute load={() => import('./routes/Suggest.svelte')}>
           {#snippet children({ default: Suggest })}
-            <Suggest {navigate} />
+            <Suggest {card} {navigate} />
           {/snippet}
         </LazyRoute>
       {:else if route.name === 'report'}

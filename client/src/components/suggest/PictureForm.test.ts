@@ -1,12 +1,12 @@
 /** A picture pin on `/suggest`: the screenshot goes up with it, and it asks for no source. */
 
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/svelte'
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '../../lib/api'
 import { savePastGame } from '../../lib/history'
 import * as picture from '../../lib/suggestPicture'
-import Suggest from '../../routes/Suggest.svelte'
+import { renderSuggest } from '../../test-suggest'
 
 vi.mock('../../lib/api', async (importOriginal) => {
   const real = await importOriginal<typeof import('../../lib/api')>()
@@ -48,7 +48,7 @@ beforeEach(() => {
 afterEach(cleanup)
 
 async function open(): Promise<void> {
-  render(Suggest, { navigate: vi.fn() })
+  renderSuggest()
   await fireEvent.click(await screen.findByRole('button', { name: /Prop Hunt/ }))
 }
 

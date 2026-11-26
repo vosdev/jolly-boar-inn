@@ -1,13 +1,13 @@
 /** A recon photo on `/suggest`: the screenshot is cut to 16:9, the player picking the part. */
 
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/svelte'
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '../../lib/api'
 import { savePastGame } from '../../lib/history'
 import * as crop from '../../lib/photoCrop'
 import * as picture from '../../lib/suggestPicture'
-import Suggest from '../../routes/Suggest.svelte'
+import { renderSuggest } from '../../test-suggest'
 
 vi.mock('../../lib/api', async (importOriginal) => {
   const real = await importOriginal<typeof import('../../lib/api')>()
@@ -58,7 +58,7 @@ beforeEach(() => {
 afterEach(cleanup)
 
 async function attach(): Promise<void> {
-  render(Suggest, { navigate: vi.fn() })
+  renderSuggest()
   await fireEvent.click(await screen.findByRole('button', { name: /KGP Recon/ }))
   const file = new File(['x'], 'shot.png', { type: 'image/png' })
   await fireEvent.change(screen.getByLabelText('Your screenshot', { selector: FIELD }), {
@@ -68,7 +68,7 @@ async function attach(): Promise<void> {
 
 describe('PhotoForm', () => {
   it('offers the photos’ places on the picker once the round has some, and a full screen map', async () => {
-    render(Suggest, { navigate: vi.fn() })
+    renderSuggest()
     await fireEvent.click(await screen.findByRole('button', { name: /KGP Recon/ }))
     expect(screen.getByRole('button', { name: 'Full screen map' })).toBeTruthy()
     expect(screen.queryByLabelText('Show places already in the game')).toBeNull()
@@ -84,13 +84,13 @@ describe('PhotoForm', () => {
         },
       ],
     })
-    render(Suggest, { navigate: vi.fn() })
+    renderSuggest()
     await fireEvent.click(await screen.findByRole('button', { name: /KGP Recon/ }))
     expect(await screen.findByLabelText('Show places already in the game')).toBeTruthy()
   })
 
   it('asks for both ticks before the upload', async () => {
-    render(Suggest, { navigate: vi.fn() })
+    renderSuggest()
     await fireEvent.click(await screen.findByRole('button', { name: /KGP Recon/ }))
     const ticks = screen.getByRole('group', { name: 'Before you upload' })
     const upload = screen.getByLabelText('Your screenshot', { selector: FIELD })

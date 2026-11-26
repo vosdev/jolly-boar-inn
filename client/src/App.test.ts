@@ -6,6 +6,7 @@
 
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { tick } from 'svelte'
 
 import App from './App.svelte'
 import * as api from './lib/api'
@@ -693,6 +694,19 @@ describe('App, between screens', () => {
     expect(old.isConnected).toBe(true)
     await waitFor(() => expect(document.querySelectorAll('main .route')).toHaveLength(1))
     expect(old.isConnected).toBe(false)
+  })
+
+  it('keeps Suggest on screen from a card’s address to the cards and back', async () => {
+    at('/suggest/item')
+    await screen.findByText(/Play a game first/)
+    const shown = document.querySelector('main .route')!
+    for (const path of ['/suggest', '/suggest/item']) {
+      history.pushState(null, '', path)
+      dispatchEvent(new PopStateEvent('popstate'))
+      await tick()
+      expect(document.querySelectorAll('main .route')).toHaveLength(1)
+      expect(document.querySelector('main .route')).toBe(shown)
+    }
   })
 
   it('cuts under reduced motion', async () => {

@@ -1,12 +1,12 @@
 /** A place for Lost in Gielinor on `/suggest`: Hans's description, never the name, and why. */
 
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/svelte'
+import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '../../lib/api'
 import { savePastGame } from '../../lib/history'
 import { descriptionProblem, type QuestionContent } from '../../lib/suggestions'
-import Suggest from '../../routes/Suggest.svelte'
+import { renderSuggest } from '../../test-suggest'
 
 vi.mock('../../lib/api', async (importOriginal) => {
   const real = await importOriginal<typeof import('../../lib/api')>()
@@ -48,7 +48,7 @@ afterEach(() => {
 })
 
 async function open(): Promise<void> {
-  render(Suggest, { navigate: vi.fn() })
+  renderSuggest()
   await fireEvent.click(await screen.findByRole('button', { name: /Lost in Gielinor/ }))
 }
 

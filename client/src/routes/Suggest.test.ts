@@ -1,6 +1,6 @@
 /** `/suggest`: only after a game, the limit before any field, and each kind as the server takes it. */
 
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/svelte'
+import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '../lib/api'
@@ -8,10 +8,10 @@ import { ApiFailure } from '../lib/api'
 import { savePastGame } from '../lib/history'
 import * as map from '../lib/map'
 import { FALLBACK_NPC, npcArt } from '../lib/npcs'
-import { CHOICES } from '../lib/suggestions'
+import { CHOICES, choicePath, choiceSlug } from '../lib/suggestions'
 import { clearVocabCache } from '../lib/vocab'
 import { stubAnimations } from '../test-animate'
-import Suggest from './Suggest.svelte'
+import { renderSuggest } from '../test-suggest'
 
 vi.mock('../lib/api', async (importOriginal) => {
   const real = await importOriginal<typeof import('../lib/api')>()
@@ -89,7 +89,7 @@ describe('Suggest, choosing a game', () => {
     const unstub = stubAnimations()
     try {
       played()
-      render(Suggest, { navigate })
+      renderSuggest(null, navigate)
       await fireEvent.click(await screen.findByRole('button', { name: /A popular item/ }))
       expect(screen.getByRole('heading', { name: 'What would you like to suggest?' })).toBeTruthy()
       await waitFor(() =>
@@ -104,9 +104,95 @@ describe('Suggest, choosing a game', () => {
   })
 })
 
+const CARDS_HEADING = { name: 'What would you like to suggest?' }
+
+async function itemForm(): Promise<HTMLElement> {
+  return screen.findByLabelText(/Item name/, { selector: FIELD })
+}
+
+describe('Suggest, addresses', () => {
+  it('gives every card an address of its own', () => {
+    const paths = CHOICES.map(choicePath)
+    expect(new Set(paths).size).toBe(CHOICES.length)
+    expect(paths).toEqual(
+      expect.arrayContaining(['/suggest/item', '/suggest/any', '/suggest/kgp-recon']),
+    )
+  })
+
+  it('goes to a card’s address on picking it, and to /suggest on All suggestion types', async () => {
+    played()
+    renderSuggest(null, navigate)
+    await fireEvent.click(await screen.findByRole('button', { name: /A popular item/ }))
+    expect(navigate).toHaveBeenLastCalledWith('/suggest/item')
+    await itemForm()
+    await fireEvent.click(screen.getByRole('button', { name: '← All suggestion types' }))
+    expect(navigate).toHaveBeenLastCalledWith('/suggest')
+    await screen.findByRole('heading', CARDS_HEADING)
+  })
+
+  it('follows Back and Forward between the cards and a card, checking the limit once', async () => {
+    played()
+    const view = renderSuggest(null, navigate)
+    await screen.findByRole('heading', CARDS_HEADING)
+    await view.rerender({ card: 'item' })
+    await itemForm()
+    await view.rerender({ card: null })
+    await screen.findByRole('heading', CARDS_HEADING)
+    await view.rerender({ card: 'item' })
+    expect(((await itemForm()) as HTMLInputElement).value).toBe('')
+    expect(api.getSuggestionAllowance).toHaveBeenCalledTimes(1)
+  })
+
+  it('opens a card’s editor straight from its address', async () => {
+    played()
+    renderSuggest('item', navigate)
+    await itemForm()
+    expect(screen.queryByRole('heading', CARDS_HEADING)).toBeNull()
+  })
+
+  it('opens the cards for an address no card has', async () => {
+    played()
+    renderSuggest('no-such-card', navigate)
+    await screen.findByRole('heading', CARDS_HEADING)
+  })
+
+  it('waits for the map before opening a map round from its address', async () => {
+    const place = choiceSlug(CHOICES.find((choice) => choice.editor === 'place')!)
+    played()
+    renderSuggest(place, navigate)
+    await screen.findByRole('button', { name: 'Send to Reldo' })
+    expect(screen.queryByRole('heading', CARDS_HEADING)).toBeNull()
+  })
+
+  it('opens the cards for a map round while the map does not load', async () => {
+    vi.mocked(map.tilesLoad).mockResolvedValueOnce(false)
+    played()
+    renderSuggest(choiceSlug(CHOICES.find((choice) => choice.editor === 'place')!), navigate)
+    await screen.findByRole('heading', CARDS_HEADING)
+  })
+
+  it('keeps the card’s address on the thanks and Suggest another, and Back leaves them', async () => {
+    played()
+    const view = renderSuggest(null, navigate)
+    await fireEvent.click(await screen.findByRole('button', { name: /A popular item/ }))
+    await type(/Item name/, 'Ancient mace')
+    await type('Your name', 'AFKFisher')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
+    await fireEvent.click(await screen.findByRole('button', { name: 'Suggest another' }))
+    await itemForm()
+    await type(/Item name/, 'Dragon mace')
+    await type('Your name', 'AFKFisher')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
+    await screen.findByRole('heading', { name: /on Reldo's desk/ })
+    expect(navigate.mock.calls).toEqual([['/suggest/item']])
+    await view.rerender({ card: null })
+    await screen.findByRole('heading', CARDS_HEADING)
+  })
+})
+
 describe('Suggest', () => {
   it('asks for a game first, and asks the server nothing', () => {
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     expect(screen.getByText(/Play a game first/)).toBeTruthy()
     expect(screen.queryByRole('button', { name: /Guess the Examine/ })).toBeNull()
     expect(api.getSuggestionAllowance).not.toHaveBeenCalled()
@@ -116,7 +202,7 @@ describe('Suggest', () => {
     played()
     const retry = new Date(Date.now() + 22 * 60_000 + 5_000).toISOString()
     vi.mocked(api.getSuggestionAllowance).mockResolvedValue({ left: 0, retry_at: retry })
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await screen.findByText(/Try again in 23 minutes/)
     expect(screen.queryByRole('button', { name: /Guess the Examine/ })).toBeNull()
     expect(screen.queryByRole('textbox')).toBeNull()
@@ -124,7 +210,7 @@ describe('Suggest', () => {
 
   it('sends an item under the player’s credit, never shown, and thanks them', async () => {
     played()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /A popular item/ }))
     await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(screen.getByText(/Required: the item’s name/)).toBeTruthy()
@@ -153,7 +239,7 @@ describe('Suggest', () => {
 
   it('opens a fresh form of the same kind on Suggest another', async () => {
     played()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /A popular item/ }))
     await type(/Item name/, 'Ancient mace')
     await type('Your name', 'AFKFisher')
@@ -169,7 +255,7 @@ describe('Suggest', () => {
 
   it('lists the items already in the game, searchable, and refuses one of them', async () => {
     played()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /A popular item/ }))
     const roster = screen.getByRole('region', { name: 'Already in the game' })
     expect(screen.queryByRole('group', { name: 'Already in the game' })).toBeNull()
@@ -190,7 +276,7 @@ describe('Suggest', () => {
 
   it('shows each question card’s pack questions beside the editor, searchable', async () => {
     played()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     const cards = CHOICES.filter((choice) => choice.kind === 'question' && choice.id !== 'no_round')
     for (const card of cards.filter((c) => !['random_event', 'prop_hunt'].includes(c.id))) {
       await fireEvent.click(await screen.findByRole('button', { name: new RegExp(card.label) }))
@@ -205,7 +291,7 @@ describe('Suggest', () => {
 
   it('says Prop Hunt has no questions yet, in one line and no error', async () => {
     played()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /Prop Hunt/ }))
     await within(existing()).findByText('The game has no questions here yet.')
     expect(document.querySelector('.banner')).toBeNull()
@@ -213,7 +299,7 @@ describe('Suggest', () => {
 
   it('names the NPC on each random event row, the one picked to ask first', async () => {
     played()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /A random event question/ }))
     await waitFor(() =>
       expect(existingRows()).toEqual(['Evil Bob Which skill?', 'Reldo Which tome?']),
@@ -226,7 +312,7 @@ describe('Suggest', () => {
 
   it('writes an examine as a multiple-choice question of four to six names', async () => {
     played()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /Guess the Examine/ }))
     expect(screen.queryByRole('group', { name: 'How players answer' })).toBeNull()
     expect(screen.queryByLabelText(/Another source/)).toBeNull()
@@ -277,7 +363,7 @@ describe('Suggest', () => {
 
   it('writes a round’s question with no NPC, one type, its fixed prompt and its wiki page', async () => {
     played()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /Odd One Out/ }))
     expect(screen.queryByLabelText('Who asks it')).toBeNull()
     expect(screen.queryByRole('group', { name: 'How players answer' })).toBeNull()
@@ -325,7 +411,7 @@ describe('Suggest', () => {
 
   it('keeps an Odd One Out to the four to six names its round plays', async () => {
     played()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /Odd One Out/ }))
     expect(screen.getAllByRole('textbox', { name: /^Answer \d$/ })).toHaveLength(4)
     const add = screen.getByRole('button', { name: 'Add an answer' }) as HTMLButtonElement
@@ -351,7 +437,7 @@ describe('Suggest', () => {
 
   it('lets a Who Said That? carry its quote, and be sent with a non-wiki source', async () => {
     played()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /Who Said That/ }))
     const question = screen.getByLabelText<HTMLTextAreaElement>('Question', {
       selector: 'textarea',
@@ -398,7 +484,7 @@ describe('Suggest', () => {
 
   it('offers a quotation only to the rounds that show one', async () => {
     played()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /Bestiary/ }))
     expect(screen.queryByLabelText(/The quotation/)).toBeNull()
     expect(screen.getByLabelText('Another source, if the wiki can’t show it')).toBeTruthy()
@@ -406,7 +492,7 @@ describe('Suggest', () => {
 
   it('offers an intro to an NPC’s question, previews it and sends it, and no picture', async () => {
     played()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /A random event question/ }))
     expect(screen.queryByLabelText(/^Picture/)).toBeNull()
     await fireEvent.click(screen.getByRole('radio', { name: 'Evil Bob' }))
@@ -427,7 +513,7 @@ describe('Suggest', () => {
 
   it('offers no intro or picture to a round’s question', async () => {
     played()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /Drop Table/ }))
     expect(screen.queryByLabelText(/^Intro/)).toBeNull()
     expect(screen.queryByLabelText(/^Picture/)).toBeNull()
@@ -435,7 +521,7 @@ describe('Suggest', () => {
 
   it('sends both sources when both are given', async () => {
     played()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /Know Your Content Creator/ }))
     expect(screen.getByLabelText(/The quotation/)).toBeTruthy()
     await type('Question', 'Which game did they stream first?')
@@ -456,7 +542,7 @@ describe('Suggest', () => {
 
   it('writes a Sort It Out order from entries and tie boxes, and sends ranks', async () => {
     played()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     const card = await screen.findByRole('button', { name: /Sort It Out/ })
     expect(card.textContent).toContain('Something worth putting in order.')
     await fireEvent.click(card)
@@ -508,7 +594,7 @@ describe('Suggest', () => {
 
   it('keeps the entries between three and six', async () => {
     played()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /Sort It Out/ }))
     expect(screen.getByRole('button', { name: 'Remove entry 1' }).hasAttribute('disabled')).toBe(
       true,
@@ -523,7 +609,7 @@ describe('Suggest', () => {
 
   it('writes a Drop Table answer to type, with the typos it allows', async () => {
     played()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /Drop Table/ }))
     await fireEvent.click(screen.getByLabelText('Type the answer'))
     await type('Question', 'Which monster drops the Abyssal whip?')
@@ -548,7 +634,7 @@ describe('Suggest', () => {
 
   it('sends a Drop Table question with the item to show, previewed without a picture', async () => {
     played()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /Drop Table/ }))
     await fireEvent.click(screen.getByLabelText('Closest number'))
     await type('Question', 'A Lizardman shaman drops a Dragon warhammer once in how many kills?')
@@ -566,7 +652,7 @@ describe('Suggest', () => {
 
   it('sends a slider with its ends only once they are given, and previews the slider', async () => {
     played()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /Bestiary/ }))
     await fireEvent.click(screen.getByLabelText('Slider'))
     await type('Question', "What is General Graardor's combat level?")
@@ -590,7 +676,7 @@ describe('Suggest', () => {
 
   it('sends no item to show when none is named, and asks only Drop Table', async () => {
     played()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /Drop Table/ }))
     await type('Question', 'Which monster drops the Abyssal whip?')
     await type('Answer 1', 'Abyssal demon')
@@ -603,7 +689,7 @@ describe('Suggest', () => {
       'picture_item',
     )
     cleanup()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /Bestiary/ }))
     expect(screen.queryByLabelText('Item to show, if any')).toBeNull()
   })
@@ -614,7 +700,7 @@ describe('Suggest', () => {
       by: 'question',
       choices: [{ id: 'q9', label: 'Vorkath', npc: 8058 }],
     })
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /Who is That NPC\?/ }))
     await waitFor(() => expect(existingRows()).toEqual(['Vorkath']))
     await type('Monster or NPC, as the wiki spells it', ' vorkath')
@@ -652,7 +738,7 @@ describe('Suggest', () => {
 
   async function verseForm(): Promise<void> {
     played()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /The Forgetful Bard/ }))
     await screen.findByLabelText('The verse Falo sings')
     await waitFor(() => expect(api.getVocab).toHaveBeenCalledWith('items'))
@@ -741,7 +827,7 @@ describe('Suggest', () => {
       ],
     })
     played()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /Riddles of the Sphinx/ }))
     await screen.findByLabelText(RUNGS[0]!)
     await waitFor(() => expect(api.getVocab).toHaveBeenCalledWith('subjects'))
@@ -795,7 +881,7 @@ describe('Suggest', () => {
 
   it('keeps a Who’s That NPC? shadow’s name across a swap to Render and back', async () => {
     played()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /Who is That NPC\?/ }))
     await type('Monster or NPC, as the wiki spells it', 'Spotted kebbit')
     await fireEvent.click(screen.getByLabelText('Render'))
@@ -811,7 +897,7 @@ describe('Suggest', () => {
       by: 'question',
       choices: [{ id: 'q8', label: 'Spotted kebbit' }],
     })
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /Who is That NPC\?/ }))
     await waitFor(() => expect(existingRows()).toEqual(['Spotted kebbit']))
     await type('Monster or NPC, as the wiki spells it', 'Spotted kebbit')
@@ -840,7 +926,7 @@ describe('Suggest', () => {
     })
 
     cleanup()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /Who is That NPC\?/ }))
     const labels = within(screen.getByRole('group', { name: 'How players answer' }))
       .getAllByRole('radio')
@@ -850,7 +936,7 @@ describe('Suggest', () => {
 
   it('swaps Bestiary’s form between asking and sorting from one type picker', async () => {
     played()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /Bestiary/ }))
     const labels = () =>
       within(screen.getByRole('group', { name: 'How players answer' }))
@@ -892,7 +978,7 @@ describe('Suggest', () => {
 
   it('writes a Drop Table matching with names, no pictures, and sends it', async () => {
     played()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /Drop Table/ }))
     await fireEvent.click(screen.getByLabelText('Match them up'))
     expect(screen.queryByLabelText('Picture of field 1')).toBeNull()
@@ -925,7 +1011,7 @@ describe('Suggest', () => {
 
   it('writes a Bestiary sort into bins, previewed as bins, and sends it', async () => {
     played()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /Bestiary/ }))
     await fireEvent.click(screen.getByLabelText('Match them up'))
     await fireEvent.click(screen.getByLabelText('Sort into bins'))
@@ -959,7 +1045,7 @@ describe('Suggest', () => {
 
   it('lets an NPC ask an order, with its intro, previewed on the NPC’s card', async () => {
     played()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /A random event question/ }))
     await fireEvent.click(screen.getByLabelText('Put in order'))
     expect(screen.getByLabelText('First end')).toBeTruthy()
@@ -1003,7 +1089,7 @@ describe('Suggest', () => {
 
   it('makes an NPC’s question name its NPC', async () => {
     played()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /A random event question/ }))
     const faces = within(screen.getByRole('radiogroup', { name: 'Who asks it' })).getAllByRole(
       'radio',
@@ -1016,7 +1102,7 @@ describe('Suggest', () => {
 
   it('offers a question with no round last, its seven types and no more, and sends it with no mode', async () => {
     played()
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     const cards = (await screen.findAllByRole('button')).filter((b) => b.closest('.choices'))
     expect(cards.at(-1)?.textContent).toMatch(
       /Not sure where it fits\s*Any question\. Reldo picks its round\./,
@@ -1070,14 +1156,14 @@ describe('Suggest', () => {
     it('is no card on a server without the map', async () => {
       vi.mocked(map.tilesLoad).mockResolvedValueOnce(false)
       played()
-      render(Suggest, { navigate })
+      renderSuggest(null, navigate)
       await screen.findByRole('button', { name: /A popular item/ })
       expect(screen.queryByRole('button', { name: /Mark the Map/ })).toBeNull()
     })
 
     it('needs a box, and fills in the place’s wiki page from its name', async () => {
       played()
-      render(Suggest, { navigate })
+      renderSuggest(null, navigate)
       await fireEvent.click(await screen.findByRole('button', { name: /Mark the Map/ }))
       await type(/^Place/, 'Falador')
       expect((screen.getByLabelText(/Relevant Wiki page/) as HTMLInputElement).value).toBe(
@@ -1092,7 +1178,7 @@ describe('Suggest', () => {
 
     it('takes a recon photo with no link, and sends it only with the picture, both ticks and a spot', async () => {
       played()
-      render(Suggest, { navigate })
+      renderSuggest(null, navigate)
       await fireEvent.click(await screen.findByRole('button', { name: /KGP Recon/ }))
       expect(screen.queryByLabelText(/Relevant Wiki page/)).toBeNull()
       expect(screen.queryByLabelText(/What players are asked/)).toBeNull()
@@ -1109,7 +1195,7 @@ describe('Suggest', () => {
 
     it('says what a reach is worth as it moves', async () => {
       played()
-      render(Suggest, { navigate })
+      renderSuggest(null, navigate)
       await fireEvent.click(await screen.findByRole('button', { name: /Mark the Map/ }))
       const reach = screen.getByLabelText(/Points run out/, { selector: 'input' })
       expect(screen.getByRole('row', { name: /Tiles off/ }).textContent).toContain('50')
@@ -1124,7 +1210,7 @@ describe('Suggest', () => {
     vi.mocked(api.sendSuggestion).mockRejectedValue(
       new api.ApiFailure(429, 'rate_limited', 'too many suggestions'),
     )
-    render(Suggest, { navigate })
+    renderSuggest(null, navigate)
     await fireEvent.click(await screen.findByRole('button', { name: /A popular item/ }))
     await type(/Item name/, 'Ancient mace')
     await type('Your name', 'AFKFisher')
@@ -1138,7 +1224,7 @@ describe('Suggest', () => {
 
     async function writeOddOneOut(first: string): Promise<void> {
       played()
-      render(Suggest, { navigate })
+      renderSuggest(null, navigate)
       await fireEvent.click(await screen.findByRole('button', { name: /Odd One Out/ }))
       await type('Answer 1', first)
       await type('Answer 2', 'Hazelmere')
@@ -1203,7 +1289,7 @@ describe('Suggest', () => {
 
     it('tracks steps with checkmarks, one Optional badge on Extras, and marks missing steps on send', async () => {
       played()
-      render(Suggest, { navigate })
+      renderSuggest(null, navigate)
       await fireEvent.click(await screen.findByRole('button', { name: /Drop Table/ }))
 
       expect(stepDots()).toEqual([
@@ -1296,7 +1382,7 @@ describe('Suggest', () => {
 
     it('omits Extras for rounds without optional fields, and shows two steps for an item', async () => {
       played()
-      render(Suggest, { navigate })
+      renderSuggest(null, navigate)
       await fireEvent.click(await screen.findByRole('button', { name: /Guess the Examine/ }))
       expect(stepDots()).toEqual(['1 Question', '2 Difficulty', '3 Wiki page', '4 Credit'])
       expect(screen.queryByRole('group', { name: 'Extras' })).toBeNull()

@@ -1,12 +1,12 @@
 /** A spot for Minimap Guesser on `/suggest`: put down on the map, nudged and turned, previewed. */
 
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/svelte'
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '../../lib/api'
 import { savePastGame } from '../../lib/history'
 import type { QuestionContent } from '../../lib/suggestions'
-import Suggest from '../../routes/Suggest.svelte'
+import { renderSuggest } from '../../test-suggest'
 
 vi.mock('../../lib/api', async (importOriginal) => {
   const real = await importOriginal<typeof import('../../lib/api')>()
@@ -59,7 +59,7 @@ afterEach(() => {
 })
 
 async function open(): Promise<void> {
-  render(Suggest, { navigate: vi.fn() })
+  renderSuggest()
   await fireEvent.click(await screen.findByRole('button', { name: /Minimap Guesser/ }))
 }
 
