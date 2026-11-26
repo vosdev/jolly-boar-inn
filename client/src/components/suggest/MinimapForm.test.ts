@@ -25,6 +25,18 @@ vi.mock('../../lib/map', async (importOriginal) => {
   return { ...real, tilesLoad: vi.fn(() => Promise.resolve(true)) }
 })
 
+// jsdom fetches nothing, so each layer is a sheet that is never drawn on.
+vi.mock('../../lib/mapIcons', async (original) => ({
+  ...(await original<typeof import('../../lib/mapIcons')>()),
+  loadIcons: () =>
+    Promise.resolve({ sprites: [], icons: [], sheet: document.createElement('canvas') }),
+}))
+vi.mock('../../lib/placeNames', async (original) => ({
+  ...(await original<typeof import('../../lib/placeNames')>()),
+  loadLabels: () =>
+    Promise.resolve({ fonts: [], labels: [], glyphs: document.createElement('canvas') }),
+}))
+
 const FIELD = 'textarea, input:not([type=radio])'
 
 beforeEach(() => {
@@ -139,5 +151,18 @@ describe('MinimapForm', () => {
     expect(new Set(turns())).toEqual(new Set(['rotate(90deg)']))
     await fireEvent.click(north)
     expect(new Set(turns())).toEqual(new Set(['rotate(0deg)']))
+  })
+  it('draws the icons on the picker, and its place names only once asked', async () => {
+    await open()
+    await tapMap()
+    const field = screen.getByText('Where it is').closest('.field')!
+    await waitFor(() => expect(field.querySelector('.map-icons')).not.toBeNull())
+    expect(screen.getByText('Minimap Guesser plays without them.')).toBeTruthy()
+    expect(document.querySelector('.map-labels')).toBeNull()
+    await fireEvent.click(screen.getByLabelText('Show place names'))
+    await waitFor(() => expect(field.querySelector('.map-labels')).not.toBeNull())
+    expect(document.querySelectorAll('.map-labels')).toHaveLength(1)
+    await fireEvent.click(screen.getByLabelText('Show place names'))
+    await waitFor(() => expect(document.querySelector('.map-labels')).toBeNull())
   })
 })

@@ -55,6 +55,8 @@
   let spot = $state<MinimapSpot | null>(startSpot === undefined ? null : { ...startSpot })
   let explanation = $state((start?.explanation as string | undefined) ?? '')
   let attempted = $state(false)
+  // Off by default, so the picker shows the map as players get it: icons, no place names.
+  let named = $state(false)
 
   const closeOn = (at: WorldPoint): MapBounds => around([at], CLOSE_MARGIN)
   let frame = $state<MapBounds | null>(startSpot === undefined ? null : closeOn(startSpot))
@@ -148,7 +150,15 @@
   <div class="field">
     <p class="label">Where it is</p>
     <div class="map">
-      <MapView {areas} {grips} {frame} onpick={place} ongrip={(_, tile) => place(tile)} />
+      <MapView
+        {areas}
+        {grips}
+        {frame}
+        icons
+        labels={named}
+        onpick={place}
+        ongrip={(_, tile) => place(tile)}
+      />
     </div>
     <p class="note hint">
       {spot === null
@@ -156,6 +166,10 @@
         : 'Tap or drag to move it; the arrows move it one tile.'}
     </p>
     {@render problem(spotError, attempted)}
+    <label class="check marks">
+      <input type="checkbox" bind:checked={named} /> Show place names
+    </label>
+    <p class="note hint">Minimap Guesser plays without them.</p>
   </div>
   {#if spot !== null}
     <div class="tune">
@@ -275,6 +289,10 @@
 
   .hint {
     margin: 0.3rem 0 0;
+  }
+
+  .marks {
+    margin-top: 0.5rem;
   }
 
   .tune {
