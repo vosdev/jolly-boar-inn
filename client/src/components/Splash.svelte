@@ -147,6 +147,8 @@
    * reload mid-splash forgets it, and the server's `bad_state` is the backstop then.
    */
   let undone = $state(false)
+  /** Taken back once and ready again: the switch stays put, and says why. */
+  const locked = $derived(youReady && undone)
 
   function press(): void {
     if (youReady) undone = true
@@ -299,9 +301,13 @@
               large
               tone="ok"
               checked={youReady}
-              disabled={youReady && undone}
+              disabled={locked}
+              describedby={locked ? 'ready-locked' : undefined}
               onclick={press}
             />
+            {#if locked}
+              <p class="locked" id="ready-locked">Locked in</p>
+            {/if}
             <FullScreenSwitch />
           </div>
         </TablePanel>
@@ -515,6 +521,13 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 0.6rem 0.9rem;
+  }
+
+  .locked {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-weight: 600;
   }
 
   .pets {

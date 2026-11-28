@@ -407,7 +407,8 @@ and a disabled Answered, and its reveal says "Answered by the Book of Knowledge"
   and its settings no name or pet.
 - **Switches:** "Ready" is a large switch (`Switch.svelte`: the track and its label, no button
 chrome or circle around them), on in `--ok`, in lobby and splash;
-  where it cannot be taken back (the splash allows one take-back) it sits disabled, on. On touch
+  where it cannot be taken back (the splash allows one take-back) it sits disabled, on, beside
+  "Locked in". In the lobby it flips at once; a tap inside the cooldown is sent when it ends. On touch
   devices, and in a room drawn below scale 1 (§8), a smaller "Full screen" switch of the same look
   sits beside it and follows the browser's state; below scale 1 a line adds "Short on room? Full
   screen shows the whole question." Where the browser lacks the API (iPhone), the lobby has a

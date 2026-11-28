@@ -47,7 +47,7 @@
   import { watchTheme } from '../lib/theme'
   import { Seating } from '../lib/tableGroups'
   import { TEAMS, type TeamId } from '../lib/teams'
-  import { Cooldown } from '../lib/cooldown.svelte'
+  import { HeldToggle } from '../lib/cooldown.svelte'
   import { Typist, lettersOf } from '../lib/typing.svelte'
   import type { HostQuestion } from '../lib/customQuestions'
   import { createdRooms, getSession } from '../lib/session'
@@ -181,11 +181,10 @@
   /** The question the host is being asked, and what a yes does. */
   let asking = $state<Question | null>(null)
 
-  const readyHold = new Cooldown()
-
-  function toggleReady(): void {
-    if (socket.send({ t: 'ready', ready: !youReady })) readyHold.start()
-  }
+  const readySwitch = new HeldToggle(
+    (ready) => socket.send({ t: 'ready', ready }),
+    () => youReady,
+  )
 
   function questionsTicked(questions: HostQuestion[]): void {
     const session = getSession(code)
@@ -423,10 +422,10 @@
                 label="Ready"
                 large
                 tone="ok"
-                checked={youReady}
+                checked={readySwitch.shown}
                 describedby={needTeam ? 'pick-first' : undefined}
-                disabled={needTeam || readyHold.held}
-                onclick={toggleReady}
+                disabled={needTeam}
+                onclick={() => readySwitch.toggle()}
               />
             {/if}
             <FullScreenSwitch short={squeezed} />
