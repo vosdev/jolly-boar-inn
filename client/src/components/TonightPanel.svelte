@@ -494,11 +494,6 @@
     container-type: inline-size;
   }
 
-  /* Stacked, the table comes after this, so a phone scrolls the hosts in here to reach it. */
-  :global(.frame:not(.fitted)) .tonight {
-    max-height: 34rem;
-  }
-
   :global(.fitted) .tonight {
     flex: 1;
     min-height: 0;
@@ -613,17 +608,14 @@
       order: -1;
     }
 
-    /* The last tab's name takes a row of its own, under the two short ones. */
-    .tabs {
-      flex-wrap: wrap;
-    }
-
+    /* The three stay on one row, smaller: the long last name takes two lines in its tab. */
     .tabs button {
       white-space: nowrap;
+      font-size: 0.75rem;
     }
 
     .tabs button:last-child {
-      flex-basis: 100%;
+      min-width: 0;
       white-space: normal;
     }
   }

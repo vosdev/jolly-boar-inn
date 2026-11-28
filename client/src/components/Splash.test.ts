@@ -103,6 +103,11 @@ describe('Splash stage', () => {
     expect(bubble().textContent).toContain(MODES.more_less!.blurb)
   })
 
+  it("centres the host's line under the name, as the game's dialogue does", () => {
+    splash()
+    expect(bubble().querySelector('.stack.centred')).toBeTruthy()
+  })
+
   it('says only the questions for a game of one round', () => {
     splash({ ...SEGMENT, total: 1 })
     expect(paper().querySelector('.shape')?.textContent).toBe('5 questions')

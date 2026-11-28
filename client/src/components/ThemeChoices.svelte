@@ -9,9 +9,8 @@
    * browser that has never chosen is on `jolly`, and the grid says so.
    *
    * A list of rows grew a full row per theme and pushed the menu past a phone's height, so
-   * the tiles sit four abreast and only the chosen theme's name is written out, under them.
-   * Every tile still carries its name for a screen reader. The wide sheet has the room to
-   * write every name under its own tile, five abreast (`named`).
+   * the tiles sit in a grid, each with its name under it: three abreast on a phone, five on
+   * the wide sheet (`wide`), so nobody has to tap a theme to learn what it is called.
    *
    * Each emblem sits on a tile carrying its own `data-theme`, so the tile is that theme's
    * panel and the mark is in that theme's accent, whatever the page is painted in.
@@ -28,8 +27,8 @@
   let {
     current,
     onpick,
-    named = false,
-  }: { current: Theme; onpick: (theme: Theme) => void; named?: boolean } = $props()
+    wide = false,
+  }: { current: Theme; onpick: (theme: Theme) => void; wide?: boolean } = $props()
 
   function nameOf(theme: EmblemId): string {
     return isBuilt(theme) ? THEME_LABELS[theme].name : UNBUILT_THEMES[theme]
@@ -38,7 +37,7 @@
 
 <fieldset>
   <legend class="section-title">Theme</legend>
-  <div class="grid" class:named>
+  <div class="grid" class:wide>
     {#each EMBLEMS as theme (theme)}
       {@const built = isBuilt(theme)}
       <label class="option" class:selected={theme === current} class:unbuilt={!built}>
@@ -51,13 +50,10 @@
           onchange={() => isBuilt(theme) && onpick(theme)}
         />
         <span class="tile" data-theme={theme} aria-hidden="true"><Emblem {theme} /></span>
-        <span class="name" class:sr={!named}>{nameOf(theme)}</span>
+        <span class="name">{nameOf(theme)}</span>
       </label>
     {/each}
   </div>
-  {#if !named}
-    <p class="current" aria-hidden="true">{THEME_LABELS[current].name}</p>
-  {/if}
 </fieldset>
 
 <style>
@@ -69,11 +65,11 @@
 
   .grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.3rem;
   }
 
-  .grid.named {
+  .grid.wide {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
@@ -130,7 +126,12 @@
     border-radius: var(--radius);
   }
 
-  .name:not(.sr) {
+  /* Toktz's obsidian emblem is as dark as its tile, so it glows in its lava accent. */
+  .tile[data-theme='tzhaar'] :global(.emblem) {
+    filter: drop-shadow(0 0 3px var(--accent));
+  }
+
+  .name {
     margin-top: 0.3rem;
     padding-inline: 0.15rem;
     font-size: 0.8rem;
@@ -140,12 +141,5 @@
 
   .selected .name {
     font-weight: 600;
-  }
-
-  .current {
-    margin: 0.4rem 0 0;
-    font-size: 0.95rem;
-    font-weight: 600;
-    text-align: center;
   }
 </style>

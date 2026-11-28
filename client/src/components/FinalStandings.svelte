@@ -229,7 +229,7 @@
 
 <Stage host={HISCORES_HOST} tall={bubble === null} {tv} wide={tv} {bubble}>
   {#snippet said()}
-    <Said name={HISCORES_HOST_NAME} line={words} />
+    <Said name={HISCORES_HOST_NAME} line={words} centred />
   {/snippet}
 
   {#snippet paper()}

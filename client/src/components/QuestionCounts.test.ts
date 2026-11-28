@@ -50,4 +50,15 @@ describe('QuestionCounts', () => {
     })
     expect(screen.queryByRole('table', { name: 'Random events' })).toBeNull()
   })
+
+  it('keeps Close below the list that scrolls, not at its end', () => {
+    render(QuestionCounts, {
+      counts: { modes: { bestiary: 3 }, random_events: {} },
+      onclose: vi.fn(),
+    })
+    const close = screen.getAllByRole('button', { name: 'Close' }).at(-1)!
+    expect(close.closest('.foot')).toBeTruthy()
+    expect(close.closest('.body')).toBeNull()
+    expect(screen.getByRole('table', { name: 'Rounds' }).closest('.body')).toBeTruthy()
+  })
 })

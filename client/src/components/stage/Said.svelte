@@ -5,6 +5,9 @@
    * `later` is what the box says at other moments of the same screen, laid out unseen in
    * the same place, so the box is the tallest one's height from the first frame and nothing
    * under it moves when the words change.
+   *
+   * `centred` centres the line under the name, as the game's own dialogue does, for a screen
+   * whose short line would otherwise leave the name over an empty half of the box.
    */
   import type { Snippet } from 'svelte'
 
@@ -14,6 +17,7 @@
     later,
     heading = false,
     chip,
+    centred = false,
   }: {
     name: string
     line?: Snippet
@@ -21,6 +25,7 @@
     /** The name as a heading: a random event's NPC, who is the screen's subject. */
     heading?: boolean
     chip?: Snippet
+    centred?: boolean
   } = $props()
 
   const unseen = $derived(later === undefined ? [] : Array.isArray(later) ? later : [later])
@@ -38,7 +43,7 @@
     <div class="chip">{@render chip()}</div>
   </div>
 {/if}
-<div class="stack">
+<div class="stack" class:centred>
   <div class="line">{@render line?.()}</div>
   {#each unseen as other, i (i)}
     <div class="line later" aria-hidden="true">{@render other()}</div>
@@ -84,6 +89,10 @@
 
   .stack {
     display: grid;
+  }
+
+  .stack.centred {
+    text-align: center;
   }
 
   .line {

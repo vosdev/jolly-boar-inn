@@ -83,6 +83,14 @@ describe('Credits', () => {
     expect(onclose).toHaveBeenCalledTimes(2)
   })
 
+  it('keeps Close below the thanks that scroll, not at their end', async () => {
+    vi.mocked(api.getCredits).mockResolvedValue({ authors: [] })
+    render(Credits, { onclose })
+    const close = screen.getAllByRole('button', { name: 'Close' }).at(-1)!
+    expect(close.closest('.foot')).toBeTruthy()
+    expect(close.closest('.body')).toBeNull()
+  })
+
   it('thanks the OSRS Wiki and links it in a new tab', async () => {
     vi.mocked(api.getCredits).mockResolvedValue({ authors: [] })
     render(Credits, { onclose })
