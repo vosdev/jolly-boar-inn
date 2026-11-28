@@ -51,9 +51,14 @@ def day_of(now: datetime) -> date:
     return (now.astimezone(UTC) - DAY_OPENS).date()
 
 
+def opens_at(day: date) -> datetime:
+    """When ``day``'s daily opens."""
+    return datetime.combine(day, time(), UTC) + DAY_OPENS
+
+
 def next_opens(day: date) -> datetime:
     """When the day after ``day`` opens."""
-    return datetime.combine(day + timedelta(days=1), time(), UTC) + DAY_OPENS
+    return opens_at(day + timedelta(days=1))
 
 
 def number_of(day: date, first_day: date) -> int:

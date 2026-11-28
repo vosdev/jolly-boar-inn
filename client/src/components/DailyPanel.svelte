@@ -2,7 +2,8 @@
   /**
    * Home's one place for the daily: today's to play, finish or read back, and Your dailies,
    * the earlier days this browser finished (`lib/daily.ts`). `today` is null when the server
-   * did not answer, and then only the list is left.
+   * did not answer, and then only the list is left; before the first daily, `opensAt` says
+   * when it opens.
    *
    * Today's score sits at the top, so the list starts at the day before. The streak pill is
    * filled once today is played and an outline while yesterday's run can still go on.
@@ -10,20 +11,27 @@
   import type { DailyToday } from '../lib/api'
   import { dayBefore, inARow, lastDaily, numberOn, streak, type DailyScore } from '../lib/daily'
   import { dailyDate, expiresIn } from '../lib/dates'
+  import DailyOpens from './DailyOpens.svelte'
   import Icon from './Icon.svelte'
   import ScoreRing from './ScoreRing.svelte'
 
   let {
     today,
+    opensAt = null,
     scores,
     now,
     onplay,
+    onopen,
   }: {
     today: DailyToday | null
+    /** When the first daily opens, while it has not. */
+    opensAt?: string | null
     /** Newest first. */
     scores: DailyScore[]
     now: number
     onplay: () => void
+    /** The first daily has just opened: ask the server for it. */
+    onopen?: () => void
   } = $props()
 
   const PAGE = 5
@@ -58,6 +66,9 @@
           <span class="streak" class:kept={score !== null}>{inARow(run)}</span>
         {/if}
       </div>
+      {#if today === null && opensAt !== null}
+        <DailyOpens {opensAt} {onopen} />
+      {/if}
       {#if today !== null}
         {#if running !== null}
           <p>You still have a daily in progress.</p>

@@ -15,6 +15,7 @@ import { RANDOM_EVENTS } from '../lib/randomEvents'
 import { SHOWN } from '../components/ModeShowcase.svelte'
 import { rememberCreated, setSession } from '../lib/session'
 import { petsDrawn } from '../test-pets'
+import { HINT_FADE_MS, HINT_MS, HINT_WORDS } from '../lib/codeHints'
 import Home from './Home.svelte'
 
 vi.mock('../lib/api', async (importOriginal) => {
@@ -256,11 +257,37 @@ describe('Home', () => {
     expect(document.querySelector('.bubble .name')?.textContent).toBe('Wise Old Man')
   })
 
-  it('suggests a code the way codes look', () => {
+  it('suggests a code the way codes look, one short enough to fit', () => {
     render(Home, { navigate })
     const field = screen.getByLabelText('Join an existing room') as HTMLInputElement
-    expect(field.placeholder).toBe('ThermonuclearSmokeDevil')
+    expect(HINT_WORDS).toContain(field.placeholder)
     expect(field.getAttribute('autocapitalize')).toBeNull()
+  })
+
+  it('fades to another example code every few seconds, but not while you are in the field', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'setTimeout', 'clearTimeout'] })
+    try {
+      render(Home, { navigate })
+      const field = screen.getByLabelText('Join an existing room') as HTMLInputElement
+      const first = field.placeholder
+      await vi.advanceTimersByTimeAsync(HINT_MS)
+      expect(field.classList.contains('fading')).toBe(true)
+      await vi.advanceTimersByTimeAsync(HINT_FADE_MS)
+      expect(field.classList.contains('fading')).toBe(false)
+      const second = field.placeholder
+      expect(second).not.toBe(first)
+      expect(HINT_WORDS).toContain(second)
+
+      await fireEvent.focus(field)
+      await vi.advanceTimersByTimeAsync(3 * HINT_MS)
+      expect(field.placeholder).toBe(second)
+      await fireEvent.blur(field)
+      await fireEvent.input(field, { target: { value: 'Rune' } })
+      await vi.advanceTimersByTimeAsync(3 * HINT_MS)
+      expect(field.placeholder).toBe(second)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('joins with Enter as with Join', async () => {
@@ -545,6 +572,20 @@ describe('the daily', () => {
     others: null,
     beaten: null,
   }
+
+  it('says when the first daily opens before there is one, and offers nothing to play', async () => {
+    vi.mocked(api.getDaily).mockRejectedValue(
+      new api.ApiFailure(404, 'daily_not_open', 'not yet', undefined, {
+        opens_at: '2099-01-01T12:00:00+00:00',
+      }),
+    )
+    render(Home, { navigate })
+    const panel = (await screen.findByRole('heading', { name: 'Daily challenge' })).closest(
+      'section',
+    )!
+    expect(panel.textContent).toContain('Available from 1 January.')
+    expect(within(panel).queryByRole('button')).toBeNull()
+  })
 
   it("offers today's daily to a new browser, and links to it", async () => {
     vi.mocked(api.getDaily).mockResolvedValue(TODAY)

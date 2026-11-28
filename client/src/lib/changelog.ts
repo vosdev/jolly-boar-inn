@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.295.0',
+    date: '2026-11-28',
+    text: 'Show when the first Daily opens on Home and the Daily page, with a countdown on the last day, and cycle example codes in Join',
+  },
+  {
     version: '0.294.0',
     date: '2026-11-28',
     text: 'Flip Ready in the lobby at once, however fast you tap, and say when the round intro has locked you in',

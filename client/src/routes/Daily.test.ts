@@ -85,6 +85,35 @@ describe('/daily', () => {
     expect(screen.queryByRole('button', { name: 'Start' })).toBeNull()
   })
 
+  it('says when the first daily opens, with no countdown while it is days away', async () => {
+    const opensAt = new Date(Date.now() + 3 * 86_400_000).toISOString()
+    vi.mocked(api.getDaily).mockRejectedValue(
+      new api.ApiFailure(404, 'daily_not_open', 'not yet', undefined, { opens_at: opensAt }),
+    )
+    render(Daily, { navigate })
+    const date = new Date(opensAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })
+    expect(await screen.findByText(`Available from ${date}.`)).toBeTruthy()
+    expect(screen.queryByText(/Opens in/)).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Start' })).toBeNull()
+  })
+
+  it('counts down its last day, and asks again once it opens', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'Date'] })
+    try {
+      const opensAt = new Date(Date.now() + 2 * 3_600_000).toISOString()
+      vi.mocked(api.getDaily).mockRejectedValueOnce(
+        new api.ApiFailure(404, 'daily_not_open', 'not yet', undefined, { opens_at: opensAt }),
+      )
+      render(Daily, { navigate })
+      expect((await screen.findByText(/Opens in/)).textContent).toBe('Opens in 2h 00m 00s')
+      await vi.advanceTimersByTimeAsync(2 * 3_600_000)
+      expect(await screen.findByRole('button', { name: 'Start' })).toBeTruthy()
+      expect(api.getDaily).toHaveBeenCalledTimes(2)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('starts under a made-up name without a profile', async () => {
     render(Daily, { navigate })
     await fireEvent.click(await screen.findByRole('button', { name: 'Start' }))

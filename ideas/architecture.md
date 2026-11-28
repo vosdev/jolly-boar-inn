@@ -349,7 +349,7 @@ it interrupts. Deriving rounds fails silently: settings break on a short round, 
 event.
 
 The daily set (`app/daily.py`) is ten questions for everyone. A day runs from 08:00 UTC to the next
-08:00 UTC and carries the date it opens on; `DAILY_FIRST_DAY` is #1, and before it `/api/daily` is 404 `daily_not_open`. The day's first request draws
+08:00 UTC and carries the date it opens on; `DAILY_FIRST_DAY` is #1, and before it `/api/daily` is 404 `daily_not_open` with `opens_at`, which Home and `/daily` show. The day's first request draws
 and stores it (section 11), with no cron, never seeded from the date, since the packs are public.
 
 - The pool is the offered rounds' own pools and the NPCs': never a mode with a `pool`, so never

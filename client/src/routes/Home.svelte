@@ -34,11 +34,13 @@
   import {
     ApiFailure,
     deleteRoom,
+    dailyOpensAt,
     getDaily,
     getPublicRooms,
     type DailyToday,
     type PublicRoom,
   } from '../lib/api'
+  import { HINT_FADE_MS, HINT_MS, nextHint } from '../lib/codeHints'
   import { dailyScores } from '../lib/daily'
   import { expiresIn, finishedTime } from '../lib/dates'
   import { heroFor, speakerFor } from '../lib/hero'
@@ -52,6 +54,7 @@
     type PastGame,
   } from '../lib/history'
   import { howToPath } from '../lib/howToPlay'
+  import { reducedMotion } from '../lib/interlude'
   import { atRoomLimit } from '../lib/roomLimit'
   import type { Route } from '../lib/stats'
   import { maySuggest } from '../lib/suggestions'
@@ -95,7 +98,9 @@
   const scores = dailyScores()
   /** Null until the server answers, and left so if it never does. */
   let daily = $state<DailyToday | null>(null)
-  const showDaily = $derived(daily !== null || scores.length > 0)
+  /** Before the first daily, when it opens, so the panel can say so. */
+  let dailyOpens = $state<string | null>(null)
+  const showDaily = $derived(daily !== null || dailyOpens !== null || scores.length > 0)
   /**
    * How many rows tall Past party games is at its fullest, its paging counted. Not the page
    * on screen, or turning to a short last page would move the daily across.
@@ -116,6 +121,28 @@
   })
 
   let code = $state('')
+  let codeFocused = $state(false)
+  /** The example code in the empty field, a new one every few seconds while nobody types. */
+  let hint = $state(nextHint(null))
+  let hintFading = $state(false)
+
+  $effect(() => {
+    if (reducedMotion() || code !== '' || codeFocused) return
+    let swap: ReturnType<typeof setTimeout> | undefined
+    const timer = setInterval(() => {
+      if (document.visibilityState === 'hidden') return
+      hintFading = true
+      swap = setTimeout(() => {
+        hint = nextHint(hint)
+        hintFading = false
+      }, HINT_FADE_MS)
+    }, HINT_MS)
+    return () => {
+      clearInterval(timer)
+      clearTimeout(swap)
+      hintFading = false
+    }
+  })
 
   /**
    * What `history.state` carries for a view of How to play: `from` is the view it was
@@ -231,8 +258,9 @@
   async function refreshDaily(): Promise<void> {
     try {
       daily = await getDaily()
-    } catch {
-      return
+      dailyOpens = null
+    } catch (failure) {
+      dailyOpens = dailyOpensAt(failure) ?? dailyOpens
     }
   }
 
@@ -409,7 +437,10 @@
             oninput={() => (codeProblem = null)}
             aria-invalid={codeProblem !== null}
             aria-describedby={codeProblem === null ? undefined : 'code-problem'}
-            placeholder="ThermonuclearSmokeDevil"
+            placeholder={hint}
+            class:fading={hintFading}
+            onfocus={() => (codeFocused = true)}
+            onblur={() => (codeFocused = false)}
             autocomplete="off"
             spellcheck="false"
           />
@@ -567,7 +598,14 @@
       {/if}
 
       {#if showDaily}
-        <DailyPanel today={daily} {scores} {now} onplay={() => navigate('/daily')} />
+        <DailyPanel
+          today={daily}
+          opensAt={dailyOpens}
+          {scores}
+          {now}
+          onplay={() => navigate('/daily')}
+          onopen={() => void refreshDaily()}
+        />
       {/if}
     </div>
   {/if}
@@ -724,6 +762,11 @@
   .join input::placeholder {
     color: var(--muted);
     opacity: 0.6;
+    transition: opacity 300ms ease;
+  }
+
+  .join input.fading::placeholder {
+    opacity: 0;
   }
 
   .entry .error,

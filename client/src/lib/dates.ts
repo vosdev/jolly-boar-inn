@@ -74,3 +74,24 @@ export function expiresIn(expiresAt: number, now: number = Date.now()): string {
   const days = Math.floor(hours / 24)
   return `in ${days} days`
 }
+
+/** The day something opens, in the reader's own zone: "1 January". */
+export function opensOn(iso: string): string {
+  const parsed = new Date(iso)
+  return Number.isNaN(parsed.getTime())
+    ? iso
+    : parsed.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })
+}
+
+/** Within a day, the countdown shows; further off, the date alone says enough. */
+export const COUNTDOWN_FROM_MS = 24 * HOUR_MS
+
+/** How long until `ms` from now, as a ticking countdown: "5h 03m 09s", "3m 09s". */
+export function countdown(ms: number): string {
+  const total = Math.max(0, Math.ceil(ms / 1000))
+  const hours = Math.floor(total / 3600)
+  const minutes = Math.floor((total % 3600) / 60)
+  const seconds = total % 60
+  const pad = (n: number): string => String(n).padStart(2, '0')
+  return hours > 0 ? `${hours}h ${pad(minutes)}m ${pad(seconds)}s` : `${minutes}m ${pad(seconds)}s`
+}

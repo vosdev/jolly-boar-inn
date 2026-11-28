@@ -8,7 +8,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.daily import day_of, next_opens, number_of
+from app.daily import day_of, next_opens, number_of, opens_at
 from app.errors import ApiError
 from app.http.ratelimit import client_key
 from app.http.rooms import client_host, manager
@@ -59,13 +59,25 @@ def check_requests(request: Request, key: str) -> None:
     )
 
 
-@router.get("")
-async def today(request: Request) -> dict[str, Any]:
-    """Today's day and number, and when the next opens, before anything is started."""
+@router.get("", response_model=None)
+async def today(request: Request) -> dict[str, Any] | JSONResponse:
+    """Today's day and number, and when the next opens, before anything is started.
+
+    Before the first day it is a 404 carrying when that day opens, so Home and ``/daily``
+    can say so.
+    """
     day = day_of(datetime.now(UTC))
     first_day = request.app.state.settings.daily_first_day
     if day < first_day:
-        raise DailyNotOpen("the daily has not opened yet")
+        closed = DailyNotOpen("the daily has not opened yet")
+        return JSONResponse(
+            {
+                "code": closed.code,
+                "message": closed.message,
+                "opens_at": opens_at(first_day).isoformat(),
+            },
+            status_code=closed.status,
+        )
     return {
         "day": day,
         "number": number_of(day, first_day),

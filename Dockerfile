@@ -8,10 +8,12 @@ COPY client/package.json client/pnpm-lock.yaml ./
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile
 COPY client/ ./
-# What the client reads from outside client/: the random-name corpus, the question schema
-# the editor's limits come from, each mode's rules, the pet list with the manifest that says
-# which have art, and the map's pin, which names the folder its tiles are in.
+# What the client reads from outside client/: the random-name corpus, the room words Join's
+# example codes come from, the question schema the editor's limits come from, each mode's
+# rules, the pet list with the manifest that says which have art, and the map's pin, which
+# names the folder its tiles are in.
 COPY data/player-names.json ../data/player-names.json
+COPY data/room-words.json ../data/room-words.json
 COPY data/pets.json data/assets.json data/map.json ../data/
 COPY schema/question.schema.json schema/modes.json ../schema/
 # The app's version, which the top bar shows (ideas/architecture.md, Versioning).
