@@ -542,17 +542,26 @@ describe('Lobby', () => {
     expect(screen.getByRole('switch', { name: 'Ready' }).getAttribute('aria-checked')).toBe('true')
   })
 
-  it('greys ready out after a tap until the server takes another change', async () => {
+  it('flips ready at once, and sends a tap inside the cooldown when it ends', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
     try {
       lobby([HOST, WOOX])
       const ready = screen.getByRole('switch', { name: 'Ready' }) as HTMLButtonElement
       await fireEvent.click(ready)
       expect(sent).toEqual([{ t: 'ready', ready: true }])
-      expect(ready.disabled).toBe(true)
+      expect(ready.disabled).toBe(false)
+      expect(ready.getAttribute('aria-checked')).toBe('true')
+      applyServerMessage({ t: 'players_updated', players: [{ ...HOST, ready: true }, WOOX] })
+      await tick()
+      await fireEvent.click(ready)
+      expect(ready.getAttribute('aria-checked')).toBe('false')
+      expect(sent).toEqual([{ t: 'ready', ready: true }])
       vi.advanceTimersByTime(LOBBY_COOLDOWN_MS)
       await tick()
-      expect(ready.disabled).toBe(false)
+      expect(sent).toEqual([
+        { t: 'ready', ready: true },
+        { t: 'ready', ready: false },
+      ])
     } finally {
       vi.useRealTimers()
     }

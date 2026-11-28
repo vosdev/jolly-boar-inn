@@ -402,6 +402,7 @@ describe('Splash ready switch', () => {
     await fireEvent.click(screen.getByRole('switch', { name: 'Ready' }))
     expect(onReady).toHaveBeenLastCalledWith(true)
     await rerender({ players: players(true) })
+    expect(screen.queryByText('Locked in')).toBeNull()
 
     const sw = () => screen.getByRole('switch', { name: 'Ready' }) as HTMLButtonElement
     expect(sw().getAttribute('aria-checked')).toBe('true')
@@ -416,6 +417,8 @@ describe('Splash ready switch', () => {
 
     expect(sw().getAttribute('aria-checked')).toBe('true')
     expect(sw().disabled).toBe(true)
+    expect(sw().getAttribute('aria-describedby')).toBe('ready-locked')
+    expect(screen.getByText('Locked in').id).toBe('ready-locked')
     expect(onReady).toHaveBeenCalledTimes(3)
   })
 })
