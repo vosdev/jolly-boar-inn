@@ -45,7 +45,9 @@
     Got an idea for a new question?
     <a class="link" href="/suggest" target="_blank" rel="noopener">Suggest one →</a>
   </p>
-  <button type="button" class="primary done" onclick={onclose}>Close</button>
+  {#snippet footer()}
+    <button type="button" class="primary done" onclick={onclose}>Close</button>
+  {/snippet}
 </Sheet>
 
 <style>
@@ -96,6 +98,5 @@
 
   .done {
     width: 100%;
-    margin-top: 1rem;
   }
 </style>

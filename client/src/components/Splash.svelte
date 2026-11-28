@@ -264,7 +264,7 @@
     {/snippet}
 
     {#snippet said()}
-      <Said name={host.host.name} line={words} />
+      <Said name={host.host.name} line={words} centred />
     {/snippet}
 
     {#if !tv}

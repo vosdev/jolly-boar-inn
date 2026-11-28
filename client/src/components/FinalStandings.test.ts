@@ -99,6 +99,16 @@ describe('FinalStandings', () => {
     expect(container.querySelector('.beside')).toBeNull()
   })
 
+  it("centres the Wise Old Man's line under his name", () => {
+    const { container } = render(FinalStandings, {
+      standings: TWO,
+      youId: null,
+      ceremony: true,
+      children,
+    })
+    expect(container.querySelector('.bubble .stack.centred')).toBeTruthy()
+  })
+
   it('skips to the hiscores', async () => {
     render(FinalStandings, { standings: TWO, youId: null, ceremony: true, children })
     await fireEvent.click(screen.getByRole('button', { name: 'Skip to hiscores' }))

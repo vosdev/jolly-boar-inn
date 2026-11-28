@@ -4,6 +4,9 @@
    * `full`, and sits in the middle of a wider screen. Shown for as long as it is mounted,
    * like `ConfirmDialog`; Escape asks the caller to close it rather than closing it here,
    * and so does a tap outside it with `outside`.
+   *
+   * `footer` stays below the body, which scrolls on its own, so a long sheet's Close is in
+   * sight without scrolling to it.
    */
   import { onMount, type Snippet } from 'svelte'
 
@@ -15,6 +18,7 @@
     outside = false,
     onclose,
     children,
+    footer = undefined,
   }: {
     /** The id of the heading inside that names it, or else `label`. */
     labelledby?: string
@@ -25,6 +29,7 @@
     outside?: boolean
     onclose: () => void
     children: Snippet
+    footer?: Snippet
   } = $props()
 
   let dialog = $state<HTMLDialogElement | null>(null)
@@ -57,12 +62,18 @@
   class="sheet"
   class:full
   class:wide
+  class:footed={footer !== undefined}
   aria-labelledby={labelledby}
   aria-label={label}
   oncancel={escape}
   onclick={tap}
 >
-  {@render children()}
+  {#if footer !== undefined}
+    <div class="body">{@render children()}</div>
+    <div class="foot">{@render footer()}</div>
+  {:else}
+    {@render children()}
+  {/if}
 </dialog>
 
 <style>
@@ -75,6 +86,25 @@
     border: var(--border-width) solid var(--line);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
+  }
+
+  /* Only while open: a dialog's own display is what hides it when closed. */
+  .sheet.footed[open] {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+
+  .foot {
+    flex: none;
+    padding-top: 1rem;
   }
 
   .sheet::backdrop {

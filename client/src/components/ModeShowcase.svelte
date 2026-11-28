@@ -30,6 +30,10 @@
 
   /** How long a mode stays before the next fades in. */
   export const ADVANCE_MS = 4500
+
+  /** A face's button, and the space between two, as the picker's styles draw them. */
+  const PICK_PX = 32
+  const PICK_GAP_PX = 4
 </script>
 
 <script lang="ts">
@@ -44,6 +48,7 @@
    */
   import { onMount } from 'svelte'
 
+  import { fitting, perRow } from '../lib/evenRows'
   import { reducedMotion } from '../lib/interlude'
   import { npcArt } from '../lib/npcs'
 
@@ -57,6 +62,22 @@
   let hidden = $state(false)
   /** Read once, as every other moving part of the site reads it. */
   const still = reducedMotion()
+
+  /** The faces' row, at most as wide as an even share of them, so no face sits alone. */
+  let rowWidth = $state<number | null>(null)
+  let picker = $state<HTMLElement | null>(null)
+
+  $effect(() => {
+    const room = picker?.parentElement
+    if (!room) return
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry === undefined) return
+      const across = perRow(order.length, fitting(entry.contentRect.width, PICK_PX, PICK_GAP_PX))
+      rowWidth = across * PICK_PX + (across - 1) * PICK_GAP_PX
+    })
+    observer.observe(room)
+    return () => observer.disconnect()
+  })
 
   onMount(() => {
     const onVisibility = (): void => {
@@ -127,7 +148,11 @@
       </div>
     {/each}
   </div>
-  <div class="picker">
+  <div
+    class="picker"
+    bind:this={picker}
+    style:--row-width={rowWidth === null ? null : `${rowWidth}px`}
+  >
     {#each order as mode, i (mode.id)}
       {@const art = npcArt(mode.host.id)}
       <button
@@ -235,7 +260,8 @@
   .picker {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.25rem;
+    gap: 4px;
+    max-width: var(--row-width, none);
   }
 
   .pick {
@@ -271,6 +297,7 @@
     .picker {
       justify-content: center;
       gap: 0;
+      max-width: none;
     }
 
     .pick {

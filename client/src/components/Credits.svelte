@@ -103,7 +103,9 @@
   <p class="note">
     <a class="link" href={WIKI_URL} target="_blank" rel="noopener">oldschool.runescape.wiki</a> · CC BY-NC-SA
   </p>
-  <button type="button" class="primary done" onclick={onclose}>Close</button>
+  {#snippet footer()}
+    <button type="button" class="primary done" onclick={onclose}>Close</button>
+  {/snippet}
 </Sheet>
 
 <style>
@@ -166,6 +168,5 @@
 
   .done {
     width: 100%;
-    margin-top: 1rem;
   }
 </style>

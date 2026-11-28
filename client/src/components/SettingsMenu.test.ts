@@ -534,7 +534,7 @@ describe('SettingsMenu, the themes', () => {
     expect(radios().find((radio) => radio.checked)?.value).toBe('wilderness')
   })
 
-  it('draws each emblem on a tile in its own theme, its name for a screen reader only', async () => {
+  it('draws each emblem on a tile in its own theme, its name written under it', async () => {
     await opened()
     const rows = radios().map((radio) => radio.closest('label')!)
     expect(rows.map((row) => row.querySelector<HTMLElement>('.tile')?.dataset.theme)).toEqual([
@@ -544,20 +544,23 @@ describe('SettingsMenu, the themes', () => {
       rows.map((row) => row.querySelector<SVGElement>('[data-placeholder]')?.dataset.placeholder),
     ).toEqual([...EMBLEMS])
     for (const row of rows) {
-      expect(
-        [...row.querySelectorAll('span')].filter((span) => span.textContent!.trim() !== ''),
-      ).toEqual([row.querySelector('.sr')])
+      const name = row.querySelector('.name')!
+      expect(name.classList.contains('sr')).toBe(false)
+      expect(name.textContent!.trim()).not.toBe('')
+      expect(row.querySelector('.tile')!.nextElementSibling).toBe(name)
     }
   })
 
-  it('writes the chosen theme’s name under the grid, and follows a new pick', async () => {
+  it('marks the chosen theme’s tile, and follows a new pick', async () => {
     localStorage.setItem('jbi:theme', 'wilderness')
     await opened()
-    const group = screen.getByRole('group', { name: 'Theme' })
-    const shown = () => group.querySelector('.current')!.textContent
-    expect(shown()).toBe('Wilderness')
+    const chosen = () =>
+      radios()
+        .filter((radio) => radio.closest('label')!.classList.contains('selected'))
+        .map((radio) => radio.value)
+    expect(chosen()).toEqual(['wilderness'])
     await fireEvent.click(radios().find((radio) => radio.value === 'morytania')!)
-    expect(shown()).toBe('Morytania')
+    expect(chosen()).toEqual(['morytania'])
   })
 
   it('repaints at once, changes the bar’s emblem, stays open, and remembers', async () => {

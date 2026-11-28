@@ -268,7 +268,7 @@
     <NameField id="profile-name" bind:value={draft} avoid={$room?.code ?? ''} />
     <div class="row">
       <button
-        class="primary small"
+        class="primary small save"
         type="submit"
         disabled={!ok || pending !== null || profileHold.held}
       >
@@ -341,7 +341,7 @@
               <p class="note">You can't change your name once the game has started.</p>
             {/if}
           </section>
-          <ThemeChoices current={theme} onpick={pickTheme} named />
+          <ThemeChoices current={theme} onpick={pickTheme} wide />
           <SoundSettings />
         </div>
         <fieldset class="you pets" disabled={!canRename}>
@@ -525,5 +525,14 @@
     text-transform: uppercase;
     letter-spacing: 0.12em;
     color: var(--muted);
+  }
+
+  /* Faded green on parchment reads as a smudge: with nothing to save, it is a plain
+     button in the muted ink instead, still legible. */
+  .save:disabled {
+    opacity: 1;
+    color: var(--muted);
+    background: var(--panel);
+    border-color: var(--line);
   }
 </style>
