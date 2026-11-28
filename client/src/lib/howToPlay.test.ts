@@ -92,6 +92,13 @@ describe('allTypes', () => {
       'Pick from a list',
     )
   })
+
+  it('lists the pin once a mode answers on the map', () => {
+    expect(titles(allTypes(MODES))).not.toContain('Drop a pin')
+    expect(titles(allTypes([...MODES, mode('minimap_guesser', ['map_pin'])]))).toContain(
+      'Drop a pin',
+    )
+  })
 })
 
 describe('rows', () => {
@@ -101,12 +108,22 @@ describe('rows', () => {
     }
   })
 
-  it('say Submit for every type that has one, and only for those', () => {
+  it('name the button that sends for every type that has one, and only for those', () => {
     const tapped = new Set(['multiple_choice', 'more_less'])
+    const pinned = new Set(['map_pin', 'picture_pin'])
     for (const row of HOW_TO_ROWS) {
-      expect(row.text.includes('Submit'), row.title).toBe(
-        !row.types.some((type) => tapped.has(type)),
-      )
+      const tap = row.types.some((type) => tapped.has(type))
+      const pin = row.types.some((type) => pinned.has(type))
+      expect(row.text.includes('Submit'), row.title).toBe(!tap && !pin)
+      expect(row.text.includes('Lock in'), row.title).toBe(pin)
+    }
+  })
+
+  it('share one row, drawn as a pin, for the map and the picture', () => {
+    for (const type of ['map_pin', 'picture_pin']) {
+      expect(rowsFor(new Set([type])).map((row) => [row.title, row.drawing])).toEqual([
+        ['Drop a pin', 'pin'],
+      ])
     }
   })
 })

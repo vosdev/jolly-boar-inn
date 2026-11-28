@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.292.0',
+    date: '2026-11-28',
+    text: 'Explain map and picture pins in How to play, add a page for lost links, say 1 question, and point new players to a game from Suggest',
+  },
+  {
     version: '0.291.0',
     date: '2026-11-26',
     text: 'Show how many of today’s players your daily beat, and count the days you play in a row',

@@ -19,12 +19,13 @@ import { EVENTS_SLUG, HOW_TO_PATH, slugOf } from './seo'
 export { HOW_TO_PATH, slugOf }
 export { WAYS_TO_PLAY, type WayId } from './waysToPlay'
 
-export type Drawing = 'tap' | 'basket' | 'order' | 'match' | 'text' | 'number' | 'slider' | 'list'
+export type Drawing =
+  'tap' | 'basket' | 'order' | 'match' | 'text' | 'number' | 'slider' | 'list' | 'pin'
 
 export interface HowToRow {
   types: string[]
   title: string
-  /** Plain words; every "Submit" in it is drawn bold. */
+  /** Plain words; every "Submit" and "Lock in" in it is drawn bold. */
   text: string
   drawing: Drawing
 }
@@ -77,6 +78,12 @@ export const HOW_TO_ROWS: HowToRow[] = [
     title: 'Pick from a list',
     text: 'Start typing, pick your answer from the list, then press Submit.',
     drawing: 'list',
+  },
+  {
+    types: ['map_pin', 'picture_pin'],
+    title: 'Drop a pin',
+    text: 'Tap where it is on the map or picture, then press Lock in.',
+    drawing: 'pin',
   },
 ]
 

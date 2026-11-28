@@ -697,6 +697,12 @@ describe('Create', () => {
     expect(vi.mocked(api.createRoom).mock.calls[0]![4]).toBe('public')
   })
 
+  it('says a single question in the singular', async () => {
+    await loaded('More or Less')
+    await press(round('More or Less'), 'Fewer questions', 9)
+    expect(status()).toMatch(/^1 round · 1 question · /)
+  })
+
   it('says how many questions the room plays, events included, before it exists', async () => {
     // One mode of ten at the default plays eleven, and Create says so.
     await loaded('More or Less')

@@ -16,6 +16,7 @@
    *   /report          A problem with a pack question, linked from the same place
    *   /daily           The day's set, played alone and once
    *   /dev/map         The world map on its own, under `pnpm dev` only
+   *   anything else    Not found, which the server sends with a 404
    *
    * `/r/:code/admin` was the claim screen. It still matches, and now resolves like
    * `/r/:code`: somebody holding a stale host link knows the code, and sending them to
@@ -37,6 +38,7 @@
   import TopBar from './components/TopBar.svelte'
   import Create from './routes/Create.svelte'
   import Daily from './routes/Daily.svelte'
+  import NotFound from './routes/NotFound.svelte'
   import Home from './routes/Home.svelte'
   import Join from './routes/Join.svelte'
   import Room from './routes/Room.svelte'
@@ -76,6 +78,7 @@
     | { name: 'report' }
     | { name: 'daily' }
     | { name: 'dev-map' }
+    | { name: 'not-found' }
 
   // Section 1 lists `/r/:code/create` as well; it resolves to the same Create screen.
   const ROOM_PATH = /^\/r\/([A-Za-z0-9]{1,32})(?:\/(admin|create))?$/
@@ -101,7 +104,7 @@
     // As spelled in the link: a game this browser never kept has no other spelling to show.
     if (past !== null) return { name: 'history', code: past[1] ?? '', stamp: past[2] ?? '' }
     const match = ROOM_PATH.exec(path)
-    if (match === null) return { name: 'home' }
+    if (match === null) return path === '/' ? { name: 'home' } : { name: 'not-found' }
     const code = normalizeCode(match[1] ?? '')
     if (match[2] === 'create') return { name: 'create' }
     return getSession(code) === null ? { name: 'join', code } : { name: 'room', code }
@@ -200,6 +203,12 @@
         }
       case 'dev-map':
         return { title: pageTitle('Map', siteName), description: '', canonicalPath: null }
+      case 'not-found':
+        return {
+          title: pageTitle('Page Not Found', siteName),
+          description: SEO_BY_PATH.get('/')!.description,
+          canonicalPath: null,
+        }
     }
   }
 
@@ -249,6 +258,7 @@
       route.name !== 'how-to' &&
       route.name !== 'daily' &&
       route.name !== 'dev-map' &&
+      route.name !== 'not-found' &&
       !invite &&
       (location.hash !== '' || currentPath().endsWith('/admin'))
     ) {
@@ -325,6 +335,8 @@
         </LazyRoute>
       {:else if route.name === 'daily'}
         <Daily {navigate} />
+      {:else if route.name === 'not-found'}
+        <NotFound {navigate} />
       {:else if route.name === 'dev-map'}
         {#if import.meta.env.DEV}
           <LazyRoute load={() => import('./routes/DevMap.svelte')}>
