@@ -126,6 +126,11 @@
     border-radius: var(--radius);
   }
 
+  /* Toktz's obsidian emblem is as dark as its tile, so it glows in its lava accent. */
+  .tile[data-theme='tzhaar'] :global(.emblem) {
+    filter: drop-shadow(0 0 3px var(--accent));
+  }
+
   .name {
     margin-top: 0.3rem;
     padding-inline: 0.15rem;

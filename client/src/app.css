@@ -510,8 +510,7 @@
   --bar-edge: #4a2a20;
   --bar-texture: none;
   --panel-edge: #4a2a20;
-  /* The obsidian emblem is as dark as the panel, so it sits on lava instead. */
-  --swatch: #8a3a18;
+  --swatch: #1c1210;
   --panel-sides: none;
 
   /* Parchment lit by the lava, on rolls scorched red. */
