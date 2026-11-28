@@ -190,7 +190,7 @@
   const summary = $derived(
     !picked
       ? 'None yet'
-      : `${roundsWord} · ${surprise ? 'at least ' : ''}${totalCount} questions · ${duration}`,
+      : `${roundsWord} · ${surprise ? 'at least ' : ''}${totalCount} question${totalCount === 1 ? '' : 's'} · ${duration}`,
   )
   const tally = $derived(
     `${questionCount} question${questionCount === 1 ? '' : 's'} in the rounds` +

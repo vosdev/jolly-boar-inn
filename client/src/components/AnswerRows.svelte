@@ -5,15 +5,15 @@
    * page both list them.
    *
    * The drawings are pictures, hidden from a screen reader, which the sentence beside
-   * each says in full. Their Submit is the real button's colour, so it is the thing that
-   * is recognised when the real one turns up.
+   * each says in full. Their Submit or Lock in is the real button's colour, so it is the
+   * thing that is recognised when the real one turns up.
    */
   import type { HowToRow } from '../lib/howToPlay'
 
   let { rows, columns = false }: { rows: HowToRow[]; columns?: boolean } = $props()
 </script>
 
-{#snippet submit()}<span class="submit">Submit</span>{/snippet}
+{#snippet submit(label = 'Submit')}<span class="submit">{label}</span>{/snippet}
 
 <ul class="rows" class:columns>
   {#each rows as row (row.title)}
@@ -48,6 +48,9 @@
           </span>
           <span class="box">Zul</span>
           {@render submit()}
+        {:else if row.drawing === 'pin'}
+          <span class="spot"><span class="tack"></span></span>
+          {@render submit('Lock in')}
         {:else if row.drawing === 'slider'}
           <span class="value">1.6m</span>
           <span class="rail"><span class="thumb"></span></span>
@@ -60,8 +63,8 @@
       <div class="words">
         <h3>{row.title}</h3>
         <p>
-          {#each row.text.split(/(Submit)/) as part, index (index)}
-            {#if part === 'Submit'}<strong>Submit</strong>{:else}{part}{/if}
+          {#each row.text.split(/(Submit|Lock in)/) as part, index (index)}
+            {#if part === 'Submit' || part === 'Lock in'}<strong>{part}</strong>{:else}{part}{/if}
           {/each}
         </p>
       </div>
@@ -192,6 +195,27 @@
 
   .option.picked {
     background: color-mix(in srgb, var(--accent) 20%, var(--panel));
+  }
+
+  /* A patch of map with the pin pushed in, its point on the spot. */
+  .spot {
+    position: relative;
+    height: 2.1rem;
+    background: color-mix(in srgb, var(--gem-emerald) 35%, var(--panel));
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+
+  .tack {
+    position: absolute;
+    top: 0.3rem;
+    left: 50%;
+    width: 0.7rem;
+    height: 0.7rem;
+    background: var(--gem-ruby);
+    border: 1px solid var(--ink);
+    border-radius: 50% 50% 50% 0;
+    transform: translateX(-50%) rotate(-45deg);
   }
 
   .value {

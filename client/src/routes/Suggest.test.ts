@@ -198,6 +198,18 @@ describe('Suggest', () => {
     expect(api.getSuggestionAllowance).not.toHaveBeenCalled()
   })
 
+  it('points a player who has not played yet to a game, to How to play and to Home', async () => {
+    renderSuggest(null, navigate)
+    for (const [name, to] of [
+      ['Create a room', '/create'],
+      ['How to play', '/how-to-play'],
+      ['Home', '/'],
+    ]) {
+      await fireEvent.click(screen.getByRole('button', { name }))
+      expect(navigate).toHaveBeenLastCalledWith(to)
+    }
+  })
+
   it('says the limit is reached before showing a single field', async () => {
     played()
     const retry = new Date(Date.now() + 22 * 60_000 + 5_000).toISOString()

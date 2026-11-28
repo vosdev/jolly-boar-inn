@@ -409,6 +409,16 @@ describe('App', () => {
     expect(api.getCredits).not.toHaveBeenCalled()
   })
 
+  it('says a path it does not know is not found, in the tab too, and goes back to the inn', async () => {
+    at('/no-such-page')
+    expect(screen.getByRole('heading', { name: 'Page not found' })).toBeTruthy()
+    expect(document.title).toMatch(/^Page Not Found/)
+    expect(screen.queryByLabelText('Join an existing room')).toBeNull()
+    await fireEvent.click(screen.getByRole('button', { name: 'Back to the inn' }))
+    expect(location.pathname).toBe('/')
+    expect(await screen.findByLabelText('Join an existing room')).toBeTruthy()
+  })
+
   it('opens the admin view at /admin, taking the token out of the address bar', async () => {
     const token = '0123456789abcdef0123456789abcdef'
     vi.stubGlobal(

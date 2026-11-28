@@ -143,7 +143,13 @@
   <section class="panel">
     <h1>Suggest a question</h1>
     <p>Play a game first, then come back here to suggest questions.</p>
-    <button type="button" onclick={() => navigate('/')}>Home</button>
+    <div class="row">
+      <button type="button" class="primary" onclick={() => navigate('/create')}>
+        Create a room
+      </button>
+      <button type="button" onclick={() => navigate('/how-to-play')}>How to play</button>
+      <button type="button" onclick={() => navigate('/')}>Home</button>
+    </div>
   </section>
 {:else if view === 'checking'}
   <section class="panel">
