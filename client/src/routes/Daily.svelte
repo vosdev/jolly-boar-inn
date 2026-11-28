@@ -15,8 +15,16 @@
   import { onMount } from 'svelte'
   import { get } from 'svelte/store'
 
+  import DailyOpens from '../components/DailyOpens.svelte'
   import DailyResultScreen from '../components/DailyResult.svelte'
-  import { ApiFailure, getDaily, getDailyResult, startDaily, type DailyToday } from '../lib/api'
+  import {
+    ApiFailure,
+    dailyOpensAt,
+    getDaily,
+    getDailyResult,
+    startDaily,
+    type DailyToday,
+  } from '../lib/api'
   import {
     dailyScores,
     dailyToken,
@@ -41,24 +49,32 @@
     | { name: 'intro'; today: DailyToday }
     | { name: 'playing'; code: string }
     | { name: 'result'; result: DailyResult; streak: number }
+    | { name: 'closed'; opensAt: string }
     | { name: 'error'; message: string }
 
   let view = $state<View>({ name: 'loading' })
   let starting = $state(false)
 
   onMount(() => {
-    void (async () => {
-      try {
-        const today = await getDaily()
-        const last = lastDaily()
-        if (last !== null && !last.finished && (await ranOut(last.day))) return
-        if (resumes(last, today.day)) await begin(today)
-        else view = { name: 'intro', today }
-      } catch {
-        view = { name: 'error', message: "The daily challenge isn't available right now." }
-      }
-    })()
+    void load()
   })
+
+  /** Today's daily, resumed or shown; before the first one, when it opens. */
+  async function load(): Promise<void> {
+    try {
+      const today = await getDaily()
+      const last = lastDaily()
+      if (last !== null && !last.finished && (await ranOut(last.day))) return
+      if (resumes(last, today.day)) await begin(today)
+      else view = { name: 'intro', today }
+    } catch (failure) {
+      const opensAt = dailyOpensAt(failure)
+      view =
+        opensAt === null
+          ? { name: 'error', message: "The daily challenge isn't available right now." }
+          : { name: 'closed', opensAt }
+    }
+  }
 
   /** Show `day`'s result if its attempt is over; whether it was. */
   async function ranOut(day: string): Promise<boolean> {
@@ -141,6 +157,12 @@
         >
           Start
         </button>
+        <button type="button" onclick={() => navigate('/')}>Home</button>
+      </div>
+    {:else if view.name === 'closed'}
+      <h1>Daily challenge</h1>
+      <DailyOpens opensAt={view.opensAt} onopen={() => void load()} />
+      <div class="row">
         <button type="button" onclick={() => navigate('/')}>Home</button>
       </div>
     {:else}

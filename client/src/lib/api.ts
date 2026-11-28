@@ -286,6 +286,13 @@ export function getDaily(): Promise<DailyToday> {
   return request<DailyToday>('/api/daily')
 }
 
+/** When the first daily opens, from `getDaily`'s 404 `daily_not_open`; null for any other failure. */
+export function dailyOpensAt(failure: unknown): string | null {
+  if (!(failure instanceof ApiFailure) || failure.code !== 'daily_not_open') return null
+  const body = failure.body as { opens_at?: unknown } | null
+  return typeof body?.opens_at === 'string' ? body.opens_at : null
+}
+
 /**
  * Start this browser's daily, or resume its unfinished one: the room and a fresh session.
  * A daily played today is a 409 `daily_played` with its `result` in the failure's `body`. The token goes in the body, like a session.

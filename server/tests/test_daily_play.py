@@ -432,6 +432,17 @@ def test_no_daily_before_the_first_day(
         assert response.json()["code"] == "daily_not_open"
 
 
+def test_a_closed_daily_says_when_it_opens(
+    quick: FastAPI, client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    first = day_of(datetime.now(UTC)) + timedelta(days=3)
+    monkeypatch.setattr(client.app.state.settings, "daily_first_day", first)  # type: ignore[attr-defined]
+    response = client.get("/api/daily")
+    assert response.status_code == 404
+    opens = datetime(first.year, first.month, first.day, 8, tzinfo=UTC)
+    assert response.json()["opens_at"] == opens.isoformat()
+
+
 def test_the_first_day_is_daily_one(
     quick: FastAPI, client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:

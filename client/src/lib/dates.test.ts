@@ -2,7 +2,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { dailyDate, expiresIn, finishedAt, finishedDay } from './dates'
+import { countdown, dailyDate, expiresIn, finishedAt, finishedDay, opensOn } from './dates'
 
 const NOW = Date.parse('2026-10-04T12:00:00Z')
 const hours = (count: number): number => NOW + count * 3_600_000
@@ -49,5 +49,23 @@ describe('dailyDate', () => {
 
   it('hands back what it cannot read', () => {
     expect(dailyDate('soon')).toBe('soon')
+  })
+})
+
+describe('opensOn', () => {
+  it('names the day and the month', () => {
+    expect(opensOn('2027-01-01T12:00:00+00:00')).toBe('1 January')
+  })
+})
+
+describe('countdown', () => {
+  it('counts hours, minutes and seconds, then drops the hours', () => {
+    expect(countdown((5 * 3600 + 3 * 60 + 9) * 1000)).toBe('5h 03m 09s')
+    expect(countdown((3 * 60 + 9) * 1000)).toBe('3m 09s')
+  })
+
+  it('rounds up, so the last second shows as one, and never goes below nothing', () => {
+    expect(countdown(400)).toBe('0m 01s')
+    expect(countdown(-5000)).toBe('0m 00s')
   })
 })
